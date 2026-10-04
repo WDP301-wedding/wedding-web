@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
+import './globals.css';
+
 export const metadata: Metadata = {
-  title: 'Wedding platform',
-  description: 'Public, guest, and couple web application foundation.',
+  title: 'Lời mời riêng tư | Wedding',
+  description: 'Không gian chuẩn bị lễ cưới dành riêng cho các cặp đôi.',
 };
 
 type RootLayoutProps = Readonly<{
@@ -12,7 +14,7 @@ type RootLayoutProps = Readonly<{
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
+    <html lang="vi">
       <body>{children}</body>
     </html>
   );

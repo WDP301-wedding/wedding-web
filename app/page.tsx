@@ -1,8 +1,5 @@
+import { PublicIdentityPage } from '../src/features/identity-access/identity-page';
+
 export default function HomePage() {
-  return (
-    <main>
-      <h1>Wedding platform</h1>
-      <p>The public web foundation is ready.</p>
-    </main>
-  );
+  return <PublicIdentityPage />;
 }
