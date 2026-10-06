@@ -1,16 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
+
 :root {
-  --navy: #163a70;
-  --navy-deep: #102b55;
-  --brown: #553419;
-  --burgundy: #6b3a3a;
-  --gold: #b08a47;
-  --powder: #dce6f6;
-  --paper: #fffefa;
-  --ink: #2f2925;
-  --muted: #716b66;
-  --font-display: Georgia, 'Times New Roman', serif;
-  --font-body: 'Segoe UI', Arial, sans-serif;
-  --font-script: 'Segoe Script', 'Brush Script MT', cursive;
+  --navy: #334537;
+  --navy-deep: #243b2a;
+  --brown: #232321;
+  --burgundy: #8c6d62;
+  --gold: #c5a880;
+  --powder: #f3efea;
+  --paper: #faf8f5;
+  --ink: #232321;
+  --muted: #62645f;
+  --font-display: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-body: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-script: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-wordmark: Lora, Georgia, 'Times New Roman', serif;
   color-scheme: light;
 }
 
@@ -29,6 +32,8 @@ body {
   color: var(--ink);
   background: var(--paper);
   font-family: var(--font-body);
+  font-feature-settings: 'kern', 'liga', 'clig', 'calt';
+  font-kerning: normal;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -65,11 +70,11 @@ input {
   padding: 8px 24px;
   color: white;
   background: var(--brown);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 13px;
-  letter-spacing: 0.08em;
+  letter-spacing: normal;
   text-align: center;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .site-header {
@@ -98,6 +103,7 @@ input {
 
 .estate-brand strong {
   margin-top: 6px;
+  font-family: var(--font-wordmark);
   font-size: clamp(22px, 2.5vw, 34px);
   font-weight: 400;
 }
@@ -106,6 +112,7 @@ input {
   margin-top: 4px;
   font-family: var(--font-script);
   font-size: 17px;
+  font-style: italic;
   letter-spacing: 0;
 }
 
@@ -143,6 +150,8 @@ input {
   background: var(--navy);
   font-family: var(--font-script);
   font-size: clamp(17px, 2vw, 24px);
+  font-style: italic;
+  letter-spacing: normal;
   text-align: center;
 }
 
@@ -163,6 +172,8 @@ input {
 }
 
 .visual-caption {
+  --caption-size: clamp(18px, 1.8vw, 24px);
+
   position: absolute;
   right: 0;
   bottom: 0;
@@ -174,24 +185,27 @@ input {
   padding: 22px 40px;
   color: white;
   background: rgb(16 43 85 / 88%);
-  grid-template-columns: 1fr auto 1fr;
-  font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  font-family: var(--font-body);
+  font-size: var(--caption-size);
+  font-weight: 500;
+  letter-spacing: normal;
+  line-height: 1.25;
+  text-transform: none;
+}
+
+.visual-caption > * {
+  min-width: 0;
+  text-align: center;
 }
 
 .visual-caption strong {
   padding: 0 30px;
   border-right: 1px solid rgb(255 255 255 / 38%);
   border-left: 1px solid rgb(255 255 255 / 38%);
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: 0.05em;
-}
-
-.visual-caption span:last-child {
-  text-align: right;
+  font-size: var(--caption-size);
+  font-weight: 500;
+  letter-spacing: normal;
 }
 
 .invitation-content {
@@ -212,6 +226,7 @@ input {
   color: var(--burgundy);
   font-family: var(--font-script);
   font-size: clamp(24px, 2.6vw, 36px);
+  font-style: normal;
 }
 
 .invitation-content h1 {
@@ -221,9 +236,9 @@ input {
   font-family: var(--font-display);
   font-size: clamp(36px, 3.3vw, 48px);
   font-weight: 400;
-  letter-spacing: 0.025em;
+  letter-spacing: normal;
   line-height: 1.06;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .invitation-content h1 span {
@@ -235,7 +250,7 @@ input {
   max-width: 680px;
   margin: 22px 0 0;
   color: var(--muted);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.8;
 }
@@ -342,7 +357,7 @@ input {
 }
 
 .field input[readonly] {
-  background: #f6f8fc;
+  background: #f6f3ef;
 }
 
 .field small {
@@ -353,7 +368,7 @@ input {
 .password-guidance {
   padding: 12px 16px;
   color: var(--muted);
-  background: #f7f2e8;
+  background: var(--powder);
   font-size: 10px;
 }
 
@@ -422,9 +437,9 @@ input {
   font-family: var(--font-display);
   font-size: clamp(34px, 3.3vw, 48px);
   font-weight: 400;
-  letter-spacing: 0.025em;
+  letter-spacing: normal;
   line-height: 1.08;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .identity-fields {
@@ -687,10 +702,6 @@ input {
     border: 0;
     border-top: 1px solid rgb(255 255 255 / 34%);
     border-bottom: 1px solid rgb(255 255 255 / 34%);
-  }
-
-  .visual-caption span:last-child {
-    text-align: center;
   }
 
   .invitation-content {

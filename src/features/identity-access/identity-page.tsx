@@ -304,8 +304,8 @@ function PublicShell({ children }: Readonly<{ children: React.ReactNode }>) {
         >
           <div className="visual-caption">
             <span>Bảo mật</span>
-            <strong>RIÊNG TƯ</strong>
-            <span>ĐỒNG HÀNH CÙNG HAI BẠN</span>
+            <strong>Riêng tư</strong>
+            <span>Đồng hành</span>
           </div>
         </section>
         <section className="invitation-content">{children}</section>
