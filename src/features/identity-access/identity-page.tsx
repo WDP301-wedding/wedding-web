@@ -1,6 +1,7 @@
 'use client';
 
 import { type FormEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 
 import { ApiClientError } from '../../lib/api/client';
 import {
@@ -395,6 +396,9 @@ function AuthenticatedWorkspace({
             ? 'Tài khoản của bạn đã có quyền truy cập đầy đủ vào kế hoạch cưới.'
             : 'Bạn đang có quyền truy cập giới hạn để xem đề xuất và cùng cập nhật mốc tư vấn.'}
         </p>
+        <Link className="primary-action workspace-entry" href="/workspace">
+          Mở đề xuất của chúng tôi
+        </Link>
       </section>
       <section className="access-summary" aria-label="Phạm vi truy cập hiện tại">
         <article>
