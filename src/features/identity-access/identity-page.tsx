@@ -3,6 +3,7 @@
 import { type FormEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
+import { PasswordResetOtpForm } from './password-reset-otp-form';
 import { ApiClientError } from '../../lib/api/client';
 import { AccountSettings } from './account-settings';
 import {
@@ -24,7 +25,7 @@ export function hasBootstrapCredential() {
   return browserCredential !== null;
 }
 
-type IdentityView = 'invitation' | 'login' | 'reset-complete' | 'reset-request' | 'restoring';
+type IdentityView = 'invitation' | 'login' | 'reset-request' | 'restoring';
 
 type IdentityExperienceProps = Readonly<{
   session: WebIdentitySession;
@@ -56,7 +57,7 @@ export function IdentityExperience({ session, initialCredential }: IdentityExper
     if (initialCredential !== null) {
       queueMicrotask(() => {
         if (!active) return;
-        setView(initialCredential.kind === 'invitation' ? 'invitation' : 'reset-complete');
+        setView(initialCredential.kind === 'invitation' ? 'invitation' : 'reset-request');
       });
       return () => {
         active = false;
@@ -144,33 +145,6 @@ export function IdentityExperience({ session, initialCredential }: IdentityExper
     });
   };
 
-  const handleResetRequest = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    void run(async () => {
-      await session.requestPasswordReset(readField(form, 'email'));
-      setNotice('Nếu tài khoản đủ điều kiện, hướng dẫn đặt lại mật khẩu đã được gửi.');
-    });
-  };
-
-  const handleResetCompletion = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (credentialSubmitted.current || initialCredential?.kind !== 'reset') return;
-    const form = new FormData(event.currentTarget);
-    const password = readField(form, 'password');
-    if (password !== readField(form, 'passwordConfirmation')) {
-      setError('Hai mật khẩu chưa trùng khớp.');
-      return;
-    }
-    credentialSubmitted.current = true;
-    setCredentialConsumed(true);
-    void run(async () => {
-      await session.completePasswordReset(initialCredential.token, password);
-      setNotice('Mật khẩu đã được cập nhật. Hãy đăng nhập lại để tiếp tục.');
-      setView('login');
-    });
-  };
-
   return (
     <PublicShell>
       <div className="auth-panel" aria-live="polite">
@@ -226,40 +200,12 @@ export function IdentityExperience({ session, initialCredential }: IdentityExper
         ) : null}
 
         {view === 'reset-request' ? (
-          <AuthForm
-            title="Khôi phục mật khẩu"
-            description="Nhập email của bạn. Kết quả luôn được giữ riêng tư."
-            submitLabel="Gửi hướng dẫn"
-            pending={pending}
-            onSubmit={handleResetRequest}
-          >
-            <Field label="Email" name="email" type="email" autoComplete="email" />
-          </AuthForm>
-        ) : null}
-
-        {view === 'reset-complete' ? (
-          <AuthForm
-            title="Đặt mật khẩu mới"
-            description="Mật khẩu mới cần từ 12 đến 128 ký tự."
-            submitLabel="Cập nhật mật khẩu"
-            pending={pending || credentialConsumed}
-            onSubmit={handleResetCompletion}
-          >
-            <Field
-              label="Mật khẩu mới"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              minLength={12}
-            />
-            <Field
-              label="Xác nhận mật khẩu"
-              name="passwordConfirmation"
-              type="password"
-              autoComplete="new-password"
-              minLength={12}
-            />
-          </AuthForm>
+          <PasswordResetOtpForm
+            onCompleted={() => {
+              setView('login');
+              setNotice('Mật khẩu đã được cập nhật. Hãy đăng nhập lại.');
+            }}
+          />
         ) : null}
 
         {error === null ? null : (

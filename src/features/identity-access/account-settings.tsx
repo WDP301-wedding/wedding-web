@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import type { OtpChallenge } from './password-otp-api';
 import { ApiClientError } from '../../lib/api/client';
 import { createExperienceGateway, type Profile } from './experience-api';
 import type { WebIdentitySession } from './session';
@@ -18,6 +19,34 @@ export function AccountSettings({
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
+  const [challenge, setChallenge] = useState<OtpChallenge | null>(null);
+  const [remaining, setRemaining] = useState(0);
+  const passwordForm = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (remaining <= 0) return;
+    const timer = setTimeout(() => setRemaining((value) => Math.max(0, value - 1)), 1000);
+    return () => clearTimeout(timer);
+  }, [remaining]);
+  async function sendCode(current: string) {
+    const value = await session.authorize((token) => gateway.requestPasswordChange(token, current));
+    setChallenge(value);
+    setRemaining(value.resendAfterSeconds);
+    setNotice('Mã OTP đã được gửi vào email của bạn. Mã có hiệu lực 10 phút.');
+  }
+  async function resend() {
+    if (pending || remaining > 0 || !passwordForm.current) return;
+    const current = new FormData(passwordForm.current).get('currentPassword');
+    if (typeof current !== 'string') return;
+    setPending(true);
+    setError(null);
+    try {
+      await sendCode(current);
+    } catch {
+      setError('Chưa gửi lại được mã. Hãy đợi một lúc rồi thử lại.');
+    } finally {
+      setPending(false);
+    }
+  }
   useEffect(() => {
     let active = true;
     void session
@@ -73,14 +102,27 @@ export function AccountSettings({
     setError(null);
     setNotice(null);
     try {
-      await session.authorize((token) => gateway.changePassword(token, current, next));
+      if (!challenge) {
+        await sendCode(current);
+        return;
+      }
+      await session.authorize((token) =>
+        gateway.changePassword(
+          token,
+          challenge.challengeId,
+          typeof form.get('code') === 'string' ? (form.get('code') as string) : '',
+          next,
+        ),
+      );
       session.discardRevokedSession();
       onSignedOut();
     } catch (caught) {
       setError(
         caught instanceof ApiClientError && caught.code === 'CURRENT_PASSWORD_INVALID'
           ? 'Mật khẩu hiện tại chưa đúng.'
-          : 'Chưa đổi được mật khẩu. Hãy thử lại.',
+          : challenge
+            ? 'Mã OTP chưa đúng hoặc đã hết hạn. Kiểm tra mã mới nhất hoặc gửi lại.'
+            : 'Chưa gửi được mã xác nhận. Hãy đợi một lúc rồi thử lại.',
       );
     } finally {
       setPending(false);
@@ -123,7 +165,7 @@ export function AccountSettings({
               Lưu thay đổi
             </button>
           </form>
-          <form onSubmit={(event) => void change(event)}>
+          <form ref={passwordForm} onSubmit={(event) => void change(event)}>
             <h3>Đổi mật khẩu</h3>
             <label>
               Mật khẩu hiện tại
@@ -133,6 +175,7 @@ export function AccountSettings({
                 type="password"
                 autoComplete="current-password"
                 maxLength={512}
+                readOnly={challenge !== null}
               />
             </label>
             <label>
@@ -157,12 +200,37 @@ export function AccountSettings({
                 autoComplete="new-password"
               />
             </label>
+            {challenge && (
+              <label>
+                Mã OTP
+                <input
+                  key={challenge.challengeId}
+                  name="code"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]{6}"
+                  minLength={6}
+                  maxLength={6}
+                  required
+                />
+              </label>
+            )}
             <p className="public-muted">
               Dùng 12–128 ký tự. Sau khi đổi, bạn cần đăng nhập lại trên các thiết bị.
             </p>
             <button className="public-button" disabled={pending} type="submit">
-              Cập nhật mật khẩu
+              {challenge ? 'Xác nhận và cập nhật mật khẩu' : 'Gửi mã OTP'}
             </button>
+            {challenge && (
+              <button
+                type="button"
+                disabled={pending || remaining > 0}
+                onClick={() => void resend()}
+              >
+                {remaining > 0 ? `Gửi lại sau ${remaining}s` : 'Gửi lại mã OTP'}
+              </button>
+            )}
           </form>
         </div>
       ) : null}
