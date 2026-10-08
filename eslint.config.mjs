@@ -57,5 +57,12 @@ export default defineConfig(
       '@typescript-eslint/no-misused-promises': 'error',
     },
   },
+  {
+    files: ['src/lib/api/generated/**/*.d.ts'],
+    rules: {
+      '@typescript-eslint/no-duplicate-type-constituents': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
+    },
+  },
   prettier,
 );
