@@ -34,7 +34,7 @@ export function CollaborationPage() {
     return (
       <AccessState title="Cần đăng nhập">
         <p role="alert">Hãy đăng nhập hoặc chấp nhận lời mời trước khi xem đề xuất.</p>
-        <Link href="/">Về trang đăng nhập</Link>
+        <Link href="/account">Về trang đăng nhập</Link>
       </AccessState>
     );
   return (
@@ -62,10 +62,6 @@ export function CollaborationWorkspace({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const value = new URLSearchParams(window.location.search).get('bookingId');
-    if (value) queueMicrotask(() => setBookingId(value));
-  }, []);
   const load = useCallback(
     async (id: string) => {
       setPending(true);
@@ -84,6 +80,15 @@ export function CollaborationWorkspace({
     },
     [authorize, gateway],
   );
+  useEffect(() => {
+    const value = new URLSearchParams(window.location.search).get('bookingId');
+    if (value)
+      queueMicrotask(() => {
+        setBookingId(value);
+        if (/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/iu.test(value))
+          void load(value);
+      });
+  }, [load]);
   const command = async (operation: (token: string) => Promise<void>, success: string) => {
     setPending(true);
     setError(null);
@@ -108,7 +113,7 @@ export function CollaborationWorkspace({
         Đi đến đề xuất
       </a>
       <header className="collab-header">
-        <Link className="collab-brand" href="/">
+        <Link className="collab-brand" href="/overview">
           <small>THE</small>
           <strong>WEDDING ESTATE</strong>
         </Link>

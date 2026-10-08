@@ -4,6 +4,7 @@ import { type FormEvent, useEffect, useLayoutEffect, useRef, useState } from 're
 import Link from 'next/link';
 
 import { ApiClientError } from '../../lib/api/client';
+import { AccountSettings } from './account-settings';
 import {
   consumeCredentialFragment,
   createIdentityApi,
@@ -18,7 +19,10 @@ const browserCredential =
     : consumeCredentialFragment(window.location.href, (safePath) =>
         window.history.replaceState(null, '', safePath),
       );
-const browserSession = new WebIdentitySession(createIdentityApi());
+export const browserSession = new WebIdentitySession(createIdentityApi());
+export function hasBootstrapCredential() {
+  return browserCredential !== null;
+}
 
 type IdentityView = 'invitation' | 'login' | 'reset-complete' | 'reset-request' | 'restoring';
 
@@ -73,6 +77,12 @@ export function IdentityExperience({ session, initialCredential }: IdentityExper
     return (
       <AuthenticatedWorkspace
         snapshot={snapshot}
+        session={session}
+        onSignedOut={() => {
+          setSnapshot(session.snapshot());
+          setView('login');
+          setNotice('Đã đổi mật khẩu. Hãy đăng nhập lại để tiếp tục.');
+        }}
         pending={pending}
         onLogout={() => {
           setPending(true);
@@ -364,10 +374,14 @@ function Field({
 }
 
 function AuthenticatedWorkspace({
+  session,
+  onSignedOut,
   onLogout,
   pending,
   snapshot,
 }: Readonly<{
+  session: WebIdentitySession;
+  onSignedOut: () => void;
   onLogout: () => void;
   pending: boolean;
   snapshot: Extract<WebSessionSnapshot, { status: 'authenticated' }>;
@@ -396,10 +410,11 @@ function AuthenticatedWorkspace({
             ? 'Tài khoản của bạn đã có quyền truy cập đầy đủ vào kế hoạch cưới.'
             : 'Bạn đang có quyền truy cập giới hạn để xem đề xuất và cùng cập nhật mốc tư vấn.'}
         </p>
-        <Link className="primary-action workspace-entry" href="/workspace">
-          Mở đề xuất của chúng tôi
+        <Link className="primary-action workspace-entry" href="/overview">
+          Mở kế hoạch của chúng tôi
         </Link>
       </section>
+      <AccountSettings session={session} onSignedOut={onSignedOut} />
       <section className="access-summary" aria-label="Phạm vi truy cập hiện tại">
         <article>
           <span>Đang mở</span>
@@ -412,7 +427,7 @@ function AuthenticatedWorkspace({
           <p>Cùng theo dõi những bước cần thống nhất trước ngày đặt cọc.</p>
         </article>
         <article aria-disabled={!full} className={full ? '' : 'access-locked'}>
-          <span>{full ? 'Đang mở' : 'Sau khi xác nhận đặt cọc'}</span>
+          <span>Đang chuẩn bị</span>
           <strong>Khách mời, thiệp và sơ đồ bàn</strong>
           <p>Mọi thao tác vẫn được máy chủ kiểm tra quyền trước khi thực hiện.</p>
         </article>

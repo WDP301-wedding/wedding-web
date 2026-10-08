@@ -55,8 +55,10 @@ export function consumeCredentialFragment(
 ): BootstrapCredential | null {
   const url = new URL(href);
   const fragment = new URLSearchParams(url.hash.slice(1));
-  const invitationToken = fragment.get('invitationToken');
-  const resetToken = fragment.get('resetToken');
+  const raw = url.hash.slice(1);
+  const invitationToken =
+    fragment.get('invitationToken') ?? (invitationPattern.test(raw) ? raw : null);
+  const resetToken = fragment.get('resetToken') ?? (resetPattern.test(raw) ? raw : null);
   replaceHistory(`${url.pathname}${url.search}`);
 
   if (invitationToken !== null && invitationPattern.test(invitationToken)) {
@@ -77,6 +79,10 @@ export class WebIdentitySession {
 
   snapshot(): WebSessionSnapshot {
     return this.state;
+  }
+
+  discardRevokedSession(): void {
+    this.clear();
   }
 
   async login(email: string, password: string): Promise<WebSessionSnapshot> {

@@ -89,6 +89,14 @@ function failure(code: string, status?: number) {
 }
 
 describe('Booking collaboration workspace', () => {
+  it('opens a valid booking link through the authenticated gateway', async () => {
+    const id = '20000000-0000-4000-8000-000000000011';
+    window.history.replaceState({}, '', `/workspace?bookingId=${id}`);
+    const gateway = fakeGateway();
+    render(<CollaborationWorkspace access="full" authorize={authorize} gateway={gateway} />);
+    await waitFor(() => expect(gateway.load).toHaveBeenCalledWith('couple-token', id));
+    expect(await screen.findByText('Sảnh Ánh Dương')).toBeVisible();
+  });
   it('reads the invitation booking ID from the URL without loading unauthorized data', async () => {
     window.history.replaceState({}, '', '/workspace?bookingId=from-invitation');
     const gateway = fakeGateway();
