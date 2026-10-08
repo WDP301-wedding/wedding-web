@@ -1,8 +1,20 @@
 'use client';
-import { useRef, useState, type FormEvent } from 'react';
+import { useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import { createPublicGateway, type ConsultationRequest } from './public-api';
+import { minimumPreferredDate } from './consultation-date';
 import { ApiClientError } from '../../lib/api/client';
 import Link from 'next/link';
+
+function subscribeToDateChange(onChange: () => void) {
+  const timer = window.setInterval(onChange, 60_000);
+  window.addEventListener('focus', onChange);
+  return () => {
+    window.clearInterval(timer);
+    window.removeEventListener('focus', onChange);
+  };
+}
+
+const serverMinimumDate = () => '';
 
 export function ConsultationForm({
   submit = createPublicGateway().submit,
@@ -11,6 +23,11 @@ export function ConsultationForm({
 }) {
   const [state, setState] = useState<'idle' | 'pending' | 'success'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const minimumDate = useSyncExternalStore(
+    subscribeToDateChange,
+    minimumPreferredDate,
+    serverMinimumDate,
+  );
   const intent = useRef<{ hash: string; id: string } | null>(null);
   async function send(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,6 +45,10 @@ export function ConsultationForm({
       expectedGuests: field('expectedGuests') ? Number(field('expectedGuests')) : null,
       message: field('message'),
     };
+    if (fields.preferredDate !== null && fields.preferredDate < minimumPreferredDate()) {
+      setError('Ngày tổ chức dự kiến phải từ ngày mốt trở đi (theo giờ Việt Nam).');
+      return;
+    }
     const hash = JSON.stringify(fields);
     if (intent.current?.hash !== hash) intent.current = { hash, id: crypto.randomUUID() };
     setState('pending');
@@ -81,7 +102,13 @@ export function ConsultationForm({
         </label>
         <label>
           Ngày tổ chức dự kiến <span>(không bắt buộc)</span>
-          <input name="preferredDate" type="date" />
+          <input
+            name="preferredDate"
+            type="date"
+            min={minimumDate}
+            aria-describedby="preferred-date-help"
+          />
+          <span id="preferred-date-help">Chọn ngày mốt hoặc muộn hơn (theo giờ Việt Nam).</span>
         </label>
         <label>
           Số khách dự kiến <span>(không bắt buộc)</span>
