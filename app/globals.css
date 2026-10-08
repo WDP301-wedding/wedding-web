@@ -121,8 +121,7 @@ textarea {
   color: var(--navy);
   font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: normal;
 }
 
 .collab-intro {
@@ -139,14 +138,22 @@ textarea {
 .collab-proposal h2,
 .collab-columns h2 {
   margin: 0;
-  font-family: var(--font-wordmark);
+  font-family: var(--font-display);
   font-weight: 500;
+  letter-spacing: normal;
+  line-height: 1.25;
 }
 
 .collab-intro h1 {
-  max-width: 14ch;
-  font-size: clamp(2.5rem, 7vw, 5.5rem);
-  line-height: 0.98;
+  max-width: 20ch;
+  font-size: clamp(2.25rem, 5.5vw, 3.5rem);
+  text-wrap: balance;
+}
+
+.collab-intro > .script-heading {
+  margin: 0 0 1rem;
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  line-height: 1.5;
 }
 
 .collab-intro > p:not(.script-heading) {
@@ -172,7 +179,7 @@ textarea {
   color: var(--navy);
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: normal;
 }
 
 .collab-lookup input,
@@ -201,8 +208,7 @@ textarea {
   border-radius: 2px;
   font-size: 0.75rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: normal;
   cursor: pointer;
 }
 
