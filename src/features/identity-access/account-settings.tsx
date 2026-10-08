@@ -6,6 +6,9 @@ import { createExperienceGateway, type Profile } from './experience-api';
 import type { WebIdentitySession } from './session';
 
 const gateway = createExperienceGateway();
+function waitLabel(seconds: number) {
+  return seconds >= 60 ? `${Math.ceil(seconds / 60)} phút` : `${seconds} giây`;
+}
 export function AccountSettings({
   session,
   onSignedOut,
@@ -33,16 +36,38 @@ export function AccountSettings({
     setRemaining(value.resendAfterSeconds);
     setNotice('Mã OTP đã được gửi vào email của bạn. Mã có hiệu lực 10 phút.');
   }
+  function requestFailed(caught: unknown) {
+    if (caught instanceof ApiClientError) {
+      if (caught.status === 429) {
+        const seconds = caught.retryAfterSeconds ?? 60;
+        setRemaining(seconds);
+        setError(
+          `Bạn đã yêu cầu mã quá nhiều lần. Hãy chờ ${waitLabel(seconds)} trước khi thử lại.`,
+        );
+        return;
+      }
+      if (caught.code === 'CURRENT_PASSWORD_INVALID') {
+        setError('Mật khẩu hiện tại chưa đúng.');
+        return;
+      }
+      if (caught.code === 'EMAIL_NOT_CONFIGURED' || caught.code === 'OTP_EMAIL_DELIVERY_FAILED') {
+        setError('Dịch vụ email đang gặp sự cố nên chưa gửi được mã OTP. Hãy thử lại sau.');
+        return;
+      }
+    }
+    setError('Chưa gửi được mã xác nhận. Hãy kiểm tra kết nối rồi thử lại.');
+  }
   async function resend() {
     if (pending || remaining > 0 || !passwordForm.current) return;
     const current = new FormData(passwordForm.current).get('currentPassword');
     if (typeof current !== 'string') return;
     setPending(true);
     setError(null);
+    setNotice(null);
     try {
       await sendCode(current);
-    } catch {
-      setError('Chưa gửi lại được mã. Hãy đợi một lúc rồi thử lại.');
+    } catch (caught) {
+      requestFailed(caught);
     } finally {
       setPending(false);
     }
@@ -89,7 +114,7 @@ export function AccountSettings({
   }
   async function change(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (pending) return;
+    if (pending || (!challenge && remaining > 0)) return;
     const form = new FormData(event.currentTarget),
       current = form.get('currentPassword'),
       next = form.get('newPassword');
@@ -117,13 +142,11 @@ export function AccountSettings({
       session.discardRevokedSession();
       onSignedOut();
     } catch (caught) {
-      setError(
-        caught instanceof ApiClientError && caught.code === 'CURRENT_PASSWORD_INVALID'
-          ? 'Mật khẩu hiện tại chưa đúng.'
-          : challenge
-            ? 'Mã OTP chưa đúng hoặc đã hết hạn. Kiểm tra mã mới nhất hoặc gửi lại.'
-            : 'Chưa gửi được mã xác nhận. Hãy đợi một lúc rồi thử lại.',
-      );
+      if (challenge) {
+        setError('Mã OTP chưa đúng hoặc đã hết hạn. Kiểm tra mã mới nhất hoặc gửi lại.');
+      } else {
+        requestFailed(caught);
+      }
     } finally {
       setPending(false);
     }
@@ -219,8 +242,16 @@ export function AccountSettings({
             <p className="public-muted">
               Dùng 12–128 ký tự. Sau khi đổi, bạn cần đăng nhập lại trên các thiết bị.
             </p>
-            <button className="public-button" disabled={pending} type="submit">
-              {challenge ? 'Xác nhận và cập nhật mật khẩu' : 'Gửi mã OTP'}
+            <button
+              className="public-button"
+              disabled={pending || (!challenge && remaining > 0)}
+              type="submit"
+            >
+              {challenge
+                ? 'Xác nhận và cập nhật mật khẩu'
+                : remaining > 0
+                  ? `Thử lại sau ${waitLabel(remaining)}`
+                  : 'Gửi mã OTP'}
             </button>
             {challenge && (
               <button

@@ -17,6 +17,27 @@ afterEach(() => {
 });
 
 describe('createApiClient', () => {
+  it.each([
+    ['3597', 3597],
+    ['invalid', undefined],
+    ['-1', undefined],
+    ['0', undefined],
+  ])('preserves a valid Retry-After header (%s) on API errors', async (header, seconds) => {
+    const client = createApiClient({
+      baseUrl: 'https://api.example.com',
+      fetch: () =>
+        Promise.resolve(
+          Response.json(
+            { error: { code: 'RATE_LIMITED', message: 'Too many requests.', requestId } },
+            { status: 429, headers: { 'Retry-After': header } },
+          ),
+        ),
+    });
+    await expect(client.GET('/health/live')).rejects.toMatchObject({
+      status: 429,
+      retryAfterSeconds: seconds,
+    });
+  });
   it('returns typed successful data and sends a request ID to the configured base URL', async () => {
     const fetch = vi.fn((request: Request) => {
       expect(request.url).toBe('https://api.example.com/health/live');
