@@ -1,101 +1,117 @@
 import { createApiClient, type ApiClient } from '../../lib/api/client';
+import type { components } from '../../lib/api/generated/schema';
+import { installCommandRetries } from './command-retries';
 
-export type ProposalView = Readonly<{
-  bookingId: string;
-  consultationId: string;
-  phase: 'DRAFT' | 'AWAITING_DEPOSIT' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
-  revision: number;
-  eventDate: string;
-  planningHeadcount: number;
-  proposal: Readonly<{
-    hall: Readonly<{ id: string; name: string; description: string; maxGuests: number }>;
-    shift: Readonly<{ code: 'LUNCH' | 'DINNER'; startTime: string; endTime: string }>;
-    menu: Readonly<{ name: string; description: string; priceVndPerTable: number }>;
-    tableCount: number;
-    baseChargeVnd: number;
-    depositAmountVnd: number;
-  }>;
-  timeline: null | Readonly<{
-    revisionId: string;
-    revisionNumber: number;
-    predecessorRevisionId: string | null;
-    managerApprovedAt: string | null;
-    coupleApprovedAt: string | null;
-    items: readonly Readonly<{
-      itemId: string;
-      order: number;
-      startTime: string;
-      title: string;
-      description: string | null;
-    }>[];
-  }>;
-  capabilities: Readonly<{
-    accessLevel: 'RESTRICTED' | 'FULL';
-    canEditTimeline: boolean;
-    canApproveTimeline: boolean;
-    canRequestCancellation: boolean;
-  }>;
-}>;
+export type ProposalView = components['schemas']['BookingProposalResponse']['data'];
+export type TimelineItemInput = components['schemas']['TimelineRevisionBody']['items'][number];
 
 type TimelineInput = Readonly<{
   bookingId: string;
   expectedRevision: number;
   predecessorRevisionId: string | null;
-  startTime: string;
-  title: string;
-  description?: string;
+  items: readonly TimelineItemInput[];
 }>;
 
 export interface CollaborationGateway {
-  load(accessToken: string, bookingId: string): Promise<ProposalView>;
-  saveTimeline(accessToken: string, input: TimelineInput): Promise<void>;
-  approve(accessToken: string, input: Readonly<{ bookingId: string; revisionId: string; expectedRevision: number }>): Promise<void>;
-  withdraw(accessToken: string, input: Readonly<{ bookingId: string; revisionId: string; expectedRevision: number; reason: string }>): Promise<void>;
-  requestChange(accessToken: string, input: TimelineInput & Readonly<{ reason: string }>): Promise<void>;
-  requestCancellation(accessToken: string, input: Readonly<{ bookingId: string; expectedRevision: number; reason: string }>): Promise<void>;
+  load(this: void, accessToken: string, bookingId: string): Promise<ProposalView>;
+  saveTimeline(this: void, accessToken: string, input: TimelineInput): Promise<void>;
+  approve(
+    this: void,
+    accessToken: string,
+    input: Readonly<{ bookingId: string; revisionId: string; expectedRevision: number }>,
+  ): Promise<void>;
+  withdraw(
+    this: void,
+    accessToken: string,
+    input: Readonly<{
+      bookingId: string;
+      revisionId: string;
+      expectedRevision: number;
+      reason: string;
+    }>,
+  ): Promise<void>;
+  requestChange(
+    this: void,
+    accessToken: string,
+    input: TimelineInput & Readonly<{ reason: string }>,
+  ): Promise<void>;
+  requestCancellation(
+    this: void,
+    accessToken: string,
+    input: Readonly<{ bookingId: string; expectedRevision: number; reason: string }>,
+  ): Promise<void>;
 }
 
-function intent(scope: string): string { return `${scope}:${crypto.randomUUID()}`; }
-function required<T>(value: T | undefined): T { if (value === undefined) throw new Error('Thiếu dữ liệu phản hồi.'); return value; }
-function readProposal(value: unknown): ProposalView {
-  if (typeof value !== 'object' || value === null || !('bookingId' in value) || !('proposal' in value)) throw new Error('Đề xuất không hợp lệ.');
-  return value as ProposalView;
+function intent(scope: string): string {
+  return `${scope}:${crypto.randomUUID()}`;
+}
+function required<T>(value: T | undefined): T {
+  if (value === undefined) throw new Error('Thiếu dữ liệu phản hồi.');
+  return value;
 }
 
 export function createCollaborationGateway(client?: ApiClient): CollaborationGateway {
-  let resolved = client;
-  const api = () => (resolved ??= createApiClient());
+  let resolved = client === undefined ? undefined : installCommandRetries(client);
+  const api = () => (resolved ??= installCommandRetries(createApiClient()));
   const headers = (token: string) => ({ Authorization: `Bearer ${token}` });
   const commandParams = <T extends Record<string, string>>(scope: string, path: T) => ({
-    header: { 'Idempotency-Key': intent(scope) }, path,
+    header: { 'Idempotency-Key': intent(scope) },
+    path,
   });
   const timelineBody = (input: TimelineInput) => ({
     expectedRevision: input.expectedRevision,
     predecessorRevisionId: input.predecessorRevisionId,
-    items: [{ order: 1, startTime: input.startTime, title: input.title, ...(input.description ? { description: input.description } : {}) }],
+    items: input.items,
   });
 
   return {
     async load(accessToken, bookingId) {
-      const { data } = await api().GET('/bookings/{bookingId}/proposal', { params: { path: { bookingId } }, headers: headers(accessToken) });
-      return readProposal(required(data).data);
+      const { data } = await api().GET('/bookings/{bookingId}/proposal', {
+        params: { path: { bookingId } },
+        headers: headers(accessToken),
+      });
+      const value = required(data).data;
+      const { cancellationRequests, ...proposalValue } = value;
+      return {
+        ...proposalValue,
+        ...(cancellationRequests === undefined
+          ? {}
+          : { cancellationRequests: Array.from(cancellationRequests) }),
+        timeline:
+          value.timeline === null
+            ? null
+            : { ...value.timeline, items: Array.from(value.timeline.items) },
+        effectiveTimeline:
+          value.effectiveTimeline === null
+            ? null
+            : { ...value.effectiveTimeline, items: Array.from(value.effectiveTimeline.items) },
+      };
     },
     async saveTimeline(accessToken, input) {
       await api().POST('/bookings/{bookingId}/timeline-revisions', {
         params: commandParams('timeline', { bookingId: input.bookingId }),
-        headers: headers(accessToken), body: timelineBody(input),
+        headers: headers(accessToken),
+        body: timelineBody(input),
       });
     },
     async approve(accessToken, input) {
       await api().POST('/bookings/{bookingId}/timeline-revisions/{revisionId}/approvals', {
-        params: commandParams('approval', { bookingId: input.bookingId, revisionId: input.revisionId }),
-        headers: headers(accessToken), body: { expectedRevision: input.expectedRevision },
+        params: commandParams('approval', {
+          bookingId: input.bookingId,
+          revisionId: input.revisionId,
+        }),
+        headers: headers(accessToken),
+        body: { expectedRevision: input.expectedRevision },
       });
     },
     async withdraw(accessToken, input) {
       await api().POST('/bookings/{bookingId}/timeline-revisions/{revisionId}/withdrawals', {
-        params: commandParams('withdrawal', { bookingId: input.bookingId, revisionId: input.revisionId }),
-        headers: headers(accessToken), body: { expectedRevision: input.expectedRevision, reason: input.reason },
+        params: commandParams('withdrawal', {
+          bookingId: input.bookingId,
+          revisionId: input.revisionId,
+        }),
+        headers: headers(accessToken),
+        body: { expectedRevision: input.expectedRevision, reason: input.reason },
       });
     },
     async requestChange(accessToken, input) {
@@ -109,7 +125,8 @@ export function createCollaborationGateway(client?: ApiClient): CollaborationGat
     async requestCancellation(accessToken, input) {
       await api().POST('/bookings/{bookingId}/cancellation-requests', {
         params: commandParams('cancellation-request', { bookingId: input.bookingId }),
-        headers: headers(accessToken), body: { expectedRevision: input.expectedRevision, reason: input.reason },
+        headers: headers(accessToken),
+        body: { expectedRevision: input.expectedRevision, reason: input.reason },
       });
     },
   };
