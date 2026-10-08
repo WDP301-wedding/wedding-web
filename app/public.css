@@ -22,7 +22,6 @@
   text-align: left;
 }
 .public-header .estate-brand strong {
-  font-family: var(--font-wordmark);
   font-size: 22px;
 }
 .public-header nav,
@@ -126,7 +125,6 @@
   color: var(--paper);
 }
 .public-image-placeholder span {
-  font-family: var(--font-wordmark);
   font-size: 26px;
 }
 .public-image-placeholder p {
@@ -277,7 +275,6 @@
   font-size: 13px;
 }
 .public-footer .estate-brand {
-  font-family: var(--font-wordmark);
   color: var(--navy);
 }
 .public-footer p {

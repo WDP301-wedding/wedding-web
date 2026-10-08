@@ -115,7 +115,9 @@ export function CollaborationWorkspace({
       <header className="collab-header">
         <Link className="collab-brand" href="/overview">
           <small>THE</small>
-          <strong>WEDDING ESTATE</strong>
+          <strong className="latin-wordmark" lang="en">
+            WEDDING ESTATE
+          </strong>
         </Link>
         <span className="collab-access">
           {access === 'full' ? 'Không gian cặp đôi' : 'Không gian tư vấn'}

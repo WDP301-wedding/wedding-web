@@ -10,7 +10,9 @@ export function PublicShell({ children }: { children: ReactNode }) {
       <header className="public-header">
         <Link className="estate-brand" href="/" aria-label="Wedding Estate — Trang chủ">
           <small>THE</small>
-          <strong>WEDDING ESTATE</strong>
+          <strong className="latin-wordmark" lang="en">
+            WEDDING ESTATE
+          </strong>
           <span>Nơi ngày chung đôi bắt đầu</span>
         </Link>
         <nav aria-label="Điều hướng chính">
@@ -25,7 +27,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
       </header>
       <main id="public-content">{children}</main>
       <footer className="public-footer">
-        <Link className="estate-brand" href="/">
+        <Link className="estate-brand latin-wordmark" lang="en" href="/">
           WEDDING ESTATE
         </Link>
         <p>Cùng bạn chuẩn bị từng quyết định cho ngày chung đôi.</p>

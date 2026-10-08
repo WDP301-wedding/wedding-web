@@ -114,7 +114,9 @@ export function PublicWebsite({
                 />
               ) : (
                 <div className="public-image-placeholder">
-                  <span>WEDDING ESTATE</span>
+                  <span className="latin-wordmark" lang="en">
+                    WEDDING ESTATE
+                  </span>
                   <p>Một không gian dành cho câu chuyện của hai bạn</p>
                 </div>
               )}

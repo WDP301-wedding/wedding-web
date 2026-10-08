@@ -248,7 +248,9 @@ function PublicShell({ children }: Readonly<{ children: React.ReactNode }>) {
       <header className="site-header">
         <div className="estate-brand" aria-label="The Wedding Estate">
           <small>THE</small>
-          <strong>WEDDING ESTATE</strong>
+          <strong className="latin-wordmark" lang="en">
+            WEDDING ESTATE
+          </strong>
           <span>Hành trình của hai bạn</span>
         </div>
       </header>
@@ -338,7 +340,9 @@ function AuthenticatedWorkspace({
       <header className="workspace-header">
         <div className="estate-brand">
           <small>THE</small>
-          <strong>WEDDING ESTATE</strong>
+          <strong className="latin-wordmark" lang="en">
+            WEDDING ESTATE
+          </strong>
         </div>
         <div className="account-actions">
           <span>{snapshot.actor.displayEmail}</span>
