@@ -3,13 +3,14 @@
 import { type FormEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
+import { PublicHeader } from '../public-website/public-shell';
 import { PasswordResetOtpForm } from './password-reset-otp-form';
 import { ApiClientError } from '../../lib/api/client';
 import { AccountSettings } from './account-settings';
+import { browserSession } from './browser-session';
 import {
   consumeCredentialFragment,
-  createIdentityApi,
-  WebIdentitySession,
+  type WebIdentitySession,
   type BootstrapCredential,
   type WebSessionSnapshot,
 } from './session';
@@ -20,7 +21,7 @@ const browserCredential =
     : consumeCredentialFragment(window.location.href, (safePath) =>
         window.history.replaceState(null, '', safePath),
       );
-export const browserSession = new WebIdentitySession(createIdentityApi());
+export { browserSession } from './browser-session';
 export function hasBootstrapCredential() {
   return browserCredential !== null;
 }
@@ -146,7 +147,7 @@ export function IdentityExperience({ session, initialCredential }: IdentityExper
   };
 
   return (
-    <PublicShell>
+    <PublicShell session={session}>
       <div className="auth-panel" aria-live="polite">
         {view === 'restoring' ? (
           <div className="auth-state" role="status" aria-busy="true">
@@ -234,26 +235,16 @@ export function IdentityExperience({ session, initialCredential }: IdentityExper
   );
 }
 
-function PublicShell({ children }: Readonly<{ children: React.ReactNode }>) {
+function PublicShell({
+  children,
+  session,
+}: Readonly<{ children: React.ReactNode; session: WebIdentitySession }>) {
   return (
     <>
       <a className="skip-link" href="#identity-content">
         Đi đến nội dung chính
       </a>
-      <div className="announcement-bar">
-        <span>Lời mời riêng tư</span>
-        <span aria-hidden="true">•</span>
-        <span>Wedding Estate</span>
-      </div>
-      <header className="site-header">
-        <div className="estate-brand" aria-label="The Wedding Estate">
-          <small>THE</small>
-          <strong className="latin-wordmark" lang="en">
-            WEDDING ESTATE
-          </strong>
-          <span>Hành trình của hai bạn</span>
-        </div>
-      </header>
+      <PublicHeader session={session} restoreSession={false} />
       <div className="invitation-ribbon">Một nơi riêng tư cho mọi quyết định quan trọng</div>
       <main id="identity-content" className="identity-layout">
         <section
@@ -336,53 +327,50 @@ function AuthenticatedWorkspace({
 }>) {
   const full = snapshot.access === 'full';
   return (
-    <main className="workspace-page">
-      <header className="workspace-header">
-        <div className="estate-brand">
-          <small>THE</small>
-          <strong className="latin-wordmark" lang="en">
-            WEDDING ESTATE
-          </strong>
-        </div>
-        <div className="account-actions">
-          <span>{snapshot.actor.displayEmail}</span>
-          <button type="button" onClick={onLogout} disabled={pending}>
-            Đăng xuất
-          </button>
-        </div>
-      </header>
-      <section className="workspace-hero">
-        <span className="preview-label">{full ? 'Không gian cặp đôi' : 'Không gian tư vấn'}</span>
-        <p className="script-heading">Hành trình của hai bạn</p>
-        <h1>{full ? 'Kế hoạch ngày trọng đại' : 'Cùng hoàn thiện đề xuất'}</h1>
-        <p>
-          {full
-            ? 'Tài khoản của bạn đã có quyền truy cập đầy đủ vào kế hoạch cưới.'
-            : 'Bạn đang có quyền truy cập giới hạn để xem đề xuất và cùng cập nhật mốc tư vấn.'}
-        </p>
-        <Link className="primary-action workspace-entry" href="/overview">
-          Mở kế hoạch của chúng tôi
-        </Link>
-      </section>
-      <AccountSettings session={session} onSignedOut={onSignedOut} />
-      <section className="access-summary" aria-label="Phạm vi truy cập hiện tại">
-        <article>
-          <span>Đang mở</span>
-          <strong>Đề xuất dịch vụ</strong>
-          <p>Xem nội dung đã được nhà hàng chuẩn bị cho buổi tư vấn.</p>
-        </article>
-        <article>
-          <span>Đang mở</span>
-          <strong>Dòng thời gian tư vấn</strong>
-          <p>Cùng theo dõi những bước cần thống nhất trước ngày đặt cọc.</p>
-        </article>
-        <article aria-disabled={!full} className={full ? '' : 'access-locked'}>
-          <span>Đang chuẩn bị</span>
-          <strong>Khách mời, thiệp và sơ đồ bàn</strong>
-          <p>Mọi thao tác vẫn được máy chủ kiểm tra quyền trước khi thực hiện.</p>
-        </article>
-      </section>
-    </main>
+    <>
+      <a className="skip-link" href="#identity-content">
+        Đi đến nội dung chính
+      </a>
+      <PublicHeader
+        session={session}
+        restoreSession={false}
+        onLogout={onLogout}
+        pending={pending}
+      />
+      <main id="identity-content" className="workspace-page">
+        <section className="workspace-hero">
+          <span className="preview-label">{full ? 'Không gian cặp đôi' : 'Không gian tư vấn'}</span>
+          <p className="script-heading">Hành trình của hai bạn</p>
+          <h1>{full ? 'Kế hoạch ngày trọng đại' : 'Cùng hoàn thiện đề xuất'}</h1>
+          <p>
+            {full
+              ? 'Tài khoản của bạn đã có quyền truy cập đầy đủ vào kế hoạch cưới.'
+              : 'Bạn đang có quyền truy cập giới hạn để xem đề xuất và cùng cập nhật mốc tư vấn.'}
+          </p>
+          <Link className="primary-action workspace-entry" href="/overview">
+            Mở kế hoạch của chúng tôi
+          </Link>
+        </section>
+        <AccountSettings session={session} onSignedOut={onSignedOut} />
+        <section className="access-summary" aria-label="Phạm vi truy cập hiện tại">
+          <article>
+            <span>Đang mở</span>
+            <strong>Đề xuất dịch vụ</strong>
+            <p>Xem nội dung đã được nhà hàng chuẩn bị cho buổi tư vấn.</p>
+          </article>
+          <article>
+            <span>Đang mở</span>
+            <strong>Dòng thời gian tư vấn</strong>
+            <p>Cùng theo dõi những bước cần thống nhất trước ngày đặt cọc.</p>
+          </article>
+          <article aria-disabled={!full} className={full ? '' : 'access-locked'}>
+            <span>Đang chuẩn bị</span>
+            <strong>Khách mời, thiệp và sơ đồ bàn</strong>
+            <p>Mọi thao tác vẫn được máy chủ kiểm tra quyền trước khi thực hiện.</p>
+          </article>
+        </section>
+      </main>
+    </>
   );
 }
 

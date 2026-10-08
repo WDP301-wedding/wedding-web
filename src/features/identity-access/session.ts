@@ -74,11 +74,25 @@ export class WebIdentitySession {
   private accessToken: string | null = null;
   private restoreOperation: Promise<WebSessionSnapshot> | null = null;
   private state: WebSessionSnapshot = anonymousSnapshot;
+  private readonly listeners = new Set<() => void>();
 
   constructor(private readonly api: IdentityApi) {}
 
   snapshot(): WebSessionSnapshot {
     return this.state;
+  }
+
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private updateSnapshot(next: WebSessionSnapshot): void {
+    if (this.state === next) return;
+    this.state = next;
+    for (const listener of this.listeners) listener();
   }
 
   discardRevokedSession(): void {
@@ -134,10 +148,10 @@ export class WebIdentitySession {
         error instanceof ApiClientError &&
         (error.status === 403 || error.status === 404)
       ) {
-        this.state = {
+        this.updateSnapshot({
           ...this.state,
           denial: error.status === 403 ? 'forbidden' : 'not-found',
-        };
+        });
       }
       throw error;
     }
@@ -157,12 +171,12 @@ export class WebIdentitySession {
     this.accessToken = credential.accessToken;
     try {
       const actor = await this.api.getCurrentUser(credential.accessToken);
-      this.state = {
+      this.updateSnapshot({
         status: 'authenticated',
         access: actor.roles.includes('COUPLE') ? 'full' : 'restricted',
         actor,
         denial: null,
-      };
+      });
       return this.state;
     } catch (error) {
       this.clear();
@@ -172,7 +186,7 @@ export class WebIdentitySession {
 
   private clear(): void {
     this.accessToken = null;
-    this.state = anonymousSnapshot;
+    this.updateSnapshot(anonymousSnapshot);
   }
 }
 

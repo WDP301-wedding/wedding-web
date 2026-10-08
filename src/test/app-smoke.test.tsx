@@ -10,6 +10,8 @@ import {
 } from '../features/identity-access/session';
 import { ApiClientError } from '../lib/api/client';
 
+vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: vi.fn() }) }));
+
 const accountId = '24dcfaac-4408-4d42-8d66-456ed6ee7ea4';
 const sessionId = '3bd38130-13f4-4c14-8c93-cf0c20781d7e';
 

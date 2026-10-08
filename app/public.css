@@ -9,6 +9,7 @@
 }
 .public-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 32px;
@@ -34,6 +35,26 @@
 }
 .public-header nav a {
   text-decoration: none;
+}
+.public-account-link {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.public-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.public-nav-actions .public-button {
+  white-space: nowrap;
+}
+.public-nav-logout {
+  background: transparent;
+  color: var(--navy);
+}
+.public-nav-error {
+  color: var(--burgundy);
+  flex-basis: 100%;
 }
 .public-button {
   display: inline-flex;
@@ -527,6 +548,16 @@
   }
   .public-header nav .public-button {
     width: 100%;
+  }
+  .public-nav-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .public-header nav .public-nav-actions .public-button {
+    flex: 1 1 auto;
+    width: auto;
+    padding-inline: 12px;
+    gap: 12px;
   }
   .public-hero {
     grid-template-columns: 1fr;

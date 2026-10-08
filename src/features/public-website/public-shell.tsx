@@ -1,5 +1,8 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { PublicHeader } from './public-header';
+
+export { PublicHeader } from './public-header';
 
 export function PublicShell({ children }: { children: ReactNode }) {
   return (
@@ -7,24 +10,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
       <a className="skip-link" href="#public-content">
         Đi đến nội dung chính
       </a>
-      <header className="public-header">
-        <Link className="estate-brand" href="/" aria-label="Wedding Estate — Trang chủ">
-          <small>THE</small>
-          <strong className="latin-wordmark" lang="en">
-            WEDDING ESTATE
-          </strong>
-          <span>Nơi ngày chung đôi bắt đầu</span>
-        </Link>
-        <nav aria-label="Điều hướng chính">
-          <Link href="/halls">Không gian tiệc</Link>
-          <Link href="/menus">Thực đơn</Link>
-          <Link href="/overview">Kế hoạch của bạn</Link>
-          <Link href="/account">Tài khoản</Link>
-          <Link className="public-button" href="/consultation">
-            Hẹn tư vấn <span aria-hidden="true">↗</span>
-          </Link>
-        </nav>
-      </header>
+      <PublicHeader />
       <main id="public-content">{children}</main>
       <footer className="public-footer">
         <Link className="estate-brand latin-wordmark" lang="en" href="/">
