@@ -89,6 +89,37 @@ function failure(code: string, status?: number) {
 }
 
 describe('Booking collaboration workspace', () => {
+  it('keeps timeline edits available after an invalid time and saves a corrected retry', async () => {
+    const gateway = fakeGateway();
+    await open(gateway);
+    vi.mocked(gateway.saveTimeline).mockRejectedValueOnce(
+      failure('TIMELINE_ITEM_TIME_INVALID', 422),
+    );
+    fireEvent.change(screen.getByLabelText('Giờ bắt đầu mốc 1'), { target: { value: '09:00' } });
+    fireEvent.change(screen.getByLabelText('Ghi chú mốc 1'), {
+      target: { value: 'Giữ ghi chú này' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu kịch bản mới' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('17:00');
+    expect(screen.getByRole('alert')).toHaveTextContent('trước 22:00');
+    expect(screen.getByLabelText('Giờ bắt đầu mốc 1')).toHaveValue('09:00');
+    expect(screen.getByLabelText('Ghi chú mốc 1')).toHaveValue('Giữ ghi chú này');
+    expect(screen.getByRole('button', { name: 'Lưu kịch bản mới' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Thêm mốc chương trình' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Xóa mốc 1' })).toBeEnabled();
+    expect(gateway.saveTimeline).toHaveBeenCalledTimes(1);
+    fireEvent.change(screen.getByLabelText('Giờ bắt đầu mốc 1'), { target: { value: '18:00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu kịch bản mới' }));
+    await waitFor(() => expect(gateway.saveTimeline).toHaveBeenCalledTimes(2));
+    expect(gateway.saveTimeline).toHaveBeenLastCalledWith(
+      'couple-token',
+      expect.objectContaining({
+        items: [expect.objectContaining({ startTime: '18:00', description: 'Giữ ghi chú này' })],
+      }),
+    );
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+    expect(screen.getByText('Đã lưu revision kịch bản mới.')).toBeVisible();
+  });
   it('opens a valid booking link through the authenticated gateway', async () => {
     const id = '20000000-0000-4000-8000-000000000011';
     window.history.replaceState({}, '', `/workspace?bookingId=${id}`);
@@ -188,6 +219,10 @@ describe('Booking collaboration workspace', () => {
   });
 
   it.each([
+    [failure('TIMELINE_APPROVAL_REQUIRES_ITEM', 422), 'Hãy thêm và lưu ít nhất một mốc'],
+    [failure('TIMELINE_ITEM_COUNT_INVALID', 422), 'tối đa 100 mốc'],
+    [failure('TIMELINE_ITEM_TEXT_INVALID', 422), '1–120 ký tự'],
+    [failure('TIMELINE_REVISION_SUPERSEDED', 409), 'Đề xuất vừa được cập nhật'],
     [failure('STALE_BOOKING_REVISION', 409), 'Đề xuất vừa được cập nhật'],
     [failure('DEPOSIT_INTENT_ACTIVE', 409), 'Đang có giao dịch tiền cọc'],
     [failure('FORBIDDEN', 403), 'Không tìm thấy hồ sơ'],
@@ -195,18 +230,21 @@ describe('Booking collaboration workspace', () => {
     [failure('SESSION_EXPIRED', 401), 'Yêu cầu chưa hoàn tất'],
     [failure('UNKNOWN'), 'Yêu cầu chưa hoàn tất'],
     [new Error('offline'), 'Không thể đồng bộ hồ sơ'],
-  ])('handles command failure and prevents repeated stale edits: %s', async (error, message) => {
-    const gateway = fakeGateway();
-    await open(gateway);
-    vi.mocked(gateway.approve).mockRejectedValue(error);
-    fireEvent.click(screen.getByRole('button', { name: 'Phê duyệt revision này' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(message);
-    if (error instanceof ApiClientError && [401, 403, 404].includes(error.status ?? 0)) {
-      expect(screen.queryByText('Sảnh Ánh Dương')).not.toBeInTheDocument();
-    } else {
-      expect(screen.getByRole('button', { name: 'Phê duyệt revision này' })).toBeDisabled();
-    }
-  });
+  ])(
+    'handles command failure and allows recovery with valid access: %s',
+    async (error, message) => {
+      const gateway = fakeGateway();
+      await open(gateway);
+      vi.mocked(gateway.approve).mockRejectedValue(error);
+      fireEvent.click(screen.getByRole('button', { name: 'Phê duyệt revision này' }));
+      expect(await screen.findByRole('alert')).toHaveTextContent(message);
+      if (error instanceof ApiClientError && [401, 403, 404].includes(error.status ?? 0)) {
+        expect(screen.queryByText('Sảnh Ánh Dương')).not.toBeInTheDocument();
+      } else {
+        expect(screen.getByRole('button', { name: 'Phê duyệt revision này' })).toBeEnabled();
+      }
+    },
+  );
 
   it('clears the old proposal when loading a denied booking', async () => {
     const gateway = fakeGateway();
@@ -215,6 +253,22 @@ describe('Booking collaboration workspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
     expect(await screen.findByText('Chưa thể mở đề xuất')).toBeVisible();
     expect(screen.queryByText('Sảnh Ánh Dương')).not.toBeInTheDocument();
+  });
+
+  it('still respects edit and approval permissions supplied by the server', async () => {
+    const gateway = fakeGateway();
+    await open(gateway, {
+      ...proposal,
+      capabilities: {
+        ...proposal.capabilities,
+        canEditTimeline: false,
+        canApproveTimeline: false,
+        canWithdrawApproval: false,
+      },
+    });
+    expect(screen.getByRole('button', { name: 'Lưu kịch bản mới' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Phê duyệt revision này' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Rút phê duyệt' })).toBeDisabled();
   });
 
   it('shows loading and anonymous access states', async () => {
