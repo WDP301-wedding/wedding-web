@@ -119,6 +119,7 @@ export function CollaborationWorkspace({
             WEDDING ESTATE
           </strong>
         </Link>
+        <Link href="/billing">Thanh toán</Link>
         <span className="collab-access">
           {access === 'full' ? 'Không gian cặp đôi' : 'Không gian tư vấn'}
         </span>
