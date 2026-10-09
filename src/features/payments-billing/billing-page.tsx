@@ -30,8 +30,8 @@ import {
 
 type Authorize = <T>(operation: (token: string) => Promise<T>) => Promise<T>;
 type CheckoutIntent =
-  | Readonly<{ kind: 'deposit'; body: DepositBody; amountVnd: number }>
-  | Readonly<{ kind: 'balance'; body: BalanceBody; amountVnd: number }>;
+  | Readonly<{ kind: 'deposit'; body: DepositBody; amountVnd: number | null }>
+  | Readonly<{ kind: 'balance'; body: BalanceBody; amountVnd: number | null }>;
 const identity = new WebIdentitySession(createIdentityApi());
 const billing = createCoupleBillingGateway();
 export function CoupleBillingPage({
@@ -92,6 +92,7 @@ export function CoupleBillingWorkspace({
   const [checkout, setCheckout] = useState<CheckoutView | null>(null);
   const [intent, setIntent] = useState<CheckoutIntent | null>(null);
   const [retry, setRetry] = useState(false);
+  const [needsAttemptStatus, setNeedsAttemptStatus] = useState(false);
   const [pending, setPending] = useState(false);
   const busy = useRef(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,6 +110,7 @@ export function CoupleBillingWorkspace({
       setAttempt(null);
       setCheckout(null);
       setIntent(null);
+      setNeedsAttemptStatus(false);
     }
     setError(billingMessage(caught));
   };
@@ -129,10 +131,56 @@ export function CoupleBillingWorkspace({
   const load = async (id: string) => {
     const value = await authorize((token) => gateway.loadContext(token, id));
     if (value.bookingId !== id) throw new Error('Booking mismatch');
+    const hideBalanceAttempt =
+      value.accessLevel !== 'FULL' &&
+      (attempt?.purpose === 'BALANCE' || (checkout !== null && context?.accessLevel === 'FULL'));
+    if (value.accessLevel !== 'FULL') {
+      setView(null);
+      if (hideBalanceAttempt) {
+        setAttempt(null);
+        setAttemptId('');
+        setCheckout(null);
+      }
+    }
+    const restoreAttemptId =
+      !hideBalanceAttempt &&
+      (context?.bookingId === id ||
+        new URLSearchParams(window.location.search).get('bookingId') === id)
+        ? attemptId.trim()
+        : '';
+    setNeedsAttemptStatus(restoreAttemptId !== '');
     const result =
       value.accessLevel === 'FULL' ? await authorize((token) => gateway.load(token, id)) : null;
+    if (result !== null && result.bookingId !== id) throw new Error('Billing mismatch');
     setContext(value);
     setView(result);
+    const saved = await intents.pending(`checkout:${id}`);
+    if (saved?.timelineRevisionId !== undefined) {
+      setIntent({
+        kind: 'deposit',
+        body: { timelineRevisionId: saved.timelineRevisionId },
+        amountVnd: null,
+      });
+      setRetry(true);
+    } else if (saved?.expectedBillingRevision !== undefined && value.accessLevel === 'FULL') {
+      setIntent({
+        kind: 'balance',
+        body: { expectedBillingRevision: saved.expectedBillingRevision },
+        amountVnd: null,
+      });
+      setRetry(true);
+    }
+    if (restoreAttemptId !== '') {
+      const restored = await authorize((token) => gateway.loadAttempt(token, id, restoreAttemptId));
+      if (
+        restored.paymentAttemptId !== restoreAttemptId ||
+        (value.accessLevel !== 'FULL' && restored.purpose !== 'DEPOSIT')
+      )
+        throw new Error('Attempt mismatch');
+      setAttempt(restored);
+      setNeedsAttemptStatus(false);
+      if (restored.status === 'SUCCEEDED' || restored.status === 'FAILED') setCheckout(null);
+    }
   };
   const start = async () => {
     if (busy.current || context === null || intent === null) return;
@@ -140,12 +188,15 @@ export function CoupleBillingWorkspace({
     setPending(true);
     setError(null);
     try {
-      const value = await intents.run(`checkout:${context.bookingId}`, intent.body, (key) =>
-        authorize((token) =>
-          intent.kind === 'deposit'
-            ? gateway.startDeposit(token, context.bookingId, intent.body, key)
-            : gateway.startBalance(token, context.bookingId, intent.body, key),
-        ),
+      const value = await intents.run(
+        `checkout:${context.bookingId}`,
+        intent.body,
+        (key, stableBody) =>
+          authorize((token) =>
+            intent.kind === 'deposit'
+              ? gateway.startDeposit(token, context.bookingId, stableBody as DepositBody, key)
+              : gateway.startBalance(token, context.bookingId, stableBody as BalanceBody, key),
+          ),
       );
       setCheckout(value);
       setAttemptId(value.paymentAttemptId);
@@ -169,7 +220,7 @@ export function CoupleBillingWorkspace({
   };
   const inFlight =
     attempt !== null && attempt.status !== 'FAILED' && attempt.status !== 'SUCCEEDED';
-  const blocked = pending || intent !== null || checkout !== null || inFlight;
+  const blocked = pending || intent !== null || checkout !== null || inFlight || needsAttemptStatus;
   return (
     <main className="billing-shell billing-couple">
       <header className="billing-header">
@@ -316,7 +367,14 @@ export function CoupleBillingWorkspace({
           {intent !== null && (
             <section className="billing-confirm" aria-label="Xác nhận thanh toán">
               <h2>{intent.kind === 'deposit' ? 'Kiểm tra khoản cọc' : 'Kiểm tra khoản còn lại'}</h2>
-              <strong>{money(intent.amountVnd)}</strong>
+              {intent.amountVnd === null ? (
+                <p>
+                  Khôi phục yêu cầu trước. Kiểm tra số tiền của giao dịch qua trạng thái đã xác
+                  minh.
+                </p>
+              ) : (
+                <strong>{money(intent.amountVnd)}</strong>
+              )}
               <p>
                 VNPay mở giao dịch do máy chủ tạo. Số tiền không được nhập hoặc sửa trên trang này.
               </p>
@@ -347,14 +405,19 @@ export function CoupleBillingWorkspace({
                 Đường dẫn hết hạn lúc {new Date(checkout.expiresAt).toLocaleString('vi-VN')}. Hết
                 hạn không chứng minh thanh toán thất bại.
               </p>
-              <a
-                className="billing-primary-link"
-                href={checkout.checkoutUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Tiếp tục trên VNPay
-              </a>
+              {(attempt?.status ?? checkout.status) === 'CREATED' ||
+              (attempt?.status ?? checkout.status) === 'PENDING' ? (
+                <a
+                  className="billing-primary-link"
+                  href={checkout.checkoutUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Tiếp tục trên VNPay
+                </a>
+              ) : (
+                <p>Kiểm tra trạng thái đã xác minh trước khi tiếp tục thanh toán.</p>
+              )}
               <p>
                 Sau khi quay lại, kiểm tra trạng thái bên dưới. Trang trả về từ VNPay không xác nhận
                 đã nhận tiền.
@@ -371,7 +434,10 @@ export function CoupleBillingWorkspace({
                   const value = await authorize((token) =>
                     gateway.loadAttempt(token, context.bookingId, attemptId.trim()),
                   );
+                  if (value.paymentAttemptId !== attemptId.trim())
+                    throw new Error('Attempt mismatch');
                   setAttempt(value);
+                  setNeedsAttemptStatus(false);
                   if (value.status === 'FAILED') setCheckout(null);
                 });
               }}
@@ -382,6 +448,7 @@ export function CoupleBillingWorkspace({
                   required
                   value={attemptId}
                   disabled={pending || intent !== null}
+                  readOnly={checkout !== null}
                   onChange={(event) => setAttemptId(event.target.value)}
                 />
               </label>
