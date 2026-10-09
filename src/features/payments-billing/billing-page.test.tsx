@@ -112,7 +112,7 @@ describe('Couple billing experience', () => {
     expect(screen.getByRole('button', { name: 'Thanh toán còn lại' })).toBeDisabled();
     expect(screen.queryByText('Đã xác minh nhận tiền')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra trạng thái' }));
-    await screen.findByText('Chưa rõ kết quả · đang đối soát');
+    await screen.findByText('Chưa rõ kết quả · đang kiểm tra');
     expect(screen.getByRole('button', { name: 'Thanh toán còn lại' })).toBeDisabled();
   });
   it.each(['anonymous', 'couple'] as const)(
@@ -219,16 +219,16 @@ describe('Couple billing experience', () => {
       applicationStatus: null,
       expiresAt: '2026-10-09T10:00:00Z',
     });
-    fireEvent.change(screen.getByLabelText('Mã lần thanh toán'), {
+    fireEvent.change(screen.getByLabelText('Mã giao dịch thanh toán'), {
       target: { value: 'private-balance' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra trạng thái' }));
-    await screen.findByText('Chưa rõ kết quả · đang đối soát');
+    await screen.findByText('Chưa rõ kết quả · đang kiểm tra');
     vi.mocked(api.loadContext).mockResolvedValue(context);
     fireEvent.click(screen.getByRole('button', { name: 'Làm mới hồ sơ' }));
-    await waitFor(() => expect(screen.queryByText('Còn phải thu')).not.toBeInTheDocument());
-    expect(screen.queryByText('Chưa rõ kết quả · đang đối soát')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Mã lần thanh toán')).toHaveValue('');
+    await waitFor(() => expect(screen.queryByText('Còn phải thanh toán')).not.toBeInTheDocument());
+    expect(screen.queryByText('Chưa rõ kết quả · đang kiểm tra')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Mã giao dịch thanh toán')).toHaveValue('');
   });
   it('cancels before submission, then permits review again after a definitive stale response', async () => {
     const api = gateway();
@@ -299,11 +299,11 @@ describe('Couple billing experience', () => {
     vi.mocked(api.loadContext).mockRejectedValueOnce(error('UNAVAILABLE', 503));
     fireEvent.click(screen.getByRole('button', { name: 'Làm mới hồ sơ' }));
     await screen.findByRole('alert');
-    expect(screen.getByText('Còn phải thu')).toBeInTheDocument();
+    expect(screen.getByText('Còn phải thanh toán')).toBeInTheDocument();
     vi.mocked(api.loadContext).mockResolvedValueOnce({ ...context, bookingId: 'different' });
     fireEvent.click(screen.getByRole('button', { name: 'Làm mới hồ sơ' }));
     await waitFor(() => expect(api.loadContext).toHaveBeenCalledTimes(3));
-    expect(screen.getByText('Còn phải thu')).toBeInTheDocument();
+    expect(screen.getByText('Còn phải thanh toán')).toBeInTheDocument();
   });
   it('restricts prospect to deposit, confirms server amount and never loads private billing', async () => {
     const api = gateway();
@@ -317,7 +317,7 @@ describe('Couple billing experience', () => {
     );
     await load();
     expect(api.load).not.toHaveBeenCalled();
-    expect(screen.queryByText('Còn phải thu')).not.toBeInTheDocument();
+    expect(screen.queryByText('Còn phải thanh toán')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Đặt cọc qua VNPay' }));
     expect(api.startDeposit).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
@@ -357,7 +357,7 @@ describe('Couple billing experience', () => {
       />,
     );
     await load();
-    expect(screen.getByText('Còn phải thu')).toBeInTheDocument();
+    expect(screen.getByText('Còn phải thanh toán')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Thanh toán còn lại' }));
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
     await waitFor(() =>
@@ -407,7 +407,7 @@ describe('Couple billing experience', () => {
       'stable-key',
     );
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra trạng thái' }));
-    expect(await screen.findByText('Chưa rõ kết quả · đang đối soát')).toBeInTheDocument();
+    expect(await screen.findByText('Chưa rõ kết quả · đang kiểm tra')).toBeInTheDocument();
     expect(screen.queryByText('Đã hoàn tất cập nhật hồ sơ.')).not.toBeInTheDocument();
     window.history.replaceState({}, '', '/');
   });

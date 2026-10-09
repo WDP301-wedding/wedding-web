@@ -399,7 +399,7 @@ export function CoupleBillingWorkspace({
             <section className="billing-panel">
               <h2>Đường dẫn thanh toán đã được tạo</h2>
               <p>
-                Mã lần thanh toán: <code>{checkout.paymentAttemptId}</code>
+                Mã giao dịch thanh toán: <code>{checkout.paymentAttemptId}</code>
               </p>
               <p>
                 Đường dẫn hết hạn lúc {new Date(checkout.expiresAt).toLocaleString('vi-VN')}. Hết
@@ -443,7 +443,7 @@ export function CoupleBillingWorkspace({
               }}
             >
               <label>
-                Mã lần thanh toán
+                Mã giao dịch thanh toán
                 <input
                   required
                   value={attemptId}
