@@ -261,7 +261,14 @@ describe('Couple billing experience', () => {
     vi.mocked(api.load).mockResolvedValueOnce({ ...current, billingRevision: 5 });
     fireEvent.click(screen.getByRole('button', { name: 'Tải thêm lịch sử' }));
     await screen.findByRole('alert');
-    expect(screen.getByText(/phiên bản 4/i)).toBeInTheDocument();
+    expect(screen.queryByText(/phiên bản 4/i)).not.toBeInTheDocument();
+    const callsBeforeRetry = vi.mocked(api.load).mock.calls.length;
+    fireEvent.click(screen.getByRole('button', { name: 'Tải thêm lịch sử' }));
+    await waitFor(() => expect(api.load).toHaveBeenCalledTimes(callsBeforeRetry + 1));
+    expect(api.load).toHaveBeenLastCalledWith('token', 'booking', {
+      cursor: 'page2',
+      throughBillingRevision: 4,
+    });
   });
   it.each(['FAILED', 'SUCCEEDED'] as const)(
     'uses verified %s status and refreshes server state before further checkout',
