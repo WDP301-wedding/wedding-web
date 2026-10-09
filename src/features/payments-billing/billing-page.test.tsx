@@ -254,6 +254,11 @@ describe('Couple billing experience', () => {
       await screen.findByRole('heading', {
         name: role === 'anonymous' ? 'Cần đăng nhập' : 'Thanh toán cho ngày trọng đại',
       });
+      if (role === 'anonymous')
+        expect(screen.getByRole('link', { name: 'Về trang đăng nhập' })).toHaveAttribute(
+          'href',
+          '/account',
+        );
       expect(api.load).not.toHaveBeenCalled();
     },
   );

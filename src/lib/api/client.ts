@@ -35,6 +35,7 @@ type ApiClientErrorOptions = Readonly<{
   message: string;
   requestId: string;
   status?: number;
+  retryAfterSeconds?: number;
   details?: readonly ApiErrorDetails[];
   cause?: unknown;
 }>;
@@ -44,6 +45,7 @@ export class ApiClientError extends Error {
   readonly code: string;
   readonly requestId: string;
   readonly status: number | undefined;
+  readonly retryAfterSeconds: number | undefined;
   readonly details: readonly ApiErrorDetails[] | undefined;
 
   constructor(options: ApiClientErrorOptions) {
@@ -53,6 +55,7 @@ export class ApiClientError extends Error {
     this.code = options.code;
     this.requestId = options.requestId;
     this.status = options.status;
+    this.retryAfterSeconds = options.retryAfterSeconds;
     this.details = options.details;
   }
 }
@@ -111,12 +114,18 @@ async function validateResponse(response: Response, sentRequestId: string): Prom
     throw malformedResponse(response, responseRequestId, parsed.error);
   }
 
+  const retryAfter = response.headers.get('retry-after');
+  const retryAfterSeconds =
+    retryAfter !== null && /^\d+$/.test(retryAfter) ? Number(retryAfter) : NaN;
   throw new ApiClientError({
     kind: 'api',
     code: parsed.data.error.code,
     message: parsed.data.error.message,
     requestId: parsed.data.error.requestId,
     status: response.status,
+    ...(Number.isSafeInteger(retryAfterSeconds) && retryAfterSeconds > 0
+      ? { retryAfterSeconds }
+      : {}),
     ...(parsed.data.error.details === undefined ? {} : { details: parsed.data.error.details }),
   });
 }

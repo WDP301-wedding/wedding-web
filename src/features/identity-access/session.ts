@@ -55,8 +55,10 @@ export function consumeCredentialFragment(
 ): BootstrapCredential | null {
   const url = new URL(href);
   const fragment = new URLSearchParams(url.hash.slice(1));
-  const invitationToken = fragment.get('invitationToken');
-  const resetToken = fragment.get('resetToken');
+  const raw = url.hash.slice(1);
+  const invitationToken =
+    fragment.get('invitationToken') ?? (invitationPattern.test(raw) ? raw : null);
+  const resetToken = fragment.get('resetToken') ?? (resetPattern.test(raw) ? raw : null);
   replaceHistory(`${url.pathname}${url.search}`);
 
   if (invitationToken !== null && invitationPattern.test(invitationToken)) {
@@ -72,11 +74,29 @@ export class WebIdentitySession {
   private accessToken: string | null = null;
   private restoreOperation: Promise<WebSessionSnapshot> | null = null;
   private state: WebSessionSnapshot = anonymousSnapshot;
+  private readonly listeners = new Set<() => void>();
 
   constructor(private readonly api: IdentityApi) {}
 
   snapshot(): WebSessionSnapshot {
     return this.state;
+  }
+
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private updateSnapshot(next: WebSessionSnapshot): void {
+    if (this.state === next) return;
+    this.state = next;
+    for (const listener of this.listeners) listener();
+  }
+
+  discardRevokedSession(): void {
+    this.clear();
   }
 
   async login(email: string, password: string): Promise<WebSessionSnapshot> {
@@ -128,10 +148,10 @@ export class WebIdentitySession {
         error instanceof ApiClientError &&
         (error.status === 403 || error.status === 404)
       ) {
-        this.state = {
+        this.updateSnapshot({
           ...this.state,
           denial: error.status === 403 ? 'forbidden' : 'not-found',
-        };
+        });
       }
       throw error;
     }
@@ -151,12 +171,12 @@ export class WebIdentitySession {
     this.accessToken = credential.accessToken;
     try {
       const actor = await this.api.getCurrentUser(credential.accessToken);
-      this.state = {
+      this.updateSnapshot({
         status: 'authenticated',
         access: actor.roles.includes('COUPLE') ? 'full' : 'restricted',
         actor,
         denial: null,
-      };
+      });
       return this.state;
     } catch (error) {
       this.clear();
@@ -166,7 +186,7 @@ export class WebIdentitySession {
 
   private clear(): void {
     this.accessToken = null;
-    this.state = anonymousSnapshot;
+    this.updateSnapshot(anonymousSnapshot);
   }
 }
 

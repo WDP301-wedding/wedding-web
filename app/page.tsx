@@ -1,5 +1,5 @@
-import { PublicIdentityPage } from '../src/features/identity-access/identity-page';
+import { LandingEntry } from '../src/features/public-website/landing-entry';
 
 export default function HomePage() {
-  return <PublicIdentityPage />;
+  return <LandingEntry />;
 }

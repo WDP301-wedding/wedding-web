@@ -34,7 +34,7 @@ export function CollaborationPage() {
     return (
       <AccessState title="Cần đăng nhập">
         <p role="alert">Hãy đăng nhập hoặc chấp nhận lời mời trước khi xem đề xuất.</p>
-        <Link href="/">Về trang đăng nhập</Link>
+        <Link href="/account">Về trang đăng nhập</Link>
       </AccessState>
     );
   return (
@@ -62,10 +62,6 @@ export function CollaborationWorkspace({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const value = new URLSearchParams(window.location.search).get('bookingId');
-    if (value) queueMicrotask(() => setBookingId(value));
-  }, []);
   const load = useCallback(
     async (id: string) => {
       setPending(true);
@@ -84,6 +80,15 @@ export function CollaborationWorkspace({
     },
     [authorize, gateway],
   );
+  useEffect(() => {
+    const value = new URLSearchParams(window.location.search).get('bookingId');
+    if (value)
+      queueMicrotask(() => {
+        setBookingId(value);
+        if (/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/iu.test(value))
+          void load(value);
+      });
+  }, [load]);
   const command = async (operation: (token: string) => Promise<void>, success: string) => {
     setPending(true);
     setError(null);
@@ -96,7 +101,7 @@ export function CollaborationWorkspace({
     } catch (caught) {
       if (caught instanceof ApiClientError && [401, 403, 404].includes(caught.status ?? 0))
         setProposal(null);
-      setError(errorMessage(caught));
+      setError(errorMessage(caught, proposal?.proposal.shift));
     } finally {
       setPending(false);
     }
@@ -108,9 +113,11 @@ export function CollaborationWorkspace({
         Đi đến đề xuất
       </a>
       <header className="collab-header">
-        <Link className="collab-brand" href="/">
+        <Link className="collab-brand" href="/overview">
           <small>THE</small>
-          <strong>WEDDING ESTATE</strong>
+          <strong className="latin-wordmark" lang="en">
+            WEDDING ESTATE
+          </strong>
         </Link>
         <Link href="/billing">Thanh toán</Link>
         <span className="collab-access">
@@ -164,7 +171,7 @@ export function CollaborationWorkspace({
           <ProposalWorkspace
             access={access}
             proposal={proposal}
-            pending={pending || error !== null}
+            pending={pending}
             command={command}
             gateway={gateway}
           />
@@ -242,6 +249,10 @@ function ProposalWorkspace({
               ))}
             </ol>
           )}
+          <p>
+            Giờ bắt đầu mỗi mốc phải từ {proposal.proposal.shift.startTime} đến trước{' '}
+            {proposal.proposal.shift.endTime} theo ca tiệc đã chọn.
+          </p>
           <TimelineEditor
             key={proposal.bookingId + ':' + (timeline?.revisionId ?? 'empty')}
             disabled={pending || !proposal.capabilities.canEditTimeline}
@@ -390,10 +401,20 @@ function field(data: FormData, name: string): string {
 function money(value: number): string {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
 }
-function errorMessage(error: unknown): string {
+function errorMessage(error: unknown, shift?: ProposalView['proposal']['shift']): string {
   if (!(error instanceof ApiClientError))
     return 'Không thể đồng bộ hồ sơ. Nội dung bạn nhập vẫn được giữ lại.';
-  if (error.code === 'STALE_BOOKING_REVISION')
+  if (error.code === 'TIMELINE_ITEM_TIME_INVALID')
+    return shift
+      ? `Giờ bắt đầu mốc chương trình phải từ ${shift.startTime} đến trước ${shift.endTime}. Hãy sửa giờ rồi lưu lại. Nội dung đã nhập vẫn được giữ lại.`
+      : 'Giờ bắt đầu mốc chương trình phải nằm trong ca tiệc đã chọn. Hãy sửa giờ rồi lưu lại.';
+  if (error.code === 'TIMELINE_APPROVAL_REQUIRES_ITEM')
+    return 'Chưa thể phê duyệt kịch bản trống. Hãy thêm và lưu ít nhất một mốc chương trình trước khi phê duyệt.';
+  if (error.code === 'TIMELINE_ITEM_COUNT_INVALID')
+    return 'Kịch bản chỉ được có tối đa 100 mốc. Hãy xóa bớt mốc rồi lưu lại.';
+  if (error.code === 'TIMELINE_ITEM_TEXT_INVALID')
+    return 'Nội dung mỗi mốc cần từ 1–120 ký tự; ghi chú tối đa 2.000 ký tự. Hãy sửa nội dung rồi lưu lại.';
+  if (error.code === 'STALE_BOOKING_REVISION' || error.code === 'TIMELINE_REVISION_SUPERSEDED')
     return 'Đề xuất vừa được cập nhật. Hãy tải lại rồi thực hiện trên revision mới nhất.';
   if (error.code === 'DEPOSIT_INTENT_ACTIVE')
     return 'Đang có giao dịch tiền cọc chưa kết thúc nên chưa thể thay đổi nội dung này.';

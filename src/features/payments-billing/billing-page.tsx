@@ -63,7 +63,7 @@ export function CoupleBillingPage({
       <main className="billing-shell">
         <h1>Cần đăng nhập</h1>
         <p role="alert">Đăng nhập bằng tài khoản được cấp quyền trên hồ sơ đặt tiệc.</p>
-        <Link href="/">Về trang đăng nhập</Link>
+        <Link href="/account">Về trang đăng nhập</Link>
       </main>
     );
   return (

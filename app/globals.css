@@ -145,8 +145,15 @@ textarea {
 }
 
 .collab-intro h1 {
-  max-width: 14ch;
-  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  max-width: 20ch;
+  font-size: clamp(2.25rem, 5.5vw, 3.5rem);
+  text-wrap: balance;
+}
+
+.collab-intro > .script-heading {
+  margin: 0 0 1rem;
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  line-height: 1.5;
 }
 
 .collab-intro > p:not(.script-heading) {
