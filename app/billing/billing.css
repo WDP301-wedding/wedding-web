@@ -204,6 +204,7 @@
 }
 .billing-shell table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
   font-size: 14px;
   text-align: left;
@@ -215,6 +216,8 @@
 }
 .billing-shell th {
   background: var(--powder);
+  text-transform: none;
+  letter-spacing: normal;
 }
 .billing-shell td,
 .billing-shell th {
