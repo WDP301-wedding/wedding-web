@@ -13,6 +13,10 @@ const error = (code: string, status?: number, kind: 'api' | 'timeout' = 'api') =
     ...(status === undefined ? {} : { status }),
   });
 describe('billing privacy and state messages', () => {
+  it('keeps a rate-limited money command retryable with its original identity', () => {
+    expect(unresolved(error('RATE_LIMITED', 429))).toBe(true);
+    expect(billingMessage(error('RATE_LIMITED', 429))).toContain('Giữ nguyên');
+  });
   it.each(['CREATED', 'PENDING', 'UNKNOWN', 'FAILED', 'SUCCEEDED'] as const)(
     'renders verified attempt state %s',
     (status) => {

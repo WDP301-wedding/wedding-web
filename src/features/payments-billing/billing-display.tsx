@@ -8,6 +8,7 @@ export function unresolved(error: unknown): boolean {
     !(error instanceof ApiClientError) ||
     error.kind !== 'api' ||
     (error.status ?? 500) >= 500 ||
+    error.status === 429 ||
     error.code === 'REQUEST_IN_PROGRESS'
   );
 }

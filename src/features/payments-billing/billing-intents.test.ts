@@ -30,6 +30,70 @@ afterEach(() => {
 });
 
 describe('durable billing intent identity', () => {
+  it.each([401, 403, 404, 429])(
+    'keeps an uncertain command through a pre-claim HTTP %i rejection',
+    async (status) => {
+      const storage = memory();
+      const keys: string[] = [];
+      const first = createBillingIntents('actor', storage, hash);
+      await expect(
+        first.run('checkout:booking', { expectedBillingRevision: 7 }, (key) => {
+          keys.push(key);
+          return Promise.reject(unknown);
+        }),
+      ).rejects.toBe(unknown);
+      await expect(
+        first.run('checkout:booking', { expectedBillingRevision: 8 }, (key) => {
+          keys.push(key);
+          return Promise.reject(
+            new ApiClientError({
+              kind: 'api',
+              status,
+              code: status === 429 ? 'RATE_LIMITED' : 'ACCESS_DENIED',
+              message: 'rejected before claim',
+              requestId: 'request',
+            }),
+          );
+        }),
+      ).rejects.toThrow();
+      const reloaded = createBillingIntents('actor', storage, hash);
+      expect(await reloaded.pending('checkout:booking')).toEqual({ expectedBillingRevision: 7 });
+      await reloaded.run('checkout:booking', { expectedBillingRevision: 8 }, (key, body) => {
+        keys.push(key);
+        expect(body).toEqual({ expectedBillingRevision: 7 });
+        return Promise.resolve();
+      });
+      expect(new Set(keys).size).toBe(1);
+    },
+  );
+  it('retains a successful checkout identity across reload until its matching completion', async () => {
+    const storage = memory();
+    const paymentAttemptId = 'aff5dbfe-1344-45c4-b5a9-50a63d4c193d';
+    const first = createBillingIntents('actor', storage, hash);
+    const original = await first.run(
+      'checkout:booking',
+      { expectedBillingRevision: 7 },
+      (key) => Promise.resolve({ key, paymentAttemptId }),
+      true,
+    );
+    const reloaded = createBillingIntents('actor', storage, hash);
+    expect(await reloaded.pending('checkout:booking')).toEqual({
+      expectedBillingRevision: 7,
+      checkoutAttemptId: paymentAttemptId,
+    });
+    const replay = await reloaded.run(
+      'checkout:booking',
+      { expectedBillingRevision: 8 },
+      (key, body) => Promise.resolve({ key, body, paymentAttemptId }),
+      true,
+    );
+    expect(replay.key).toBe(original.key);
+    expect(replay.body).toEqual({ expectedBillingRevision: 7 });
+    await reloaded.completeCheckout('checkout:booking', 'other-attempt');
+    expect(await reloaded.pending('checkout:booking')).not.toBeNull();
+    await reloaded.completeCheckout('checkout:booking', paymentAttemptId);
+    expect(await reloaded.pending('checkout:booking')).toBeNull();
+  });
   it('recovers original server revision after committed money changes the loaded head', async () => {
     const storage = memory();
     const first = createBillingIntents('actor', storage, hash);

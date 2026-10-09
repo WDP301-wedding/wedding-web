@@ -14,6 +14,7 @@ const recordSchema = z.strictObject({
   key: z.uuid(),
   hash: z.string().regex(/^[a-f0-9]{64}$/),
   metadata: metadataSchema.default({}),
+  checkoutAttemptId: z.uuid().optional(),
 });
 const browserStorage: IntentStorage = {
   read: (key) => Promise.resolve(sessionStorage.getItem(key)),
@@ -43,12 +44,29 @@ export function createBillingIntents(
   return {
     async pending(scope: string) {
       const saved = await storage.read(await slotFor(scope));
-      return saved === null ? null : recordSchema.parse(JSON.parse(saved) as unknown).metadata;
+      if (saved === null) return null;
+      const record = recordSchema.parse(JSON.parse(saved) as unknown);
+      return {
+        ...record.metadata,
+        ...(record.checkoutAttemptId === undefined
+          ? {}
+          : { checkoutAttemptId: record.checkoutAttemptId }),
+      };
+    },
+    async completeCheckout(scope: string, attemptId: string) {
+      const slot = await slotFor(scope);
+      const saved = await storage.read(slot);
+      if (
+        saved !== null &&
+        recordSchema.parse(JSON.parse(saved) as unknown).checkoutAttemptId === attemptId
+      )
+        await storage.remove(slot);
     },
     async run<T>(
       scope: string,
       body: object,
       operation: (key: string, stableBody: object) => Promise<T>,
+      retainCheckout = false,
     ): Promise<T> {
       if (busy.has(scope)) throw new Error('Yêu cầu này đang được xử lý.');
       busy.add(scope);
@@ -77,7 +95,13 @@ export function createBillingIntents(
         await storage.write(slot, JSON.stringify(record));
         try {
           const result = await operation(record.key, stableBody);
-          await storage.remove(slot);
+          if (retainCheckout) {
+            const checkout = z.object({ paymentAttemptId: z.uuid() }).parse(result);
+            await storage.write(
+              slot,
+              JSON.stringify({ ...record, checkoutAttemptId: checkout.paymentAttemptId }),
+            );
+          } else await storage.remove(slot);
           return result;
         } catch (error) {
           if (
@@ -86,7 +110,9 @@ export function createBillingIntents(
             error.status !== undefined &&
             error.status >= 400 &&
             error.status < 500 &&
-            error.code !== 'REQUEST_IN_PROGRESS'
+            ![401, 403, 404, 429].includes(error.status) &&
+            error.code !== 'REQUEST_IN_PROGRESS' &&
+            previous?.checkoutAttemptId === undefined
           )
             await storage.remove(slot);
           throw error;

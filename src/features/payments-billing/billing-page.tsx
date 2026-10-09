@@ -34,6 +34,9 @@ type CheckoutIntent =
   | Readonly<{ kind: 'balance'; body: BalanceBody; amountVnd: number | null }>;
 const identity = new WebIdentitySession(createIdentityApi());
 const billing = createCoupleBillingGateway();
+const completed = (value: AttemptView) =>
+  value.status === 'FAILED' ||
+  (value.status === 'SUCCEEDED' && value.applicationStatus === 'SUCCEEDED');
 export function CoupleBillingPage({
   session = identity,
   gateway = billing,
@@ -95,10 +98,12 @@ export function CoupleBillingWorkspace({
   const [needsAttemptStatus, setNeedsAttemptStatus] = useState(false);
   const [pending, setPending] = useState(false);
   const busy = useRef(false);
+  const identifierEdited = useRef(false);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     queueMicrotask(() => {
+      if (identifierEdited.current) return;
       setBookingId(params.get('bookingId') ?? '');
       setAttemptId(params.get('attemptId') ?? '');
     });
@@ -142,19 +147,22 @@ export function CoupleBillingWorkspace({
         setCheckout(null);
       }
     }
+    const saved = await intents.pending(`checkout:${id}`);
+    const savedAllowed = saved?.timelineRevisionId !== undefined || value.accessLevel === 'FULL';
     const restoreAttemptId =
-      !hideBalanceAttempt &&
-      (context?.bookingId === id ||
-        new URLSearchParams(window.location.search).get('bookingId') === id)
-        ? attemptId.trim()
-        : '';
+      savedAllowed && saved?.checkoutAttemptId !== undefined
+        ? saved.checkoutAttemptId
+        : !hideBalanceAttempt &&
+            (context?.bookingId === id ||
+              new URLSearchParams(window.location.search).get('bookingId') === id)
+          ? attemptId.trim()
+          : '';
     setNeedsAttemptStatus(restoreAttemptId !== '');
     const result =
       value.accessLevel === 'FULL' ? await authorize((token) => gateway.load(token, id)) : null;
     if (result !== null && result.bookingId !== id) throw new Error('Billing mismatch');
     setContext(value);
     setView(result);
-    const saved = await intents.pending(`checkout:${id}`);
     if (saved?.timelineRevisionId !== undefined) {
       setIntent({
         kind: 'deposit',
@@ -178,12 +186,24 @@ export function CoupleBillingWorkspace({
       )
         throw new Error('Attempt mismatch');
       setAttempt(restored);
+      setAttemptId(restoreAttemptId);
       setNeedsAttemptStatus(false);
-      if (restored.status === 'SUCCEEDED' || restored.status === 'FAILED') setCheckout(null);
+      if (restored.status === 'SUCCEEDED' || restored.status === 'FAILED') {
+        setCheckout(null);
+        setIntent(null);
+        setRetry(false);
+        if (completed(restored)) await intents.completeCheckout(`checkout:${id}`, restoreAttemptId);
+      }
     }
   };
   const start = async () => {
-    if (busy.current || context === null || intent === null) return;
+    if (
+      busy.current ||
+      context === null ||
+      intent === null ||
+      context.bookingId !== bookingId.trim()
+    )
+      return;
     busy.current = true;
     setPending(true);
     setError(null);
@@ -197,6 +217,7 @@ export function CoupleBillingWorkspace({
               ? gateway.startDeposit(token, context.bookingId, stableBody as DepositBody, key)
               : gateway.startBalance(token, context.bookingId, stableBody as BalanceBody, key),
           ),
+        true,
       );
       setCheckout(value);
       setAttemptId(value.paymentAttemptId);
@@ -218,13 +239,12 @@ export function CoupleBillingWorkspace({
       setPending(false);
     }
   };
-  const inFlight =
-    attempt !== null && attempt.status !== 'FAILED' && attempt.status !== 'SUCCEEDED';
+  const inFlight = attempt !== null && !completed(attempt);
   const blocked = pending || intent !== null || checkout !== null || inFlight || needsAttemptStatus;
   return (
     <main className="billing-shell billing-couple">
       <header className="billing-header">
-        <Link className="billing-wordmark" href="/">
+        <Link className="billing-wordmark latin-wordmark" lang="en" href="/">
           Wedding Estate
         </Link>
         <nav aria-label="Không gian cặp đôi">
@@ -254,13 +274,23 @@ export function CoupleBillingWorkspace({
           <input
             required
             value={bookingId}
-            disabled={pending || intent !== null || checkout !== null || inFlight}
-            onChange={(event) => setBookingId(event.target.value)}
+            disabled={blocked}
+            onChange={(event) => {
+              if (blocked) return;
+              identifierEdited.current = true;
+              setBookingId(event.target.value);
+              setContext(null);
+              setView(null);
+              setAttempt(null);
+              setAttemptId('');
+              setCheckout(null);
+              setNeedsAttemptStatus(false);
+              setRetry(false);
+              setError(null);
+            }}
           />
         </label>
-        <button disabled={pending || intent !== null || checkout !== null || inFlight}>
-          Mở thanh toán
-        </button>
+        <button disabled={blocked}>Mở thanh toán</button>
       </form>
       <div aria-live="polite" className="billing-live">
         {pending && <p role="status">Đang kiểm tra với máy chủ…</p>}
@@ -272,7 +302,7 @@ export function CoupleBillingWorkspace({
             <h2>Hồ sơ của hai bạn</h2>
             <button
               className="billing-secondary"
-              disabled={pending || intent !== null}
+              disabled={pending}
               onClick={() => {
                 void run(async () => {
                   await load(context.bookingId);
@@ -438,7 +468,16 @@ export function CoupleBillingWorkspace({
                     throw new Error('Attempt mismatch');
                   setAttempt(value);
                   setNeedsAttemptStatus(false);
-                  if (value.status === 'FAILED') setCheckout(null);
+                  if (value.status === 'FAILED' || value.status === 'SUCCEEDED') {
+                    setCheckout(null);
+                    setIntent(null);
+                    setRetry(false);
+                    if (completed(value))
+                      await intents.completeCheckout(
+                        `checkout:${context.bookingId}`,
+                        value.paymentAttemptId,
+                      );
+                  }
                 });
               }}
             >
@@ -448,7 +487,7 @@ export function CoupleBillingWorkspace({
                   required
                   value={attemptId}
                   disabled={pending || intent !== null}
-                  readOnly={checkout !== null}
+                  readOnly={checkout !== null || (intent !== null && attemptId !== '')}
                   onChange={(event) => setAttemptId(event.target.value)}
                 />
               </label>

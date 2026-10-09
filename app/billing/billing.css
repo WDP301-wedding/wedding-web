@@ -18,7 +18,6 @@
   padding: 36px 0 16px;
 }
 .billing-wordmark {
-  font-family: var(--font-wordmark);
   font-size: 24px;
   text-decoration: none;
 }
