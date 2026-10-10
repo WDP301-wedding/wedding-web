@@ -1,0 +1,92 @@
+.shell {
+  width: min(100% - 2rem, 68rem);
+  margin: 2rem auto;
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.6;
+}
+.shell h1,
+.shell h2,
+.shell h3,
+.shell h4 {
+  font-family: var(--font-display);
+  line-height: 1.35;
+  color: var(--navy);
+}
+.shell section,
+.shell article {
+  background: var(--paper);
+  border: 1px solid var(--powder);
+  border-radius: 1rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  margin-block: 1.25rem;
+}
+.shell form {
+  display: grid;
+  gap: 1rem;
+}
+.shell label {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+.shell input,
+.shell textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.75rem;
+  min-height: 44px;
+  border: 1px solid var(--gold);
+  border-radius: 0.5rem;
+  background: white;
+  color: var(--ink);
+  font-family: inherit;
+}
+.shell button {
+  font-family: inherit;
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  margin: 0.25rem;
+  border: 1px solid var(--navy);
+  border-radius: 0.5rem;
+  background: var(--navy);
+  color: white;
+  cursor: pointer;
+}
+.shell button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.shell button:focus-visible,
+.shell a:focus-visible,
+.shell input:focus-visible,
+.shell textarea:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+.shell nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.shell a {
+  color: var(--navy);
+  overflow-wrap: anywhere;
+}
+.shell img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+}
+.shell [role='alert'] {
+  padding: 1rem;
+  background: var(--powder);
+  border-left: 4px solid var(--burgundy);
+}
+@media (max-width: 600px) {
+  .shell {
+    margin-block: 1rem;
+  }
+  .shell nav button {
+    flex: 1 1 45%;
+  }
+}
