@@ -54,9 +54,9 @@ const proposal: ProposalView = {
   },
 };
 
-function fakeGateway(): CollaborationGateway {
+function fakeGateway(initialProposal: ProposalView = proposal): CollaborationGateway {
   return {
-    load: vi.fn().mockResolvedValue(proposal),
+    load: vi.fn().mockResolvedValue(initialProposal),
     saveTimeline: vi.fn().mockResolvedValue(undefined),
     approve: vi.fn().mockResolvedValue(undefined),
     withdraw: vi.fn().mockResolvedValue(undefined),
@@ -328,5 +328,162 @@ describe('Booking collaboration workspace', () => {
         expectedRevision: proposal.revision,
       }),
     );
+  });
+
+  it('displays Vietnamese phase label and deposit link when timeline is mutually approved', async () => {
+    const mutuallyApprovedProposal = {
+      ...proposal,
+      phase: 'AWAITING_DEPOSIT' as const,
+      timeline: {
+        ...proposal.timeline!,
+        managerApprovedAt: '2026-10-10T10:00:00.000Z',
+        coupleApprovedAt: '2026-10-10T11:00:00.000Z',
+      },
+    };
+    const gateway = fakeGateway(mutuallyApprovedProposal);
+    render(<CollaborationWorkspace access="full" authorize={authorize} gateway={gateway} />);
+    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
+      target: { value: proposal.bookingId },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+    expect((await screen.findAllByText('Đã thống nhất kịch bản')).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Kịch bản đã được cả hai bên phê duyệt/)).toBeVisible();
+    const depositLink = screen.getByRole('link', { name: 'Chuyển sang đặt cọc →' });
+    expect(depositLink).toHaveAttribute('href', `/billing?bookingId=${proposal.bookingId}`);
+  });
+
+  it('displays confirmed booking guidance and balance link instead of deposit invite when phase is CONFIRMED', async () => {
+    const confirmedProposal = {
+      ...proposal,
+      phase: 'CONFIRMED' as const,
+      timeline: {
+        ...proposal.timeline!,
+        managerApprovedAt: '2026-10-10T10:00:00.000Z',
+        coupleApprovedAt: '2026-10-10T11:00:00.000Z',
+      },
+    };
+    const gateway = fakeGateway(confirmedProposal);
+    render(<CollaborationWorkspace access="full" authorize={authorize} gateway={gateway} />);
+    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
+      target: { value: proposal.bookingId },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+
+    expect(await screen.findByText('Tiệc cưới đã xác nhận chính thức')).toBeVisible();
+    expect(screen.queryByText('Đã thống nhất kịch bản')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Chuyển sang đặt cọc →' })).not.toBeInTheDocument();
+    const balanceLink = screen.getByRole('link', { name: 'Xem công nợ & thanh toán số dư →' });
+    expect(balanceLink).toHaveAttribute('href', `/billing?bookingId=${proposal.bookingId}`);
+  });
+
+  it('displays completed booking guidance and settlement link when phase is COMPLETED', async () => {
+    const completedProposal = {
+      ...proposal,
+      phase: 'COMPLETED' as const,
+      timeline: {
+        ...proposal.timeline!,
+        managerApprovedAt: '2026-10-10T10:00:00.000Z',
+        coupleApprovedAt: '2026-10-10T11:00:00.000Z',
+      },
+    };
+    const gateway = fakeGateway(completedProposal);
+    render(<CollaborationWorkspace access="full" authorize={authorize} gateway={gateway} />);
+    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
+      target: { value: proposal.bookingId },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+
+    expect(await screen.findByText('Tiệc cưới đã hoàn tất')).toBeVisible();
+    expect(screen.queryByText('Đã thống nhất kịch bản')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Chuyển sang đặt cọc →' })).not.toBeInTheDocument();
+    const settlementLink = screen.getByRole('link', { name: 'Xem quyết toán công nợ →' });
+    expect(settlementLink).toHaveAttribute('href', `/billing?bookingId=${proposal.bookingId}`);
+  });
+
+  it('switches booking context from A to B cleanly, syncing URL and notifying onBookingChange', async () => {
+    const bookingAId = '00000000-0000-4000-8000-000000000101';
+    const bookingBId = '00000000-0000-4000-8000-000000000201';
+    const proposalB: ProposalView = {
+      ...proposal,
+      bookingId: bookingBId,
+      proposal: {
+        ...proposal.proposal,
+        hall: { id: 'hall-b', name: 'Sảnh Kim Cương', description: 'Sảnh lớn', maxGuests: 500 },
+      },
+    };
+
+    const gateway: CollaborationGateway = {
+      ...fakeGateway(),
+      load: vi.fn().mockImplementation((_token, id) => {
+        if (id === bookingAId) return Promise.resolve(proposal);
+        if (id === bookingBId) return Promise.resolve(proposalB);
+        throw new Error('Not found');
+      }),
+    };
+
+    const onBookingChange = vi.fn();
+    render(
+      <CollaborationWorkspace
+        access="full"
+        authorize={authorize}
+        gateway={gateway}
+        onBookingChange={onBookingChange}
+      />,
+    );
+
+    // 1. Load Booking A
+    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
+      target: { value: bookingAId },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+
+    expect(await screen.findByText('Sảnh Ánh Dương')).toBeVisible();
+    expect(window.location.search).toContain(`bookingId=${bookingAId}`);
+    expect(onBookingChange).toHaveBeenCalledWith(bookingAId);
+
+    // 2. Switch to Booking B
+    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
+      target: { value: bookingBId },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+
+    expect(await screen.findByText('Sảnh Kim Cương')).toBeVisible();
+    expect(screen.queryByText('Sảnh Ánh Dương')).not.toBeInTheDocument();
+    expect(window.location.search).toContain(`bookingId=${bookingBId}`);
+    expect(onBookingChange).toHaveBeenCalledWith(bookingBId);
+  });
+
+  it('isolates state on failure when switching booking without retaining stale data', async () => {
+    const bookingAId = '00000000-0000-4000-8000-000000000101';
+    const bookingBId = '00000000-0000-4000-8000-000000000201';
+
+    const gateway: CollaborationGateway = {
+      ...fakeGateway(),
+      load: vi.fn().mockImplementation((_token, id) => {
+        if (id === bookingAId) return Promise.resolve(proposal);
+        return Promise.reject(new Error('Hồ sơ không tồn tại'));
+      }),
+    };
+
+    render(<CollaborationWorkspace access="full" authorize={authorize} gateway={gateway} />);
+
+    // 1. Load Booking A
+    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
+      target: { value: bookingAId },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+    expect(await screen.findByText('Sảnh Ánh Dương')).toBeVisible();
+
+    // 2. Try loading Booking B (fails)
+    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
+      target: { value: bookingBId },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+
+    // Must show error and empty state; must NOT retain proposal A
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Không thể đồng bộ hồ sơ. Nội dung bạn nhập vẫn được giữ lại.',
+    );
+    expect(screen.queryByText('Sảnh Ánh Dương')).not.toBeInTheDocument();
   });
 });

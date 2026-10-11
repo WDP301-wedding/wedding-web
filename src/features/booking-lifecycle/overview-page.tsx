@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { PublicShell } from '../public-website/public-shell';
+import Image from 'next/image';
+import { WorkspaceShell } from '../couple-workspace/workspace-shell';
 import { browserSession } from '../identity-access/identity-page';
 import { createExperienceGateway, type Overview } from '../identity-access/experience-api';
 import type { WebSessionSnapshot } from '../identity-access/session';
@@ -65,7 +66,7 @@ export function CoupleOverview() {
     }
   }
   return (
-    <PublicShell>
+    <WorkspaceShell active="overview" bookingId={page?.data[0]?.bookingId}>
       <section className="public-section overview-section">
         <div className="public-section-heading">
           <div>
@@ -102,23 +103,52 @@ export function CoupleOverview() {
         ) : null}
         {page?.data.map((booking) => (
           <article key={booking.bookingId} className="overview-booking">
-            <div className="overview-event">
-              <span>{phases[booking.phase]}</span>
-              <h2>
-                {new Date(`${booking.eventDate}T00:00:00+07:00`).toLocaleDateString('vi-VN', {
-                  timeZone: 'Asia/Ho_Chi_Minh',
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </h2>
-              <p>
-                {booking.hallName} · {booking.shiftCode === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối'}
-              </p>
-              <p>{booking.planningHeadcount} khách dự kiến</p>
-              <Link className="public-button" href={`/workspace?bookingId=${booking.bookingId}`}>
-                Mở đề xuất & kịch bản →
-              </Link>
+            <div className="hero-card">
+              <Image
+                className="overview-image"
+                src="/images/v0-wedding-venue.png"
+                alt="Không gian sân vườn minh họa cho thiết kế"
+                width={1000}
+                height={700}
+              />
+              <div className="overview-event">
+                <span>{phases[booking.phase]}</span>
+                <h2>
+                  {new Date(`${booking.eventDate}T00:00:00+07:00`).toLocaleDateString('vi-VN', {
+                    timeZone: 'Asia/Ho_Chi_Minh',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </h2>
+                <p>
+                  {booking.hallName} · {booking.shiftCode === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối'}
+                </p>
+                <p>{booking.planningHeadcount} khách dự kiến</p>
+                <div
+                  className="overview-links"
+                  style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}
+                >
+                  <Link
+                    className="public-button"
+                    href={`/workspace?bookingId=${booking.bookingId}`}
+                  >
+                    Mở đề xuất & kịch bản →
+                  </Link>
+                  <Link
+                    className="button button-secondary"
+                    href={`/invitations?bookingId=${booking.bookingId}`}
+                  >
+                    Thiệp cưới
+                  </Link>
+                  <Link
+                    className="button button-secondary"
+                    href={`/billing?bookingId=${booking.bookingId}`}
+                  >
+                    Công nợ
+                  </Link>
+                </div>
+              </div>
             </div>
             <div className="overview-next">
               <h3>Cùng chuẩn bị bước tiếp theo</h3>
@@ -168,6 +198,6 @@ export function CoupleOverview() {
           </button>
         ) : null}
       </section>
-    </PublicShell>
+    </WorkspaceShell>
   );
 }

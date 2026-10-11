@@ -579,4 +579,27 @@ describe('Couple billing experience', () => {
     );
     expect(screen.getByRole('alert')).toHaveTextContent('quyền');
   });
+  it('switches booking context, updates URL and notifies onBookingChange', async () => {
+    const api = gateway();
+    vi.mocked(api.loadContext).mockResolvedValue({ ...context, bookingId: 'booking-b' });
+    const current = await api.load('token', 'booking');
+    vi.mocked(api.load).mockResolvedValue({ ...current, bookingId: 'booking-b' });
+    const onBookingChange = vi.fn();
+    render(
+      <CoupleBillingWorkspace
+        accountId="actor"
+        authorize={authorize}
+        gateway={api}
+        intents={intents}
+        onBookingChange={onBookingChange}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
+      target: { value: 'booking-b' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Mở thanh toán' }));
+    await waitFor(() => expect(api.loadContext).toHaveBeenCalledWith('token', 'booking-b'));
+    expect(window.location.search).toContain('bookingId=booking-b');
+    expect(onBookingChange).toHaveBeenCalledWith('booking-b');
+  });
 });
