@@ -7,6 +7,7 @@ import {
   WebIdentitySession,
   type WebSessionSnapshot,
 } from '../identity-access/session';
+import { createExperienceGateway } from '../identity-access/experience-api';
 import {
   createCoupleBillingGateway,
   type AttemptView,
@@ -40,7 +41,12 @@ const completed = (value: AttemptView) =>
 export function CoupleBillingPage({
   session = identity,
   gateway = billing,
-}: Readonly<{ session?: WebIdentitySession; gateway?: CoupleBillingGateway }>) {
+  onBookingChange,
+}: Readonly<{
+  session?: WebIdentitySession;
+  gateway?: CoupleBillingGateway;
+  onBookingChange?: ((bookingId: string) => void) | undefined;
+}>) {
   const [snapshot, setSnapshot] = useState<WebSessionSnapshot | null>(null);
   useEffect(() => {
     let active = true;
@@ -72,6 +78,7 @@ export function CoupleBillingPage({
       accountId={snapshot.actor.accountId}
       authorize={(operation) => session.authorize(operation)}
       gateway={gateway}
+      onBookingChange={onBookingChange}
     />
   );
 }
@@ -80,11 +87,13 @@ export function CoupleBillingWorkspace({
   authorize,
   gateway,
   intents: provided,
+  onBookingChange,
 }: Readonly<{
   accountId: string;
   authorize: Authorize;
   gateway: CoupleBillingGateway;
   intents?: ReturnType<typeof createBillingIntents>;
+  onBookingChange?: ((bookingId: string) => void) | undefined;
 }>) {
   const [intents] = useState(() => provided ?? createBillingIntents(accountId));
   const [bookingId, setBookingId] = useState('');
@@ -99,7 +108,32 @@ export function CoupleBillingWorkspace({
   const [pending, setPending] = useState(false);
   const busy = useRef(false);
   const identifierEdited = useRef(false);
+  const activeRequestIdRef = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [availableBookings, setAvailableBookings] = useState<
+    readonly { bookingId: string; label: string }[]
+  >([]);
+
+  useEffect(() => {
+    let active = true;
+    const expGateway = createExperienceGateway();
+    void authorize((token) => expGateway.overview(token))
+      .then((overview) => {
+        if (!active || !overview?.data) return;
+        const mapped = overview.data.map((item) => ({
+          bookingId: item.bookingId,
+          label: `${item.hallName} · ${item.eventDate} · ${item.shiftCode === 'LUNCH' ? 'Trưa' : 'Tối'}`,
+        }));
+        setAvailableBookings(mapped);
+      })
+      .catch(() => {
+        // Restricted access or no couple bookings
+      });
+    return () => {
+      active = false;
+    };
+  }, [authorize]);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     queueMicrotask(() => {
@@ -134,7 +168,10 @@ export function CoupleBillingWorkspace({
     }
   };
   const load = async (id: string) => {
+    const requestId = id + ':' + Date.now();
+    activeRequestIdRef.current = requestId;
     const value = await authorize((token) => gateway.loadContext(token, id));
+    if (activeRequestIdRef.current !== requestId) return;
     if (value.bookingId !== id) throw new Error('Booking mismatch');
     const hideBalanceAttempt =
       value.accessLevel !== 'FULL' &&
@@ -160,9 +197,17 @@ export function CoupleBillingWorkspace({
     setNeedsAttemptStatus(restoreAttemptId !== '');
     const result =
       value.accessLevel === 'FULL' ? await authorize((token) => gateway.load(token, id)) : null;
+    if (activeRequestIdRef.current !== requestId) return;
     if (result !== null && result.bookingId !== id) throw new Error('Billing mismatch');
     setContext(value);
     setView(result);
+    setBookingId(id);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('bookingId', id);
+      window.history.replaceState({}, '', url.toString());
+    }
+    onBookingChange?.(id);
     if (saved?.timelineRevisionId !== undefined) {
       setIntent({
         kind: 'deposit',
@@ -257,6 +302,43 @@ export function CoupleBillingWorkspace({
       <section className="billing-intro">
         <h1>Thanh toán cho ngày trọng đại</h1>
         <p>Xem khoản cọc, số dư và trạng thái đã được nhà hàng xác minh.</p>
+
+        {availableBookings.length > 0 && (
+          <div className="billing-booking-select-wrapper mb-3 text-left">
+            <label htmlFor="billing-booking-select" className="block text-sm font-medium mb-1">
+              Chọn hồ sơ tiệc cưới của bạn:
+            </label>
+            <select
+              id="billing-booking-select"
+              value={context?.bookingId ?? bookingId}
+              disabled={blocked}
+              onChange={(e) => {
+                const selectedId = e.target.value;
+                if (selectedId) {
+                  identifierEdited.current = true;
+                  setBookingId(selectedId);
+                  setContext(null);
+                  setView(null);
+                  setAttempt(null);
+                  setAttemptId('');
+                  setCheckout(null);
+                  setNeedsAttemptStatus(false);
+                  setRetry(false);
+                  setError(null);
+                  void run(() => load(selectedId));
+                }
+              }}
+              className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883] bg-white text-sm"
+            >
+              <option value="">-- Danh sách tiệc cưới đã lưu --</option>
+              {availableBookings.map((b) => (
+                <option key={b.bookingId} value={b.bookingId}>
+                  {b.label} (#{b.bookingId.slice(0, 8)})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </section>
       <form
         className="billing-lookup"

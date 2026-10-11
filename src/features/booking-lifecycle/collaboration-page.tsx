@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ApiClientError } from '../../lib/api/client';
 import { TimelineEditor } from './timeline-editor';
@@ -10,6 +10,7 @@ import {
   WebIdentitySession,
   type WebSessionSnapshot,
 } from '../identity-access/session';
+import { createExperienceGateway } from '../identity-access/experience-api';
 import {
   createCollaborationGateway,
   type CollaborationGateway,
@@ -20,7 +21,19 @@ type Authorize = <T>(operation: (accessToken: string) => Promise<T>) => Promise<
 const session = new WebIdentitySession(createIdentityApi());
 const gateway = createCollaborationGateway();
 
-export function CollaborationPage() {
+const phaseLabels: Record<string, string> = {
+  DRAFT: 'Đang trao đổi',
+  AWAITING_DEPOSIT: 'Đã thống nhất kịch bản',
+  CONFIRMED: 'Đã xác nhận tiệc',
+  COMPLETED: 'Tiệc đã hoàn tất',
+  CANCELLED: 'Đã hủy',
+};
+
+export function CollaborationPage({
+  onBookingChange,
+}: {
+  onBookingChange?: ((bookingId: string) => void) | undefined;
+} = {}) {
   const [snapshot, setSnapshot] = useState<WebSessionSnapshot | null>(null);
   useEffect(() => {
     let active = true;
@@ -42,6 +55,7 @@ export function CollaborationPage() {
       access={snapshot.access}
       authorize={(operation) => session.authorize(operation)}
       gateway={gateway}
+      onBookingChange={onBookingChange}
     />
   );
 }
@@ -50,10 +64,12 @@ export function CollaborationWorkspace({
   access,
   authorize,
   gateway,
+  onBookingChange,
 }: Readonly<{
   access: 'restricted' | 'full';
   authorize: Authorize;
   gateway: CollaborationGateway;
+  onBookingChange?: ((bookingId: string) => void) | undefined;
 }>) {
   const [bookingId, setBookingId] = useState('');
   const [proposal, setProposal] = useState<ProposalView | null>(null);
@@ -61,24 +77,68 @@ export function CollaborationWorkspace({
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [availableBookings, setAvailableBookings] = useState<
+    readonly { bookingId: string; label: string }[]
+  >([]);
+
+  const activeRequestIdRef = useRef<string | null>(null);
+
+  // Fetch couple bookings if authenticated to allow friendly dropdown selection
+  useEffect(() => {
+    let active = true;
+    const expGateway = createExperienceGateway();
+    void authorize((token) => expGateway.overview(token))
+      .then((overview) => {
+        if (!active || !overview?.data) return;
+        const mapped = overview.data.map((item) => ({
+          bookingId: item.bookingId,
+          label: `${item.hallName} · ${item.eventDate} · ${item.shiftCode === 'LUNCH' ? 'Trưa' : 'Tối'}`,
+        }));
+        setAvailableBookings(mapped);
+      })
+      .catch(() => {
+        // Restricted access or no couple bookings
+      });
+    return () => {
+      active = false;
+    };
+  }, [authorize]);
 
   const load = useCallback(
     async (id: string) => {
+      const requestId = id + ':' + Date.now();
+      activeRequestIdRef.current = requestId;
       setPending(true);
       setError(null);
       setMessage(null);
       try {
-        setProposal(await authorize((token) => gateway.load(token, id)));
+        const loadedProposal = await authorize((token) => gateway.load(token, id));
+        if (activeRequestIdRef.current !== requestId) {
+          return;
+        }
+        setProposal(loadedProposal);
         setLoaded(true);
+        setBookingId(id);
+        if (typeof window !== 'undefined') {
+          const url = new URL(window.location.href);
+          url.searchParams.set('bookingId', id);
+          window.history.replaceState({}, '', url.toString());
+        }
+        onBookingChange?.(id);
       } catch (caught) {
+        if (activeRequestIdRef.current !== requestId) {
+          return;
+        }
         setProposal(null);
         setLoaded(true);
         setError(errorMessage(caught));
       } finally {
-        setPending(false);
+        if (activeRequestIdRef.current === requestId) {
+          setPending(false);
+        }
       }
     },
-    [authorize, gateway],
+    [authorize, gateway, onBookingChange],
   );
   useEffect(() => {
     const value = new URLSearchParams(window.location.search).get('bookingId');
@@ -130,6 +190,34 @@ export function CollaborationWorkspace({
         <p>
           Xem lại lựa chọn, cùng duyệt kịch bản và gửi yêu cầu bằng hồ sơ được nhà hàng xác thực.
         </p>
+
+        {availableBookings.length > 0 && (
+          <div className="collab-booking-select-wrapper mb-3 text-left">
+            <label htmlFor="collab-booking-select" className="block text-sm font-medium mb-1">
+              Chọn hồ sơ tiệc cưới của bạn:
+            </label>
+            <select
+              id="collab-booking-select"
+              value={proposal?.bookingId ?? bookingId}
+              onChange={(e) => {
+                const selectedId = e.target.value;
+                if (selectedId) {
+                  setBookingId(selectedId);
+                  void load(selectedId);
+                }
+              }}
+              className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883] bg-white text-sm"
+            >
+              <option value="">-- Danh sách tiệc cưới đã lưu --</option>
+              {availableBookings.map((b) => (
+                <option key={b.bookingId} value={b.bookingId}>
+                  {b.label} (#{b.bookingId.slice(0, 8)})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <form
           className="collab-lookup"
           onSubmit={(event) => {
@@ -199,7 +287,7 @@ function ProposalWorkspace({
     <>
       <section className="collab-proposal" aria-label="Tóm tắt đề xuất">
         <div className="collab-proposal-title">
-          <span>{proposal.phase.replaceAll('_', ' ')}</span>
+          <span>{phaseLabels[proposal.phase] ?? proposal.phase}</span>
           <h2>{proposal.proposal.hall.name}</h2>
           <p>
             {proposal.eventDate} · {proposal.proposal.shift.startTime}–
@@ -330,6 +418,143 @@ function ProposalWorkspace({
                   Rút phê duyệt
                 </button>
               </form>
+              {(() => {
+                if (proposal.phase === 'CANCELLED') {
+                  return (
+                    <div
+                      className="collab-status-banner"
+                      style={{
+                        marginTop: '16px',
+                        padding: '12px 14px',
+                        background: '#f5f5f5',
+                        border: '1px solid #d4d4d4',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      <strong style={{ display: 'block', color: '#525252', fontSize: '13px' }}>
+                        Hồ sơ tiệc đã hủy
+                      </strong>
+                      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#737373' }}>
+                        Hồ sơ tiệc cưới này đã kết thúc hoặc bị hủy.
+                      </p>
+                    </div>
+                  );
+                }
+                if (proposal.phase === 'COMPLETED') {
+                  return (
+                    <div
+                      className="collab-status-banner"
+                      style={{
+                        marginTop: '16px',
+                        padding: '12px 14px',
+                        background: '#f0fdf4',
+                        border: '1px solid #86efac',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      <strong style={{ display: 'block', color: '#166534', fontSize: '13px' }}>
+                        Tiệc cưới đã hoàn tất
+                      </strong>
+                      <p style={{ margin: '4px 0 8px', fontSize: '12px', color: '#15803d' }}>
+                        Sự kiện đã diễn ra thành công. Bạn có thể kiểm tra lịch sử quyết toán tại
+                        trang công nợ.
+                      </p>
+                      <Link
+                        style={{
+                          display: 'inline-block',
+                          padding: '6px 12px',
+                          background: '#166534',
+                          color: '#fff',
+                          borderRadius: '3px',
+                          fontSize: '12px',
+                          textDecoration: 'none',
+                        }}
+                        href={`/billing?bookingId=${proposal.bookingId}`}
+                      >
+                        Xem quyết toán công nợ →
+                      </Link>
+                    </div>
+                  );
+                }
+                if (proposal.phase === 'CONFIRMED') {
+                  return (
+                    <div
+                      className="collab-status-banner"
+                      style={{
+                        marginTop: '16px',
+                        padding: '12px 14px',
+                        background: '#f0fdf4',
+                        border: '1px solid #86efac',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      <strong style={{ display: 'block', color: '#166534', fontSize: '13px' }}>
+                        Tiệc cưới đã xác nhận chính thức
+                      </strong>
+                      <p style={{ margin: '4px 0 8px', fontSize: '12px', color: '#15803d' }}>
+                        Hồ sơ đã được đặt cọc. Mọi điều chỉnh kịch bản lúc này sẽ gửi dưới dạng yêu
+                        cầu thay đổi (Change Request).
+                      </p>
+                      <Link
+                        style={{
+                          display: 'inline-block',
+                          padding: '6px 12px',
+                          background: '#1e3a2f',
+                          color: '#fff',
+                          borderRadius: '3px',
+                          fontSize: '12px',
+                          textDecoration: 'none',
+                        }}
+                        href={`/billing?bookingId=${proposal.bookingId}`}
+                      >
+                        Xem công nợ & thanh toán số dư →
+                      </Link>
+                    </div>
+                  );
+                }
+                if (
+                  proposal.phase === 'AWAITING_DEPOSIT' ||
+                  (proposal.phase === 'DRAFT' &&
+                    timeline?.managerApprovedAt &&
+                    timeline?.coupleApprovedAt)
+                ) {
+                  return (
+                    <div
+                      className="collab-deposit-banner"
+                      style={{
+                        marginTop: '16px',
+                        padding: '12px 14px',
+                        background: '#eef3ed',
+                        border: '1px solid #74c69d',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      <strong style={{ display: 'block', color: '#1e3a2f', fontSize: '13px' }}>
+                        Đã thống nhất kịch bản
+                      </strong>
+                      <p style={{ margin: '4px 0 8px', fontSize: '12px', color: '#526154' }}>
+                        Kịch bản đã được cả hai bên phê duyệt. Hồ sơ đủ điều kiện để tiến hành đặt
+                        cọc giữ sảnh chính thức.
+                      </p>
+                      <Link
+                        style={{
+                          display: 'inline-block',
+                          padding: '6px 12px',
+                          background: '#1e3a2f',
+                          color: '#fff',
+                          borderRadius: '3px',
+                          fontSize: '12px',
+                          textDecoration: 'none',
+                        }}
+                        href={`/billing?bookingId=${proposal.bookingId}`}
+                      >
+                        Chuyển sang đặt cọc →
+                      </Link>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </>
           )}
           {access === 'full' && proposal.capabilities.canRequestCancellation ? (
