@@ -28,12 +28,10 @@ type IssuedSession = SessionCredential &
 
 export interface IdentityApi {
   acceptInvitation(this: void, token: string, password: string): Promise<IssuedSession>;
-  completePasswordReset(this: void, token: string, newPassword: string): Promise<void>;
   createSession(this: void, email: string, password: string): Promise<IssuedSession>;
   getCurrentUser(this: void, accessToken: string): Promise<CurrentActor>;
   logout(this: void, accessToken: string): Promise<void>;
   refreshSession(this: void): Promise<SessionCredential>;
-  requestPasswordReset(this: void, email: string): Promise<void>;
 }
 
 export type WebSessionSnapshot =
@@ -114,18 +112,6 @@ export class WebIdentitySession {
     return this.restoreOperation;
   }
 
-  async requestPasswordReset(email: string): Promise<void> {
-    await this.api.requestPasswordReset(email);
-  }
-
-  async completePasswordReset(token: string, password: string): Promise<void> {
-    try {
-      await this.api.completePasswordReset(token, password);
-    } finally {
-      this.clear();
-    }
-  }
-
   async logout(): Promise<void> {
     const token = this.accessToken;
     try {
@@ -135,6 +121,14 @@ export class WebIdentitySession {
     }
   }
 
+  /**
+   * Chạy một lệnh gọi API cần đăng nhập.
+   *
+   * Access token chỉ sống 10 phút. Nếu backend trả 401 (token hết hạn), ta thử làm mới
+   * phiên đúng một lần bằng cookie refresh HttpOnly rồi chạy lại lệnh. Trước đây lỗi 401
+   * xoá phiên ngay, khiến người dùng bị đăng xuất sau mỗi 10 phút dù cookie vẫn còn hạn.
+   * Lệnh ghi được chạy lại an toàn vì dùng cùng Idempotency-Key (backend không tạo bản ghi trùng).
+   */
   async authorize<T>(operation: (accessToken: string) => Promise<T>): Promise<T> {
     if (this.accessToken === null) throw new Error('Authentication is required.');
 
@@ -142,18 +136,53 @@ export class WebIdentitySession {
       return await operation(this.accessToken);
     } catch (error) {
       if (error instanceof ApiClientError && error.status === 401) {
-        this.clear();
-      } else if (
-        this.state.status === 'authenticated' &&
-        error instanceof ApiClientError &&
-        (error.status === 403 || error.status === 404)
-      ) {
-        this.updateSnapshot({
-          ...this.state,
-          denial: error.status === 403 ? 'forbidden' : 'not-found',
-        });
+        const renewed = await this.renewAccessToken();
+        if (renewed === null) throw error;
+        try {
+          return await operation(renewed);
+        } catch (retryError) {
+          this.handleDenial(retryError);
+          throw retryError;
+        }
       }
+      this.handleDenial(error);
       throw error;
+    }
+  }
+
+  // Nhiều lệnh cùng gặp 401 sẽ dùng chung một lần refresh (cookie refresh bị xoay vòng,
+  // gọi song song có thể làm backend thu hồi phiên).
+  private renewOperation: Promise<string | null> | null = null;
+
+  private renewAccessToken(): Promise<string | null> {
+    this.renewOperation ??= this.api
+      .refreshSession()
+      .then((credential) => {
+        this.accessToken = credential.accessToken;
+        return credential.accessToken;
+      })
+      .catch(() => {
+        this.clear();
+        return null;
+      })
+      .finally(() => {
+        this.renewOperation = null;
+      });
+    return this.renewOperation;
+  }
+
+  private handleDenial(error: unknown): void {
+    if (error instanceof ApiClientError && error.status === 401) {
+      this.clear();
+    } else if (
+      this.state.status === 'authenticated' &&
+      error instanceof ApiClientError &&
+      (error.status === 403 || error.status === 404)
+    ) {
+      this.updateSnapshot({
+        ...this.state,
+        denial: error.status === 403 ? 'forbidden' : 'not-found',
+      });
     }
   }
 
@@ -207,11 +236,6 @@ export function createIdentityApi(client?: ApiClient): IdentityApi {
       });
       return normalizeIssuedSession(requireData(data).data);
     },
-    async completePasswordReset(token, newPassword) {
-      await api().POST('/auth/password-reset-completions', {
-        body: { resetToken: token, newPassword },
-      });
-    },
     async createSession(email, password) {
       const { data } = await api().POST('/auth/web-sessions', {
         body: { email, password },
@@ -238,9 +262,6 @@ export function createIdentityApi(client?: ApiClient): IdentityApi {
         params: { cookie: { '__Host-wedding-refresh': '' } },
       });
       return requireData(data).data;
-    },
-    async requestPasswordReset(email) {
-      await api().POST('/auth/password-reset-requests', { body: { email } });
     },
   };
 }

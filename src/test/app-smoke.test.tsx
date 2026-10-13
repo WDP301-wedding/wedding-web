@@ -26,7 +26,6 @@ function createApi(roles: readonly ('MANAGER' | 'STAFF' | 'COUPLE')[] = []): Ide
 
   return {
     acceptInvitation: vi.fn().mockResolvedValue(issued),
-    completePasswordReset: vi.fn().mockResolvedValue(undefined),
     createSession: vi.fn().mockResolvedValue(issued),
     getCurrentUser: vi.fn().mockResolvedValue({ ...account, sessionId }),
     logout: vi.fn().mockResolvedValue(undefined),
@@ -35,7 +34,6 @@ function createApi(roles: readonly ('MANAGER' | 'STAFF' | 'COUPLE')[] = []): Ide
       accessExpiresAt: '2026-10-04T10:20:00.000Z',
       sessionId,
     }),
-    requestPasswordReset: vi.fn().mockResolvedValue(undefined),
   };
 }
 
@@ -71,18 +69,13 @@ describe('Public identity session', () => {
     expect(JSON.stringify(first)).not.toContain('wia_rotated');
   });
 
-  it('clears memory state after logout and completes reset without retaining the credential', async () => {
+  it('clears memory state after logout', async () => {
     const api = createApi(['COUPLE']);
     const session = new WebIdentitySession(api);
 
     await session.login('minhanh@example.com', 'a-safe-password');
     expect(session.snapshot()).toMatchObject({ status: 'authenticated', access: 'full' });
 
-    await session.completePasswordReset('wip_reset', 'a-new-safe-password');
-    expect(api.completePasswordReset).toHaveBeenCalledWith('wip_reset', 'a-new-safe-password');
-    expect(session.snapshot()).toEqual({ status: 'anonymous', denial: null });
-
-    await session.login('minhanh@example.com', 'a-new-safe-password');
     await session.logout();
     expect(api.logout).toHaveBeenCalledWith('wia_access');
     expect(session.snapshot()).toEqual({ status: 'anonymous', denial: null });
@@ -124,14 +117,27 @@ describe('Public identity session', () => {
     expect(session.snapshot()).toEqual({ status: 'anonymous', denial: null });
   });
 
-  it('returns the same generic password-reset request behavior for every email', async () => {
-    const api = createApi();
+  it('refreshes an expired access token once and retries the operation', async () => {
+    const api = createApi(['COUPLE']);
     const session = new WebIdentitySession(api);
+    await session.login('minhanh@example.com', 'a-safe-password');
+    const operation = vi
+      .fn<(token: string) => Promise<string>>()
+      .mockRejectedValueOnce(
+        new ApiClientError({
+          kind: 'api',
+          code: 'AUTHENTICATION_REQUIRED',
+          message: 'Expired.',
+          requestId: accountId,
+          status: 401,
+        }),
+      )
+      .mockResolvedValueOnce('ok');
 
-    await session.requestPasswordReset('unknown@example.com');
-
-    expect(api.requestPasswordReset).toHaveBeenCalledWith('unknown@example.com');
-    expect(session.snapshot()).toEqual({ status: 'anonymous', denial: null });
+    await expect(session.authorize(operation)).resolves.toBe('ok');
+    expect(api.refreshSession).toHaveBeenCalledTimes(1);
+    expect(operation).toHaveBeenLastCalledWith('wia_rotated');
+    expect(session.snapshot()).toMatchObject({ status: 'authenticated' });
   });
 });
 
