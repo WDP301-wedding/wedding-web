@@ -25,6 +25,46 @@ describe('generated Couple billing HTTP adapter', () => {
       phase: 'AWAITING_DEPOSIT',
       depositAmountVnd: 1234567,
       timelineRevisionId: 'timeline',
+      contract: null,
+      contractRequired: false,
+    });
+  });
+  it('binds the deposit to the mutually approved FULL_CONTRACT_V1 revision', async () => {
+    const digest = 'a'.repeat(64);
+    const client = createApiClient({
+      baseUrl: 'http://localhost:4000/api/v1',
+      fetch: (request) =>
+        Promise.resolve(
+          Response.json({
+            data: request.url.endsWith('/contracts')
+              ? {
+                  modelVersion: 'FULL_CONTRACT_V1',
+                  currentRevisionId: 'contract-2',
+                  eligibleForDeposit: true,
+                  revisions: [
+                    {
+                      revisionId: 'contract-2',
+                      state: 'APPROVED',
+                      documentDigest: digest,
+                      document: { depositAmountVnd: 30000000, timelineRevisionId: 'timeline-3' },
+                    },
+                  ],
+                }
+              : {
+                  bookingId: 'booking',
+                  phase: 'AWAITING_DEPOSIT',
+                  capabilities: { accessLevel: 'RESTRICTED' },
+                  proposal: { depositAmountVnd: 1 },
+                  timeline: { revisionId: 'timeline-old' },
+                },
+          }),
+        ),
+    });
+    expect(await createCoupleBillingGateway(client).loadContext('token', 'booking')).toMatchObject({
+      depositAmountVnd: 30000000,
+      timelineRevisionId: 'timeline-3',
+      contract: { revisionId: 'contract-2', documentDigest: digest, eligibleForDeposit: true },
+      contractRequired: false,
     });
   });
   it('sends exact public checkout bodies and explicit keys; preserves billing pagination fence', async () => {

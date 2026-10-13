@@ -2,11 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import {
-  createIdentityApi,
-  WebIdentitySession,
-  type WebSessionSnapshot,
-} from '../identity-access/session';
+import { type WebIdentitySession, type WebSessionSnapshot } from '../identity-access/session';
+import { browserSession } from '../identity-access/browser-session';
 import { createExperienceGateway } from '../identity-access/experience-api';
 import {
   createCoupleBillingGateway,
@@ -33,8 +30,22 @@ type Authorize = <T>(operation: (token: string) => Promise<T>) => Promise<T>;
 type CheckoutIntent =
   | Readonly<{ kind: 'deposit'; body: DepositBody; amountVnd: number | null }>
   | Readonly<{ kind: 'balance'; body: BalanceBody; amountVnd: number | null }>;
-const identity = new WebIdentitySession(createIdentityApi());
+// Dùng chung một phiên cho cả ứng dụng: nhiều instance sẽ làm mới cookie refresh (bị xoay vòng)
+// nhiều lần không cần thiết và có thể làm backend thu hồi phiên.
+const identity = browserSession;
 const billing = createCoupleBillingGateway();
+/**
+ * Ghi nhớ giao dịch vừa tạo để trang `/payment-return` (VNPay chuyển về, thường ở tab mới)
+ * biết phải kiểm tra giao dịch nào. Chỉ lưu mã booking và mã giao dịch, không lưu dữ liệu nhạy cảm.
+ */
+export const lastCheckoutKey = 'wedding.lastCheckout';
+function rememberCheckout(bookingId: string, attemptId: string) {
+  try {
+    localStorage.setItem(lastCheckoutKey, JSON.stringify({ bookingId, attemptId }));
+  } catch {
+    // Trình duyệt chặn storage: người dùng vẫn mở được trạng thái từ trang Thanh toán.
+  }
+}
 const completed = (value: AttemptView) =>
   value.status === 'FAILED' ||
   (value.status === 'SUCCEEDED' && value.applicationStatus === 'SUCCEEDED');
@@ -211,7 +222,13 @@ export function CoupleBillingWorkspace({
     if (saved?.timelineRevisionId !== undefined) {
       setIntent({
         kind: 'deposit',
-        body: { timelineRevisionId: saved.timelineRevisionId },
+        body: {
+          timelineRevisionId: saved.timelineRevisionId,
+          ...(saved.contractRevisionId === undefined
+            ? {}
+            : { contractRevisionId: saved.contractRevisionId }),
+          ...(saved.documentDigest === undefined ? {} : { documentDigest: saved.documentDigest }),
+        },
         amountVnd: null,
       });
       setRetry(true);
@@ -265,6 +282,7 @@ export function CoupleBillingWorkspace({
         true,
       );
       setCheckout(value);
+      rememberCheckout(context.bookingId, value.paymentAttemptId);
       setAttemptId(value.paymentAttemptId);
       setAttempt(null);
       setIntent(null);
@@ -397,11 +415,12 @@ export function CoupleBillingWorkspace({
             </button>
           </div>
           <section className="billing-deposit">
-            <h2>Khoản cọc theo đề xuất</h2>
+            <h2>{context.contract ? 'Khoản cọc theo hợp đồng' : 'Khoản cọc theo đề xuất'}</h2>
             <strong>{money(context.depositAmountVnd)}</strong>
             <p>
-              Đây là số tiền từ đề xuất của nhà hàng. Điều kiện và số tiền thực thu được kiểm tra
-              lại khi tạo giao dịch.
+              {context.contract
+                ? 'Bằng 30% tổng hợp đồng đã được hai bên duyệt (làm tròn lên). Số tiền thực thu do hệ thống kiểm tra lại khi tạo giao dịch.'
+                : 'Đây là số tiền từ đề xuất của nhà hàng. Điều kiện và số tiền thực thu được kiểm tra lại khi tạo giao dịch.'}
             </p>
             {context.accessLevel === 'RESTRICTED' && (
               <p>
@@ -414,14 +433,22 @@ export function CoupleBillingWorkspace({
                 <p>Giao dịch đang được xác minh. Kiểm tra trạng thái trước khi tiếp tục.</p>
               ) : (
                 <button
-                  disabled={blocked || context.timelineRevisionId === null}
+                  disabled={blocked || context.timelineRevisionId === null || context.contractRequired}
                   onClick={() => {
-                    if (context.timelineRevisionId !== null)
-                      setIntent({
-                        kind: 'deposit',
-                        body: { timelineRevisionId: context.timelineRevisionId },
-                        amountVnd: context.depositAmountVnd,
-                      });
+                    if (context.timelineRevisionId === null || context.contractRequired) return;
+                    setIntent({
+                      kind: 'deposit',
+                      body: {
+                        timelineRevisionId: context.timelineRevisionId,
+                        ...(context.contract
+                          ? {
+                              contractRevisionId: context.contract.revisionId,
+                              documentDigest: context.contract.documentDigest,
+                            }
+                          : {}),
+                      },
+                      amountVnd: context.depositAmountVnd,
+                    });
                   }}
                 >
                   Đặt cọc qua VNPay
@@ -432,6 +459,12 @@ export function CoupleBillingWorkspace({
             )}
             {context.timelineRevisionId === null && (
               <p>Cần có kịch bản được nhà hàng và hai bạn duyệt trước khi đặt cọc.</p>
+            )}
+            {context.contractRequired && (
+              <p>
+                Cần hợp đồng được cả hai bên duyệt trước khi đặt cọc.{' '}
+                <Link href={`/contract?bookingId=${context.bookingId}`}>Mở hợp đồng →</Link>
+              </p>
             )}
           </section>
           {view !== null && (

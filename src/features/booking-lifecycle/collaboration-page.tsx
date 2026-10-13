@@ -5,11 +5,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ApiClientError } from '../../lib/api/client';
 import { TimelineEditor } from './timeline-editor';
-import {
-  createIdentityApi,
-  WebIdentitySession,
-  type WebSessionSnapshot,
-} from '../identity-access/session';
+import { type WebIdentitySession, type WebSessionSnapshot } from '../identity-access/session';
+import { browserSession } from '../identity-access/browser-session';
 import { createExperienceGateway } from '../identity-access/experience-api';
 import {
   createCollaborationGateway,
@@ -18,7 +15,9 @@ import {
 } from './collaboration-api';
 
 type Authorize = <T>(operation: (accessToken: string) => Promise<T>) => Promise<T>;
-const session = new WebIdentitySession(createIdentityApi());
+// Dùng chung một phiên cho cả ứng dụng: nhiều instance sẽ làm mới cookie refresh (bị xoay vòng)
+// nhiều lần không cần thiết và có thể làm backend thu hồi phiên.
+const session = browserSession;
 const gateway = createCollaborationGateway();
 
 const phaseLabels: Record<string, string> = {
