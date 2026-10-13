@@ -110,6 +110,8 @@
 }
 .v0-workspace .cw-table {
   width: 100%;
+  /* Màn hình hẹp: giữ bảng đủ rộng để chữ không bị bẻ từng ký tự; khung bọc tự cuộn ngang. */
+  min-width: 560px;
   border-collapse: collapse;
   font-size: 14px;
 }
@@ -220,6 +222,7 @@
 .v0-workspace .cw-seating {
   width: 100%;
   height: auto;
+  max-height: 560px;
   background: var(--canvas);
   border: 1px solid var(--rule);
 }

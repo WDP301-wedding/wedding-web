@@ -108,7 +108,11 @@ export function useCoupleWorkspace() {
   }, [urlBookingId, reloadKey]);
 
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
-  return { state, reload, bookingId: state.status === 'ready' ? state.proposal.bookingId : urlBookingId };
+  return {
+    state,
+    reload,
+    bookingId: state.status === 'ready' ? state.proposal.bookingId : urlBookingId,
+  };
 }
 
 /**
@@ -125,7 +129,7 @@ export function useCommand() {
   const busy = useRef(false);
 
   const run = useCallback(
-    async <T,>(
+    async <T>(
       operation: (token: string, idempotencyKey: string) => Promise<T>,
       success?: string,
       overrides?: Record<string, string>,
@@ -159,17 +163,35 @@ export function authorizedRead<T>(operation: (token: string) => Promise<T>): Pro
   return browserSession.authorize(operation);
 }
 
-export const shiftLabel = (code: 'LUNCH' | 'DINNER') => (code === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối');
+export const shiftLabel = (code: 'LUNCH' | 'DINNER') =>
+  code === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối';
 
 export const formatVnd = (value: number) =>
-  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value);
+  new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+    maximumFractionDigits: 0,
+  }).format(value);
 
 /** Hiển thị thời điểm UTC theo giờ Việt Nam. */
 export const formatDateTime = (iso: string) =>
-  new Date(iso).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' });
+  new Date(iso).toLocaleString('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
 
 /** `eventDate` là ngày địa phương (YYYY-MM-DD): KHÔNG đổi múi giờ, chỉ định dạng lại. */
 export const formatEventDate = (date: string) => {
   const [year, month, day] = date.split('-');
   return `${day}/${month}/${year}`;
 };
+
+/**
+ * Đọc một ô văn bản từ FormData. `FormData.get` trả về `string | File | null`, nên ép kiểu bằng
+ * `String(...)` có thể ra "[object File]". Hàm này chỉ nhận chuỗi và đã cắt khoảng trắng.
+ */
+export function formText(data: FormData, name: string): string {
+  const value = data.get(name);
+  return typeof value === 'string' ? value.trim() : '';
+}

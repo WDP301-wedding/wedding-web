@@ -4,7 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { CommandFeedback, CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
-import { authorizedRead, useCommand, type Proposal } from '../couple-workspace/use-couple-workspace';
+import {
+  authorizedRead,
+  formText,
+  useCommand,
+  type Proposal,
+} from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestGroup } from '../guest-management/guest-api';
 import {
   readPlanId,
@@ -31,12 +36,17 @@ export function SeatingPage() {
       description="Chọn mẫu sơ đồ của sảnh và gắn nhóm khách cho từng bàn. Không cần xếp từng người vào ghế."
       requireFull
     >
-      {(proposal, reloadBooking) => <SeatingWorkspace proposal={proposal} reloadBooking={reloadBooking} />}
+      {(proposal, reloadBooking) => (
+        <SeatingWorkspace proposal={proposal} reloadBooking={reloadBooking} />
+      )}
     </CouplePage>
   );
 }
 
-function SeatingWorkspace({ proposal, reloadBooking }: Readonly<{ proposal: Proposal; reloadBooking: () => void }>) {
+function SeatingWorkspace({
+  proposal,
+  reloadBooking,
+}: Readonly<{ proposal: Proposal; reloadBooking: () => void }>) {
   const bookingId = proposal.bookingId;
   const [options, setOptions] = useState<LayoutOptions | null>(null);
   const [groups, setGroups] = useState<GuestGroup[]>([]);
@@ -55,7 +65,9 @@ function SeatingWorkspace({ proposal, reloadBooking }: Readonly<{ proposal: Prop
         seatingApi.options(token, bookingId),
         guestApi.groups(token, bookingId),
       ]);
-      const current = storedPlanId ? await seatingApi.plan(token, bookingId, storedPlanId).catch(() => null) : null;
+      const current = storedPlanId
+        ? await seatingApi.plan(token, bookingId, storedPlanId).catch(() => null)
+        : null;
       return { layoutOptions, guestGroups, current };
     })
       .then(({ layoutOptions, guestGroups, current }) => {
@@ -130,7 +142,10 @@ function SeatingWorkspace({ proposal, reloadBooking }: Readonly<{ proposal: Prop
                       <button
                         className="cw-text-button"
                         type="button"
-                        disabled={command.pending || plan?.layoutTemplateVersionId === option.layoutTemplateVersionId}
+                        disabled={
+                          command.pending ||
+                          plan?.layoutTemplateVersionId === option.layoutTemplateVersionId
+                        }
                         onClick={() =>
                           void command
                             .run(
@@ -140,8 +155,16 @@ function SeatingWorkspace({ proposal, reloadBooking }: Readonly<{ proposal: Prop
                                       expectedRevision: plan.revisionNumber,
                                       layoutTemplateVersionId: option.layoutTemplateVersionId,
                                     })
-                                  : seatingApi.create(token, key, bookingId, option.layoutTemplateVersionId, proposal.revision),
-                              plan ? 'Đã đổi mẫu. Nhãn trên các bàn trùng mã được giữ lại.' : 'Đã tạo sơ đồ nháp.',
+                                  : seatingApi.create(
+                                      token,
+                                      key,
+                                      bookingId,
+                                      option.layoutTemplateVersionId,
+                                      proposal.revision,
+                                    ),
+                              plan
+                                ? 'Đã đổi mẫu. Nhãn trên các bàn trùng mã được giữ lại.'
+                                : 'Đã tạo sơ đồ nháp.',
                               {
                                 SEATING_PLAN_EXISTS:
                                   'Tiệc đã có sơ đồ được tạo từ thiết bị khác. Hãy mở sơ đồ bằng mã bên dưới (hỏi nhà hàng nếu cần).',
@@ -150,7 +173,11 @@ function SeatingWorkspace({ proposal, reloadBooking }: Readonly<{ proposal: Prop
                             .then(accept)
                         }
                       >
-                        {plan?.layoutTemplateVersionId === option.layoutTemplateVersionId ? 'Đang dùng' : plan ? 'Đổi sang mẫu này' : 'Dùng mẫu này'}
+                        {plan?.layoutTemplateVersionId === option.layoutTemplateVersionId
+                          ? 'Đang dùng'
+                          : plan
+                            ? 'Đổi sang mẫu này'
+                            : 'Dùng mẫu này'}
                       </button>
                     </td>
                   </tr>
@@ -164,7 +191,7 @@ function SeatingWorkspace({ proposal, reloadBooking }: Readonly<{ proposal: Prop
             className="cw-form"
             onSubmit={(event) => {
               event.preventDefault();
-              const id = String(new FormData(event.currentTarget).get('planId') ?? '').trim();
+              const id = formText(new FormData(event.currentTarget), 'planId');
               if (!id) return;
               void command.run((token) => seatingApi.plan(token, bookingId, id)).then(accept);
             }}
@@ -206,14 +233,22 @@ function PlanEditor({
   plan,
   groups,
   onChanged,
-}: Readonly<{ bookingId: string; plan: SeatingPlan; groups: GuestGroup[]; onChanged: (plan: SeatingPlan) => void }>) {
+}: Readonly<{
+  bookingId: string;
+  plan: SeatingPlan;
+  groups: GuestGroup[];
+  onChanged: (plan: SeatingPlan) => void;
+}>) {
   const command = useCommand();
   // Nhãn đang chỉnh: bàn → nhóm. Khởi tạo từ snapshot backend trả về.
   const [labels, setLabels] = useState<Record<string, string>>(() =>
     Object.fromEntries(plan.labels.map((label) => [label.layoutTableId, label.guestGroupId])),
   );
   const [selected, setSelected] = useState<string | null>(null);
-  const groupById = useMemo(() => new Map(groups.map((group) => [group.guestGroupId, group])), [groups]);
+  const groupById = useMemo(
+    () => new Map(groups.map((group) => [group.guestGroupId, group])),
+    [groups],
+  );
   const dirty =
     JSON.stringify(Object.entries(labels).sort()) !==
     JSON.stringify(plan.labels.map((label) => [label.layoutTableId, label.guestGroupId]).sort());
@@ -227,9 +262,7 @@ function PlanEditor({
   return (
     <section className="cw-card">
       <div className="cw-card-header">
-        <h2>
-          Sơ đồ · bản {plan.revisionNumber}
-        </h2>
+        <h2>Sơ đồ · bản {plan.revisionNumber}</h2>
         <span className="status status-champagne">{statusLabels[plan.status]}</span>
       </div>
       <dl className="cw-stats">
@@ -256,10 +289,14 @@ function PlanEditor({
         </ul>
       ) : null}
       {plan.droppedTableIds.length > 0 ? (
-        <p className="cw-note">{plan.droppedTableIds.length} nhãn không giữ được khi đổi mẫu; hãy gán lại.</p>
+        <p className="cw-note">
+          {plan.droppedTableIds.length} nhãn không giữ được khi đổi mẫu; hãy gán lại.
+        </p>
       ) : null}
       {plan.managerException ? (
-        <p className="cw-note">Nhà hàng đã duyệt ngoại lệ sức chứa: {plan.managerException.reason}</p>
+        <p className="cw-note">
+          Nhà hàng đã duyệt ngoại lệ sức chứa: {plan.managerException.reason}
+        </p>
       ) : null}
 
       <svg
@@ -286,15 +323,29 @@ function PlanEditor({
               }}
             >
               {table.shape === 'ROUND' ? (
-                <ellipse rx={table.width / 2} ry={table.height / 2} fill={colorOf(table)} stroke={isSelected ? '#C5A880' : '#342a29'} strokeWidth={isSelected ? 4 : 1.5} />
+                <ellipse
+                  rx={table.width / 2}
+                  ry={table.height / 2}
+                  fill={colorOf(table)}
+                  stroke={isSelected ? '#C5A880' : '#342a29'}
+                  strokeWidth={isSelected ? 4 : 1.5}
+                />
               ) : (
-                <rect x={-table.width / 2} y={-table.height / 2} width={table.width} height={table.height} fill={colorOf(table)} stroke={isSelected ? '#C5A880' : '#342a29'} strokeWidth={isSelected ? 4 : 1.5} />
+                <rect
+                  x={-table.width / 2}
+                  y={-table.height / 2}
+                  width={table.width}
+                  height={table.height}
+                  fill={colorOf(table)}
+                  stroke={isSelected ? '#C5A880' : '#342a29'}
+                  strokeWidth={isSelected ? 4 : 1.5}
+                />
               )}
               <text
                 transform={`rotate(${-table.rotationDegrees})`}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fontSize={Math.max(10, Math.min(table.width, table.height) / 4)}
+                fontSize={Math.max(10, Math.min(table.width, table.height) / 5)}
                 fill="#232321"
                 stroke="#ffffff"
                 strokeWidth={3}
@@ -333,14 +384,17 @@ function PlanEditor({
           </label>
         </div>
       ) : (
-        <p className="muted">Chọn một bàn trên sơ đồ để gắn nhóm. Một nhóm có thể dùng nhiều bàn.</p>
+        <p className="muted">
+          Chọn một bàn trên sơ đồ để gắn nhóm. Một nhóm có thể dùng nhiều bàn.
+        </p>
       )}
 
       <ul className="cw-actions" aria-label="Chú thích nhóm">
         {groups.map((group) => (
           <li key={group.guestGroupId} style={{ listStyle: 'none' }}>
             <span className="cw-swatch" style={{ background: group.color }} aria-hidden="true" />
-            {group.name} ({Object.values(labels).filter((id) => id === group.guestGroupId).length} bàn)
+            {group.name} ({Object.values(labels).filter((id) => id === group.guestGroupId).length}{' '}
+            bàn)
           </li>
         ))}
       </ul>
@@ -356,7 +410,10 @@ function PlanEditor({
                 (token, key) =>
                   seatingApi.revise(token, key, bookingId, plan.seatingPlanId, {
                     expectedRevision: plan.revisionNumber,
-                    labels: Object.entries(labels).map(([layoutTableId, guestGroupId]) => ({ layoutTableId, guestGroupId })),
+                    labels: Object.entries(labels).map(([layoutTableId, guestGroupId]) => ({
+                      layoutTableId,
+                      guestGroupId,
+                    })),
                   }),
                 'Đã lưu nhãn bàn (bản nháp mới, cần xác nhận lại).',
               )
@@ -374,7 +431,14 @@ function PlanEditor({
             void command
               .run(
                 (token, key) =>
-                  seatingApi.confirm(token, key, bookingId, plan.seatingPlanId, plan.revisionNumber, plan.currentBookingRevision),
+                  seatingApi.confirm(
+                    token,
+                    key,
+                    bookingId,
+                    plan.seatingPlanId,
+                    plan.revisionNumber,
+                    plan.currentBookingRevision,
+                  ),
                 'Đã xác nhận sơ đồ bàn. Sơ đồ sẽ được dùng cho file in.',
               )
               .then((next) => next && onChanged(next))

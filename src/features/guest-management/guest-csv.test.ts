@@ -27,12 +27,19 @@ describe('guest CSV import', () => {
         phone: '+84901234567',
         operationalNote: 'Bạn đại học',
       },
-      { externalRowKey: 'K002', name: 'Trần Thị Bình', guestGroupId: 'g-bride', phone: null, operationalNote: null },
+      {
+        externalRowKey: 'K002',
+        name: 'Trần Thị Bình',
+        guestGroupId: 'g-bride',
+        phone: null,
+        operationalNote: null,
+      },
     ]);
   });
 
   it('reports every invalid line instead of importing a partial list', () => {
-    const csv = 'ma,ho_ten,nhom\nK1,,Groom Side\nK1,An,Groom Side\nK1,Bình,Groom Side\nK3,=cmd,Cũ\n';
+    const csv =
+      'ma,ho_ten,nhom\nK1,,Groom Side\nK1,An,Groom Side\nK1,Bình,Groom Side\nK3,=cmd,Cũ\n';
     const result = csvToImportRows(csv, groups);
     expect(result.rows).toHaveLength(1);
     expect(result.errors.map((error) => error.line)).toEqual([2, 4, 5]);

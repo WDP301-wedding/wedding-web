@@ -433,7 +433,9 @@ export function CoupleBillingWorkspace({
                 <p>Giao dịch đang được xác minh. Kiểm tra trạng thái trước khi tiếp tục.</p>
               ) : (
                 <button
-                  disabled={blocked || context.timelineRevisionId === null || context.contractRequired}
+                  disabled={
+                    blocked || context.timelineRevisionId === null || context.contractRequired
+                  }
                   onClick={() => {
                     if (context.timelineRevisionId === null || context.contractRequired) return;
                     setIntent({

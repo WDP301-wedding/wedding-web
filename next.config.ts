@@ -15,9 +15,11 @@ const backendOrigin = process.env.BACKEND_ORIGIN?.replace(/\/+$/, '');
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  async rewrites() {
-    if (!backendOrigin) return [];
-    return [{ source: '/api/v1/:path*', destination: `${backendOrigin}/api/v1/:path*` }];
+  rewrites() {
+    if (!backendOrigin) return Promise.resolve([]);
+    return Promise.resolve([
+      { source: '/api/v1/:path*', destination: `${backendOrigin}/api/v1/:path*` },
+    ]);
   },
 };
 

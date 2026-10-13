@@ -5,7 +5,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ApiClientError } from '../../lib/api/client';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { CommandFeedback, CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
-import { authorizedRead, formatDateTime, useCommand, type Proposal } from '../couple-workspace/use-couple-workspace';
+import {
+  authorizedRead,
+  formText,
+  formatDateTime,
+  useCommand,
+  type Proposal,
+} from '../couple-workspace/use-couple-workspace';
 import { csvTemplate, csvToImportRows, normalizePhone, type ImportRow } from './guest-csv';
 import {
   guestApi,
@@ -94,7 +100,12 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   return (
     <>
       <SummaryCard data={data} status={status} />
-      <PlanCard bookingId={bookingId} plan={data.plan} maxGuests={proposal.proposal.hall.maxGuests} onSaved={reload} />
+      <PlanCard
+        bookingId={bookingId}
+        plan={data.plan}
+        maxGuests={proposal.proposal.hall.maxGuests}
+        onSaved={reload}
+      />
       <GroupsCard bookingId={bookingId} groups={data.groups} onChanged={reload} />
       <GuestListCard
         bookingId={bookingId}
@@ -105,7 +116,12 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
         onChanged={reload}
       />
       <ImportCard bookingId={bookingId} groups={data.groups} onImported={reload} />
-      <CheckInCard bookingId={bookingId} settings={data.settings} attendance={data.attendance} onChanged={reload} />
+      <CheckInCard
+        bookingId={bookingId}
+        settings={data.settings}
+        attendance={data.attendance}
+        onChanged={reload}
+      />
     </>
   );
 }
@@ -137,8 +153,8 @@ function SummaryCard({ data, status }: Readonly<{ data: Data; status: 'ACTIVE' |
         </div>
       </dl>
       <p className="cw-note">
-        Danh sách tên là tùy chọn và có thể chỉ một phần, nên không dùng để tính tỷ lệ tham dự của cả
-        tiệc. Khách vẫn có thể đi cùng người thân.
+        Danh sách tên là tùy chọn và có thể chỉ một phần, nên không dùng để tính tỷ lệ tham dự của
+        cả tiệc. Khách vẫn có thể đi cùng người thân.
       </p>
     </section>
   );
@@ -170,8 +186,17 @@ function PlanCard({
         <div className="cw-form-row">
           <label>
             Số khách dự kiến
-            <input name="planningHeadcount" type="number" min={0} max={maxGuests} defaultValue={plan.planningHeadcount} required />
-            <small>Sảnh chứa tối đa {maxGuests} khách. Thêm/xoá tên khách không làm đổi con số này.</small>
+            <input
+              name="planningHeadcount"
+              type="number"
+              min={0}
+              max={maxGuests}
+              defaultValue={plan.planningHeadcount}
+              required
+            />
+            <small>
+              Sảnh chứa tối đa {maxGuests} khách. Thêm/xoá tên khách không làm đổi con số này.
+            </small>
           </label>
         </div>
         <div className="cw-actions">
@@ -185,7 +210,16 @@ function PlanCard({
   );
 }
 
-const palette = ['#8C6D62', '#334537', '#C5A880', '#4A5D4E', '#7A3F35', '#3E5C76', '#A0526D', '#6B7F3A'];
+const palette = [
+  '#8C6D62',
+  '#334537',
+  '#C5A880',
+  '#4A5D4E',
+  '#7A3F35',
+  '#3E5C76',
+  '#A0526D',
+  '#6B7F3A',
+];
 
 function GroupsCard({
   bookingId,
@@ -211,7 +245,11 @@ function GroupsCard({
             {groups.map((group) => (
               <tr key={group.guestGroupId}>
                 <td>
-                  <span className="cw-swatch" style={{ background: group.color }} aria-hidden="true" />
+                  <span
+                    className="cw-swatch"
+                    style={{ background: group.color }}
+                    aria-hidden="true"
+                  />
                   {group.name}
                 </td>
                 <td>
@@ -294,8 +332,8 @@ function GroupsCard({
             .run(
               (token, key) =>
                 guestApi.createGroup(token, key, bookingId, {
-                  name: String(data.get('name') ?? '').trim(),
-                  color: String(data.get('color') ?? '#8C6D62').toUpperCase(),
+                  name: formText(data, 'name'),
+                  color: (formText(data, 'color') || '#8C6D62').toUpperCase(),
                 }),
               'Đã tạo nhóm mới.',
             )
@@ -314,7 +352,11 @@ function GroupsCard({
           </label>
           <label>
             Màu
-            <input name="color" type="color" defaultValue={palette[groups.length % palette.length]!.toLowerCase()} />
+            <input
+              name="color"
+              type="color"
+              defaultValue={palette[groups.length % palette.length]!.toLowerCase()}
+            />
           </label>
         </div>
         <div className="cw-actions">
@@ -346,14 +388,21 @@ function GuestListCard({
   const command = useCommand();
   const [groupFilter, setGroupFilter] = useState('');
   const [editing, setEditing] = useState<string | null>(null);
-  const [link, setLink] = useState<{ guestName: string; url: string; expiresAt: string } | null>(null);
+  const [link, setLink] = useState<{ guestName: string; url: string; expiresAt: string } | null>(
+    null,
+  );
   const activeGroups = groups.filter((group) => group.status === 'ACTIVE');
-  const groupName = useMemo(() => new Map(groups.map((group) => [group.guestGroupId, group])), [groups]);
-  const visible = groupFilter ? guests.filter((guest) => guest.guestGroupId === groupFilter) : guests;
+  const groupName = useMemo(
+    () => new Map(groups.map((group) => [group.guestGroupId, group])),
+    [groups],
+  );
+  const visible = groupFilter
+    ? guests.filter((guest) => guest.guestGroupId === groupFilter)
+    : guests;
 
   const readPhone = (raw: FormDataEntryValue | null) => {
     try {
-      return normalizePhone(String(raw ?? ''));
+      return normalizePhone(typeof raw === 'string' ? raw : '');
     } catch {
       throw new Error('Số điện thoại không hợp lệ (ví dụ 0901234567 hoặc +84901234567).');
     }
@@ -370,11 +419,20 @@ function GuestListCard({
           let revision = readLinkRevision(bookingId, guest.guestId);
           for (let attempt = 0; attempt < 10; attempt += 1) {
             try {
-              const issued: PersonalLink = await guestApi.issueLink(token, crypto.randomUUID(), bookingId, guest.guestId, revision);
+              const issued: PersonalLink = await guestApi.issueLink(
+                token,
+                crypto.randomUUID(),
+                bookingId,
+                guest.guestId,
+                revision,
+              );
               rememberLinkRevision(bookingId, guest.guestId, issued.revision);
               return issued;
             } catch (error) {
-              if (error instanceof ApiClientError && error.code === 'GUEST_INVITATION_REVISION_STALE') {
+              if (
+                error instanceof ApiClientError &&
+                error.code === 'GUEST_INVITATION_REVISION_STALE'
+              ) {
                 revision += 1;
                 continue;
               }
@@ -385,7 +443,8 @@ function GuestListCard({
         },
         undefined,
         {
-          INVITATION_LINK_UNAVAILABLE: 'Chưa thể cấp liên kết: hãy xuất bản thiệp trước, hoặc tiệc đã kết thúc.',
+          INVITATION_LINK_UNAVAILABLE:
+            'Chưa thể cấp liên kết: hãy xuất bản thiệp trước, hoặc tiệc đã kết thúc.',
         },
       )
       .then((issued) => {
@@ -405,11 +464,21 @@ function GuestListCard({
         let revision = readLinkRevision(bookingId, guest.guestId);
         for (let attempt = 0; attempt < 10; attempt += 1) {
           try {
-            const sent = await guestApi.deliverLink(token, crypto.randomUUID(), bookingId, guest.guestId, revision, email);
+            const sent = await guestApi.deliverLink(
+              token,
+              crypto.randomUUID(),
+              bookingId,
+              guest.guestId,
+              revision,
+              email,
+            );
             rememberLinkRevision(bookingId, guest.guestId, sent.revision);
             return sent;
           } catch (error) {
-            if (error instanceof ApiClientError && error.code === 'GUEST_INVITATION_REVISION_STALE') {
+            if (
+              error instanceof ApiClientError &&
+              error.code === 'GUEST_INVITATION_REVISION_STALE'
+            ) {
               revision += 1;
               continue;
             }
@@ -420,7 +489,8 @@ function GuestListCard({
       },
       `Đã xếp lịch gửi thiệp tới ${email}. Liên kết cũ của khách này (nếu có) đã bị thu hồi.`,
       {
-        GUEST_DELIVERY_UNAVAILABLE: 'Hệ thống gửi email đang tạm tắt. Hãy dùng “Lấy liên kết” để tự gửi.',
+        GUEST_DELIVERY_UNAVAILABLE:
+          'Hệ thống gửi email đang tạm tắt. Hãy dùng “Lấy liên kết” để tự gửi.',
         INVITATION_LINK_UNAVAILABLE: 'Chưa thể gửi: hãy xuất bản thiệp trước.',
       },
     );
@@ -433,7 +503,10 @@ function GuestListCard({
         <div className="cw-actions">
           <label>
             <span className="muted">Trạng thái </span>
-            <select value={status} onChange={(event) => onStatusChange(event.target.value as 'ACTIVE' | 'ARCHIVED')}>
+            <select
+              value={status}
+              onChange={(event) => onStatusChange(event.target.value as 'ACTIVE' | 'ARCHIVED')}
+            >
               <option value="ACTIVE">Đang mời</option>
               <option value="ARCHIVED">Đã lưu trữ</option>
             </select>
@@ -455,12 +528,17 @@ function GuestListCard({
       {link ? (
         <div className="cw-note" role="status">
           <p>
-            Liên kết riêng cho <strong>{link.guestName}</strong> (hết hạn {formatDateTime(link.expiresAt)}). Liên kết
-            chỉ hiển thị <strong>một lần</strong> — hãy sao chép ngay. Cấp lại sẽ vô hiệu hoá liên kết cũ.
+            Liên kết riêng cho <strong>{link.guestName}</strong> (hết hạn{' '}
+            {formatDateTime(link.expiresAt)}). Liên kết chỉ hiển thị <strong>một lần</strong> — hãy
+            sao chép ngay. Cấp lại sẽ vô hiệu hoá liên kết cũ.
           </p>
           <div className="cw-copy">
             <code>{link.url}</code>
-            <button className="button button-secondary" type="button" onClick={() => void navigator.clipboard?.writeText(link.url)}>
+            <button
+              className="button button-secondary"
+              type="button"
+              onClick={() => void navigator.clipboard?.writeText(link.url)}
+            >
               Sao chép
             </button>
           </div>
@@ -503,10 +581,10 @@ function GuestListCard({
                               (token, key) =>
                                 guestApi.updateGuest(token, key, bookingId, guest.guestId, {
                                   expectedRevision: guest.revision,
-                                  name: String(data.get('name') ?? '').trim(),
-                                  guestGroupId: String(data.get('guestGroupId')),
+                                  name: formText(data, 'name'),
+                                  guestGroupId: formText(data, 'guestGroupId'),
                                   phone: readPhone(data.get('phone')),
-                                  operationalNote: String(data.get('note') ?? '').trim() || null,
+                                  operationalNote: formText(data, 'note') || null,
                                 }),
                               'Đã lưu thông tin khách.',
                             )
@@ -523,7 +601,11 @@ function GuestListCard({
                           <button className="button" type="submit" disabled={command.pending}>
                             Lưu
                           </button>
-                          <button className="button button-secondary" type="button" onClick={() => setEditing(null)}>
+                          <button
+                            className="button button-secondary"
+                            type="button"
+                            onClick={() => setEditing(null)}
+                          >
                             Huỷ
                           </button>
                         </div>
@@ -534,7 +616,11 @@ function GuestListCard({
                   <tr key={guest.guestId}>
                     <td>{guest.name}</td>
                     <td>
-                      <span className="cw-swatch" style={{ background: groupName.get(guest.guestGroupId)?.color }} aria-hidden="true" />
+                      <span
+                        className="cw-swatch"
+                        style={{ background: groupName.get(guest.guestGroupId)?.color }}
+                        aria-hidden="true"
+                      />
                       {groupName.get(guest.guestGroupId)?.name ?? '—'}
                     </td>
                     <td>{guest.phone ?? '—'}</td>
@@ -543,13 +629,28 @@ function GuestListCard({
                       <div className="cw-actions">
                         {guest.status === 'ACTIVE' ? (
                           <>
-                            <button className="cw-text-button" type="button" disabled={command.pending} onClick={() => setEditing(guest.guestId)}>
+                            <button
+                              className="cw-text-button"
+                              type="button"
+                              disabled={command.pending}
+                              onClick={() => setEditing(guest.guestId)}
+                            >
                               Sửa
                             </button>
-                            <button className="cw-text-button" type="button" disabled={command.pending} onClick={() => void issueLink(guest)}>
+                            <button
+                              className="cw-text-button"
+                              type="button"
+                              disabled={command.pending}
+                              onClick={() => void issueLink(guest)}
+                            >
                               Lấy liên kết
                             </button>
-                            <button className="cw-text-button" type="button" disabled={command.pending} onClick={() => sendLink(guest)}>
+                            <button
+                              className="cw-text-button"
+                              type="button"
+                              disabled={command.pending}
+                              onClick={() => sendLink(guest)}
+                            >
                               Gửi email
                             </button>
                           </>
@@ -566,7 +667,9 @@ function GuestListCard({
                                     expectedRevision: guest.revision,
                                     status: guest.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE',
                                   }),
-                                guest.status === 'ACTIVE' ? 'Đã lưu trữ khách (liên kết riêng bị thu hồi).' : 'Đã khôi phục khách.',
+                                guest.status === 'ACTIVE'
+                                  ? 'Đã lưu trữ khách (liên kết riêng bị thu hồi).'
+                                  : 'Đã khôi phục khách.',
                               )
                               .then((result) => result && onChanged())
                           }
@@ -596,10 +699,10 @@ function GuestListCard({
                 .run(
                   (token, key) =>
                     guestApi.createGuest(token, key, bookingId, {
-                      name: String(data.get('name') ?? '').trim(),
-                      guestGroupId: String(data.get('guestGroupId')),
+                      name: formText(data, 'name'),
+                      guestGroupId: formText(data, 'guestGroupId'),
                       phone: readPhone(data.get('phone')),
-                      operationalNote: String(data.get('note') ?? '').trim() || null,
+                      operationalNote: formText(data, 'note') || null,
                     }),
                   'Đã thêm khách.',
                 )
@@ -613,7 +716,11 @@ function GuestListCard({
           >
             <GuestFields groups={activeGroups} />
             <div className="cw-actions">
-              <button className="button" type="submit" disabled={command.pending || activeGroups.length === 0}>
+              <button
+                className="button"
+                type="submit"
+                disabled={command.pending || activeGroups.length === 0}
+              >
                 Thêm khách
               </button>
             </div>
@@ -634,7 +741,11 @@ function GuestFields({ groups, guest }: Readonly<{ groups: GuestGroup[]; guest?:
       </label>
       <label>
         Nhóm
-        <select name="guestGroupId" required defaultValue={guest?.guestGroupId ?? groups[0]?.guestGroupId}>
+        <select
+          name="guestGroupId"
+          required
+          defaultValue={guest?.guestGroupId ?? groups[0]?.guestGroupId}
+        >
           {groups.map((group) => (
             <option key={group.guestGroupId} value={group.guestGroupId}>
               {group.name}
@@ -644,7 +755,12 @@ function GuestFields({ groups, guest }: Readonly<{ groups: GuestGroup[]; guest?:
       </label>
       <label>
         Điện thoại (tùy chọn)
-        <input name="phone" inputMode="tel" defaultValue={guest?.phone ?? ''} placeholder="0901234567" />
+        <input
+          name="phone"
+          inputMode="tel"
+          defaultValue={guest?.phone ?? ''}
+          placeholder="0901234567"
+        />
       </label>
       <label>
         Ghi chú vận hành (tùy chọn)
@@ -666,7 +782,9 @@ function ImportCard({
   const [preview, setPreview] = useState<ImportPreview | null>(null);
 
   const downloadTemplate = () => {
-    const url = URL.createObjectURL(new Blob(['﻿' + csvTemplate], { type: 'text/csv;charset=utf-8' }));
+    const url = URL.createObjectURL(
+      new Blob(['﻿' + csvTemplate], { type: 'text/csv;charset=utf-8' }),
+    );
     const link = document.createElement('a');
     link.href = url;
     link.download = 'mau-danh-sach-khach.csv';
@@ -678,9 +796,10 @@ function ImportCard({
     <section className="cw-card">
       <h2>Nhập danh sách từ file CSV</h2>
       <p className="cw-note">
-        Cột bắt buộc: <code>ma</code> (mã riêng mỗi dòng, giữ nguyên khi nhập lại), <code>ho_ten</code>,{' '}
-        <code>nhom</code> (đúng tên nhóm ở trên). Tùy chọn: <code>so_dien_thoai</code>, <code>ghi_chu</code>. Tối đa
-        1.000 dòng mỗi lần; có lỗi ở bất kỳ dòng nào thì không dòng nào được nhập.
+        Cột bắt buộc: <code>ma</code> (mã riêng mỗi dòng, giữ nguyên khi nhập lại),{' '}
+        <code>ho_ten</code>, <code>nhom</code> (đúng tên nhóm ở trên). Tùy chọn:{' '}
+        <code>so_dien_thoai</code>, <code>ghi_chu</code>. Tối đa 1.000 dòng mỗi lần; có lỗi ở bất kỳ
+        dòng nào thì không dòng nào được nhập.
       </p>
       <div className="cw-actions">
         <button className="button button-secondary" type="button" onClick={downloadTemplate}>
@@ -702,8 +821,12 @@ function ImportCard({
           }}
         />
         <label>
-          <input type="checkbox" checked={allowUpdates} onChange={(event) => setAllowUpdates(event.target.checked)} /> Cho phép
-          cập nhật khách đã nhập trước (cùng mã)
+          <input
+            type="checkbox"
+            checked={allowUpdates}
+            onChange={(event) => setAllowUpdates(event.target.checked)}
+          />{' '}
+          Cho phép cập nhật khách đã nhập trước (cùng mã)
         </label>
       </div>
       {errors.length > 0 ? (
@@ -727,7 +850,9 @@ function ImportCard({
             disabled={command.pending || rows.length === 0}
             onClick={() =>
               void command
-                .run((token, key) => guestApi.previewImport(token, key, bookingId, rows, allowUpdates))
+                .run((token, key) =>
+                  guestApi.previewImport(token, key, bookingId, rows, allowUpdates),
+                )
                 .then((result) => result && setPreview(result))
             }
           >
@@ -738,8 +863,10 @@ function ImportCard({
       {preview ? (
         <div className="cw-note">
           <p>
-            Sẽ thêm <strong>{preview.createdCount}</strong>, cập nhật <strong>{preview.updatedCount}</strong>, giữ nguyên{' '}
-            <strong>{preview.unchangedCount}</strong>. Bản xem trước hết hạn lúc {formatDateTime(preview.expiresAt)}.
+            Sẽ thêm <strong>{preview.createdCount}</strong>, cập nhật{' '}
+            <strong>{preview.updatedCount}</strong>, giữ nguyên{' '}
+            <strong>{preview.unchangedCount}</strong>. Bản xem trước hết hạn lúc{' '}
+            {formatDateTime(preview.expiresAt)}.
           </p>
           <button
             className="button"
@@ -748,7 +875,8 @@ function ImportCard({
             onClick={() =>
               void command
                 .run(
-                  (token, key) => guestApi.commitImport(token, key, bookingId, preview.previewId, preview.digest),
+                  (token, key) =>
+                    guestApi.commitImport(token, key, bookingId, preview.previewId, preview.digest),
                   'Đã nhập danh sách khách.',
                 )
                 .then((result) => {
@@ -774,7 +902,12 @@ function CheckInCard({
   settings,
   attendance,
   onChanged,
-}: Readonly<{ bookingId: string; settings: CheckInSettings; attendance: AttendanceSummary; onChanged: () => void }>) {
+}: Readonly<{
+  bookingId: string;
+  settings: CheckInSettings;
+  attendance: AttendanceSummary;
+  onChanged: () => void;
+}>) {
   const command = useCommand();
   const enabled = settings.checkInMode === 'BY_GUEST_NAME';
   return (
@@ -784,14 +917,18 @@ function CheckInCard({
         <span className="status status-champagne">{enabled ? 'Đang bật' : 'Đang tắt'}</span>
       </div>
       <p>
-        Mặc định nhà hàng không ghi nhận ai đã đến. Nếu bật, nhân viên được phân công sẽ tìm và đánh dấu
-        từng khách có tên trong danh sách. Sau lần check-in đầu tiên, không thể tắt lại.
+        Mặc định nhà hàng không ghi nhận ai đã đến. Nếu bật, nhân viên được phân công sẽ tìm và đánh
+        dấu từng khách có tên trong danh sách. Sau lần check-in đầu tiên, không thể tắt lại.
       </p>
       {enabled && attendance.byGuestGroup.length > 0 ? (
         <ul>
           {attendance.byGuestGroup.map((row) => (
             <li key={row.guestGroupId}>
-              <span className="cw-swatch" style={{ background: row.groupColorSnapshot }} aria-hidden="true" />
+              <span
+                className="cw-swatch"
+                style={{ background: row.groupColorSnapshot }}
+                aria-hidden="true"
+              />
               {row.groupNameSnapshot}: {row.checkedInGuestCount} tên đã check-in
             </li>
           ))}
@@ -804,10 +941,12 @@ function CheckInCard({
           disabled={command.pending || settings.locked}
           onClick={() => {
             const next = enabled ? 'NONE' : 'BY_GUEST_NAME';
-            if (next === 'BY_GUEST_NAME' && !window.confirm('Bật check-in theo tên cho tiệc này?')) return;
+            if (next === 'BY_GUEST_NAME' && !window.confirm('Bật check-in theo tên cho tiệc này?'))
+              return;
             void command
               .run(
-                (token, key) => guestApi.updateCheckInSettings(token, key, bookingId, next, settings.revision),
+                (token, key) =>
+                  guestApi.updateCheckInSettings(token, key, bookingId, next, settings.revision),
                 next === 'BY_GUEST_NAME' ? 'Đã bật check-in theo tên.' : 'Đã tắt check-in.',
               )
               .then((result) => result && onChanged());

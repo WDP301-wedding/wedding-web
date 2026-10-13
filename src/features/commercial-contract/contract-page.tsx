@@ -12,6 +12,7 @@ import {
   formatVnd,
   useCommand,
   type Proposal,
+  formText,
 } from '../couple-workspace/use-couple-workspace';
 import {
   contractApi,
@@ -44,7 +45,10 @@ export function ContractPage() {
   );
 }
 
-function ContractWorkspace({ proposal, reloadBooking }: Readonly<{ proposal: Proposal; reloadBooking: () => void }>) {
+function ContractWorkspace({
+  proposal,
+  reloadBooking,
+}: Readonly<{ proposal: Proposal; reloadBooking: () => void }>) {
   const [contracts, setContracts] = useState<ContractList | null>(null);
   const [profile, setProfile] = useState<CoupleProfile | null>(null);
   const [loadError, setLoadError] = useState<FriendlyError | null>(null);
@@ -108,15 +112,17 @@ function CoupleNamesCard({
     <section className="cw-card" aria-labelledby="names-heading">
       <div className="cw-card-header">
         <h2 id="names-heading">Tên cô dâu & chú rể</h2>
-        {missing ? <span className="status status-danger">Cần bổ sung trước khi gửi duyệt</span> : null}
+        {missing ? (
+          <span className="status status-danger">Cần bổ sung trước khi gửi duyệt</span>
+        ) : null}
       </div>
       <form
         className="cw-form"
         onSubmit={(event) => {
           event.preventDefault();
           const data = new FormData(event.currentTarget);
-          const brideName = String(data.get('brideName') ?? '').trim();
-          const groomName = String(data.get('groomName') ?? '').trim();
+          const brideName = formText(data, 'brideName');
+          const groomName = formText(data, 'groomName');
           void command
             .run(
               (token, key) =>
@@ -135,11 +141,21 @@ function CoupleNamesCard({
         <div className="cw-form-row">
           <label>
             Tên cô dâu
-            <input name="brideName" defaultValue={profile.brideName ?? ''} required maxLength={120} />
+            <input
+              name="brideName"
+              defaultValue={profile.brideName ?? ''}
+              required
+              maxLength={120}
+            />
           </label>
           <label>
             Tên chú rể
-            <input name="groomName" defaultValue={profile.groomName ?? ''} required maxLength={120} />
+            <input
+              name="groomName"
+              defaultValue={profile.groomName ?? ''}
+              required
+              maxLength={120}
+            />
           </label>
         </div>
         <small>
@@ -179,8 +195,10 @@ function ContractCard({
   // Hợp đồng phải gắn đúng revision timeline đã được hai bên duyệt.
   const timeline = proposal.timeline ?? proposal.effectiveTimeline;
   const timelineApproved = Boolean(timeline?.managerApprovedAt && timeline.coupleApprovedAt);
-  const coupleApproved = current?.approvals.some((approval) => approval.party === 'COUPLE') ?? false;
-  const managerApproved = current?.approvals.some((approval) => approval.party === 'MANAGER') ?? false;
+  const coupleApproved =
+    current?.approvals.some((approval) => approval.party === 'COUPLE') ?? false;
+  const managerApproved =
+    current?.approvals.some((approval) => approval.party === 'MANAGER') ?? false;
   const isPostDeposit = proposal.phase === 'CONFIRMED' || proposal.phase === 'COMPLETED';
 
   const openEditor = () => {
@@ -216,19 +234,25 @@ function ContractCard({
         <h2 id="contract-heading">
           {current ? `Hợp đồng · bản số ${current.revisionNumber}` : 'Chưa có hợp đồng'}
         </h2>
-        {current ? <span className="status status-champagne">{stateLabels[current.state]}</span> : null}
+        {current ? (
+          <span className="status status-champagne">{stateLabels[current.state]}</span>
+        ) : null}
       </div>
 
       {!timelineApproved && !isPostDeposit ? (
         <p className="cw-note">
-          Kịch bản tiệc chưa được cả hai bên duyệt. Hợp đồng gắn với đúng phiên bản kịch bản, nên hãy{' '}
-          <Link href={`/workspace?bookingId=${bookingId}`}>hoàn tất duyệt kịch bản</Link> trước khi đặt cọc.
+          Kịch bản tiệc chưa được cả hai bên duyệt. Hợp đồng gắn với đúng phiên bản kịch bản, nên
+          hãy <Link href={`/workspace?bookingId=${bookingId}`}>hoàn tất duyệt kịch bản</Link> trước
+          khi đặt cọc.
         </p>
       ) : null}
 
       {current ? (
         <>
-          <ContractLinesTable lines={current.document.lines} totalVnd={current.document.contractTotalVnd} />
+          <ContractLinesTable
+            lines={current.document.lines}
+            totalVnd={current.document.contractTotalVnd}
+          />
           <dl className="cw-stats">
             <div>
               <dt>Tổng hợp đồng</dt>
@@ -249,7 +273,8 @@ function ContractCard({
           </dl>
           <p className="cw-note">
             Cô dâu: <strong>{current.document.brideName ?? 'chưa có'}</strong> · Chú rể:{' '}
-            <strong>{current.document.groomName ?? 'chưa có'}</strong> · {current.document.incidentalClause}
+            <strong>{current.document.groomName ?? 'chưa có'}</strong> ·{' '}
+            {current.document.incidentalClause}
           </p>
 
           <div className="cw-actions">
@@ -272,11 +297,22 @@ function ContractCard({
                 className="button"
                 type="button"
                 disabled={command.pending || !profile.brideName || !profile.groomName}
-                title={!profile.brideName || !profile.groomName ? 'Cần nhập đủ tên cô dâu và chú rể' : undefined}
+                title={
+                  !profile.brideName || !profile.groomName
+                    ? 'Cần nhập đủ tên cô dâu và chú rể'
+                    : undefined
+                }
                 onClick={() =>
                   void command
                     .run(
-                      (token, key) => contractApi.submit(token, key, bookingId, current.revisionId, expectedRevision),
+                      (token, key) =>
+                        contractApi.submit(
+                          token,
+                          key,
+                          bookingId,
+                          current.revisionId,
+                          expectedRevision,
+                        ),
                       'Đã gửi hợp đồng để hai bên duyệt.',
                     )
                     .then(after)
@@ -292,10 +328,18 @@ function ContractCard({
                 type="button"
                 disabled={command.pending}
                 onClick={() => {
-                  if (!window.confirm('Xác nhận hai bạn đồng ý với toàn bộ nội dung hợp đồng này?')) return;
+                  if (!window.confirm('Xác nhận hai bạn đồng ý với toàn bộ nội dung hợp đồng này?'))
+                    return;
                   void command
                     .run(
-                      (token, key) => contractApi.approve(token, key, bookingId, current.revisionId, expectedRevision),
+                      (token, key) =>
+                        contractApi.approve(
+                          token,
+                          key,
+                          bookingId,
+                          current.revisionId,
+                          expectedRevision,
+                        ),
                       'Đã ghi nhận hai bạn duyệt hợp đồng.',
                     )
                     .then(after);
@@ -311,8 +355,14 @@ function ContractCard({
               </Link>
             ) : null}
 
-            {!isPostDeposit && (current.state === 'DRAFT' || current.state === 'AWAITING_APPROVAL') ? (
-              <button className="button button-secondary" type="button" disabled={command.pending} onClick={openEditor}>
+            {!isPostDeposit &&
+            (current.state === 'DRAFT' || current.state === 'AWAITING_APPROVAL') ? (
+              <button
+                className="button button-secondary"
+                type="button"
+                disabled={command.pending}
+                onClick={openEditor}
+              >
                 Chỉnh sửa (tạo bản mới)
               </button>
             ) : null}
@@ -331,7 +381,8 @@ function ContractCard({
             </p>
           ) : null}
 
-          {(current.state === 'AWAITING_APPROVAL' && coupleApproved) || current.state === 'APPROVED' ? (
+          {(current.state === 'AWAITING_APPROVAL' && coupleApproved) ||
+          current.state === 'APPROVED' ? (
             !isPostDeposit ? (
               <WithdrawForm
                 pending={command.pending}
@@ -339,7 +390,14 @@ function ContractCard({
                   void command
                     .run(
                       (token, key) =>
-                        contractApi.withdraw(token, key, bookingId, current.revisionId, expectedRevision, reason),
+                        contractApi.withdraw(
+                          token,
+                          key,
+                          bookingId,
+                          current.revisionId,
+                          expectedRevision,
+                          reason,
+                        ),
                       'Đã rút duyệt. Hệ thống tạo bản nháp mới để chỉnh sửa.',
                     )
                     .then(after)
@@ -403,7 +461,10 @@ function ContractCard({
   );
 }
 
-function WithdrawForm({ pending, onSubmit }: Readonly<{ pending: boolean; onSubmit: (reason: string) => void }>) {
+function WithdrawForm({
+  pending,
+  onSubmit,
+}: Readonly<{ pending: boolean; onSubmit: (reason: string) => void }>) {
   return (
     <details>
       <summary>Cần chỉnh sửa? Rút duyệt</summary>
@@ -411,7 +472,7 @@ function WithdrawForm({ pending, onSubmit }: Readonly<{ pending: boolean; onSubm
         className="cw-form"
         onSubmit={(event) => {
           event.preventDefault();
-          const reason = String(new FormData(event.currentTarget).get('reason') ?? '').trim();
+          const reason = formText(new FormData(event.currentTarget), 'reason');
           if (reason) onSubmit(reason);
         }}
       >
@@ -429,7 +490,10 @@ function WithdrawForm({ pending, onSubmit }: Readonly<{ pending: boolean; onSubm
   );
 }
 
-function HistoryCard({ contracts, bookingId }: Readonly<{ contracts: ContractList; bookingId: string }>) {
+function HistoryCard({
+  contracts,
+  bookingId,
+}: Readonly<{ contracts: ContractList; bookingId: string }>) {
   const command = useCommand();
   if (contracts.revisions.length <= 1) return null;
   return (

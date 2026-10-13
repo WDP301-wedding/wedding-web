@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ApiClientError } from '../../lib/api/client';
 import { TimelineEditor } from './timeline-editor';
-import { type WebIdentitySession, type WebSessionSnapshot } from '../identity-access/session';
+import { type WebSessionSnapshot } from '../identity-access/session';
 import { browserSession } from '../identity-access/browser-session';
 import { createExperienceGateway } from '../identity-access/experience-api';
 import {

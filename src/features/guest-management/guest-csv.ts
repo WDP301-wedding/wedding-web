@@ -31,7 +31,7 @@ export function parseCsv(text: string): string[][] {
   let field = '';
   let record: string[] = [];
   let quoted = false;
-  const source = text.replace(/^﻿/, ''); // bỏ BOM do Excel thêm vào
+  const source = text.replace(/^\uFEFF/u, ''); // bỏ BOM do Excel thêm vào
   for (let index = 0; index < source.length; index += 1) {
     const char = source[index]!;
     if (quoted) {
@@ -88,7 +88,13 @@ export function csvToImportRows(
 
   const header = records[0]!.map((cell) => cell.trim().toLowerCase());
   const column = (name: string) => header.indexOf(name);
-  const [keyCol, nameCol, groupCol, phoneCol, noteCol] = ['ma', 'ho_ten', 'nhom', 'so_dien_thoai', 'ghi_chu'].map(column);
+  const [keyCol, nameCol, groupCol, phoneCol, noteCol] = [
+    'ma',
+    'ho_ten',
+    'nhom',
+    'so_dien_thoai',
+    'ghi_chu',
+  ].map(column);
   if (keyCol === -1 || nameCol === -1 || groupCol === -1) {
     return { rows, errors: [{ line: 1, message: 'Thiếu cột bắt buộc: ma, ho_ten, nhom.' }] };
   }
@@ -96,13 +102,16 @@ export function csvToImportRows(
     return { rows, errors: [{ line: 1, message: 'Mỗi lần import tối đa 1.000 dòng.' }] };
   }
   const groupByName = new Map(
-    groups.filter((group) => group.status === 'ACTIVE').map((group) => [normalizeName(group.name), group.guestGroupId]),
+    groups
+      .filter((group) => group.status === 'ACTIVE')
+      .map((group) => [normalizeName(group.name), group.guestGroupId]),
   );
   const seenKeys = new Set<string>();
 
   records.slice(1).forEach((record, offset) => {
     const line = offset + 2; // dòng 1 là tiêu đề
-    const cell = (col: number | undefined) => (col === undefined || col < 0 ? '' : (record[col] ?? '').trim());
+    const cell = (col: number | undefined) =>
+      col === undefined || col < 0 ? '' : (record[col] ?? '').trim();
     const key = cell(keyCol);
     const name = cell(nameCol).normalize('NFC');
     const groupName = cell(groupCol);
@@ -112,7 +121,8 @@ export function csvToImportRows(
     else if (seenKeys.has(key)) problems.push(`mã "${key}" bị trùng`);
     if (!name) problems.push('thiếu họ tên');
     if (name.length > 120) problems.push('họ tên quá 120 ký tự');
-    if ([key, name, note].some((value) => formulaLike.test(value))) problems.push('ô bắt đầu bằng = + - @');
+    if ([key, name, note].some((value) => formulaLike.test(value)))
+      problems.push('ô bắt đầu bằng = + - @');
     const guestGroupId = groupByName.get(normalizeName(groupName));
     if (!guestGroupId) problems.push(`không có nhóm "${groupName}"`);
     let phone: string | null = null;
@@ -127,7 +137,13 @@ export function csvToImportRows(
       return;
     }
     seenKeys.add(key);
-    rows.push({ externalRowKey: key, name, guestGroupId: guestGroupId!, phone, operationalNote: note || null });
+    rows.push({
+      externalRowKey: key,
+      name,
+      guestGroupId: guestGroupId!,
+      phone,
+      operationalNote: note || null,
+    });
   });
   return { rows, errors };
 }

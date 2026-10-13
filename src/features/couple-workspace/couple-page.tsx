@@ -34,7 +34,14 @@ type CouplePageProps = Readonly<{
  * Khung chung cho các trang Couple: thanh điều hướng, tiêu đề, và đủ các trạng thái
  * (đang tải, chưa đăng nhập, chọn tiệc, lỗi, chưa đủ quyền). Trang con chỉ lo nội dung chính.
  */
-export function CouplePage({ active, eyebrow, title, description, requireFull, children }: CouplePageProps) {
+export function CouplePage({
+  active,
+  eyebrow,
+  title,
+  description,
+  requireFull,
+  children,
+}: CouplePageProps) {
   const { state, reload, bookingId } = useCoupleWorkspace();
 
   return (
@@ -55,9 +62,7 @@ export function CouplePage({ active, eyebrow, title, description, requireFull, c
             </Link>
           </EmptyPanel>
         ) : null}
-        {state.status === 'error' ? (
-          <ErrorPanel error={state.error} onRetry={reload} />
-        ) : null}
+        {state.status === 'error' ? <ErrorPanel error={state.error} onRetry={reload} /> : null}
         {state.status === 'choose-booking' ? (
           state.bookings.length === 0 ? (
             <EmptyPanel title="Chưa có tiệc cưới">
@@ -121,7 +126,9 @@ function BookingStrip({ proposal }: Readonly<{ proposal: Proposal }>) {
         {proposal.proposal.shift.endTime}
       </span>
       <span className="status status-muted">
-        {proposal.capabilities.accessLevel === 'FULL' ? 'Quyền đầy đủ' : 'Quyền hạn chế (trước cọc)'}
+        {proposal.capabilities.accessLevel === 'FULL'
+          ? 'Quyền đầy đủ'
+          : 'Quyền hạn chế (trước cọc)'}
       </span>
     </p>
   );

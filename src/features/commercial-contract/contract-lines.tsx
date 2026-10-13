@@ -64,7 +64,8 @@ export function ContractLinesTable({
 
 type Selection = Record<string, number>; // key = `${category}:${sourceId}` → số lượng (0 = không chọn)
 
-const keyOf = (category: ContractLineInput['category'], sourceId: string) => `${category}:${sourceId}`;
+const keyOf = (category: ContractLineInput['category'], sourceId: string) =>
+  `${category}:${sourceId}`;
 
 /**
  * Bộ chọn hạng mục cho hợp đồng/phụ lục.
@@ -81,10 +82,20 @@ export function LineSelector({
   submitLabel,
   pending,
   extraFields,
+  frozenLines,
   onSubmit,
 }: Readonly<{
   catalog: Catalog;
-  initialLines: readonly { category: ContractLineInput['category']; sourceId: string; quantity: number }[];
+  /**
+   * Chỉ dùng cho PHỤ LỤC: các dòng của thoả thuận đang hiệu lực. Dòng nào giữ lại sẽ gửi đúng
+   * `sourceRevisionId` đã chốt (giá cũ được giữ), kể cả hạng mục nay đã ngừng bán.
+   */
+  frozenLines?: readonly ContractLine[];
+  initialLines: readonly {
+    category: ContractLineInput['category'];
+    sourceId: string;
+    quantity: number;
+  }[];
   maxGuests: number;
   planningHeadcount: number;
   submitLabel: string;
@@ -93,7 +104,9 @@ export function LineSelector({
   onSubmit: (lines: ContractLineInput[], form: FormData) => void;
 }>) {
   const [selection, setSelection] = useState<Selection>(() =>
-    Object.fromEntries(initialLines.map((line) => [keyOf(line.category, line.sourceId), line.quantity])),
+    Object.fromEntries(
+      initialLines.map((line) => [keyOf(line.category, line.sourceId), line.quantity]),
+    ),
   );
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -103,9 +116,27 @@ export function LineSelector({
     ...catalog.services.map((item) => keyOf('SERVICE', item.serviceId)),
     ...catalog.prints.map((item) => keyOf('PRINT', item.offeringId)),
   ]);
-  const missing = initialLines.filter((line) => !sellable.has(keyOf(line.category, line.sourceId)));
+  const missing = frozenLines
+    ? []
+    : initialLines.filter((line) => !sellable.has(keyOf(line.category, line.sourceId)));
+  const frozen = new Map(
+    (frozenLines ?? []).map((line) => [keyOf(line.category, line.sourceId), line]),
+  );
+  const frozenOnly = (frozenLines ?? []).filter(
+    (line) => !sellable.has(keyOf(line.category, line.sourceId)),
+  );
+  /** Ưu tiên phiên bản giá đã chốt (phụ lục), nếu không thì dùng phiên bản đang bán. */
+  const revisionFor = (
+    category: ContractLineInput['category'],
+    sourceId: string,
+    current: string,
+  ) => frozen.get(keyOf(category, sourceId))?.sourceRevisionId ?? current;
 
-  const quantityInput = (category: ContractLineInput['category'], sourceId: string, label: string) => {
+  const quantityInput = (
+    category: ContractLineInput['category'],
+    sourceId: string,
+    label: string,
+  ) => {
     const key = keyOf(category, sourceId);
     return (
       <input
@@ -118,7 +149,10 @@ export function LineSelector({
         value={selection[key] ?? 0}
         onChange={(event) => {
           const value = Number.parseInt(event.target.value || '0', 10);
-          setSelection((previous) => ({ ...previous, [key]: Number.isNaN(value) ? 0 : Math.max(0, value) }));
+          setSelection((previous) => ({
+            ...previous,
+            [key]: Number.isNaN(value) ? 0 : Math.max(0, value),
+          }));
         }}
       />
     );
@@ -128,22 +162,52 @@ export function LineSelector({
     const lines: ContractLineInput[] = [];
     for (const menu of catalog.menus) {
       const quantity = selection[keyOf('MENU', menu.id)] ?? 0;
-      if (quantity > 0) lines.push({ category: 'MENU', sourceId: menu.id, sourceRevisionId: menu.versionId, quantity });
+      if (quantity > 0)
+        lines.push({
+          category: 'MENU',
+          sourceId: menu.id,
+          sourceRevisionId: revisionFor('MENU', menu.id, menu.versionId),
+          quantity,
+        });
     }
     for (const service of catalog.services) {
       const quantity = selection[keyOf('SERVICE', service.serviceId)] ?? 0;
       if (quantity > 0)
-        lines.push({ category: 'SERVICE', sourceId: service.serviceId, sourceRevisionId: service.sourceRevisionId, quantity });
+        lines.push({
+          category: 'SERVICE',
+          sourceId: service.serviceId,
+          sourceRevisionId: revisionFor('SERVICE', service.serviceId, service.sourceRevisionId),
+          quantity,
+        });
     }
     for (const print of catalog.prints) {
       const quantity = selection[keyOf('PRINT', print.offeringId)] ?? 0;
       if (quantity > 0)
-        lines.push({ category: 'PRINT', sourceId: print.offeringId, sourceRevisionId: print.sourceRevisionId, quantity });
+        lines.push({
+          category: 'PRINT',
+          sourceId: print.offeringId,
+          sourceRevisionId: revisionFor('PRINT', print.offeringId, print.sourceRevisionId),
+          quantity,
+        });
+    }
+    for (const line of frozenOnly) {
+      const quantity = selection[keyOf(line.category, line.sourceId)] ?? 0;
+      if (quantity > 0)
+        lines.push({
+          category: line.category,
+          sourceId: line.sourceId,
+          sourceRevisionId: line.sourceRevisionId,
+          quantity,
+        });
     }
     return lines;
   };
 
-  const tableCount = catalog.menus.reduce((sum, menu) => sum + (selection[keyOf('MENU', menu.id)] ?? 0), 0);
+  const tableCount =
+    catalog.menus.reduce((sum, menu) => sum + (selection[keyOf('MENU', menu.id)] ?? 0), 0) +
+    frozenOnly
+      .filter((line) => line.category === 'MENU')
+      .reduce((sum, line) => sum + (selection[keyOf('MENU', line.sourceId)] ?? 0), 0);
 
   return (
     <form
@@ -170,8 +234,8 @@ export function LineSelector({
       </p>
       {missing.length > 0 ? (
         <p className="cw-alert">
-          Có {missing.length} hạng mục trong bản trước không còn trong danh mục đang bán (hoặc đã đổi
-          giá). Hãy chọn lại hạng mục thay thế.
+          Có {missing.length} hạng mục trong bản trước không còn trong danh mục đang bán (hoặc đã
+          đổi giá). Hãy chọn lại hạng mục thay thế.
         </p>
       ) : null}
 
@@ -183,7 +247,10 @@ export function LineSelector({
               <br />
               <small>{menu.description}</small>
             </td>
-            <td className="num">{formatVnd(menu.priceVndPerTable)} / bàn</td>
+            <td className="num">
+              {formatVnd(frozen.get(keyOf('MENU', menu.id))?.unitPriceVnd ?? menu.priceVndPerTable)}{' '}
+              / bàn
+            </td>
             <td className="num">{quantityInput('MENU', menu.id, menu.name)}</td>
           </tr>
         ))}
@@ -199,7 +266,11 @@ export function LineSelector({
               <small>{service.description}</small>
             </td>
             <td className="num">
-              {formatVnd(service.unitPriceVnd)} / {unitLabel(service.unit)}
+              {formatVnd(
+                frozen.get(keyOf('SERVICE', service.serviceId))?.unitPriceVnd ??
+                  service.unitPriceVnd,
+              )}{' '}
+              / {unitLabel(service.unit)}
             </td>
             <td className="num">{quantityInput('SERVICE', service.serviceId, service.name)}</td>
           </tr>
@@ -216,12 +287,37 @@ export function LineSelector({
                 Mẫu {print.templateTitle} · {print.printType} · {print.material}
               </small>
             </td>
-            <td className="num">{formatVnd(print.unitPriceVnd)} / bản</td>
+            <td className="num">
+              {formatVnd(
+                frozen.get(keyOf('PRINT', print.offeringId))?.unitPriceVnd ?? print.unitPriceVnd,
+              )}{' '}
+              / bản
+            </td>
             <td className="num">{quantityInput('PRINT', print.offeringId, print.name)}</td>
           </tr>
         ))}
       </SelectorTable>
 
+      {frozenOnly.length > 0 ? (
+        <SelectorTable title="Hạng mục đã chốt (nay không còn bán)" emptyText="">
+          {frozenOnly.map((line) => (
+            <tr key={keyOf(line.category, line.sourceId)}>
+              <td>
+                <strong>{line.name}</strong>
+                <br />
+                <small>{categoryLabels[line.category]} · giữ giá đã chốt</small>
+              </td>
+              <td className="num">
+                {formatVnd(line.unitPriceVnd)} / {unitLabel(line.unit)}
+              </td>
+              <td className="num">{quantityInput(line.category, line.sourceId, line.name)}</td>
+            </tr>
+          ))}
+        </SelectorTable>
+      ) : null}
+      {frozenLines ? (
+        <p className="cw-note">Hạng mục đã có trong thoả thuận được giữ nguyên đơn giá đã chốt.</p>
+      ) : null}
       {extraFields}
       {localError ? (
         <p className="cw-alert" role="alert">

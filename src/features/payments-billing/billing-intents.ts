@@ -11,7 +11,10 @@ const metadataSchema = z.strictObject({
   timelineRevisionId: z.uuid().optional(),
   // Đặt cọc theo hợp đồng FULL_CONTRACT_V1: lưu lại để thử lại đúng cùng một yêu cầu.
   contractRevisionId: z.uuid().optional(),
-  documentDigest: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+  documentDigest: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/)
+    .optional(),
 });
 const recordSchema = z.strictObject({
   key: z.uuid(),

@@ -26,7 +26,13 @@ export const seatingApi = {
       }),
     );
   },
-  async create(token: string, key: string, bookingId: string, layoutTemplateVersionId: string, expectedBookingRevision: number) {
+  async create(
+    token: string,
+    key: string,
+    bookingId: string,
+    layoutTemplateVersionId: string,
+    expectedBookingRevision: number,
+  ) {
     return unwrap<SeatingPlan>(
       await coupleApi().POST('/bookings/{bookingId}/seating-plans', {
         headers: bearer(token),
@@ -51,7 +57,14 @@ export const seatingApi = {
       }),
     );
   },
-  async confirm(token: string, key: string, bookingId: string, planId: string, expectedRevision: number, expectedBookingRevision: number) {
+  async confirm(
+    token: string,
+    key: string,
+    bookingId: string,
+    planId: string,
+    expectedRevision: number,
+    expectedBookingRevision: number,
+  ) {
     return unwrap<SeatingPlan>(
       await coupleApi().POST('/bookings/{bookingId}/seating-plans/{planId}/confirmation', {
         headers: bearer(token),

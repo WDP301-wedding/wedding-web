@@ -7,7 +7,10 @@ export type GuestPlan = ApiData<'/bookings/{bookingId}/guest-plan', 'get'>;
 export type GuestPage = ApiData<'/bookings/{bookingId}/guests', 'get'>;
 export type Guest = GuestPage['items'][number];
 export type ImportPreview = ApiData<'/bookings/{bookingId}/guests/import-previews', 'post'>;
-export type PersonalLink = ApiData<'/bookings/{bookingId}/guests/{guestId}/personalized-invitations', 'post'>;
+export type PersonalLink = ApiData<
+  '/bookings/{bookingId}/guests/{guestId}/personalized-invitations',
+  'post'
+>;
 export type CheckInSettings = ApiData<'/bookings/{bookingId}/check-in-settings', 'get'>;
 export type AttendanceSummary = ApiData<'/bookings/{bookingId}/attendance-summary', 'get'>;
 
@@ -24,7 +27,12 @@ export const guestApi = {
       }),
     );
   },
-  async createGroup(token: string, key: string, bookingId: string, body: ApiBody<'/bookings/{bookingId}/guest-groups', 'post'>) {
+  async createGroup(
+    token: string,
+    key: string,
+    bookingId: string,
+    body: ApiBody<'/bookings/{bookingId}/guest-groups', 'post'>,
+  ) {
     return unwrap<GuestGroup>(
       await coupleApi().POST('/bookings/{bookingId}/guest-groups', {
         headers: bearer(token),
@@ -57,7 +65,13 @@ export const guestApi = {
       }),
     );
   },
-  async updatePlan(token: string, key: string, bookingId: string, expectedRevision: number, planningHeadcount: number) {
+  async updatePlan(
+    token: string,
+    key: string,
+    bookingId: string,
+    expectedRevision: number,
+    planningHeadcount: number,
+  ) {
     return unwrap<GuestPlan>(
       await coupleApi().PATCH('/bookings/{bookingId}/guest-plan', {
         headers: bearer(token),
@@ -79,7 +93,12 @@ export const guestApi = {
       }),
     );
   },
-  async createGuest(token: string, key: string, bookingId: string, body: ApiBody<'/bookings/{bookingId}/guests', 'post'>) {
+  async createGuest(
+    token: string,
+    key: string,
+    bookingId: string,
+    body: ApiBody<'/bookings/{bookingId}/guests', 'post'>,
+  ) {
     return unwrap<Guest>(
       await coupleApi().POST('/bookings/{bookingId}/guests', {
         headers: bearer(token),
@@ -103,7 +122,13 @@ export const guestApi = {
       }),
     );
   },
-  async previewImport(token: string, key: string, bookingId: string, rows: ImportRow[], allowUpdates: boolean) {
+  async previewImport(
+    token: string,
+    key: string,
+    bookingId: string,
+    rows: ImportRow[],
+    allowUpdates: boolean,
+  ) {
     return unwrap<ImportPreview>(
       await coupleApi().POST('/bookings/{bookingId}/guests/import-previews', {
         headers: bearer(token),
@@ -112,7 +137,13 @@ export const guestApi = {
       }),
     );
   },
-  async commitImport(token: string, key: string, bookingId: string, previewId: string, digest: string) {
+  async commitImport(
+    token: string,
+    key: string,
+    bookingId: string,
+    previewId: string,
+    digest: string,
+  ) {
     return unwrap<ApiData<'/bookings/{bookingId}/guests/imports', 'post'>>(
       await coupleApi().POST('/bookings/{bookingId}/guests/imports', {
         headers: bearer(token),
@@ -121,7 +152,13 @@ export const guestApi = {
       }),
     );
   },
-  async issueLink(token: string, key: string, bookingId: string, guestId: string, expectedRevision: number) {
+  async issueLink(
+    token: string,
+    key: string,
+    bookingId: string,
+    guestId: string,
+    expectedRevision: number,
+  ) {
     return unwrap<PersonalLink>(
       await coupleApi().POST('/bookings/{bookingId}/guests/{guestId}/personalized-invitations', {
         headers: bearer(token),
@@ -130,7 +167,14 @@ export const guestApi = {
       }),
     );
   },
-  async deliverLink(token: string, key: string, bookingId: string, guestId: string, expectedRevision: number, intendedEmail: string) {
+  async deliverLink(
+    token: string,
+    key: string,
+    bookingId: string,
+    guestId: string,
+    expectedRevision: number,
+    intendedEmail: string,
+  ) {
     return unwrap<ApiData<'/bookings/{bookingId}/guests/{guestId}/delivery', 'post'>>(
       await coupleApi().POST('/bookings/{bookingId}/guests/{guestId}/delivery', {
         headers: bearer(token),
@@ -182,7 +226,10 @@ export const guestApi = {
 const linkRevisionKey = (bookingId: string) => `wedding.guestLinkRevisions.${bookingId}`;
 export function readLinkRevision(bookingId: string, guestId: string): number {
   try {
-    const map = JSON.parse(localStorage.getItem(linkRevisionKey(bookingId)) ?? '{}') as Record<string, number>;
+    const map = JSON.parse(localStorage.getItem(linkRevisionKey(bookingId)) ?? '{}') as Record<
+      string,
+      number
+    >;
     return Number.isSafeInteger(map[guestId]) ? map[guestId]! : 0;
   } catch {
     return 0;
@@ -190,7 +237,10 @@ export function readLinkRevision(bookingId: string, guestId: string): number {
 }
 export function rememberLinkRevision(bookingId: string, guestId: string, revision: number): void {
   try {
-    const map = JSON.parse(localStorage.getItem(linkRevisionKey(bookingId)) ?? '{}') as Record<string, number>;
+    const map = JSON.parse(localStorage.getItem(linkRevisionKey(bookingId)) ?? '{}') as Record<
+      string,
+      number
+    >;
     map[guestId] = revision;
     localStorage.setItem(linkRevisionKey(bookingId), JSON.stringify(map));
   } catch {

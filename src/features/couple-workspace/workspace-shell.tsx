@@ -1,6 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState, type ReactNode } from 'react';
+import { browserSession } from '../identity-access/browser-session';
+import { notificationApi } from '../notifications/notification-api';
 export type Section =
   | 'overview'
   | 'timeline'
@@ -25,7 +27,13 @@ const nav: readonly { id: Section; label: string; href: string; group?: string; 
   { id: 'guests', label: 'Khách mời', href: '/guests', group: 'Sau đặt cọc', icon: 6 },
   { id: 'seating', label: 'Sơ đồ bàn', href: '/seating', icon: 7 },
   { id: 'appendices', label: 'Phụ lục hợp đồng', href: '/appendices', icon: 5 },
-  { id: 'media', label: 'Thư viện ảnh', href: '/invitations?tab=media', group: 'Thiệp cưới', icon: 2 },
+  {
+    id: 'media',
+    label: 'Thư viện ảnh',
+    href: '/invitations?tab=media',
+    group: 'Thiệp cưới',
+    icon: 2,
+  },
   { id: 'design', label: 'Mẫu & biên tập', href: '/invitations?tab=design', icon: 3 },
   { id: 'publish', label: 'Xuất bản', href: '/invitations?tab=publish', icon: 4 },
   { id: 'print', label: 'Đặt in', href: '/invitations?tab=print', icon: 5 },
@@ -63,6 +71,35 @@ function Icon({ index = 0 }: { index?: number }) {
     </svg>
   );
 }
+/**
+ * Chuông thông báo: chỉ hiện số khi đã đăng nhập. Không làm phiền người chưa đăng nhập
+ * (không gọi API nếu phiên chưa có) và bỏ qua lỗi vì đây chỉ là thông tin phụ.
+ */
+function UnreadBell() {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    let active = true;
+    void browserSession.restore().then(async (snapshot) => {
+      if (snapshot.status !== 'authenticated') return;
+      try {
+        const value = await browserSession.authorize((token) => notificationApi.unreadCount(token));
+        if (active) setCount(value);
+      } catch {
+        // Bỏ qua: chuông chỉ là thông tin phụ.
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  return (
+    <Link href="/notifications" aria-label={count ? `${count} thông báo chưa đọc` : 'Thông báo'}>
+      <span aria-hidden="true">🔔</span>
+      {count ? <span className="cw-badge">{count > 99 ? '99+' : count}</span> : null}
+    </Link>
+  );
+}
+
 export function WorkspaceShell({
   children,
   active = 'overview',
@@ -117,6 +154,7 @@ export function WorkspaceShell({
             ) : null}
           </div>
           <div className="top-actions">
+            <UnreadBell />
             <Link href="/account" aria-label="Hồ sơ và bảo mật">
               <span className="avatar">T</span>
             </Link>

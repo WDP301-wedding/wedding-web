@@ -71,7 +71,13 @@ export const contractApi = {
       }),
     );
   },
-  async submit(token: string, key: string, bookingId: string, revisionId: string, expectedRevision: number) {
+  async submit(
+    token: string,
+    key: string,
+    bookingId: string,
+    revisionId: string,
+    expectedRevision: number,
+  ) {
     return unwrap<ContractCommandResult>(
       await coupleApi().POST('/bookings/{bookingId}/contracts/{revisionId}/submissions', {
         headers: bearer(token),
@@ -80,7 +86,13 @@ export const contractApi = {
       }),
     );
   },
-  async approve(token: string, key: string, bookingId: string, revisionId: string, expectedRevision: number) {
+  async approve(
+    token: string,
+    key: string,
+    bookingId: string,
+    revisionId: string,
+    expectedRevision: number,
+  ) {
     return unwrap<ContractCommandResult>(
       await coupleApi().POST('/bookings/{bookingId}/contracts/{revisionId}/approvals', {
         headers: bearer(token),
@@ -121,7 +133,10 @@ export const contractApi = {
         .GET('/catalog/services', { headers: bearer(token), params: { query: { limit: 50 } } })
         .then((response) => unwrap<ApiData<'/catalog/services', 'get'>>(response).items),
       coupleApi()
-        .GET('/catalog/print-offerings', { headers: bearer(token), params: { query: { limit: 50 } } })
+        .GET('/catalog/print-offerings', {
+          headers: bearer(token),
+          params: { query: { limit: 50 } },
+        })
         .then((response) => unwrap<ApiData<'/catalog/print-offerings', 'get'>>(response).items),
     ]);
     return {
