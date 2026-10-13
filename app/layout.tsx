@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import './globals.css';
 import './public.css';
 import './v0-workspace.css';
+import './couple.css';
 
 export const metadata: Metadata = {
   title: 'Wedding Estate | Cùng chuẩn bị ngày chung đôi',

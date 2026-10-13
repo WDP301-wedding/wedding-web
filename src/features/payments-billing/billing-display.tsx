@@ -52,8 +52,14 @@ const kinds = {
   REFUND: 'Hoàn tiền',
   CREDIT_ADJUSTMENT: 'Điều chỉnh giảm',
 };
-const sources = {
-  BASE_BOOKING: 'Tiệc cưới',
+// Mọi sourceType mà sổ cái có thể trả về (theo OpenAPI). Dùng Record để TypeScript báo lỗi
+// ngay khi backend thêm loại nguồn mới mà UI chưa có nhãn.
+const sources: Record<BillingView['history'][number]['sourceType'], string> = {
+  BASE_BOOKING: 'Tiệc cưới (đề xuất cũ)',
+  CONTRACT: 'Hợp đồng',
+  CONTRACT_APPENDIX: 'Phụ lục hợp đồng',
+  INCIDENTAL_FINALIZATION: 'Chi phí phát sinh',
+  INVOICE_ADJUSTMENT: 'Điều chỉnh hoá đơn',
   PRINT_ORDER: 'Đơn in',
   PAYMENT_ATTEMPT: 'Khoản thanh toán',
   PRINT_CREDIT: 'Điều chỉnh đơn in',

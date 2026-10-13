@@ -9,6 +9,12 @@ export interface IntentStorage {
 const metadataSchema = z.strictObject({
   expectedBillingRevision: z.number().int().positive().optional(),
   timelineRevisionId: z.uuid().optional(),
+  // Đặt cọc theo hợp đồng FULL_CONTRACT_V1: lưu lại để thử lại đúng cùng một yêu cầu.
+  contractRevisionId: z.uuid().optional(),
+  documentDigest: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/)
+    .optional(),
 });
 const recordSchema = z.strictObject({
   key: z.uuid(),
@@ -84,6 +90,12 @@ export function createBillingIntents(
             ...(payload.timelineRevisionId === undefined
               ? {}
               : { timelineRevisionId: payload.timelineRevisionId }),
+            ...(payload.contractRevisionId === undefined
+              ? {}
+              : { contractRevisionId: payload.contractRevisionId }),
+            ...(payload.documentDigest === undefined
+              ? {}
+              : { documentDigest: payload.documentDigest }),
           });
         const stableBody = { ...body, ...metadata };
         const fingerprint = await hash(JSON.stringify(stableBody, Object.keys(stableBody).sort()));

@@ -1,23 +1,44 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState, type ReactNode } from 'react';
-type Section =
-  'overview' | 'timeline' | 'media' | 'design' | 'publish' | 'print' | 'billing' | 'account';
-const nav: readonly {
-  id: Section | 'guests' | 'seating';
-  label: string;
-  href?: string;
-  group?: string;
-}[] = [
-  { id: 'overview', label: 'Tổng quan', href: '/overview' },
-  { id: 'timeline', label: 'Đề xuất & timeline', href: '/workspace', group: 'Chuẩn bị' },
-  { id: 'media', label: 'Thư viện ảnh', href: '/invitations?tab=media', group: 'Thiệp cưới' },
-  { id: 'design', label: 'Mẫu & biên tập', href: '/invitations?tab=design' },
-  { id: 'publish', label: 'Xuất bản', href: '/invitations?tab=publish' },
-  { id: 'print', label: 'Đặt in', href: '/invitations?tab=print', group: 'Dịch vụ' },
-  { id: 'guests', label: 'Khách mời', group: 'Tiệc cưới' },
-  { id: 'seating', label: 'Sắp bàn' },
-  { id: 'billing', label: 'Công nợ', href: '/billing' },
+import { browserSession } from '../identity-access/browser-session';
+import { notificationApi } from '../notifications/notification-api';
+export type Section =
+  | 'overview'
+  | 'timeline'
+  | 'contract'
+  | 'billing'
+  | 'guests'
+  | 'seating'
+  | 'appendices'
+  | 'media'
+  | 'design'
+  | 'publish'
+  | 'print'
+  | 'invoices'
+  | 'notifications'
+  | 'account';
+// Thứ tự menu đi theo luồng nghiệp vụ: trước cọc → sau cọc → thiệp → quyết toán.
+const nav: readonly { id: Section; label: string; href: string; group?: string; icon: number }[] = [
+  { id: 'overview', label: 'Tổng quan', href: '/overview', icon: 0 },
+  { id: 'timeline', label: 'Đề xuất & kịch bản', href: '/workspace', group: 'Thống nhất', icon: 1 },
+  { id: 'contract', label: 'Hợp đồng', href: '/contract', icon: 5 },
+  { id: 'billing', label: 'Thanh toán & công nợ', href: '/billing', icon: 8 },
+  { id: 'guests', label: 'Khách mời', href: '/guests', group: 'Sau đặt cọc', icon: 6 },
+  { id: 'seating', label: 'Sơ đồ bàn', href: '/seating', icon: 7 },
+  { id: 'appendices', label: 'Phụ lục hợp đồng', href: '/appendices', icon: 5 },
+  {
+    id: 'media',
+    label: 'Thư viện ảnh',
+    href: '/invitations?tab=media',
+    group: 'Thiệp cưới',
+    icon: 2,
+  },
+  { id: 'design', label: 'Mẫu & biên tập', href: '/invitations?tab=design', icon: 3 },
+  { id: 'publish', label: 'Xuất bản', href: '/invitations?tab=publish', icon: 4 },
+  { id: 'print', label: 'Đặt in', href: '/invitations?tab=print', icon: 5 },
+  { id: 'invoices', label: 'Phát sinh & hoá đơn', href: '/invoices', group: 'Quyết toán', icon: 8 },
+  { id: 'notifications', label: 'Thông báo', href: '/notifications', icon: 4 },
 ];
 function Icon({ index = 0 }: { index?: number }) {
   const shapes = [
@@ -50,6 +71,35 @@ function Icon({ index = 0 }: { index?: number }) {
     </svg>
   );
 }
+/**
+ * Chuông thông báo: chỉ hiện số khi đã đăng nhập. Không làm phiền người chưa đăng nhập
+ * (không gọi API nếu phiên chưa có) và bỏ qua lỗi vì đây chỉ là thông tin phụ.
+ */
+function UnreadBell() {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    let active = true;
+    void browserSession.restore().then(async (snapshot) => {
+      if (snapshot.status !== 'authenticated') return;
+      try {
+        const value = await browserSession.authorize((token) => notificationApi.unreadCount(token));
+        if (active) setCount(value);
+      } catch {
+        // Bỏ qua: chuông chỉ là thông tin phụ.
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  return (
+    <Link href="/notifications" aria-label={count ? `${count} thông báo chưa đọc` : 'Thông báo'}>
+      <span aria-hidden="true">🔔</span>
+      {count ? <span className="cw-badge">{count > 99 ? '99+' : count}</span> : null}
+    </Link>
+  );
+}
+
 export function WorkspaceShell({
   children,
   active = 'overview',
@@ -104,6 +154,7 @@ export function WorkspaceShell({
             ) : null}
           </div>
           <div className="top-actions">
+            <UnreadBell />
             <Link href="/account" aria-label="Hồ sơ và bảo mật">
               <span className="avatar">T</span>
             </Link>
@@ -113,29 +164,18 @@ export function WorkspaceShell({
           <aside className="sidebar" id="couple-workspace-navigation">
             <div className="workspace-label">Không gian chuẩn bị</div>
             <nav aria-label="Điều hướng không gian cặp đôi">
-              {nav.map((item, index) => (
+              {nav.map((item) => (
                 <div key={item.id}>
                   {item.group && <div className="nav-section">{item.group}</div>}
-                  {item.href ? (
-                    <Link
-                      className={'nav-item' + (active === item.id ? ' active' : '')}
-                      aria-current={active === item.id ? 'page' : undefined}
-                      href={href(item.href)}
-                      onClick={() => setMenu(false)}
-                    >
-                      <Icon index={index} />
-                      {item.label}
-                    </Link>
-                  ) : (
-                    <span
-                      className="nav-item"
-                      aria-disabled="true"
-                      title="Chức năng đang được chuẩn bị"
-                    >
-                      <Icon index={index} />
-                      {item.label}
-                    </span>
-                  )}
+                  <Link
+                    className={'nav-item' + (active === item.id ? ' active' : '')}
+                    aria-current={active === item.id ? 'page' : undefined}
+                    href={href(item.href)}
+                    onClick={() => setMenu(false)}
+                  >
+                    <Icon index={item.icon} />
+                    {item.label}
+                  </Link>
                 </div>
               ))}
             </nav>
