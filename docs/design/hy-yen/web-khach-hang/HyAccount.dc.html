@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<sc-if value="{{ isAuth }}" hint-placeholder-val="{{ true }}">
+<div style="min-height:100%;display:grid;grid-template-columns:{{ L.cols }}">
+  <sc-if value="{{ d }}" hint-placeholder-val="{{ true }}">
+    <div style="position:relative;background:repeating-linear-gradient(135deg,#FBE9E3 0 14px,#F7EDE4 14px 28px);display:flex;flex-direction:column;justify-content:space-between;padding:40px">
+      <button onClick="{{ goHome }}" style="align-self:flex-start;display:flex;align-items:center;gap:10px;border:none;background:transparent;padding:0;height:48px;color:#2B1D22"><span style="width:36px;height:36px;border-radius:50%;border:1.5px solid #C9A46A;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px;font-weight:600;color:#7A1F3D;background:#FFF8F1">HY</span><span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:600">Hỷ Yến</span></button>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">ảnh cặp đôi trong sảnh tiệc</span>
+      <div style="border-radius:16px;background:rgba(43,29,34,0.82);color:#FFF8F1;padding:24px;display:flex;flex-direction:column;gap:8px;max-width:440px"><strong style="font-family:'Playfair Display',serif;font-size:26px;line-height:34px;font-weight:600">Không gian cưới</strong><span style="font-size:15px;line-height:24px;color:#F3E9E1">Nơi hai bạn và nhà hàng cùng duyệt timeline, hợp đồng và chuẩn bị cho ngày cưới.</span></div>
+    </div>
+  </sc-if>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:{{ L.pad }}">
+    <sc-if value="{{ m }}" hint-placeholder-val="{{ false }}"><button onClick="{{ goHome }}" style="align-self:flex-start;display:flex;align-items:center;gap:10px;border:none;background:transparent;padding:0;height:48px;margin-bottom:16px;color:#2B1D22"><span style="width:36px;height:36px;border-radius:50%;border:1.5px solid #C9A46A;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px;font-weight:600;color:#7A1F3D">HY</span><span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:600">Hỷ Yến</span></button></sc-if>
+    <form onSubmit="{{ submit }}" noValidate="{{ true }}" style="width:100%;max-width:420px;display:flex;flex-direction:column;gap:20px">
+      <sc-if value="{{ showBack }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ back }}" style="align-self:flex-start;height:40px;padding:0 10px 0 4px;margin-left:-4px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3"><i style="font-size:18px">arrow_back</i>{{ backLabel }}</button></sc-if>
+      <div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-family:'Playfair Display',serif;font-size:32px;line-height:40px;font-weight:600">{{ t.title }}</h1><p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;text-wrap:pretty">{{ t.sub }}</p></div>
+
+      <sc-if value="{{ isInvite }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;gap:12px;align-items:flex-start"><span style="width:40px;height:40px;border-radius:50%;background:#F5E4E9;color:#5C1430;display:flex;align-items:center;justify-content:center;flex:none"><i>mail</i></span><span style="display:flex;flex-direction:column;gap:2px;font-size:14px;line-height:22px"><strong>Phạm Ngọc Lan · Quản lý tiệc</strong><span style="color:#6E5D63">Mời bạn vào Không gian cưới của Trần Thu Hà &amp; Lê Minh Quân · 20/12/2026 · Sảnh Ngọc Trai</span></span></div></sc-if>
+
+      <sc-if value="{{ showEmail }}" hint-placeholder-val="{{ true }}"><label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500">Email</span><input value="{{ f.email }}" onChange="{{ on.email }}" readOnly="{{ emailRO }}" type="email" autoComplete="email" style="height:48px;border:1px solid {{ emailBorder }};border-radius:12px;background:{{ emailBg }};padding:0 16px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></label></sc-if>
+
+      <sc-if value="{{ showPass }}" hint-placeholder-val="{{ true }}"><label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;display:flex">{{ t.passLabel }}<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ goForgot }}" style="margin-left:auto;border:none;background:transparent;padding:0;color:#7A1F3D;font-size:14px;font-weight:600">Quên mật khẩu?</button></sc-if></span><div style="position:relative"><input value="{{ f.pass }}" onChange="{{ on.pass }}" type="{{ passType }}" autoComplete="{{ t.ac }}" aria-invalid="{{ errInv }}" style="width:100%;height:48px;border:1px solid {{ errBorder }};border-radius:12px;background:#FFFFFF;padding:0 52px 0 16px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><button type="button" aria-label="{{ eyeLabel }}" onClick="{{ toggleEye }}" style="position:absolute;right:0;top:0;width:48px;height:48px;border:none;background:transparent;color:#6E5D63;display:flex;align-items:center;justify-content:center"><i>{{ eyeIcon }}</i></button></div><sc-if value="{{ needsRule }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#6E5D63">Tối thiểu 8 ký tự, có chữ và số.</span></sc-if></label></sc-if>
+
+      <sc-if value="{{ showPass2 }}" hint-placeholder-val="{{ false }}"><label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500">Nhập lại mật khẩu</span><input value="{{ f.pass2 }}" onChange="{{ on.pass2 }}" type="{{ passType }}" autoComplete="new-password" style="height:48px;border:1px solid #9A877F;border-radius:12px;background:#FFFFFF;padding:0 16px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></label></sc-if>
+
+      <sc-if value="{{ isOtp }}" hint-placeholder-val="{{ false }}">
+        <div role="group" aria-label="Mã OTP 6 số" style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px">
+          <sc-for list="{{ otpCells }}" as="o" hint-placeholder-count="6"><input ref="{{ o.ref }}" value="{{ o.v }}" onChange="{{ o.change }}" onKeyDown="{{ o.key }}" inputMode="numeric" maxLength="1" aria-label="{{ o.aria }}" aria-invalid="{{ errInv }}" style="height:56px;width:100%;text-align:center;border:1px solid {{ errBorder }};border-radius:12px;background:#FFFFFF;font-size:22px;font-weight:600;color:#2B1D22;outline:none;font-variant-numeric:tabular-nums" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:#6E5D63;flex-wrap:wrap">Không nhận được mã?<button type="button" disabled="{{ resendDisabled }}" onClick="{{ resend }}" style="height:40px;padding:0 8px;border:none;border-radius:12px;background:transparent;color:{{ resendColor }};font-size:14px;font-weight:600">{{ resendLabel }}</button></div>
+      </sc-if>
+
+      <sc-if value="{{ err }}" hint-placeholder-val="{{ false }}"><div role="alert" style="border-radius:12px;background:#FDECEA;padding:12px;display:flex;gap:8px;font-size:14px;line-height:20px"><i style="color:#C62828;font-size:18px">error</i><span>{{ err }}</span></div></sc-if>
+
+      <button type="submit" aria-busy="{{ busyStr }}" style="height:48px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:scale(0.97)" style-focus="outline:none;box-shadow:0 0 0 2px #FFF8F1,0 0 0 4px #7A1F3D"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ btnLabel }}</button>
+
+      <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:12px;border-top:1px solid #EADFD6;padding-top:16px;font-size:14px;line-height:22px;color:#6E5D63"><span>Tài khoản được tạo khi nhà hàng gửi lời mời vào Không gian cưới qua email.</span><div style="display:flex;gap:4px;flex-wrap:wrap"><button type="button" onClick="{{ goConsult }}" style="height:40px;padding:0 10px;margin-left:-10px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600" style-hover="background:#F4E7E3">Chưa có booking? Nhận tư vấn</button><button type="button" onClick="{{ goInvite }}" style="height:40px;padding:0 10px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600" style-hover="background:#F4E7E3">Mở email lời mời</button></div></div></sc-if>
+    </form>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+  <div style="display:grid;grid-template-columns:{{ L.profCols }};gap:20px;align-items:start">
+    <div data-stagger="1" style="display:flex;flex-direction:column;gap:16px">
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:16px"><span style="width:64px;height:64px;border-radius:50%;background:#FBE9E3;color:#7A1F3D;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:600">TH</span><span style="display:flex;flex-direction:column;gap:2px"><strong style="font-size:18px">{{ p.name }}</strong><span style="font-size:14px;color:#6E5D63">Cô dâu · thuha.tran@gmail.com</span></span></div>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500">Họ và tên</span><input value="{{ p.name }}" onChange="{{ onP.name }}" style="height:48px;border:1px solid #9A877F;border-radius:12px;background:#FFFFFF;padding:0 16px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></label>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500">Số điện thoại</span><input value="{{ p.phone }}" onChange="{{ onP.phone }}" type="tel" style="height:48px;border:1px solid #9A877F;border-radius:12px;background:#FFFFFF;padding:0 16px;font-size:16px;color:#2B1D22;outline:none;font-variant-numeric:tabular-nums" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></label>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:#6E5D63">Email đăng nhập</span><input value="thuha.tran@gmail.com" readOnly="{{ true }}" style="height:48px;border:1px solid #E3D8CF;border-radius:12px;background:#F7F1EC;padding:0 16px;font-size:16px;color:#6E5D63;outline:none"><span style="font-size:12px;color:#6E5D63">Liên hệ nhà hàng để đổi email đăng nhập.</span></label>
+        <button onClick="{{ saveProfile }}" style="align-self:flex-start;height:48px;min-width:140px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#87334F"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ saveLabel }}</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:12px"><strong style="font-size:16px">Mật khẩu</strong><span style="font-size:14px;line-height:22px;color:#6E5D63">Đổi lần cuối 10/10/2026. Đổi mật khẩu bằng mã OTP gửi tới email đăng nhập.</span><button onClick="{{ goForgot }}" style="align-self:flex-start;height:48px;padding:0 20px;border:1px solid #7A1F3D;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Đổi mật khẩu</button></div>
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:12px"><strong style="font-size:16px">Thành viên Không gian cưới</strong>
+        <div style="display:flex;align-items:center;gap:12px;min-height:48px"><span style="width:36px;height:36px;border-radius:50%;background:#FBE9E3;color:#7A1F3D;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">TH</span><span style="flex:1;font-size:14px"><strong>Trần Thu Hà</strong><br><span style="color:#6E5D63">Cô dâu · bạn</span></span></div>
+        <div style="display:flex;align-items:center;gap:12px;min-height:48px"><span style="width:36px;height:36px;border-radius:50%;background:#E6EEF2;color:#3F5B6B;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">MQ</span><span style="flex:1;font-size:14px"><strong>Lê Minh Quân</strong><br><span style="color:#6E5D63">Chú rể · minhquan.le@gmail.com</span></span></div>
+      </div>
+      <button onClick="{{ logout }}" style="align-self:flex-start;height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#C62828;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px" style-hover="background:#FDECEA"><i>logout</i>Đăng xuất</button>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { busy: false, eye: false, err: '', otp: ['', '', '', '', '', ''], resendIn: 60, f: { email: 'thuha.tran@gmail.com', pass: '', pass2: '' }, p: { name: 'Trần Thu Hà', phone: '0912 345 678' } };
+  el = {}; _rf = {};
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  get ctx() { return this.props.ctx || {}; }
+  componentDidMount() { this.reset(); }
+  componentDidUpdate(pp) { if (pp.screen !== this.props.screen) this.reset(); }
+  componentWillUnmount() { clearInterval(this.iv); clearTimeout(this.t); }
+  reset() {
+    clearInterval(this.iv);
+    const scr = this.props.screen;
+    this.setState({ busy: false, err: '', otp: ['', '', '', '', '', ''], f: { email: 'thuha.tran@gmail.com', pass: scr === 'login' ? 'matkhau2026' : '', pass2: '' } });
+    if (scr === 'otp') { this.setState({ resendIn: 60 }); this.iv = setInterval(() => this.setState(s => ({ resendIn: Math.max(0, s.resendIn - 1) })), 1000); setTimeout(() => this.el.otp0 && this.el.otp0.focus(), 50); }
+  }
+  work(fn, ms = 900) { this.setState({ busy: true, err: '' }); this.t = setTimeout(() => { this.setState({ busy: false }); fn(); }, ms); }
+  submit = e => {
+    e.preventDefault(); if (this.state.busy) return;
+    const c = this.ctx, s = this.state, scr = this.props.screen;
+    if (scr === 'login') { if (!s.f.pass) return this.setState({ err: 'Nhập mật khẩu để đăng nhập.' }); this.work(() => c.go('overview')); }
+    else if (scr === 'forgot') this.work(() => c.go('otp'));
+    else if (scr === 'otp') { const code = s.otp.join(''); if (code.length < 6) return this.setState({ err: 'Nhập đủ 6 số trong email.' }); if (code === '000000') return this.setState({ err: 'Mã không đúng hoặc đã hết hạn. Kiểm tra lại email mới nhất.', otp: ['', '', '', '', '', ''] }); this.work(() => c.go('reset')); }
+    else if (scr === 'reset' || scr === 'invite') {
+      if (s.f.pass.length < 8 || !/\d/.test(s.f.pass) || !/[a-zA-Z]/.test(s.f.pass)) return this.setState({ err: 'Mật khẩu cần tối thiểu 8 ký tự, có chữ và số.' });
+      if (s.f.pass !== s.f.pass2) return this.setState({ err: 'Hai mật khẩu chưa khớp.' });
+      this.work(() => { if (scr === 'reset') { c.go('login', {}, { back: true }); c.toast('Đã đặt mật khẩu mới. Vui lòng đăng nhập.'); } else c.go('overview'); });
+    }
+  };
+  otpChange(i, e) {
+    const v = e.target.value.replace(/\D/g, '').slice(-1), otp = this.state.otp.slice(); otp[i] = v;
+    this.setState({ otp, err: '' });
+    if (v && i < 5 && this.el['otp' + (i + 1)]) this.el['otp' + (i + 1)].focus();
+  }
+  otpKey(i, e) { if (e.key === 'Backspace' && !this.state.otp[i] && i > 0 && this.el['otp' + (i - 1)]) this.el['otp' + (i - 1)].focus(); }
+  renderVals() {
+    const c = this.ctx, m = !!c.mobile, s = this.state, scr = this.props.screen || 'login';
+    const T = {
+      login: { title: 'Đăng nhập', sub: 'Vào Không gian cưới bằng email nhận lời mời từ Hỷ Yến.', passLabel: 'Mật khẩu', btn: 'Đăng nhập', busy: 'Đang đăng nhập…', ac: 'current-password' },
+      forgot: { title: 'Quên mật khẩu', sub: 'Nhập email đăng nhập. Chúng tôi sẽ gửi mã OTP 6 số để bạn đặt mật khẩu mới.', btn: 'Gửi mã', busy: 'Đang gửi mã…' },
+      otp: { title: 'Nhập mã OTP', sub: 'Mã 6 số đã gửi tới thuha.tran@gmail.com, có hiệu lực trong 10 phút.', btn: 'Xác nhận', busy: 'Đang kiểm tra…' },
+      reset: { title: 'Đặt mật khẩu mới', sub: 'Mật khẩu mới dùng cho lần đăng nhập tiếp theo.', passLabel: 'Mật khẩu mới', btn: 'Lưu mật khẩu', busy: 'Đang lưu…', ac: 'new-password' },
+      invite: { title: 'Nhận lời mời', sub: 'Đặt mật khẩu để vào Không gian cưới của hai bạn.', passLabel: 'Mật khẩu', btn: 'Đặt mật khẩu và vào Không gian cưới', busy: 'Đang tạo tài khoản…', ac: 'new-password' },
+    }[scr] || {};
+    const isOtp = scr === 'otp', isProfile = scr === 'profile', err = s.err;
+    const onP = {}; Object.keys(s.p).forEach(k => { onP[k] = e => { const v = e.target.value; this.setState(st => ({ p: { ...st.p, [k]: v } })); }; });
+    const on = {}; Object.keys(s.f).forEach(k => { on[k] = e => { const v = e.target.value; this.setState(st => ({ f: { ...st.f, [k]: v }, err: '' })); }; });
+    return {
+      m, d: !m, isAuth: !isProfile, isProfile, isLogin: scr === 'login', isInvite: scr === 'invite', isOtp, t: T, f: s.f, on, p: s.p, onP,
+      showEmail: ['login', 'forgot', 'invite'].includes(scr), emailRO: scr === 'invite', emailBg: scr === 'invite' ? '#F7F1EC' : '#FFFFFF', emailBorder: scr === 'invite' ? '#E3D8CF' : '#9A877F',
+      showPass: ['login', 'reset', 'invite'].includes(scr), showPass2: ['reset', 'invite'].includes(scr), needsRule: ['reset', 'invite'].includes(scr),
+      showBack: ['forgot', 'otp', 'reset'].includes(scr), backLabel: scr === 'forgot' ? 'Đăng nhập' : 'Quay lại',
+      back: () => c.go(scr === 'otp' ? 'forgot' : scr === 'reset' ? 'otp' : 'login', {}, { back: true }),
+      passType: s.eye ? 'text' : 'password', eyeIcon: s.eye ? 'visibility_off' : 'visibility', eyeLabel: s.eye ? 'Ẩn mật khẩu' : 'Hiện mật khẩu', toggleEye: () => this.setState({ eye: !s.eye }),
+      err, errInv: err ? 'true' : 'false', errBorder: err ? '#C62828' : '#9A877F',
+      otpCells: s.otp.map((v, i) => ({ v, ref: this.rf('otp' + i), aria: `Số thứ ${i + 1}`, change: e => this.otpChange(i, e), key: e => this.otpKey(i, e) })),
+      resendDisabled: s.resendIn > 0, resendColor: s.resendIn > 0 ? '#A39797' : '#7A1F3D', resendLabel: s.resendIn > 0 ? `Gửi lại sau ${s.resendIn} giây` : 'Gửi lại mã',
+      resend: () => { this.setState({ resendIn: 60 }); c.toast('Đã gửi mã mới tới thuha.tran@gmail.com'); },
+      busy: s.busy, busyStr: s.busy ? 'true' : 'false', btnLabel: s.busy ? T.busy : T.btn, submit: this.submit,
+      goHome: () => c.go('home', {}, { back: true }), goForgot: () => c.go('forgot'), goConsult: () => c.go('consult'), goInvite: () => c.go('invite'),
+      saveLabel: s.busy ? 'Đang lưu…' : 'Lưu thay đổi', saveProfile: () => this.work(() => c.toast('Đã lưu hồ sơ')),
+      logout: () => c.go('login', {}, { back: true }),
+      L: m ? { cols: 'minmax(0,1fr)', pad: '16px 16px 40px', profCols: 'minmax(0,1fr)' } : { cols: 'minmax(0,1fr) minmax(0,1fr)', pad: '48px', profCols: 'minmax(0,1.3fr) minmax(0,1fr)' },
+    };
+  }
+}
+</script>
+</body>
+</html>

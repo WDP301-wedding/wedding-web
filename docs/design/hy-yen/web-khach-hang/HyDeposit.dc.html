@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<sc-if value="{{ isDeposit }}" hint-placeholder-val="{{ true }}">
+  <sc-if value="{{ notReady }}" hint-placeholder-val="{{ false }}">
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:40px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:640px;margin:0 auto"><span style="width:64px;height:64px;border-radius:50%;background:#FCEFD6;color:#8A5300;display:flex;align-items:center;justify-content:center"><i style="font-size:30px">description</i></span><strong style="font-size:20px">Cần duyệt hợp đồng trước khi đặt cọc</strong><p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;max-width:440px">Nhà hàng đã duyệt hợp đồng phiên bản 2. Khi bạn duyệt cùng phiên bản, nút thanh toán qua VNPay sẽ mở.</p><button onClick="{{ goContract }}" style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">Mở hợp đồng</button></div>
+  </sc-if>
+  <sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:{{ L.two }};gap:20px;align-items:start">
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px 24px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><strong style="font-size:18px;flex:1">Hợp đồng phiên bản 2</strong><span style="height:28px;padding:0 10px 0 6px;border-radius:12px;background:#E7F1EA;color:#2F6B4F;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600"><i style="font-size:16px">check_circle</i>Đã duyệt 2 bên</span></div>
+        <div data-stagger="1" style="display:flex;flex-direction:column"><sc-for list="{{ cats }}" as="r" hint-placeholder-count="3"><div style="min-height:48px;display:flex;align-items:center;gap:12px;border-top:1px solid #EADFD6;font-size:15px"><span style="flex:1">{{ r.k }}</span><span style="font-variant-numeric:tabular-nums">{{ r.v }}</span></div></sc-for></div>
+        <div style="display:flex;align-items:baseline;gap:12px;border-top:1px solid #2B1D22;padding-top:12px"><span style="flex:1;font-size:15px;font-weight:600">Tổng hợp đồng</span><strong style="font-size:17px;font-variant-numeric:tabular-nums">201.600.000 ₫</strong></div>
+        <span style="font-size:13px;color:#6E5D63">Đám cưới 20/12/2026 · Ca trưa · Sảnh Ngọc Trai</span>
+      </div>
+      <div style="border-radius:16px;background:#7A1F3D;color:#FFF8F1;padding:24px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:14px;color:#F3E9E1">Tiền cọc 30% (làm tròn lên)</span>
+        <span style="font-family:'Playfair Display',serif;font-size:40px;line-height:48px;font-weight:600;font-variant-numeric:tabular-nums lining-nums">60.480.000 ₫</span>
+        <span style="font-size:14px;line-height:22px;color:#F3E9E1">Hạn đặt cọc 21/10/2026. Sau khi cọc, khách mời, sơ đồ bàn, thiệp và phụ lục sẽ mở.</span>
+        <button onClick="{{ pay }}" disabled="{{ offline }}" style="height:56px;border:none;border-radius:12px;background:{{ payBg }};color:#2B1D22;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="opacity:0.92" style-active="transform:scale(0.97)" style-focus="outline:none;box-shadow:0 0 0 2px #7A1F3D,0 0 0 4px #F4B9A7"><i>account_balance</i>Thanh toán qua VNPay</button>
+        <span style="font-size:12px;line-height:18px;color:#F3E9E1">{{ payNote }}</span>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ paid }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:{{ L.two }};gap:20px;align-items:start">
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:12px">
+        <span style="align-self:flex-start;height:28px;padding:0 10px 0 6px;border-radius:12px;background:#E7F1EA;color:#2F6B4F;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600"><i style="font-size:16px">check_circle</i>Đã đặt cọc</span>
+        <span style="font-family:'Playfair Display',serif;font-size:34px;line-height:42px;font-weight:600;color:#7A1F3D;font-variant-numeric:tabular-nums">60.480.000 ₫</span>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:14px"><span style="color:#6E5D63">Ngày thanh toán</span><span style="text-align:right">15/10/2026 10:44</span><span style="color:#6E5D63">Kênh</span><span style="text-align:right">VNPay</span><span style="color:#6E5D63">Mã giao dịch</span><span style="text-align:right;font-family:'JetBrains Mono',monospace">VNP-14523877</span></div>
+      </div>
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:10px"><strong style="font-size:16px">Còn lại theo hợp đồng</strong><span style="font-size:24px;font-weight:600;font-variant-numeric:tabular-nums">141.120.000 ₫</span><span style="font-size:14px;line-height:22px;color:#6E5D63">Số dư cuối cùng được chốt trên hoá đơn sau tiệc, gồm phụ lục và chi phí phát sinh.</span><button onClick="{{ goExtras }}" style="align-self:flex-start;height:44px;padding:0 14px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;margin-left:-14px" style-hover="background:#F4E7E3">Xem phụ lục &amp; quyết toán</button></div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ redirect }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px"><div style="position:absolute;inset:0;background:rgba(43,29,34,0.4)"></div><div ref="{{ refs.dlg }}" role="alertdialog" aria-modal="true" aria-label="Đang chuyển đến VNPay" style="position:relative;width:100%;max-width:380px;border-radius:24px;background:#FFF8F1;padding:28px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center"><span style="width:40px;height:40px;border-radius:50%;border:3px solid #F5E4E9;border-top-color:#7A1F3D;animation:hy-spin 800ms linear infinite"></span><strong style="font-size:18px">Đang chuyển đến VNPay…</strong><span style="font-size:14px;line-height:22px;color:#6E5D63">Số tiền 60.480.000 ₫. Không đóng trang trong khi thanh toán.</span></div></div>
+  </sc-if>
+</sc-if>
+
+<sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
+  <div ref="{{ refs.res }}" role="status" aria-live="polite" style="max-width:560px;margin:0 auto;border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:40px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px">
+    <sc-if value="{{ r.checking }}" hint-placeholder-val="{{ true }}"><span style="width:56px;height:56px;border-radius:50%;border:4px solid #F5E4E9;border-top-color:#7A1F3D;animation:hy-spin 900ms linear infinite"></span><strong style="font-size:22px">Đang xác nhận giao dịch…</strong><span style="font-size:15px;line-height:24px;color:#6E5D63">Đang nhận kết quả từ VNPay cho khoản cọc 60.480.000 ₫.</span></sc-if>
+    <sc-if value="{{ r.ok }}" hint-placeholder-val="{{ false }}"><span ref="{{ refs.tc }}" style="width:80px;height:80px;border-radius:50%;background:#2F6B4F;display:flex;align-items:center;justify-content:center"><svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path ref="{{ refs.tp }}" d="M6 12.5l4 4L18 8.5" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="24"></path></svg></span><strong style="font-family:'Playfair Display',serif;font-size:30px;line-height:38px;font-weight:600">Đặt cọc thành công</strong><span style="font-size:15px;line-height:24px;color:#6E5D63">Đã nhận 60.480.000 ₫. Toàn bộ Không gian cưới đã mở: khách mời, sơ đồ bàn, thiệp và phụ lục.</span></sc-if>
+    <sc-if value="{{ r.fail }}" hint-placeholder-val="{{ false }}"><span style="width:80px;height:80px;border-radius:50%;background:#FDECEA;color:#C62828;display:flex;align-items:center;justify-content:center"><i style="font-size:44px">close</i></span><strong style="font-size:24px">Thanh toán thất bại</strong><span style="font-size:15px;line-height:24px;color:#6E5D63">Giao dịch bị huỷ hoặc bị ngân hàng từ chối. Không có khoản tiền nào được ghi nhận.</span></sc-if>
+    <sc-if value="{{ r.unknown }}" hint-placeholder-val="{{ false }}"><span style="width:80px;height:80px;border-radius:50%;background:#E6EEF2;color:#3F5B6B;display:flex;align-items:center;justify-content:center"><i style="font-size:44px">help</i></span><strong style="font-size:22px;line-height:30px">Chưa rõ kết quả – hệ thống đang kiểm tra</strong><span style="font-size:15px;line-height:24px;color:#6E5D63">Nếu tài khoản đã bị trừ tiền, đừng thanh toán lại. Kết quả sẽ tự cập nhật và bạn sẽ nhận thông báo.</span></sc-if>
+    <sc-if value="{{ r.done }}" hint-placeholder-val="{{ false }}"><div style="width:100%;border-radius:12px;border:1px solid #EADFD6;display:grid;grid-template-columns:auto 1fr;gap:8px 12px;padding:14px;font-size:14px;text-align:left"><span style="color:#6E5D63">Mã giao dịch</span><span style="text-align:right;font-family:'JetBrains Mono',monospace">VNP-14523877</span><span style="color:#6E5D63">Booking</span><span style="text-align:right">HY-2612-020</span><span style="color:#6E5D63">Mã tham chiếu</span><span style="text-align:right;font-family:'JetBrains Mono',monospace">req_9f0c3b21</span></div></sc-if>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+      <sc-if value="{{ r.ok }}" hint-placeholder-val="{{ false }}"><button onClick="{{ goGuests }}" style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">Tiếp tục: Khách mời</button><button onClick="{{ goOverview }}" style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Về tổng quan</button></sc-if>
+      <sc-if value="{{ r.fail }}" hint-placeholder-val="{{ false }}"><button onClick="{{ retry }}" style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">Thử lại</button></sc-if>
+      <sc-if value="{{ r.unknown }}" hint-placeholder-val="{{ false }}"><button onClick="{{ recheck }}" style="height:48px;padding:0 20px;border:1px solid #7A1F3D;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Kiểm tra lại</button><button onClick="{{ goOverview }}" style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Về tổng quan</button></sc-if>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isChange }}" hint-placeholder-val="{{ false }}">
+  <div style="display:grid;grid-template-columns:{{ L.two }};gap:20px;align-items:start">
+    <form onSubmit="{{ submit }}" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:4px"><strong style="font-size:18px">Gửi yêu cầu đổi / huỷ tiệc</strong><span style="font-size:14px;line-height:22px;color:#6E5D63">Quản lý tiệc sẽ phản hồi. Nếu đồng ý, thay đổi được lập thành phụ lục để hai bên duyệt.</span></div>
+      <div role="radiogroup" aria-label="Loại yêu cầu" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px"><sc-for list="{{ types }}" as="o" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{ o.aria }}" onClick="{{ o.pick }}" style="min-height:52px;border-radius:12px;border:{{ o.bd }};background:{{ o.bg }};color:{{ o.fg }};font-size:14px;font-weight:600;padding:6px">{{ o.label }}</button></sc-for></div>
+      <sc-if value="{{ notCancel }}" hint-placeholder-val="{{ true }}"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px"><label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500">Ngày mới</span><input value="{{ f.date }}" onChange="{{ on.date }}" style="height:48px;border:1px solid #9A877F;border-radius:12px;padding:0 16px;font-size:16px;outline:none;font-variant-numeric:tabular-nums" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></label><label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500">Ca mới</span><select value="{{ f.shift }}" onChange="{{ on.shift }}" style="height:48px;border:1px solid #9A877F;border-radius:12px;padding:0 12px;font-size:16px;background:#FFFFFF"><option value="Ca trưa 10:30–14:00">Ca trưa 10:30–14:00</option><option value="Ca tối 17:30–21:00">Ca tối 17:30–21:00</option></select></label></div></sc-if>
+      <sc-if value="{{ isCancel }}" hint-placeholder-val="{{ false }}"><div style="border-radius:12px;background:#FDECEA;padding:12px 14px;display:flex;gap:10px;font-size:14px;line-height:22px"><i style="color:#C62828;font-size:20px">warning</i><span>Huỷ tiệc áp dụng điều khoản hoàn cọc tại mục 7 hợp đồng. Quản lý tiệc sẽ xác nhận số tiền hoàn (nếu có) trước khi huỷ.</span></div></sc-if>
+      <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500">Lý do</span><textarea value="{{ f.reason }}" onChange="{{ on.reason }}" rows="3" style="border:1px solid #9A877F;border-radius:12px;padding:12px 16px;font-size:16px;line-height:24px;outline:none;resize:vertical" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></textarea></label>
+      <button type="submit" style="align-self:flex-start;height:48px;padding:0 20px;border:none;border-radius:12px;background:{{ submitBg }};color:#FFFFFF;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px" style-hover="opacity:0.92"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ submitLabel }}</button>
+    </form>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <strong style="font-size:16px">Yêu cầu đã gửi</strong>
+      <sc-if value="{{ noReq }}" hint-placeholder-val="{{ true }}"><div style="border:1px dashed #D9C8BC;border-radius:16px;padding:24px;font-size:14px;line-height:22px;color:#6E5D63;text-align:center">Chưa có yêu cầu nào. Yêu cầu bạn gửi sẽ hiện ở đây kèm phản hồi của nhà hàng.</div></sc-if>
+      <div ref="{{ refs.reqs }}" style="display:flex;flex-direction:column;gap:12px"><sc-for list="{{ reqs }}" as="q" hint-placeholder-count="1"><div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:6px"><span style="display:flex;gap:8px;align-items:center"><strong style="flex:1;font-size:15px">{{ q.title }}</strong><span style="height:24px;padding:0 8px;border-radius:12px;background:#FCEFD6;color:#8A5300;font-size:12px;font-weight:600;display:inline-flex;align-items:center">Chờ nhà hàng phản hồi</span></span><span style="font-size:14px;color:#6E5D63">{{ q.detail }}</span><span style="font-size:12px;color:#6E5D63">Gửi lúc {{ q.at }}</span></div></sc-for></div>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { redirect: false, res: 'checking', type: 'date', f: { date: '27/12/2026', shift: 'Ca trưa 10:30–14:00', reason: '' }, busy: false, reqs: [] };
+  el = {}; _rf = {};
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  get ctx() { return this.props.ctx || {}; }
+  get M() { return window.HYMotion; }
+  componentDidMount() { if (this.props.screen === 'payResult') this.check(); }
+  componentDidUpdate(pp) { if (pp.screen !== this.props.screen && this.props.screen === 'payResult') this.check(); }
+  componentWillUnmount() { clearTimeout(this.t); }
+  check() {
+    clearTimeout(this.t); this.setState({ res: 'checking' });
+    this.t = setTimeout(() => {
+      const c = this.ctx, v = (c.sim || {}).vnpay || 'success', M = this.M;
+      this.setState({ res: v }, () => {
+        M && M.play(this.el.res, [{ opacity: 0, transform: 'scale(0.96)' }, { opacity: 1, transform: 'none' }], 300, M.E.DEC);
+        if (v === 'success') { c.setPhase(c.phase === 'after' ? 'after' : 'post'); M && M.tick(this.el.tc, this.el.tp); M && M.celebrate(); }
+      });
+    }, 1600);
+  }
+  pay = () => {
+    const c = this.ctx; if (c.offline) return;
+    this.setState({ redirect: true }, () => this.M && this.M.play(this.el.dlg, [{ opacity: 0, transform: 'scale(0.92)' }, { opacity: 1, transform: 'none' }], 250, this.M.E.DEC));
+    this.t = setTimeout(() => { this.setState({ redirect: false }); c.go('payResult'); }, 1400);
+  };
+  submit = e => {
+    e.preventDefault(); if (this.state.busy) return; const c = this.ctx, s = this.state;
+    this.setState({ busy: true });
+    this.t = setTimeout(() => {
+      if (c.sim && c.sim.reject) { this.setState({ busy: false }); c.toast('Không gửi được yêu cầu. Mã: req_6e2a4c88'); return; }
+      const T = { date: 'Đổi ngày tiệc', shift: 'Đổi ca tiệc', cancel: 'Huỷ tiệc' }[s.type];
+      const detail = s.type === 'cancel' ? (s.f.reason || 'Không ghi lý do') : `${s.type === 'date' ? 'Sang ngày ' + s.f.date : 'Sang ' + s.f.shift}${s.f.reason ? ' · ' + s.f.reason : ''}`;
+      this.setState({ busy: false, reqs: [{ title: T, detail, at: '10:52, 15/10/2026' }, ...s.reqs] }, () => { const n = this.el.reqs && this.el.reqs.firstChild; this.M && this.M.play(n, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], 250, this.M.E.DEC); });
+      c.toast('Đã gửi yêu cầu. Quản lý tiệc sẽ phản hồi.');
+    }, 900);
+  };
+  renderVals() {
+    const c = this.ctx, s = this.state, scr = this.props.screen, pre = c.phase === 'pre', vnd = v => v.toLocaleString('vi-VN') + ' ₫';
+    const cats = (c.contract ? c.contract.cats : [['Thực đơn', 195000000], ['Đồ in', 3600000], ['Dịch vụ', 3000000]]).map(([k, v]) => ({ k, v: vnd(v) }));
+    const R = s.res;
+    return {
+      refs: new Proxy({}, { get: (_, n) => typeof n === 'string' ? this.rf(n) : undefined }),
+      isDeposit: scr === 'deposit', isResult: scr === 'payResult', isChange: scr === 'change',
+      notReady: pre && !c.approved, ready: pre && !!c.approved, paid: !pre, cats, redirect: s.redirect, pay: this.pay,
+      offline: !!c.offline, payBg: c.offline ? '#C9BFBC' : '#F4B9A7', payNote: c.offline ? 'Không có kết nối. Thanh toán bị vô hiệu cho tới khi có mạng.' : 'Bạn sẽ được chuyển sang cổng VNPay. Kết quả hiện ngay khi quay lại.',
+      r: { checking: R === 'checking', ok: R === 'success', fail: R === 'fail', unknown: R === 'unknown', done: R !== 'checking' },
+      retry: () => c.go('deposit'), recheck: () => this.check(), goGuests: () => c.go('guests'), goOverview: () => c.go('overview'), goContract: () => c.go('contract'), goExtras: () => c.go('extras'),
+      types: [['date', 'Đổi ngày'], ['shift', 'Đổi ca'], ['cancel', 'Huỷ tiệc']].map(([v, label]) => { const on = s.type === v, red = v === 'cancel'; return { label, aria: on ? 'true' : 'false', bd: on ? `2px solid ${red ? '#C62828' : '#7A1F3D'}` : '1px solid #9A877F', bg: on ? (red ? '#FDECEA' : '#F5E4E9') : '#FFFFFF', fg: on ? (red ? '#C62828' : '#5C1430') : '#2B1D22', pick: () => this.setState({ type: v }) }; }),
+      isCancel: s.type === 'cancel', notCancel: s.type !== 'cancel', f: s.f,
+      on: { date: e => this.setState({ f: { ...s.f, date: e.target.value } }), shift: e => this.setState({ f: { ...s.f, shift: e.target.value } }), reason: e => this.setState({ f: { ...s.f, reason: e.target.value } }) },
+      submit: this.submit, busy: s.busy, submitLabel: s.busy ? 'Đang gửi…' : s.type === 'cancel' ? 'Gửi yêu cầu huỷ' : 'Gửi yêu cầu', submitBg: s.type === 'cancel' ? '#C62828' : '#7A1F3D',
+      reqs: s.reqs, noReq: !s.reqs.length,
+      L: { two: c.mobile ? 'minmax(0,1fr)' : 'minmax(0,1.2fr) minmax(0,1fr)' },
+    };
+  }
+}
+</script>
+</body>
+</html>

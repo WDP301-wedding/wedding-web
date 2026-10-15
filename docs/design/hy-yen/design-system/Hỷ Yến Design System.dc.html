@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap&subset=vietnamese" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block" rel="stylesheet">
+<style>
+body{margin:0;background:#FFF8F1;color:#2B1D22;font-family:'Be Vietnam Pro',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+i{font-family:'Material Symbols Rounded';font-style:normal;font-weight:400;font-size:20px;line-height:1;display:inline-block;letter-spacing:normal;text-transform:none;white-space:nowrap;-webkit-font-feature-settings:'liga';font-feature-settings:'liga'}
+a{color:#7A1F3D;text-underline-offset:3px}
+a:hover{color:#5C1430}
+button{font-family:inherit;cursor:pointer}
+@keyframes hy-spin{to{transform:rotate(360deg)}}
+@keyframes hy-shimmer{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+</style>
+</helmet>
+<div style="max-width:1200px;margin:0 auto;padding:0 24px 120px">
+
+<header style="padding:48px 0 32px;display:flex;flex-direction:column;gap:24px;border-bottom:1px solid #EADFD6">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="width:56px;height:56px;border-radius:50%;border:1.5px solid #C9A46A;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:#7A1F3D">HY</div>
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <h1 style="margin:0;font-family:'Playfair Display',serif;font-size:48px;line-height:56px;font-weight:600;color:#2B1D22">Hỷ Yến</h1>
+      <p style="margin:0;font-size:15px;color:#6E5D63">Design system · v1.0 · 14/10/2026 · Web khách hàng, Web quản trị, App Android · Flutter Material 3 · Light mode</p>
+    </div>
+    <a href="Hỷ Yến Motion Prototype.dc.html" style="margin-left:auto;display:inline-flex;align-items:center;gap:8px;height:48px;padding:0 20px;border-radius:12px;border:1px solid #7A1F3D;text-decoration:none;font-size:15px;font-weight:600;color:#7A1F3D" style-hover="background:#F4E7E3">Mở prototype chuyển động <i>arrow_forward</i></a>
+  </div>
+  <nav aria-label="Mục lục" style="display:flex;flex-wrap:wrap;gap:8px">
+    <a href="#mau" style="padding:8px 14px;border-radius:12px;border:1px solid #EADFD6;background:#FFFFFF;text-decoration:none;font-size:14px;font-weight:500;color:#2B1D22">Màu</a>
+    <a href="#chu" style="padding:8px 14px;border-radius:12px;border:1px solid #EADFD6;background:#FFFFFF;text-decoration:none;font-size:14px;font-weight:500;color:#2B1D22">Chữ</a>
+    <a href="#khoang-cach" style="padding:8px 14px;border-radius:12px;border:1px solid #EADFD6;background:#FFFFFF;text-decoration:none;font-size:14px;font-weight:500;color:#2B1D22">Khoảng cách</a>
+    <a href="#bo-goc" style="padding:8px 14px;border-radius:12px;border:1px solid #EADFD6;background:#FFFFFF;text-decoration:none;font-size:14px;font-weight:500;color:#2B1D22">Bo góc &amp; bóng</a>
+    <a href="#motion" style="padding:8px 14px;border-radius:12px;border:1px solid #EADFD6;background:#FFFFFF;text-decoration:none;font-size:14px;font-weight:500;color:#2B1D22">Motion token</a>
+    <a href="#component" style="padding:8px 14px;border-radius:12px;border:1px solid #EADFD6;background:#FFFFFF;text-decoration:none;font-size:14px;font-weight:500;color:#2B1D22">Component</a>
+    <a href="#motion-spec" style="padding:8px 14px;border-radius:12px;border:1px solid #EADFD6;background:#FFFFFF;text-decoration:none;font-size:14px;font-weight:500;color:#2B1D22">Motion spec</a>
+  </nav>
+</header>
+
+<!-- 01 COLOR -->
+<section id="mau" style="padding-top:64px;display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:8px;max-width:760px">
+    <p style="margin:0;font-size:13px;font-weight:600;color:#7A1F3D">01 · Nền tảng</p>
+    <h2 style="margin:0;font-family:'Playfair Display',serif;font-size:36px;line-height:44px;font-weight:600">Màu sắc</h2>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;text-wrap:pretty">Ánh xạ trực tiếp vào ColorScheme của Material 3. Tỉ lệ tương phản tính trên nền Kem #FFF8F1.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px">
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden"><div style="height:96px;background:#7A1F3D;display:flex;align-items:flex-end;padding:12px 16px;color:#FFFFFF;font-size:13px;font-weight:600">Chữ trắng 10,0:1</div><div style="padding:16px;display:flex;flex-direction:column;gap:4px"><strong style="font-size:16px">Vang · primary</strong><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#6E5D63">#7A1F3D · 9,5:1 trên Kem</span><span style="font-size:13px;line-height:20px;color:#6E5D63">Nút chính, liên kết, trạng thái chọn, focus ring.</span></div></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden"><div style="height:96px;background:#F4B9A7;display:flex;align-items:flex-end;padding:12px 16px;color:#2B1D22;font-size:13px;font-weight:600">Chữ chính 10,4:1</div><div style="padding:16px;display:flex;flex-direction:column;gap:4px"><strong style="font-size:16px">Đào · tertiary</strong><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#6E5D63">#F4B9A7 · 1,6:1 trên Kem</span><span style="font-size:13px;line-height:20px;color:#6E5D63">Nền, viền, icon trang trí, chữ ≥ 24px. Chữ Đào chỉ dùng trên nền tối.</span></div></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden"><div style="height:96px;background:#C9A46A;display:flex;align-items:flex-end;padding:12px 16px;color:#2B1D22;font-size:13px;font-weight:600">Chữ chính 6,9:1</div><div style="padding:16px;display:flex;flex-direction:column;gap:4px"><strong style="font-size:16px">Champagne · secondary</strong><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#6E5D63">#C9A46A · 2,2:1 trên Kem</span><span style="font-size:13px;line-height:20px;color:#6E5D63">Viền logo, đường kẻ trang trí, icon. Không dùng cho chữ thường.</span></div></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden"><div style="height:96px;background:#FFF8F1;border-bottom:1px solid #EADFD6;display:flex;align-items:flex-end;padding:12px 16px;color:#2B1D22;font-size:13px;font-weight:600">Nền trang</div><div style="padding:16px;display:flex;flex-direction:column;gap:4px"><strong style="font-size:16px">Kem · surface</strong><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#6E5D63">#FFF8F1</span><span style="font-size:13px;line-height:20px;color:#6E5D63">Scaffold background, placeholder ảnh.</span></div></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden"><div style="height:96px;background:#2B1D22;display:flex;align-items:flex-end;padding:12px 16px;color:#FFF8F1;font-size:13px;font-weight:600">Nền snackbar</div><div style="padding:16px;display:flex;flex-direction:column;gap:4px"><strong style="font-size:16px">Chữ chính · onSurface</strong><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#6E5D63">#2B1D22 · 15,4:1</span><span style="font-size:13px;line-height:20px;color:#6E5D63">Tiêu đề, nội dung, inverseSurface.</span></div></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden"><div style="height:96px;background:#6E5D63"></div><div style="padding:16px;display:flex;flex-direction:column;gap:4px"><strong style="font-size:16px">Chữ phụ · onSurfaceVariant</strong><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#6E5D63">#6E5D63 · 5,9:1</span><span style="font-size:13px;line-height:20px;color:#6E5D63">Mô tả, nhãn phụ, chú thích.</span></div></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden"><div style="height:96px;background:#EADFD6"></div><div style="padding:16px;display:flex;flex-direction:column;gap:4px"><strong style="font-size:16px">Viền · outlineVariant</strong><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#6E5D63">#EADFD6</span><span style="font-size:13px;line-height:20px;color:#6E5D63">Viền card, đường chia bảng. Chỉ trang trí.</span></div></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden"><div style="height:96px;background:#9A877F"></div><div style="padding:16px;display:flex;flex-direction:column;gap:4px"><strong style="font-size:16px">Viền đậm · outline (bổ sung)</strong><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#6E5D63">#9A877F · 3,2:1</span><span style="font-size:13px;line-height:20px;color:#6E5D63">Viền input, checkbox, radio – đạt 3:1 cho thành phần điều khiển.</span></div></div>
+  </div>
+  <h3 style="margin:16px 0 0;font-size:18px;font-weight:600">Màu trạng thái và màu phụ trợ</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px">
+    <div style="border-radius:16px;background:#E7F1EA;padding:16px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px;color:#2F6B4F;font-weight:600"><i>check_circle</i>Thành công</div><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#2B1D22">fg #2F6B4F · bg #E7F1EA</span><span style="font-size:13px;color:#2B1D22">5,7:1 trên nền trạng thái</span></div>
+    <div style="border-radius:16px;background:#FCEFD6;padding:16px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px;color:#8A5300;font-weight:600"><i>warning</i>Cảnh báo</div><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#2B1D22">fg #8A5300 · bg #FCEFD6</span><span style="font-size:13px;color:#2B1D22">5,6:1 trên nền trạng thái</span></div>
+    <div style="border-radius:16px;background:#FDECEA;padding:16px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px;color:#C62828;font-weight:600"><i>error</i>Lỗi</div><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#2B1D22">fg #C62828 · bg #FDECEA</span><span style="font-size:13px;color:#2B1D22">4,9:1 trên nền trạng thái</span></div>
+    <div style="border-radius:16px;background:#E6EEF2;padding:16px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px;color:#3F5B6B;font-weight:600"><i>info</i>Thông tin</div><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#2B1D22">fg #3F5B6B · bg #E6EEF2</span><span style="font-size:13px;color:#2B1D22">6,1:1 trên nền trạng thái</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+    <div style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:12px;background:#FFFFFF;border:1px solid #EADFD6;flex:none"></span><span style="font-size:13px;line-height:18px"><strong>surfaceContainerLowest</strong><br><span style="font-family:'JetBrains Mono',monospace;color:#6E5D63">#FFFFFF · card</span></span></div>
+    <div style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:12px;background:#F7EDE4;flex:none"></span><span style="font-size:13px;line-height:18px"><strong>surfaceContainer</strong><br><span style="font-family:'JetBrains Mono',monospace;color:#6E5D63">#F7EDE4 · chip, skeleton</span></span></div>
+    <div style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:12px;background:#F5E4E9;flex:none"></span><span style="font-size:13px;line-height:18px"><strong>primaryContainer</strong><br><span style="font-family:'JetBrains Mono',monospace;color:#6E5D63">#F5E4E9 / on #5C1430</span></span></div>
+    <div style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:12px;background:rgba(122,31,61,0.08);flex:none"></span><span style="font-size:13px;line-height:18px"><strong>State layer hover</strong><br><span style="font-family:'JetBrains Mono',monospace;color:#6E5D63">primary 8% · nhấn 12%</span></span></div>
+    <div style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:12px;background:rgba(43,29,34,0.4);flex:none"></span><span style="font-size:13px;line-height:18px"><strong>Scrim</strong><br><span style="font-family:'JetBrains Mono',monospace;color:#6E5D63">#2B1D22 40% · thay blur</span></span></div>
+    <div style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:12px;background:rgba(255,248,241,0.92);border:1px solid #EADFD6;flex:none"></span><span style="font-size:13px;line-height:18px"><strong>Kính giả</strong><br><span style="font-family:'JetBrains Mono',monospace;color:#6E5D63">Kem 92% · app bar cuộn</span></span></div>
+  </div>
+</section>
+
+<!-- 02 TYPE -->
+<section id="chu" style="padding-top:64px;display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:8px;max-width:760px">
+    <p style="margin:0;font-size:13px;font-weight:600;color:#7A1F3D">02 · Nền tảng</p>
+    <h2 style="margin:0;font-family:'Playfair Display',serif;font-size:36px;line-height:44px;font-weight:600">Chữ</h2>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;text-wrap:pretty">Playfair Display cho display, headline và số tiền nổi bật. Be Vietnam Pro cho mọi chữ còn lại. Viết hoa theo câu, letterSpacing 0. Dòng cao hơn chuẩn M3 một chút để dấu tiếng Việt không chạm nhau.</p>
+  </div>
+  <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+    <div style="display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:16px;padding:20px 24px;border-bottom:1px solid #EADFD6;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">displayLarge<br>Playfair 600 · 48/60</span><span style="font-family:'Playfair Display',serif;font-size:48px;line-height:60px;font-weight:600">Minh Anh &amp; Quốc Huy</span></div>
+    <div style="display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:16px;padding:20px 24px;border-bottom:1px solid #EADFD6;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">headlineLarge<br>Playfair 600 · 32/44</span><span style="font-family:'Playfair Display',serif;font-size:32px;line-height:44px;font-weight:600">Sảnh Ngọc Trai</span></div>
+    <div style="display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:16px;padding:20px 24px;border-bottom:1px solid #EADFD6;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">headlineSmall<br>Playfair 600 · 24/32</span><span style="font-family:'Playfair Display',serif;font-size:24px;line-height:32px;font-weight:600">Hành trình cưới của bạn</span></div>
+    <div style="display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:16px;padding:20px 24px;border-bottom:1px solid #EADFD6;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">moneyLarge (bổ sung)<br>Playfair 600 · 36/44 · tabular</span><span style="font-family:'Playfair Display',serif;font-size:36px;line-height:44px;font-weight:600;color:#7A1F3D;font-variant-numeric:tabular-nums lining-nums">60.480.000 ₫</span></div>
+    <div style="display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:16px;padding:20px 24px;border-bottom:1px solid #EADFD6;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">titleLarge<br>Be Vietnam Pro 600 · 22/30</span><span style="font-size:22px;line-height:30px;font-weight:600">Thực đơn tiệc trưa</span></div>
+    <div style="display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:16px;padding:20px 24px;border-bottom:1px solid #EADFD6;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">titleMedium<br>600 · 16/24</span><span style="font-size:16px;line-height:24px;font-weight:600">Danh sách khách mời nhà trai</span></div>
+    <div style="display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:16px;padding:20px 24px;border-bottom:1px solid #EADFD6;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">bodyLarge<br>400 · 16/26</span><span style="font-size:16px;line-height:26px">Tiệc bắt đầu lúc 10:30 ngày 20/12/2026 tại sảnh Ngọc Trai, tầng 2. Quý khách vui lòng có mặt trước 15 phút.</span></div>
+    <div style="display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:16px;padding:20px 24px;border-bottom:1px solid #EADFD6;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">bodyMedium<br>400 · 14/22</span><span style="font-size:14px;line-height:22px;color:#6E5D63">Hợp đồng sẽ có hiệu lực khi cả nhà hàng và cặp đôi cùng duyệt.</span></div>
+    <div style="display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:16px;padding:20px 24px;border-bottom:1px solid #EADFD6;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">labelLarge<br>600 · 15/20</span><span style="font-size:15px;line-height:20px;font-weight:600">Xác nhận đặt cọc</span></div>
+    <div style="display:grid;grid-template-columns:minmax(150px,200px) minmax(0,1fr);gap:16px;padding:20px 24px;align-items:baseline"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">labelMedium / bodySmall<br>500 · 12/18</span><span style="font-size:12px;line-height:18px;font-weight:500;color:#6E5D63">Cập nhật lần cuối 12/10/2026 lúc 15:02</span></div>
+  </div>
+</section>
+
+<!-- 03 SPACING -->
+<section id="khoang-cach" style="padding-top:64px;display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:8px;max-width:760px">
+    <p style="margin:0;font-size:13px;font-weight:600;color:#7A1F3D">03 · Nền tảng</p>
+    <h2 style="margin:0;font-family:'Playfair Display',serif;font-size:36px;line-height:44px;font-weight:600">Khoảng cách</h2>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63">Bội số 4. Lề trang: 16 (Android) · 24 (web ≤ 1024) · 32 (web rộng). Vùng chạm tối thiểu 48×48.</p>
+  </div>
+  <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:12px">
+    <sc-for list="{{ spacing }}" as="s" hint-placeholder-count="10">
+      <div style="display:grid;grid-template-columns:80px 64px minmax(0,1fr);gap:16px;align-items:center">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px">{{ s.name }}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#6E5D63">{{ s.px }}</span>
+        <div style="display:flex;align-items:center;gap:12px"><span style="height:16px;border-radius:4px;background:#F4B9A7;width:{{ s.w }}"></span><span style="font-size:13px;color:#6E5D63">{{ s.use }}</span></div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<!-- 04 RADIUS + SHADOW -->
+<section id="bo-goc" style="padding-top:64px;display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:8px;max-width:760px">
+    <p style="margin:0;font-size:13px;font-weight:600;color:#7A1F3D">04 · Nền tảng</p>
+    <h2 style="margin:0;font-family:'Playfair Display',serif;font-size:36px;line-height:44px;font-weight:600">Bo góc &amp; bóng</h2>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63">Ưu tiên viền 1px #EADFD6. Bóng chỉ cho lớp nổi (menu, sheet, dialog) và không bao giờ được animate.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
+    <div style="height:140px;border:1px solid #9A877F;border-radius:12px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><strong style="font-size:15px">radius.sm · 12</strong><span style="font-size:13px;color:#6E5D63">Input, chip, nút, snackbar</span></div>
+    <div style="height:140px;border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><strong style="font-size:15px">radius.md · 16</strong><span style="font-size:13px;color:#6E5D63">Card, banner, ảnh</span></div>
+    <div style="height:140px;border:1px solid #EADFD6;border-radius:24px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><strong style="font-size:15px">radius.lg · 24</strong><span style="font-size:13px;color:#6E5D63">Bottom sheet, dialog</span></div>
+    <div style="height:140px;border:1px solid #EADFD6;border-radius:999px;background:#FFFFFF;padding:16px 28px;display:flex;flex-direction:column;justify-content:center;gap:2px"><strong style="font-size:15px">radius.full</strong><span style="font-size:13px;color:#6E5D63">Icon button, avatar, badge</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:24px;padding:24px;border-radius:16px;background:#F7EDE4">
+    <div style="height:120px;border-radius:16px;background:#FFFFFF;border:1px solid #EADFD6;padding:16px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><strong style="font-size:15px">elevation 0</strong><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">viền 1px · card, bảng</span></div>
+    <div style="height:120px;border-radius:16px;background:#FFFFFF;border:1px solid #EADFD6;box-shadow:0 1px 3px rgba(43,29,34,0.06);padding:16px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><strong style="font-size:15px">elevation 1</strong><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">0 1 3 · 6% · card hover, menu</span></div>
+    <div style="height:120px;border-radius:24px;background:#FFFFFF;box-shadow:0 6px 24px rgba(43,29,34,0.10);padding:16px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><strong style="font-size:15px">elevation 2</strong><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">0 6 24 · 10% · sheet, dialog</span></div>
+  </div>
+</section>
+
+<!-- 05 MOTION TOKENS -->
+<section id="motion" style="padding-top:64px;display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:8px;max-width:760px">
+    <p style="margin:0;font-size:13px;font-weight:600;color:#7A1F3D">05 · Nền tảng</p>
+    <h2 style="margin:0;font-family:'Playfair Display',serif;font-size:36px;line-height:44px;font-weight:600">Motion token</h2>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;text-wrap:pretty">Chỉ animate transform (vị trí, tỉ lệ) và độ mờ. Khi bật giảm chuyển động, mọi token quy về <code style="font-family:'JetBrains Mono',monospace;font-size:13px">fade · 150ms · linear</code>. Demo đầy đủ trong <a href="Hỷ Yến Motion Prototype.dc.html">prototype chuyển động</a>.</p>
+  </div>
+  <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <strong style="font-size:16px">Thời lượng × easing</strong>
+      <button onClick="{{ toggleRun }}" style="margin-left:auto;height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:scale(0.97)" style-focus="outline:none;box-shadow:0 0 0 2px #FFF8F1,0 0 0 4px #7A1F3D"><i>play_arrow</i>Chạy demo</button>
+    </div>
+    <sc-for list="{{ motionTokens }}" as="m" hint-placeholder-count="6">
+      <div style="display:grid;grid-template-columns:minmax(160px,260px) minmax(0,1fr);gap:16px;align-items:center">
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500">{{ m.name }}</span><span style="font-size:12px;color:#6E5D63">{{ m.desc }}</span></div>
+        <div style="height:32px;border-radius:12px;background:#F7EDE4;position:relative;overflow:hidden">
+          <div style="position:absolute;top:4px;left:4px;width:calc(100% - 32px);height:24px;transform:{{ runT }};transition:{{ m.transition }}"><span style="display:block;width:24px;height:24px;border-radius:50%;background:#7A1F3D"></span></div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px">
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:6px"><strong style="font-size:15px">emphasizedDecelerate · vào</strong><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">cubic(0.05, 0.7, 0.1, 1)</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">Easing.emphasizedDecelerate</span></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:6px"><strong style="font-size:15px">emphasizedAccelerate · ra</strong><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">cubic(0.3, 0, 0.8, 0.15)</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">Easing.emphasizedAccelerate</span></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:6px"><strong style="font-size:15px">emphasized · chuyển trang</strong><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">≈ cubic(0.2, 0, 0, 1)</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">Curves.easeInOutCubicEmphasized</span></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:6px"><strong style="font-size:15px">standard · micro</strong><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">cubic(0.2, 0, 0, 1)</span><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">Easing.standard</span></div>
+  </div>
+</section>
+
+<!-- 06 COMPONENTS -->
+<section id="component" style="padding-top:64px;display:flex;flex-direction:column;gap:48px">
+  <div style="display:flex;flex-direction:column;gap:8px;max-width:760px">
+    <p style="margin:0;font-size:13px;font-weight:600;color:#7A1F3D">06 · Thư viện</p>
+    <h2 style="margin:0;font-family:'Playfair Display',serif;font-size:36px;line-height:44px;font-weight:600">Component</h2>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;text-wrap:pretty">Hàng "Dùng thử" là bản tương tác thật (rê chuột, nhấn, Tab để thấy focus). Các ô bên dưới cố định từng trạng thái để đối chiếu khi code.</p>
+  </div>
+
+  <!-- Buttons -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600">Nút</h3><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">FilledButton · OutlinedButton · TextButton · IconButton · cao 48 · bo 12</span></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:13px;font-weight:600;color:#6E5D63">Dùng thử</span>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+          <button onClick="{{ toggleBtnLoading }}" aria-busy="{{ btnBusy }}" style="height:48px;min-width:176px;padding:0 24px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:scale(0.97);background:#8B3A56" style-focus="outline:none;box-shadow:0 0 0 2px #FFF8F1,0 0 0 4px #7A1F3D">
+            <sc-if value="{{ btnLoading }}" hint-placeholder-val="{{ false }}"><span style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ btnLabel }}</button>
+          <button style="height:48px;padding:0 24px;border:1px solid #7A1F3D;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#F4E7E3" style-active="transform:scale(0.97);background:#EFDEDB" style-focus="outline:none;box-shadow:0 0 0 2px #FFF8F1,0 0 0 4px #7A1F3D">Xem hợp đồng</button>
+          <button style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#F4E7E3" style-active="transform:scale(0.97);background:#EFDEDB" style-focus="outline:none;box-shadow:0 0 0 2px #FFF8F1,0 0 0 4px #7A1F3D">Để sau</button>
+          <button aria-label="Thông báo" style="width:48px;height:48px;border:none;border-radius:50%;background:transparent;color:#6E5D63;display:inline-flex;align-items:center;justify-content:center;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#F4E7E3" style-active="transform:scale(0.97);background:#EFDEDB" style-focus="outline:none;box-shadow:0 0 0 2px #FFF8F1,0 0 0 4px #7A1F3D"><i style="font-size:24px">notifications</i></button>
+          <span style="font-size:12px;color:#6E5D63">Nhấn nút đầu tiên để xem trạng thái đang xử lý</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:96px repeat(7,minmax(112px,1fr));gap:12px 12px;align-items:center;overflow-x:auto">
+        <span></span>
+        <span style="font-size:12px;font-weight:600;color:#6E5D63">Mặc định</span><span style="font-size:12px;font-weight:600;color:#6E5D63">Hover</span><span style="font-size:12px;font-weight:600;color:#6E5D63">Nhấn · 0.97</span><span style="font-size:12px;font-weight:600;color:#6E5D63">Focus</span><span style="font-size:12px;font-weight:600;color:#6E5D63">Vô hiệu</span><span style="font-size:12px;font-weight:600;color:#6E5D63">Đang tải</span><span style="font-size:12px;font-weight:600;color:#6E5D63">Lỗi</span>
+
+        <span style="font-size:13px;font-weight:600">Primary</span>
+        <span style="height:48px;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">Xác nhận</span>
+        <span style="height:48px;border-radius:12px;background:#87334F;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">Xác nhận</span>
+        <span style="height:48px;border-radius:12px;background:#8B3A56;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;transform:scale(0.97)">Xác nhận</span>
+        <span style="height:48px;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #7A1F3D">Xác nhận</span>
+        <span style="height:48px;border-radius:12px;background:#E6DDD7;color:#A39797;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">Xác nhận</span>
+        <span style="height:48px;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span>Đang xử lý</span>
+        <span style="display:flex;flex-direction:column;gap:4px"><span style="height:48px;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px"><i style="font-size:18px">refresh</i>Thử lại</span><span style="font-size:12px;color:#C62828;display:flex;gap:4px;align-items:center"><i style="font-size:14px">error</i>Chưa gửi được</span></span>
+
+        <span style="font-size:13px;font-weight:600">Secondary</span>
+        <span style="height:48px;border-radius:12px;border:1px solid #7A1F3D;color:#7A1F3D;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">Xem lại</span>
+        <span style="height:48px;border-radius:12px;border:1px solid #7A1F3D;background:#F4E7E3;color:#7A1F3D;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">Xem lại</span>
+        <span style="height:48px;border-radius:12px;border:1px solid #7A1F3D;background:#EFDEDB;color:#7A1F3D;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;transform:scale(0.97)">Xem lại</span>
+        <span style="height:48px;border-radius:12px;border:1px solid #7A1F3D;color:#7A1F3D;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #7A1F3D">Xem lại</span>
+        <span style="height:48px;border-radius:12px;border:1px solid #E3D8CF;color:#B3A7A5;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">Xem lại</span>
+        <span style="height:48px;border-radius:12px;border:1px solid #7A1F3D;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(122,31,61,0.25);border-top-color:#7A1F3D;animation:hy-spin 800ms linear infinite"></span>Đang tải</span>
+        <span style="height:48px;border-radius:12px;border:1px solid #C62828;color:#C62828;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px"><i style="font-size:18px">error</i>Thử lại</span>
+
+        <span style="font-size:13px;font-weight:600">Text</span>
+        <span style="height:48px;border-radius:12px;color:#7A1F3D;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">Để sau</span>
+        <span style="height:48px;border-radius:12px;background:#F4E7E3;color:#7A1F3D;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">Để sau</span>
+        <span style="height:48px;border-radius:12px;background:#EFDEDB;color:#7A1F3D;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;transform:scale(0.97)">Để sau</span>
+        <span style="height:48px;border-radius:12px;color:#7A1F3D;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #7A1F3D">Để sau</span>
+        <span style="height:48px;border-radius:12px;color:#B3A7A5;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center">Để sau</span>
+        <span style="height:48px;border-radius:12px;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(122,31,61,0.25);border-top-color:#7A1F3D;animation:hy-spin 800ms linear infinite"></span>Đang tải</span>
+        <span style="height:48px;border-radius:12px;color:#C62828;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px"><i style="font-size:18px">error</i>Thử lại</span>
+
+        <span style="font-size:13px;font-weight:600">Icon</span>
+        <span style="width:48px;height:48px;border-radius:50%;color:#6E5D63;display:flex;align-items:center;justify-content:center"><i style="font-size:24px">favorite</i></span>
+        <span style="width:48px;height:48px;border-radius:50%;background:#F4E7E3;color:#6E5D63;display:flex;align-items:center;justify-content:center"><i style="font-size:24px">favorite</i></span>
+        <span style="width:48px;height:48px;border-radius:50%;background:#EFDEDB;color:#7A1F3D;display:flex;align-items:center;justify-content:center;transform:scale(0.97)"><i style="font-size:24px;font-variation-settings:'FILL' 1">favorite</i></span>
+        <span style="width:48px;height:48px;border-radius:50%;color:#6E5D63;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #7A1F3D"><i style="font-size:24px">favorite</i></span>
+        <span style="width:48px;height:48px;border-radius:50%;color:#C9BFBC;display:flex;align-items:center;justify-content:center"><i style="font-size:24px">favorite</i></span>
+        <span style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center"><span style="width:20px;height:20px;border-radius:50%;border:2px solid rgba(122,31,61,0.25);border-top-color:#7A1F3D;animation:hy-spin 800ms linear infinite"></span></span>
+        <span style="width:48px;height:48px;border-radius:50%;color:#C62828;display:flex;align-items:center;justify-content:center"><i style="font-size:24px">sync_problem</i></span>
+      </div>
+      <p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63">Nút đang tải giữ nguyên chiều rộng (min-width), đặt <code style="font-family:'JetBrains Mono',monospace">Semantics(liveRegion)</code> đọc "Đang xử lý". Thao tác tiền, duyệt, đặt cọc luôn qua trạng thái này cho tới khi server trả lời.</p>
+    </div>
+  </div>
+
+  <!-- Inputs -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600">Ô nhập liệu</h3><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">TextFormField · OutlineInputBorder · nhãn đặt trên ô</span></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:24px">
+      <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#7A1F3D">Dùng thử</span><span style="font-size:14px;font-weight:500">Họ và tên cô dâu</span><input placeholder="Ví dụ: Nguyễn Minh Anh" style="height:48px;border:1px solid #9A877F;border-radius:12px;background:#FFFFFF;padding:0 16px;font-family:inherit;font-size:16px;color:#2B1D22;outline:none" style-hover="border-color:#6E5D63" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><span style="font-size:12px;color:#6E5D63">Như trên giấy tờ tuỳ thân</span></label>
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Mặc định</span><span style="font-size:14px;font-weight:500">Số điện thoại</span><div style="height:48px;border:1px solid #9A877F;border-radius:12px;background:#FFFFFF;padding:0 16px;display:flex;align-items:center;font-size:16px;color:#6E5D63">0912 345 678</div><span style="font-size:12px;color:#6E5D63">Nhận mã xác nhận qua SMS</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Hover</span><span style="font-size:14px;font-weight:500">Số điện thoại</span><div style="height:48px;border:1px solid #6E5D63;border-radius:12px;background:#FFFFFF;padding:0 16px;display:flex;align-items:center;font-size:16px;color:#6E5D63">0912 345 678</div><span style="font-size:12px;color:#6E5D63">Nhận mã xác nhận qua SMS</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Focus</span><span style="font-size:14px;font-weight:500;color:#7A1F3D">Số điện thoại</span><div style="height:48px;border:1px solid #7A1F3D;box-shadow:0 0 0 1px #7A1F3D;border-radius:12px;background:#FFFFFF;padding:0 16px;display:flex;align-items:center;font-size:16px;color:#2B1D22">0912 345 67<span style="width:1px;height:20px;background:#7A1F3D;margin-left:1px"></span></div><span style="font-size:12px;color:#6E5D63">Nhận mã xác nhận qua SMS</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Vô hiệu</span><span style="font-size:14px;font-weight:500;color:#A39797">Số điện thoại</span><div style="height:48px;border:1px solid #E3D8CF;border-radius:12px;background:#F7F1EC;padding:0 16px;display:flex;align-items:center;font-size:16px;color:#A39797">0912 345 678</div><span style="font-size:12px;color:#A39797">Đã khoá sau khi ký hợp đồng</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Đang tải</span><span style="font-size:14px;font-weight:500">Mã giảm giá</span><div style="height:48px;border:1px solid #9A877F;border-radius:12px;background:#FFFFFF;padding:0 16px;display:flex;align-items:center;gap:8px;font-size:16px">CUOI2026<span style="margin-left:auto;width:18px;height:18px;border-radius:50%;border:2px solid rgba(122,31,61,0.25);border-top-color:#7A1F3D;animation:hy-spin 800ms linear infinite"></span></div><span style="font-size:12px;color:#6E5D63">Đang kiểm tra mã…</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Lỗi</span><span style="font-size:14px;font-weight:500;color:#C62828">Số điện thoại</span><div style="height:48px;border:1px solid #C62828;box-shadow:0 0 0 1px #C62828;border-radius:12px;background:#FFFFFF;padding:0 16px;display:flex;align-items:center;gap:8px;font-size:16px">0912 345<i style="margin-left:auto;color:#C62828">error</i></div><span style="font-size:12px;color:#C62828;display:flex;gap:4px;align-items:flex-start"><i style="font-size:14px">error</i>Số điện thoại cần đủ 10 chữ số</span></div>
+    </div>
+  </div>
+
+  <!-- Select + Date picker -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600">Select &amp; chọn ngày</h3><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">DropdownMenu · showDatePicker (locale vi) · tuần bắt đầu thứ Hai</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:20px">
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Mặc định</span><div style="height:48px;border:1px solid #9A877F;border-radius:12px;padding:0 8px 0 16px;display:flex;align-items:center;font-size:16px;color:#6E5D63">Chọn sảnh<i style="margin-left:auto;font-size:24px">expand_more</i></div></div>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Vô hiệu</span><div style="height:48px;border:1px solid #E3D8CF;background:#F7F1EC;border-radius:12px;padding:0 8px 0 16px;display:flex;align-items:center;font-size:16px;color:#A39797">Sảnh Ngọc Trai<i style="margin-left:auto;font-size:24px">expand_more</i></div></div>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Lỗi</span><div style="height:48px;border:1px solid #C62828;box-shadow:0 0 0 1px #C62828;border-radius:12px;padding:0 8px 0 16px;display:flex;align-items:center;font-size:16px;color:#6E5D63">Chọn sảnh<i style="margin-left:auto;font-size:24px">expand_more</i></div><span style="font-size:12px;color:#C62828;display:flex;gap:4px"><i style="font-size:14px">error</i>Vui lòng chọn sảnh</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Đang tải</span><div style="height:48px;border:1px solid #9A877F;border-radius:12px;padding:0 14px 0 16px;display:flex;align-items:center;font-size:16px;color:#6E5D63">Đang tải sảnh…<span style="margin-left:auto;width:18px;height:18px;border-radius:50%;border:2px solid rgba(122,31,61,0.25);border-top-color:#7A1F3D;animation:hy-spin 800ms linear infinite"></span></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Mở · focus</span>
+          <div style="height:48px;border:1px solid #7A1F3D;box-shadow:0 0 0 1px #7A1F3D;border-radius:12px;padding:0 8px 0 16px;display:flex;align-items:center;font-size:16px">Sảnh Ngọc Trai<i style="margin-left:auto;font-size:24px;color:#7A1F3D">expand_less</i></div>
+          <div role="listbox" style="border-radius:12px;background:#FFFFFF;border:1px solid #EADFD6;box-shadow:0 1px 3px rgba(43,29,34,0.06);padding:4px 0;display:flex;flex-direction:column">
+            <div style="min-height:48px;padding:0 16px;display:flex;align-items:center;gap:12px;background:#F5E4E9;color:#5C1430;font-weight:500"><i>check</i><span style="display:flex;flex-direction:column"><span style="font-size:15px">Sảnh Ngọc Trai</span><span style="font-size:12px;color:#6E5D63">Tối đa 45 bàn · tầng 2</span></span></div>
+            <div style="min-height:48px;padding:0 16px 0 48px;display:flex;align-items:center;background:rgba(122,31,61,0.08)"><span style="display:flex;flex-direction:column"><span style="font-size:15px">Sảnh Hồng Ngọc</span><span style="font-size:12px;color:#6E5D63">Tối đa 30 bàn · tầng 3 · đang hover</span></span></div>
+            <div style="min-height:48px;padding:0 16px 0 48px;display:flex;align-items:center;color:#A39797"><span style="display:flex;flex-direction:column"><span style="font-size:15px">Sảnh Kim Cương</span><span style="font-size:12px">Đã kín ngày 20/12/2026</span></span></div>
+          </div>
+        </div>
+      </div>
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500">Ngày cưới</span><div style="height:48px;border:1px solid #7A1F3D;box-shadow:0 0 0 1px #7A1F3D;border-radius:12px;padding:0 8px 0 16px;display:flex;align-items:center;font-size:16px;font-variant-numeric:tabular-nums">20/12/2026<i style="margin-left:auto;font-size:22px;color:#7A1F3D;width:40px;text-align:center">calendar_month</i></div></div>
+        <div style="border-radius:24px;background:#FFFFFF;box-shadow:0 6px 24px rgba(43,29,34,0.10);border:1px solid #EADFD6;padding:16px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:4px"><strong style="font-size:16px;padding-left:8px">Tháng 12/2026</strong><button aria-label="Tháng trước" style="margin-left:auto;width:48px;height:48px;border:none;border-radius:50%;background:transparent;color:#6E5D63;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>chevron_left</i></button><button aria-label="Tháng sau" style="width:48px;height:48px;border:none;border-radius:50%;background:transparent;color:#6E5D63;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>chevron_right</i></button></div>
+          <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center">
+            <sc-for list="{{ weekdays }}" as="w" hint-placeholder-count="7"><span style="font-size:12px;font-weight:600;color:#6E5D63;padding:6px 0">{{ w }}</span></sc-for>
+            <sc-for list="{{ calDays }}" as="d" hint-placeholder-count="35"><span aria-label="{{ d.aria }}" style="height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:14px;font-variant-numeric:tabular-nums;background:{{ d.bg }};color:{{ d.color }};text-decoration:{{ d.deco }};font-weight:{{ d.weight }}">{{ d.label }}</span></sc-for>
+          </div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;padding:4px 8px;font-size:12px;color:#6E5D63"><span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:50%;background:#7A1F3D"></span>Đã chọn</span><span style="display:flex;align-items:center;gap:6px"><span style="text-decoration:line-through;color:#A39797">12</span>Đã kín lịch</span><span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:50%;border:1.5px solid #C9A46A"></span>Ngày đẹp</span></div>
+          <div style="display:flex;justify-content:flex-end;gap:8px"><button style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Huỷ</button><button style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">Chọn ngày</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chips -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600">Chip</h3><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">Chip (trạng thái, chỉ đọc) · FilterChip · cao 32, vùng chạm 48</span></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:12px"><span style="font-size:13px;font-weight:600;color:#6E5D63">Chip trạng thái – luôn có icon + chữ</span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <span style="height:32px;padding:0 12px 0 8px;border-radius:12px;background:#E7F1EA;color:#2F6B4F;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><i style="font-size:18px">check_circle</i>Đã đặt cọc</span>
+          <span style="height:32px;padding:0 12px 0 8px;border-radius:12px;background:#FCEFD6;color:#8A5300;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><i style="font-size:18px">schedule</i>Chờ duyệt</span>
+          <span style="height:32px;padding:0 12px 0 8px;border-radius:12px;background:#FDECEA;color:#C62828;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><i style="font-size:18px">error</i>Quá hạn thanh toán</span>
+          <span style="height:32px;padding:0 12px 0 8px;border-radius:12px;background:#E6EEF2;color:#3F5B6B;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><i style="font-size:18px">info</i>Đang tư vấn</span>
+          <span style="height:32px;padding:0 12px 0 8px;border-radius:12px;background:#F7EDE4;color:#6E5D63;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><i style="font-size:18px">edit_note</i>Bản nháp</span>
+          <span style="height:32px;padding:0 12px 0 8px;border-radius:12px;background:#F5E4E9;color:#5C1430;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><i style="font-size:18px">how_to_reg</i>Đã check-in</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px"><span style="font-size:13px;font-weight:600;color:#6E5D63">Chip lọc</span>
+        <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end">
+          <span style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:#6E5D63">Mặc định</span><span style="height:32px;padding:0 14px;border-radius:12px;border:1px solid #9A877F;display:inline-flex;align-items:center;font-size:14px;font-weight:500">Tháng 12</span></span>
+          <span style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:#6E5D63">Hover</span><span style="height:32px;padding:0 14px;border-radius:12px;border:1px solid #9A877F;background:#F4E7E3;display:inline-flex;align-items:center;font-size:14px;font-weight:500">Tháng 12</span></span>
+          <span style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:#6E5D63">Nhấn</span><span style="height:32px;padding:0 14px;border-radius:12px;border:1px solid #9A877F;background:#EFDEDB;display:inline-flex;align-items:center;font-size:14px;font-weight:500;transform:scale(0.97)">Tháng 12</span></span>
+          <span style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:#6E5D63">Đã chọn</span><span style="height:32px;padding:0 14px 0 8px;border-radius:12px;background:#F5E4E9;border:1px solid #F5E4E9;color:#5C1430;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600"><i style="font-size:18px">check</i>Tháng 12</span></span>
+          <span style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:#6E5D63">Focus</span><span style="height:32px;padding:0 14px;border-radius:12px;border:1px solid #9A877F;display:inline-flex;align-items:center;font-size:14px;font-weight:500;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #7A1F3D">Tháng 12</span></span>
+          <span style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:#6E5D63">Vô hiệu</span><span style="height:32px;padding:0 14px;border-radius:12px;border:1px solid #E3D8CF;color:#B3A7A5;display:inline-flex;align-items:center;font-size:14px;font-weight:500">Tháng 12</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary card + Money card -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600">Card tóm tắt &amp; thẻ số tiền</h3><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">Card.outlined · InkWell · bo 16</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;font-weight:600;color:#7A1F3D">Dùng thử (hover, nhấn, Tab)</span>
+        <a href="#component" style="text-decoration:none;color:#2B1D22;border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden;display:flex;flex-direction:column;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="border-color:#D9C8BC" style-active="transform:scale(0.98)" style-focus="outline:none;box-shadow:0 0 0 2px #FFF8F1,0 0 0 4px #7A1F3D">
+          <div style="aspect-ratio:16/9;background:repeating-linear-gradient(135deg,#FFF8F1 0 10px,#F7EDE4 10px 20px);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">ảnh sảnh 16:9</div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:8px;align-items:flex-start"><strong style="font-size:16px;line-height:24px">Minh Anh &amp; Quốc Huy</strong><span style="margin-left:auto;flex:none;height:28px;padding:0 10px 0 6px;border-radius:12px;background:#E7F1EA;color:#2F6B4F;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600"><i style="font-size:16px">check_circle</i>Đã đặt cọc</span></div>
+            <span style="font-size:14px;color:#6E5D63;display:flex;gap:6px;align-items:center"><i style="font-size:18px">event</i>20/12/2026 · 10:30 · Sảnh Ngọc Trai</span>
+            <span style="font-size:14px;color:#6E5D63;display:flex;gap:6px;align-items:center"><i style="font-size:18px">table_restaurant</i>42 bàn · 420 khách</span>
+          </div>
+        </a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Đang tải (cùng kích thước)</span>
+        <div aria-busy="true" aria-label="Đang tải tiệc" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden;display:flex;flex-direction:column;position:relative">
+          <div style="aspect-ratio:16/9;background:#F7EDE4"></div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:8px;height:24px;align-items:center"><span style="width:55%;height:16px;border-radius:8px;background:#F7EDE4"></span><span style="margin-left:auto;width:88px;height:28px;border-radius:12px;background:#F7EDE4"></span></div>
+            <div style="height:20px;display:flex;align-items:center"><span style="width:75%;height:12px;border-radius:6px;background:#F7EDE4"></span></div>
+            <div style="height:20px;display:flex;align-items:center"><span style="width:45%;height:12px;border-radius:6px;background:#F7EDE4"></span></div>
+          </div>
+          <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none"><div style="width:40%;height:100%;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,0.7),rgba(255,255,255,0));animation:hy-shimmer 1200ms linear infinite"></div></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Thẻ số tiền VND</span>
+        <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;color:#6E5D63">Tổng giá trị hợp đồng</span><span style="font-family:'Playfair Display',serif;font-size:36px;line-height:44px;font-weight:600;color:#7A1F3D;font-variant-numeric:tabular-nums lining-nums">60.480.000 ₫</span><span style="font-size:13px;color:#6E5D63">42 bàn × 1.440.000 ₫</span></div>
+          <div role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100" aria-label="Đã thanh toán 30%" style="height:8px;border-radius:4px;background:#F7EDE4;overflow:hidden"><div style="width:30%;height:100%;background:#7A1F3D;border-radius:4px"></div></div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;font-size:14px;font-variant-numeric:tabular-nums">
+            <span style="color:#6E5D63">Đã đặt cọc (30%)</span><strong style="text-align:right">18.144.000 ₫</strong>
+            <span style="color:#6E5D63">Còn lại</span><strong style="text-align:right">42.336.000 ₫</strong>
+            <span style="color:#6E5D63">Hạn quyết toán</span><span style="text-align:right">06/12/2026</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Card lỗi</span>
+        <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:12px">
+          <span style="font-size:14px;color:#6E5D63">Tổng giá trị hợp đồng</span>
+          <div style="display:flex;gap:8px;align-items:flex-start;color:#C62828;font-size:14px;line-height:20px"><i>error</i><span>Không tải được số tiền. Dữ liệu cũ đã được ẩn để tránh nhầm lẫn.</span></div>
+          <button style="align-self:flex-start;height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:6px" style-hover="background:#F4E7E3" style-focus="outline:none;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #7A1F3D"><i>refresh</i>Tải lại</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data table -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600">Bảng dữ liệu</h3><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">DataTable / PaginatedDataTable · hàng cao 56 · số căn phải, tabular</span></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #EADFD6;flex-wrap:wrap">
+        <strong style="font-size:16px">Tiệc sắp tới</strong>
+        <span style="font-size:13px;color:#6E5D63">48 tiệc</span>
+        <div style="margin-left:auto;height:40px;min-width:220px;border:1px solid #9A877F;border-radius:12px;padding:0 12px;display:flex;align-items:center;gap:8px;color:#6E5D63;font-size:14px"><i>search</i>Tìm theo tên, mã tiệc</div>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;min-width:860px;font-size:14px">
+          <thead><tr style="height:48px;background:#FBF4EE;text-align:left">
+            <th scope="col" style="padding:0 16px;font-weight:600;color:#6E5D63;font-size:13px">Mã tiệc</th>
+            <th scope="col" style="padding:0 16px;font-weight:600;color:#6E5D63;font-size:13px">Cặp đôi</th>
+            <th scope="col" aria-sort="ascending" style="padding:0 16px;font-weight:600;color:#2B1D22;font-size:13px"><span style="display:inline-flex;align-items:center;gap:4px">Ngày cưới<i style="font-size:16px;color:#7A1F3D">arrow_upward</i></span></th>
+            <th scope="col" style="padding:0 16px;font-weight:600;color:#6E5D63;font-size:13px">Sảnh</th>
+            <th scope="col" style="padding:0 16px;font-weight:600;color:#6E5D63;font-size:13px;text-align:right">Số bàn</th>
+            <th scope="col" style="padding:0 16px;font-weight:600;color:#6E5D63;font-size:13px;text-align:right">Tổng tiền</th>
+            <th scope="col" style="padding:0 16px;font-weight:600;color:#6E5D63;font-size:13px">Trạng thái</th>
+          </tr></thead>
+          <tbody>
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+              <tr tabindex="0" style="height:56px;border-top:1px solid #EADFD6;cursor:pointer;outline:none" style-hover="background:#FBF1EC" style-focus="box-shadow:inset 0 0 0 2px #7A1F3D">
+                <td style="padding:0 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#6E5D63">{{ r.id }}</td>
+                <td style="padding:0 16px;font-weight:500">{{ r.couple }}</td>
+                <td style="padding:0 16px;font-variant-numeric:tabular-nums">{{ r.date }}</td>
+                <td style="padding:0 16px">{{ r.hall }}</td>
+                <td style="padding:0 16px;text-align:right;font-variant-numeric:tabular-nums">{{ r.tables }}</td>
+                <td style="padding:0 16px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600">{{ r.total }}</td>
+                <td style="padding:0 16px"><span style="height:28px;padding:0 10px 0 6px;border-radius:12px;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;white-space:nowrap;background:{{ r.bg }};color:{{ r.fg }}"><i style="font-size:16px">{{ r.icon }}</i>{{ r.status }}</span></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 16px;border-top:1px solid #EADFD6;font-size:13px;color:#6E5D63;flex-wrap:wrap"><span>Hàng hover: nền #FBF1EC · focus bàn phím: viền trong 2px Vang</span><span style="margin-left:auto">1–5 trên 48</span><button aria-label="Trang trước" disabled style="width:48px;height:48px;border:none;border-radius:50%;background:transparent;color:#C9BFBC;display:flex;align-items:center;justify-content:center"><i>chevron_left</i></button><button aria-label="Trang sau" style="width:48px;height:48px;border:none;border-radius:50%;background:transparent;color:#6E5D63;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>chevron_right</i></button></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600">Tabs</h3><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">TabBar · indicator 3px trượt 250ms · nội dung fade-through</span></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+      <div role="tablist" style="position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid #EADFD6">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+          <button role="tab" aria-selected="{{ t.selected }}" onClick="{{ t.select }}" style="height:48px;border:none;background:transparent;font-size:15px;display:flex;align-items:center;justify-content:center;gap:6px;color:{{ t.color }};font-weight:{{ t.weight }};outline:none" style-hover="background:#FBF1EC" style-focus="box-shadow:inset 0 0 0 2px #7A1F3D">{{ t.label }}<sc-if value="{{ t.badge }}" hint-placeholder-val="{{ false }}"><span style="min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#C62828;color:#FFFFFF;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center">{{ t.badge }}</span></sc-if></button>
+        </sc-for>
+        <span style="position:absolute;left:0;bottom:-1px;width:25%;height:3px;display:flex;justify-content:center;transform:{{ tabX }};transition:transform 250ms cubic-bezier(0.2,0,0,1)"><span style="width:64px;height:3px;border-radius:3px 3px 0 0;background:#7A1F3D"></span></span>
+      </div>
+      <div style="padding:24px;min-height:96px;font-size:15px;line-height:24px;color:#6E5D63">{{ tabPanel }}</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;padding:16px 24px;border-top:1px solid #EADFD6;background:#FFFCF9;font-size:12px;color:#6E5D63">
+        <span style="display:flex;flex-direction:column;gap:6px">Đang chọn<span style="height:40px;padding:0 16px;display:flex;align-items:center;color:#7A1F3D;font-weight:600;font-size:14px;border-bottom:3px solid #7A1F3D">Thực đơn</span></span>
+        <span style="display:flex;flex-direction:column;gap:6px">Hover<span style="height:40px;padding:0 16px;display:flex;align-items:center;background:#FBF1EC;color:#6E5D63;font-weight:500;font-size:14px">Thực đơn</span></span>
+        <span style="display:flex;flex-direction:column;gap:6px">Nhấn<span style="height:40px;padding:0 16px;display:flex;align-items:center;background:#F4E7E3;color:#6E5D63;font-weight:500;font-size:14px">Thực đơn</span></span>
+        <span style="display:flex;flex-direction:column;gap:6px">Focus<span style="height:40px;padding:0 16px;display:flex;align-items:center;box-shadow:inset 0 0 0 2px #7A1F3D;color:#6E5D63;font-weight:500;font-size:14px">Thực đơn</span></span>
+        <span style="display:flex;flex-direction:column;gap:6px">Vô hiệu<span style="height:40px;padding:0 16px;display:flex;align-items:center;color:#B3A7A5;font-weight:500;font-size:14px">Quyết toán</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stepper -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600">Stepper "Hành trình cưới"</h3><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">Row/ListView tuỳ biến (Stepper mặc định quá cứng) · dọc trên Android</span></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:24px">
+      <ol aria-label="Hành trình cưới" style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(6,minmax(96px,1fr));overflow-x:auto">
+        <sc-for list="{{ steps }}" as="st" hint-placeholder-count="6">
+          <li aria-current="{{ st.current }}" style="display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;position:relative;padding:0 4px">
+            <span style="position:absolute;top:19px;left:50%;width:100%;height:2px;background:{{ st.line }};display:{{ st.lineDisplay }}"></span>
+            <span style="position:relative;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;background:{{ st.bg }};color:{{ st.fg }};border:{{ st.border }};box-shadow:{{ st.ring }}"><sc-if value="{{ st.icon }}" hint-placeholder-val="{{ false }}"><i style="font-size:20px">{{ st.icon }}</i></sc-if>{{ st.num }}</span>
+            <span style="font-size:14px;font-weight:{{ st.weight }};color:{{ st.labelColor }}">{{ st.label }}</span>
+            <span style="font-size:12px;color:#6E5D63;font-variant-numeric:tabular-nums">{{ st.meta }}</span>
+          </li>
+        </sc-for>
+      </ol>
+      <div style="display:flex;flex-wrap:wrap;gap:20px;font-size:13px;color:#6E5D63;border-top:1px solid #EADFD6;padding-top:16px">
+        <span style="display:flex;align-items:center;gap:8px"><span style="width:24px;height:24px;border-radius:50%;background:#7A1F3D;color:#FFFFFF;display:flex;align-items:center;justify-content:center"><i style="font-size:16px">check</i></span>Hoàn thành</span>
+        <span style="display:flex;align-items:center;gap:8px"><span style="width:24px;height:24px;border-radius:50%;border:2px solid #7A1F3D;color:#7A1F3D;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px #F5E4E9">4</span>Hiện tại</span>
+        <span style="display:flex;align-items:center;gap:8px"><span style="width:24px;height:24px;border-radius:50%;border:1.5px solid #9A877F;color:#6E5D63;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center">5</span>Sắp tới</span>
+        <span style="display:flex;align-items:center;gap:8px"><span style="width:24px;height:24px;border-radius:50%;background:#FDECEA;color:#C62828;display:flex;align-items:center;justify-content:center"><i style="font-size:16px">priority_high</i></span>Cần xử lý (vd. quá hạn đặt cọc)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Banners + Snackbar + Badge -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600">Banner, snackbar, badge</h3><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">MaterialBanner · SnackBar(action) · Badge</span></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div role="status" style="border-radius:16px;background:#E6EEF2;padding:12px 8px 12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><i style="color:#3F5B6B">cloud_off</i><span style="flex:1;min-width:200px;font-size:14px;line-height:20px;color:#2B1D22"><strong>Không có kết nối – đang hiển thị dữ liệu đã lưu</strong><br><span style="color:#3F5B6B">Cập nhật lần cuối 10:24. Các thay đổi sẽ gửi khi có mạng.</span></span><button style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#2B1D22;font-size:15px;font-weight:600" style-hover="background:rgba(63,91,107,0.10)">Thử lại</button></div>
+      <div role="status" style="border-radius:16px;background:#E7F1EA;padding:12px 8px 12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><i style="color:#2F6B4F">check_circle</i><span style="flex:1;min-width:200px;font-size:14px;line-height:20px">Hai bên đã duyệt hợp đồng phiên bản 3. Hợp đồng có hiệu lực từ 12/10/2026.</span><button style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#2B1D22;font-size:15px;font-weight:600" style-hover="background:rgba(47,107,79,0.10)">Xem hợp đồng</button></div>
+      <div role="alert" style="border-radius:16px;background:#FCEFD6;padding:12px 8px 12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><i style="color:#8A5300">warning</i><span style="flex:1;min-width:200px;font-size:14px;line-height:20px">Còn 7 ngày đến hạn chốt số bàn (13/12/2026).</span><button style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#2B1D22;font-size:15px;font-weight:600" style-hover="background:rgba(138,83,0,0.10)">Chốt ngay</button></div>
+      <div role="alert" style="border-radius:16px;background:#FDECEA;padding:12px 8px 12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><i style="color:#C62828">error</i><span style="flex:1;min-width:200px;font-size:14px;line-height:20px">Thanh toán đợt 2 quá hạn 3 ngày. Vui lòng liên hệ nhà hàng.</span><button style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#2B1D22;font-size:15px;font-weight:600" style-hover="background:rgba(198,40,40,0.08)">Gọi nhà hàng</button></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden;min-height:220px">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><strong style="font-size:15px">Snackbar có Hoàn tác</strong><button onClick="{{ showSnack }}" style="margin-left:auto;height:48px;padding:0 16px;border:1px solid #7A1F3D;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#F4E7E3" style-active="transform:scale(0.97)">Xoá khách thử</button></div>
+        <span style="font-size:13px;line-height:20px;color:#6E5D63">Thao tác nhỏ, đảo ngược được → hiện kết quả ngay. Snackbar vào 250ms decelerate, tự ẩn sau 4 giây, ra 150ms accelerate.</span>
+        <div role="status" aria-live="polite" style="position:absolute;left:16px;right:16px;bottom:16px;min-height:48px;border-radius:12px;background:#2B1D22;color:#FFF8F1;display:flex;align-items:center;gap:8px;padding:4px 4px 4px 16px;font-size:14px;transform:{{ snackT }};opacity:{{ snackO }};transition:{{ snackTr }}"><span style="flex:1">{{ snackMsg }}</span><sc-if value="{{ snackUndo }}" hint-placeholder-val="{{ true }}"><button onClick="{{ undo }}" style="height:40px;padding:0 12px;border:none;border-radius:12px;background:transparent;color:#F4B9A7;font-size:14px;font-weight:600" style-hover="background:rgba(244,185,167,0.12)">Hoàn tác</button></sc-if></div>
+      </div>
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:16px">
+        <strong style="font-size:15px">Badge chưa đọc</strong>
+        <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+          <span aria-label="Thông báo, có tin mới" style="position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:#6E5D63"><i style="font-size:24px">notifications</i><span style="position:absolute;top:10px;right:11px;width:8px;height:8px;border-radius:50%;background:#C62828;box-shadow:0 0 0 2px #FFFFFF"></span></span>
+          <span aria-label="Tin nhắn, 3 chưa đọc" style="position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:#6E5D63"><i style="font-size:24px">chat_bubble</i><span style="position:absolute;top:4px;right:2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#C62828;color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #FFFFFF">3</span></span>
+          <span aria-label="Yêu cầu, hơn 99 chưa đọc" style="position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:#6E5D63"><i style="font-size:24px">inbox</i><span style="position:absolute;top:4px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#C62828;color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #FFFFFF">99+</span></span>
+          <span style="display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500">Yêu cầu chỉnh sửa<span style="min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#7A1F3D;color:#FFFFFF;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center">2</span></span>
+        </div>
+        <span style="font-size:13px;line-height:20px;color:#6E5D63">Đỏ cho thông báo chưa đọc, Vang cho đếm số lượng trung tính. Badge xuất hiện bằng scale 0→1 trong 150ms. Nhãn đọc màn hình ghi rõ số lượng.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialog + Bottom sheet -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600">Dialog xác nhận &amp; bottom sheet</h3><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">AlertDialog · showModalBottomSheet · bo 24 · scrim 40%, không blur</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
+      <div style="border-radius:16px;background:rgba(43,29,34,0.4);padding:32px 24px;display:flex;align-items:center;justify-content:center;min-height:360px">
+        <div role="alertdialog" aria-labelledby="dlg-t" style="width:100%;max-width:340px;border-radius:24px;background:#FFFFFF;box-shadow:0 6px 24px rgba(43,29,34,0.10);padding:24px;display:flex;flex-direction:column;gap:16px">
+          <span style="width:40px;height:40px;border-radius:50%;background:#FDECEA;color:#C62828;display:flex;align-items:center;justify-content:center"><i>event_busy</i></span>
+          <h4 id="dlg-t" style="margin:0;font-family:'Playfair Display',serif;font-size:24px;line-height:32px;font-weight:600">Huỷ lịch hẹn tư vấn?</h4>
+          <p style="margin:0;font-size:14px;line-height:22px;color:#6E5D63">Lịch hẹn lúc 10:30 ngày 18/10/2026 với chị Lê Thu Trang sẽ được huỷ. Bạn có thể đặt lại sau.</p>
+          <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap"><button style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3" style-focus="outline:none;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #7A1F3D">Giữ lịch</button><button style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#C62828;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#B02323" style-focus="outline:none;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #C62828">Huỷ lịch hẹn</button></div>
+        </div>
+      </div>
+      <div style="border-radius:16px;background:rgba(43,29,34,0.4);padding:32px 24px 0;display:flex;align-items:flex-end;justify-content:center;min-height:360px;overflow:hidden">
+        <div role="dialog" aria-label="Chọn giờ đón khách" style="width:100%;max-width:360px;border-radius:24px 24px 0 0;background:#FFFFFF;box-shadow:0 6px 24px rgba(43,29,34,0.10);padding:8px 16px 16px;display:flex;flex-direction:column;gap:8px">
+          <span style="align-self:center;width:32px;height:4px;border-radius:2px;background:#C9BFBC;margin:8px 0"></span>
+          <strong style="font-size:18px;padding:0 8px">Chọn giờ đón khách</strong>
+          <div role="radiogroup" style="display:flex;flex-direction:column">
+            <div role="radio" aria-checked="false" style="height:48px;display:flex;align-items:center;gap:12px;padding:0 8px;border-radius:12px;font-size:15px;font-variant-numeric:tabular-nums" style-hover="background:#FBF1EC"><span style="width:20px;height:20px;border-radius:50%;border:2px solid #9A877F"></span>10:00</div>
+            <div role="radio" aria-checked="true" style="height:48px;display:flex;align-items:center;gap:12px;padding:0 8px;border-radius:12px;font-size:15px;font-weight:600;background:#F5E4E9;font-variant-numeric:tabular-nums"><span style="width:20px;height:20px;border-radius:50%;border:2px solid #7A1F3D;display:flex;align-items:center;justify-content:center"><span style="width:10px;height:10px;border-radius:50%;background:#7A1F3D"></span></span>10:30</div>
+            <div role="radio" aria-checked="false" style="height:48px;display:flex;align-items:center;gap:12px;padding:0 8px;border-radius:12px;font-size:15px;font-variant-numeric:tabular-nums" style-hover="background:#FBF1EC"><span style="width:20px;height:20px;border-radius:50%;border:2px solid #9A877F"></span>11:00</div>
+            <div role="radio" aria-disabled="true" style="height:48px;display:flex;align-items:center;gap:12px;padding:0 8px;border-radius:12px;font-size:15px;color:#A39797;font-variant-numeric:tabular-nums"><span style="width:20px;height:20px;border-radius:50%;border:2px solid #E3D8CF"></span>11:30 · sảnh đang dọn</div>
+          </div>
+          <button style="height:48px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;margin-top:4px" style-hover="background:#87334F">Xác nhận 10:30</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skeleton / Empty / Error -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600">Skeleton, trạng thái rỗng, trạng thái lỗi</h3></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">
+      <div aria-busy="true" aria-label="Đang tải danh sách khách" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:8px 0;position:relative;overflow:hidden">
+        <sc-for list="{{ skel }}" as="k" hint-placeholder-count="4">
+          <div style="height:64px;display:flex;align-items:center;gap:12px;padding:0 16px"><span style="width:40px;height:40px;border-radius:50%;background:#F7EDE4;flex:none"></span><span style="flex:1;display:flex;flex-direction:column;gap:8px"><span style="height:12px;border-radius:6px;background:#F7EDE4;width:{{ k.a }}"></span><span style="height:10px;border-radius:5px;background:#F7EDE4;width:{{ k.b }}"></span></span><span style="width:72px;height:28px;border-radius:12px;background:#F7EDE4"></span></div>
+        </sc-for>
+        <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none"><div style="width:40%;height:100%;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,0.7),rgba(255,255,255,0));animation:hy-shimmer 1200ms linear infinite"></div></div>
+      </div>
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:32px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px">
+        <span style="width:64px;height:64px;border-radius:50%;background:#FBE9E3;color:#7A1F3D;display:flex;align-items:center;justify-content:center"><i style="font-size:30px">group_add</i></span>
+        <strong style="font-size:18px">Chưa có khách mời nào</strong>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#6E5D63;max-width:280px;text-wrap:pretty">Thêm khách để gửi thiệp online và theo dõi số người tham dự.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><button style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">Thêm khách mời</button><button style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Nhập từ Excel</button></div>
+      </div>
+      <div role="alert" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:32px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px">
+        <span style="width:64px;height:64px;border-radius:50%;background:#FDECEA;color:#C62828;display:flex;align-items:center;justify-content:center"><i style="font-size:30px">error</i></span>
+        <strong style="font-size:18px">Không tải được danh sách tiệc</strong>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#6E5D63;max-width:280px;text-wrap:pretty">Máy chủ đang bận. Vui lòng thử lại sau ít phút.</p>
+        <button style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px" style-hover="background:#87334F"><i>refresh</i>Thử lại</button>
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#6E5D63">Mã tham chiếu: <code style="font-family:'JetBrains Mono',monospace;color:#2B1D22">req_7f3a9c21e4b8</code><button aria-label="Sao chép mã tham chiếu" style="width:40px;height:40px;border:none;border-radius:50%;background:transparent;color:#6E5D63;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i style="font-size:18px">content_copy</i></button></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Version & approval -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600">Phiên bản &amp; trạng thái duyệt 2 bên</h3><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">Hợp đồng, thực đơn, sơ đồ bàn</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><strong style="font-size:16px">Hợp đồng · Phiên bản 3</strong><span style="margin-left:auto;height:28px;padding:0 10px 0 6px;border-radius:12px;background:#FCEFD6;color:#8A5300;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600"><i style="font-size:16px">schedule</i>Chờ 1 bên duyệt</span></div>
+        <span style="font-size:13px;line-height:20px;color:#6E5D63">Tạo bởi Lê Thu Trang (Quản lý) · 12/10/2026 14:20 · Thay đổi so với phiên bản 2: thêm món Súp bào ngư (+2.940.000 ₫)</span>
+        <div style="display:flex;flex-direction:column;border:1px solid #EADFD6;border-radius:12px">
+          <div style="min-height:56px;display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid #EADFD6"><span style="width:32px;height:32px;border-radius:50%;background:#E7F1EA;color:#2F6B4F;display:flex;align-items:center;justify-content:center"><i style="font-size:20px">check</i></span><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">Nhà hàng · Đã duyệt</span><span style="font-size:12px;color:#6E5D63">Lê Thu Trang · 12/10/2026 15:02</span></span></div>
+          <div style="min-height:56px;display:flex;align-items:center;gap:12px;padding:8px 12px"><span style="width:32px;height:32px;border-radius:50%;background:#FCEFD6;color:#8A5300;display:flex;align-items:center;justify-content:center"><i style="font-size:20px">hourglass_top</i></span><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">Cặp đôi · Chờ duyệt</span><span style="font-size:12px;color:#6E5D63">Nguyễn Minh Anh, Trần Quốc Huy</span></span></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">Duyệt phiên bản 3</button><button style="height:48px;padding:0 16px;border:1px solid #7A1F3D;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Yêu cầu chỉnh sửa</button></div>
+        <div style="display:flex;gap:8px;align-items:center;font-size:13px;color:#6E5D63;border-top:1px solid #EADFD6;padding-top:12px"><i style="font-size:18px">history</i>Phiên bản 2 · 05/10/2026 · bị thay thế<a href="#component" style="margin-left:auto;font-weight:600">Lịch sử (3)</a></div>
+      </div>
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><strong style="font-size:16px">Hợp đồng · Phiên bản 3</strong><span style="margin-left:auto;height:28px;padding:0 10px 0 6px;border-radius:12px;background:#E7F1EA;color:#2F6B4F;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600"><i style="font-size:16px">verified</i>Có hiệu lực</span></div>
+        <span style="font-size:13px;line-height:20px;color:#6E5D63">Hai bên đã duyệt · khoá chỉnh sửa. Thay đổi tiếp theo sẽ tạo phiên bản 4.</span>
+        <div style="display:flex;flex-direction:column;border:1px solid #EADFD6;border-radius:12px">
+          <div style="min-height:56px;display:flex;align-items:center;gap:12px;padding:8px 12px;border-bottom:1px solid #EADFD6"><span style="width:32px;height:32px;border-radius:50%;background:#E7F1EA;color:#2F6B4F;display:flex;align-items:center;justify-content:center"><i style="font-size:20px">check</i></span><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">Nhà hàng · Đã duyệt</span><span style="font-size:12px;color:#6E5D63">Lê Thu Trang · 12/10/2026 15:02</span></span></div>
+          <div style="min-height:56px;display:flex;align-items:center;gap:12px;padding:8px 12px"><span style="width:32px;height:32px;border-radius:50%;background:#E7F1EA;color:#2F6B4F;display:flex;align-items:center;justify-content:center"><i style="font-size:20px">check</i></span><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">Cặp đôi · Đã duyệt</span><span style="font-size:12px;color:#6E5D63">Nguyễn Minh Anh · 13/10/2026 09:15</span></span></div>
+        </div>
+        <div style="border-radius:12px;background:#FDECEA;padding:12px;display:flex;gap:8px;font-size:13px;line-height:20px"><i style="color:#C62828;font-size:18px">error</i><span><strong>Biến thể từ chối:</strong> "Cặp đôi yêu cầu chỉnh sửa – Đổi giờ đón khách sang 11:00". Hiện lý do nguyên văn, nút chính đổi thành "Tạo phiên bản mới".</span></div>
+        <span style="font-size:13px;color:#6E5D63">Dấu tick tự vẽ 300ms khi bên thứ hai duyệt, kèm hiệu ứng cánh hoa một lần.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 MOTION SPEC -->
+<section id="motion-spec" style="padding-top:64px;display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:8px;max-width:760px">
+    <p style="margin:0;font-size:13px;font-weight:600;color:#7A1F3D">07 · Bàn giao</p>
+    <h2 style="margin:0;font-family:'Playfair Display',serif;font-size:36px;line-height:44px;font-weight:600">Motion spec</h2>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;text-wrap:pretty">Mọi hiệu ứng đọc <code style="font-family:'JetBrains Mono',monospace;font-size:13px">MediaQuery.disableAnimationsOf(context)</code>: khi bật, thay bằng FadeTransition ≤ 150ms, tắt parallax và ăn mừng. Gói <code style="font-family:'JetBrains Mono',monospace;font-size:13px">animations</code> là gói chính thức của đội Flutter.</p>
+  </div>
+  <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;min-width:980px;font-size:14px;line-height:20px">
+      <thead><tr style="background:#FBF4EE;text-align:left">
+        <th scope="col" style="padding:12px 16px;font-size:13px;font-weight:600;color:#6E5D63;width:18%">Hiệu ứng</th>
+        <th scope="col" style="padding:12px 16px;font-size:13px;font-weight:600;color:#6E5D63;width:22%">Nơi dùng</th>
+        <th scope="col" style="padding:12px 16px;font-size:13px;font-weight:600;color:#6E5D63;width:12%">Thời lượng</th>
+        <th scope="col" style="padding:12px 16px;font-size:13px;font-weight:600;color:#6E5D63;width:18%">Easing</th>
+        <th scope="col" style="padding:12px 16px;font-size:13px;font-weight:600;color:#6E5D63">Widget Flutter</th>
+      </tr></thead>
+      <tbody>
+        <sc-for list="{{ spec }}" as="x" hint-placeholder-count="20">
+          <tr style="border-top:1px solid #EADFD6;vertical-align:top">
+            <td style="padding:12px 16px;font-weight:600">{{ x.name }}</td>
+            <td style="padding:12px 16px;color:#6E5D63">{{ x.where }}</td>
+            <td style="padding:12px 16px;font-variant-numeric:tabular-nums">{{ x.dur }}</td>
+            <td style="padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:12px">{{ x.ease }}</td>
+            <td style="padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">{{ x.widget }}</td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+  </div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tab: 1, run: false, btnLoading: false, snack: false, undone: false };
+  componentWillUnmount() { clearTimeout(this.t1); clearTimeout(this.t2); }
+  showSnack = () => { clearTimeout(this.t1); this.setState({ snack: true, undone: false }); this.t1 = setTimeout(() => this.setState({ snack: false }), 4000); };
+  undo = () => { clearTimeout(this.t1); this.setState({ undone: true }); this.t1 = setTimeout(() => this.setState({ snack: false }), 2000); };
+  toggleBtnLoading = () => { if (this.state.btnLoading) return; this.setState({ btnLoading: true }); this.t2 = setTimeout(() => this.setState({ btnLoading: false }), 1800); };
+  renderVals() {
+    const s = this.state;
+    const status = {
+      success: { bg: '#E7F1EA', fg: '#2F6B4F', icon: 'check_circle' },
+      warning: { bg: '#FCEFD6', fg: '#8A5300', icon: 'schedule' },
+      error: { bg: '#FDECEA', fg: '#C62828', icon: 'error' },
+      info: { bg: '#E6EEF2', fg: '#3F5B6B', icon: 'info' },
+      neutral: { bg: '#F7EDE4', fg: '#6E5D63', icon: 'edit_note' },
+    };
+    const rows = [
+      ['HY-2412-009', 'Hoàng Lan Chi & Bùi Tiến Dũng', '14/12/2026 · 18:00', 'Ngọc Trai', 38, '54.720.000 ₫', 'Quá hạn thanh toán', 'error'],
+      ['HY-2412-018', 'Nguyễn Minh Anh & Trần Quốc Huy', '20/12/2026 · 10:30', 'Ngọc Trai', 42, '60.480.000 ₫', 'Đã đặt cọc', 'success'],
+      ['HY-2412-021', 'Lê Thảo Vy & Phạm Đức Long', '26/12/2026 · 17:30', 'Hồng Ngọc', 30, '43.200.000 ₫', 'Chờ duyệt', 'warning'],
+      ['HY-2501-003', 'Đỗ Hà My & Vũ Hoàng Nam', '04/01/2027 · 11:00', 'Kim Cương', 55, '86.900.000 ₫', 'Đang tư vấn', 'info'],
+      ['HY-2501-011', 'Phan Ngọc Hân & Đặng Minh Khoa', '18/01/2027 · 10:30', 'Hồng Ngọc', 25, '39.500.000 ₫', 'Bản nháp', 'neutral'],
+    ].map(r => ({ id: r[0], couple: r[1], date: r[2], hall: r[3], tables: r[4], total: r[5], status: r[6], ...status[r[7]] }));
+
+    const booked = [5, 6, 12, 13, 19, 26, 27], lucky = [10, 17, 24];
+    const calDays = [{ label: '', aria: '', bg: 'transparent', color: '#2B1D22', deco: 'none', weight: 400 }];
+    for (let d = 1; d <= 31; d++) {
+      const sel = d === 20, b = booked.includes(d), l = lucky.includes(d);
+      calDays.push({ label: d, aria: `${d}/12/2026${b ? ', đã kín lịch' : ''}${sel ? ', đã chọn' : ''}`,
+        bg: sel ? '#7A1F3D' : 'transparent', color: sel ? '#FFFFFF' : b ? '#A39797' : '#2B1D22',
+        deco: b ? 'line-through' : 'none', weight: sel ? 600 : 400 });
+      if (l && !sel) calDays[calDays.length - 1].bg = 'transparent', calDays[calDays.length - 1].color = '#2B1D22', calDays[calDays.length - 1].weight = 600;
+    }
+    calDays.forEach(d => { if (lucky.includes(d.label)) d.bg = 'radial-gradient(circle, transparent 17px, #C9A46A 17px, #C9A46A 18.5px, transparent 19px)'; });
+
+    const stepData = [
+      ['Tư vấn', '02/03/2026', 'done'], ['Hợp đồng', '15/03/2026', 'done'], ['Đặt cọc', '20/03/2026', 'done'],
+      ['Chuẩn bị', 'Đang diễn ra', 'current'], ['Ngày cưới', '20/12/2026', 'todo'], ['Quyết toán', 'Trước 06/12', 'todo'],
+    ];
+    const steps = stepData.map(([label, meta, st], i) => ({
+      label, meta, num: st === 'done' ? '' : i + 1, icon: st === 'done' ? 'check' : '',
+      current: st === 'current' ? 'step' : 'false',
+      bg: st === 'done' ? '#7A1F3D' : '#FFFFFF', fg: st === 'done' ? '#FFFFFF' : st === 'current' ? '#7A1F3D' : '#6E5D63',
+      border: st === 'done' ? 'none' : st === 'current' ? '2px solid #7A1F3D' : '1.5px solid #9A877F',
+      ring: st === 'current' ? '0 0 0 4px #F5E4E9' : 'none',
+      weight: st === 'todo' ? 500 : 600, labelColor: st === 'todo' ? '#6E5D63' : '#2B1D22',
+      line: stepData[i + 1] && stepData[i + 1][2] !== 'todo' ? '#7A1F3D' : '#EADFD6', lineDisplay: i < 5 ? 'block' : 'none',
+    }));
+
+    const tabsData = [
+      { label: 'Tổng quan', panel: '42 bàn · Sảnh Ngọc Trai · 20/12/2026 lúc 10:30. Đã đặt cọc 18.144.000 ₫.' },
+      { label: 'Thực đơn', panel: 'Thực đơn tiệc trưa gói Hồng Hỷ: 8 món, 1.440.000 ₫/bàn. Đổi tab dùng fade-through 300ms.' },
+      { label: 'Khách mời', badge: 3, panel: '420 khách · 312 đã xác nhận tham dự · 3 phản hồi mới chưa đọc.' },
+      { label: 'Thanh toán', panel: 'Còn lại 42.336.000 ₫ · hạn quyết toán 06/12/2026.' },
+    ];
+    const tabs = tabsData.map((t, i) => ({ label: t.label, badge: t.badge || 0, selected: i === s.tab ? 'true' : 'false',
+      color: i === s.tab ? '#7A1F3D' : '#6E5D63', weight: i === s.tab ? 600 : 500, select: () => this.setState({ tab: i }) }));
+
+    const E = { dec: 'cubic-bezier(0.05,0.7,0.1,1)', acc: 'cubic-bezier(0.3,0,0.8,0.15)', emp: 'cubic-bezier(0.2,0,0,1)' };
+    const motionTokens = [
+      { name: 'duration.fast · 150ms', desc: 'Nhấn nút, toggle, chip', d: 150, e: E.emp },
+      { name: 'duration.medium · 250ms', desc: 'Card, đổi tab, snackbar', d: 250, e: E.dec },
+      { name: 'duration.medium2 · 300ms', desc: 'Sheet, shared-axis', d: 300, e: E.dec },
+      { name: 'duration.long · 400ms', desc: 'Hero ảnh', d: 400, e: E.emp },
+      { name: 'duration.long2 · 450ms', desc: 'Chuyển trang, container transform', d: 450, e: E.emp },
+      { name: 'exit · 250ms accelerate', desc: 'Phần tử rời màn hình', d: 250, e: E.acc },
+    ].map(m => ({ ...m, transition: `transform ${m.d}ms ${m.e}` }));
+
+    const spacing = [[1, 4, 'Khoảng icon–chữ nhỏ'], [2, 8, 'Gap trong chip, nhóm nút'], [3, 12, 'Padding chip, khoảng hàng'], [4, 16, 'Padding card, lề Android'], [5, 20, 'Padding card lớn'], [6, 24, 'Lề web, giữa các card'], [8, 32, 'Lề web rộng'], [10, 40, 'Giữa các khối'], [12, 48, 'Vùng chạm tối thiểu'], [16, 64, 'Giữa các section']]
+      .map(([n, px, use]) => ({ name: `space.${n}`, px: px + 'px', w: px * 4 + 'px', use }));
+
+    const spec = [
+      ['Nhấn (press scale)', 'Mọi nút, chip, card có thể nhấn', '150ms', 'standard', 'AnimatedScale(scale: pressed ? 0.97 : 1)'],
+      ['Toggle / chọn chip', 'FilterChip, Switch, radio', '150ms', 'standard', 'AnimatedContainer (chỉ màu) · AnimatedSwitcher cho icon'],
+      ['Fade-through', 'Đổi tab, NavigationBar, mục ngang hàng', '300ms (ra 90 · vào 210)', 'accelerate → decelerate', 'FadeThroughTransition · PageTransitionSwitcher'],
+      ['Shared axis X', 'Danh sách → chi tiết, wizard', '300ms', 'emphasized', 'SharedAxisTransition · PageTransitionsTheme'],
+      ['Hero', 'Ảnh sảnh, món, thiệp: danh sách → chi tiết', '400ms', 'emphasized', 'Hero(tag) · MaterialRectArcTween'],
+      ['Container transform', 'Card tiệc mở thành trang', '450ms', 'emphasized', 'OpenContainer (package animations)'],
+      ['Chuyển trang chung', 'Navigator push/pop', '450ms / 400ms', 'emphasizedDecelerate / Accelerate', 'PageTransitionsTheme + SharedAxisPageTransitionsBuilder'],
+      ['Card / nội dung xuất hiện', 'Card mới, khối tải xong', '250ms', 'emphasizedDecelerate', 'AnimatedSwitcher + FadeTransition + SlideTransition'],
+      ['Bottom sheet', 'Chọn giờ, bộ lọc trên Android', '300ms vào · 250ms ra', 'decelerate / accelerate', 'showModalBottomSheet(sheetAnimationStyle)'],
+      ['Dialog', 'Xác nhận huỷ, duyệt', '250ms vào · 150ms ra', 'decelerate / accelerate', 'showDialog · FadeTransition + ScaleTransition 0.92→1'],
+      ['Snackbar', 'Hoàn tác, lỗi thao tác lạc quan', '250ms vào · 150ms ra', 'decelerate / accelerate', 'ScaffoldMessenger.showSnackBar(snackBarAnimationStyle)'],
+      ['Tick tự vẽ', 'Duyệt thành công', '300ms', 'emphasizedDecelerate', 'CustomPainter + PathMetric.extractPath + AnimationController'],
+      ['Đếm số tiền', 'Thẻ số tiền lần đầu hiển thị', '800ms', 'emphasizedDecelerate', 'TweenAnimationBuilder<double> + NumberFormat("#,###", "vi")'],
+      ['Ăn mừng cánh hoa', 'Đặt cọc thành công, hai bên duyệt hợp đồng', '≤ 1200ms, 1 lần', 'decelerate', 'AnimationController.forward() + CustomPainter (không lặp)'],
+      ['Skeleton shimmer', 'Mọi màn đang tải', '1200ms/chu kỳ, dừng khi có dữ liệu', 'linear', 'ShaderMask + LinearGradient(transform: GradientTransform)'],
+      ['Danh sách stagger', '8 phần tử đầu khi tải xong', '250ms, trễ 50ms/phần tử', 'emphasizedDecelerate', 'AnimationController + Interval + FadeTransition/SlideTransition'],
+      ['App bar co giãn', 'Trang chi tiết tiệc, sảnh', 'Theo cuộn', '—', 'SliverAppBar.large · FlexibleSpaceBar'],
+      ['Parallax', 'Chỉ trang công khai (ảnh hero)', 'Theo cuộn, hệ số 0.3', '—', 'Flow + FlowDelegate (đọc ScrollPosition)'],
+      ['Hiện dần khi cuộn', 'Chỉ trang công khai', '400ms', 'emphasizedDecelerate', 'AnimatedOpacity + AnimatedSlide (kích hoạt 1 lần)'],
+      ['Banner mất mạng', 'Mọi màn, khi offline', '250ms', 'decelerate / accelerate', 'AnimatedSlide + AnimatedOpacity · MaterialBanner'],
+      ['Splash → khung đầu', 'Flutter Web lần tải đầu', '300ms', 'emphasizedAccelerate', 'HTML/CSS trong web/index.html · gỡ khi có sự kiện "flutter-first-frame"'],
+      ['Giảm chuyển động', 'Toàn hệ thống', '≤ 150ms', 'linear', 'MediaQuery.disableAnimationsOf → FadeTransition'],
+    ].map(([name, where, dur, ease, widget]) => ({ name, where, dur, ease, widget }));
+
+    return {
+      rows, calDays, steps, tabs, spec, spacing, motionTokens,
+      weekdays: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+      skel: [{ a: '60%', b: '35%' }, { a: '48%', b: '30%' }, { a: '66%', b: '40%' }, { a: '52%', b: '28%' }],
+      tabX: `translateX(${s.tab * 100}%)`, tabPanel: tabsData[s.tab].panel,
+      runT: s.run ? 'translateX(100%)' : 'translateX(0)',
+      toggleRun: () => this.setState({ run: !s.run }),
+      btnLoading: s.btnLoading, btnBusy: s.btnLoading ? 'true' : 'false', btnLabel: s.btnLoading ? 'Đang xử lý…' : 'Xác nhận đặt cọc',
+      toggleBtnLoading: this.toggleBtnLoading,
+      showSnack: this.showSnack, undo: this.undo,
+      snackMsg: s.undone ? 'Đã khôi phục khách Trần Bảo Ngọc' : 'Đã xoá khách Trần Bảo Ngọc',
+      snackUndo: !s.undone,
+      snackT: s.snack ? 'translateY(0)' : 'translateY(24px)', snackO: s.snack ? 1 : 0,
+      snackTr: s.snack ? 'transform 250ms cubic-bezier(0.05,0.7,0.1,1), opacity 250ms cubic-bezier(0.05,0.7,0.1,1)' : 'transform 150ms cubic-bezier(0.3,0,0.8,0.15), opacity 150ms cubic-bezier(0.3,0,0.8,0.15)',
+    };
+  }
+}
+</script>
+</body>
+</html>

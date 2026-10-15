@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;flex-direction:column;gap:16px">
+  <div role="tablist" aria-label="Phụ lục và quyết toán" style="display:flex;gap:4px;background:#F7EDE4;border-radius:12px;padding:4px;overflow-x:auto;align-self:flex-start;max-width:100%"><sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4"><button role="tab" aria-selected="{{ t.aria }}" onClick="{{ t.click }}" style="height:40px;flex:none;padding:0 14px;border:none;border-radius:10px;font-size:14px;font-weight:600;background:{{ t.bg }};color:{{ t.fg }};box-shadow:{{ t.sh }}">{{ t.label }}</button></sc-for></div>
+  <div ref="{{ refs.body }}" style="display:flex;flex-direction:column;gap:16px">
+    <sc-if value="{{ isAdd }}" hint-placeholder-val="{{ true }}">
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><div style="flex:1 1 220px;display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:#6E5D63">Phụ lục 1 · Hợp đồng HD-HY-2612-020</span><strong style="font-size:20px">Phiên bản 1 · tăng số bàn</strong><span style="font-size:13px;color:#6E5D63">Nhà hàng tạo ngày 14/10/2026</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{ sides }}" as="sd" hint-placeholder-count="2"><span style="height:32px;padding:0 12px 0 8px;border-radius:12px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;background:{{ sd.bg }};color:{{ sd.fg }}"><i style="font-size:18px">{{ sd.icon }}</i>{{ sd.who }}: {{ sd.label }}</span></sc-for></div></div>
+        <sc-if value="{{ addOk }}" hint-placeholder-val="{{ false }}"><div role="status" style="display:flex;align-items:center;gap:10px;border-radius:12px;background:#E7F1EA;padding:10px 14px;font-size:14px;font-weight:600;color:#2F6B4F"><span ref="{{ refs.tickC }}" style="width:28px;height:28px;border-radius:50%;background:#2F6B4F;display:flex;align-items:center;justify-content:center;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path ref="{{ refs.tickP }}" d="M6 12.5l4 4L18 8.5" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="24"></path></svg></span>Hai bên đã duyệt phụ lục. Tổng mới 214.600.000 ₫.</div></sc-if>
+        <sc-if value="{{ addWait }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:8px;flex-wrap:wrap"><button onClick="{{ approveAdd }}" style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px" style-hover="background:#87334F"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>Duyệt phụ lục</button><button onClick="{{ pdf }}" style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px" style-hover="background:#F4E7E3"><i>picture_as_pdf</i>Tải PDF</button></div></sc-if>
+      </div>
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+        <div style="display:grid;grid-template-columns:{{ L.cmp }};gap:12px;padding:12px 20px;background:#FBF6F1;font-size:13px;font-weight:600;color:#6E5D63"><span>Hạng mục</span><span>Trước</span><span>Sau</span></div>
+        <div data-stagger="1"><sc-for list="{{ addRows }}" as="r" hint-placeholder-count="4"><div style="display:grid;grid-template-columns:{{ L.cmp }};gap:12px;padding:12px 20px;border-top:1px solid #EADFD6;font-size:14px;align-items:center;font-variant-numeric:tabular-nums"><strong style="font-size:15px">{{ r.name }}</strong><span style="color:#6E5D63">{{ r.a }}</span><span style="display:flex;flex-direction:column;gap:4px;padding:6px 8px;margin:-6px -8px;border-radius:8px;background:{{ r.bg }}"><span style="font-weight:{{ r.fw }}">{{ r.b }}</span><sc-if value="{{ r.changed }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;font-weight:700;color:#8A5300">{{ r.diff }}</span></sc-if></span></div></sc-for></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isCost }}" hint-placeholder-val="{{ false }}">
+      <div style="border-radius:12px;background:#F7EDE4;padding:10px 14px;display:flex;gap:8px;align-items:center;font-size:14px"><i style="font-size:18px;color:#6E5D63">visibility</i>Nhà hàng ghi nhận chi phí phát sinh trong tiệc. Bạn chỉ xem; thắc mắc vui lòng liên hệ quản lý tiệc.</div>
+      <sc-if value="{{ beforeParty }}" hint-placeholder-val="{{ true }}"><div style="border:1px dashed #D9C8BC;border-radius:16px;background:#FFFFFF;padding:32px 24px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center"><i style="font-size:32px;color:#7A1F3D">playlist_add</i><strong style="font-size:16px">Chưa có chi phí phát sinh</strong><span style="font-size:14px;color:#6E5D63">Chi phí phát sinh được ghi nhận trong ngày cưới 20/12/2026.</span></div></sc-if>
+      <sc-if value="{{ afterParty }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden"><div data-stagger="1"><sc-for list="{{ costs }}" as="r" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:12px 20px;border-top:1px solid #EADFD6"><strong style="font-size:15px">{{ r.name }}</strong><strong style="font-size:15px;text-align:right;font-variant-numeric:tabular-nums">{{ r.amt }}</strong><span style="font-size:13px;color:#6E5D63;font-variant-numeric:tabular-nums">{{ r.calc }}</span><span style="font-size:12px;color:#6E5D63;text-align:right">{{ r.at }}</span></div></sc-for></div><div style="display:flex;gap:12px;padding:14px 20px;border-top:1px solid #2B1D22;font-size:15px;font-weight:700"><span style="flex:1">Tổng chi phí phát sinh</span><span style="font-variant-numeric:tabular-nums">6.700.000 ₫</span></div></div></sc-if>
+    </sc-if>
+
+    <sc-if value="{{ isInv }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ beforeParty }}" hint-placeholder-val="{{ true }}"><div style="border:1px dashed #D9C8BC;border-radius:16px;background:#FFFFFF;padding:32px 24px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center"><i style="font-size:32px;color:#7A1F3D">receipt_long</i><strong style="font-size:16px">Hoá đơn cuối có sau ngày cưới</strong><span style="font-size:14px;color:#6E5D63">Gồm hợp đồng, phụ lục và chi phí phát sinh. Nhà hàng chốt hoá đơn sau tiệc.</span></div></sc-if>
+      <sc-if value="{{ afterParty }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px 24px;display:flex;flex-direction:column;gap:10px;max-width:640px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><strong style="flex:1;font-size:18px">Hoá đơn HĐ-HY-2612-020 · phiên bản 1</strong><span style="height:26px;padding:0 10px;border-radius:13px;background:#E7F1EA;color:#2F6B4F;font-size:12px;font-weight:600;display:inline-flex;align-items:center">Đã chốt 21/12/2026</span></div>
+        <sc-for list="{{ inv }}" as="r" hint-placeholder-count="5"><div style="display:flex;gap:12px;min-height:40px;align-items:center;border-top:1px solid #EADFD6;font-size:15px;font-weight:{{ r.fw }};color:{{ r.c }}"><span style="flex:1">{{ r.k }}</span><span style="font-variant-numeric:tabular-nums">{{ r.v }}</span></div></sc-for>
+        <button onClick="{{ pdf }}" style="align-self:flex-start;height:48px;padding:0 16px;border:1px solid #7A1F3D;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px" style-hover="background:#F4E7E3"><i>picture_as_pdf</i>Tải hoá đơn PDF</button>
+      </div></sc-if>
+    </sc-if>
+
+    <sc-if value="{{ isBal }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:{{ L.two }};gap:16px;align-items:start">
+        <div style="border-radius:16px;background:#7A1F3D;color:#FFF8F1;padding:24px;display:flex;flex-direction:column;gap:10px"><span style="font-size:14px;color:#F3E9E1">{{ bal.label }}</span><span ref="{{ refs.bal }}" style="font-family:'Playfair Display',serif;font-size:40px;line-height:48px;font-weight:600;font-variant-numeric:tabular-nums lining-nums">{{ bal.v }}</span><span style="font-size:14px;line-height:22px;color:#F3E9E1">{{ bal.note }}</span></div>
+        <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:10px"><strong style="font-size:16px">Đã thanh toán</strong><div style="display:flex;gap:12px;font-size:15px;min-height:40px;align-items:center;border-top:1px solid #EADFD6"><span style="flex:1">Đặt cọc · VNPay · 15/10/2026</span><span style="font-variant-numeric:tabular-nums">60.480.000 ₫</span></div><span style="font-size:14px;line-height:22px;color:#6E5D63">Thanh toán số dư tại quầy hoặc chuyển khoản theo hướng dẫn của quản lý tiệc Phạm Ngọc Lan · 0903 118 226.</span></div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tab: 'add', addOk: false, busy: false };
+  el = {}; _rf = {};
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  get ctx() { return this.props.ctx || {}; }
+  get M() { return window.HYMotion; }
+  setTab(t) { const M = this.M; if (!M) return this.setState({ tab: t }); M.fin(M.play(this.el.body, [{ opacity: 1 }, { opacity: 0 }], 90, M.E.ACC, { fill: 'forwards' })).then(() => this.setState({ tab: t }, () => { M.play(this.el.body, [{ opacity: 0, transform: 'scale(0.96)' }, { opacity: 1, transform: 'none' }], 210, M.E.DEC); M.stagger(this.el.body); if (t === 'bal' && this.ctx.phase === 'after') M.countUp(this.el.bal, 0, 160820000, 800); })); }
+  renderVals() {
+    const c = this.ctx, s = this.state, after = c.phase === 'after', ok = s.addOk || after;
+    const ST = { ok: ['Đã duyệt', 'check_circle', '#E7F1EA', '#2F6B4F'], wait: ['Chờ duyệt', 'schedule', '#FCEFD6', '#8A5300'] };
+    return {
+      refs: new Proxy({}, { get: (_, n) => typeof n === 'string' ? this.rf(n) : undefined }),
+      tabs: [['add', 'Phụ lục'], ['cost', 'Chi phí phát sinh'], ['inv', 'Hoá đơn cuối'], ['bal', 'Số dư cần trả']].map(([v, label]) => { const on = s.tab === v; return { label, aria: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', fg: on ? '#7A1F3D' : '#6E5D63', sh: on ? '0 1px 3px rgba(43,29,34,0.12)' : 'none', click: () => !on && this.setTab(v) }; }),
+      isAdd: s.tab === 'add', isCost: s.tab === 'cost', isInv: s.tab === 'inv', isBal: s.tab === 'bal', beforeParty: !after, afterParty: after,
+      sides: [['Nhà hàng', 'ok'], ['Bạn', ok ? 'ok' : 'wait']].map(([who, k]) => ({ who, label: ST[k][0], icon: ST[k][1], bg: ST[k][2], fg: ST[k][3] })),
+      addOk: ok, addWait: !ok, busy: s.busy,
+      approveAdd: () => { if (s.busy) return; this.setState({ busy: true }); setTimeout(() => { if (c.sim && c.sim.reject) { this.setState({ busy: false }); c.toast('Không duyệt được phụ lục. Mã: req_5e17c2a0'); return; } this.setState({ busy: false, addOk: true }, () => this.M && this.M.tick(this.el.tickC, this.el.tickP)); c.toast('Phụ lục 1 đã được duyệt đủ 2 bên'); }, 800); },
+      addRows: [['Thực đơn Hoa Sen', '30 bàn · 195.000.000 ₫', '32 bàn · 208.000.000 ₫', '+2 bàn · +13.000.000 ₫'], ['Thiệp cưới in', '300 thiệp · 3.600.000 ₫', '300 thiệp · 3.600.000 ₫'], ['MC dẫn chương trình', '1 gói · 3.000.000 ₫', '1 gói · 3.000.000 ₫'], ['Tổng hợp đồng', '201.600.000 ₫', '214.600.000 ₫', '+13.000.000 ₫']].map(([name, a, b, diff]) => ({ name, a, b, diff: diff || '', changed: !!diff, bg: diff ? '#FCEFD6' : 'transparent', fw: diff ? 700 : 400 })),
+      costs: [['Bia Tiger thêm', '10 thùng × 420.000 ₫', '4.200.000 ₫', '12:40 · 20/12'], ['Nước ngọt thêm', '60 lon × 15.000 ₫', '900.000 ₫', '12:55 · 20/12'], ['Phụ thu quá giờ', '30 phút', '1.600.000 ₫', '14:30 · 20/12']].map(([name, calc, amt, at]) => ({ name, calc, amt, at })),
+      inv: [['Hợp đồng phiên bản 2', '201.600.000 ₫'], ['Phụ lục 1', '+13.000.000 ₫'], ['Chi phí phát sinh', '+6.700.000 ₫'], ['Tổng hoá đơn', '221.300.000 ₫', 700], ['Đã đặt cọc', '−60.480.000 ₫', 400, '#2F6B4F'], ['Số dư cần trả', '160.820.000 ₫', 700, '#7A1F3D']].map(([k, v, fw, cc]) => ({ k, v, fw: fw || 400, c: cc || '#2B1D22' })),
+      bal: after ? { label: 'Số dư cần trả · hạn 27/12/2026', v: '160.820.000 ₫', note: 'Theo hoá đơn cuối 221.300.000 ₫ trừ tiền cọc 60.480.000 ₫.' } : { label: 'Còn lại theo hợp đồng', v: '141.120.000 ₫', note: 'Số dư chính thức được chốt trên hoá đơn cuối sau ngày cưới.' },
+      pdf: () => c.toast('Đang tải PDF'),
+      L: c.mobile ? { cmp: 'minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)', two: 'minmax(0,1fr)' } : { cmp: 'minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr)', two: 'minmax(0,1fr) minmax(0,1fr)' },
+    };
+  }
+}
+</script>
+</body>
+</html>

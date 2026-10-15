@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <span style="font-size:14px;font-weight:600">Mẫu sơ đồ</span>
+    <div role="radiogroup" aria-label="Mẫu sơ đồ" style="display:flex;background:#F7EDE4;border-radius:12px;padding:3px;gap:2px;flex-wrap:wrap"><sc-for list="{{ tpls }}" as="t" hint-placeholder-count="2"><button role="radio" aria-checked="{{ t.aria }}" onClick="{{ t.pick }}" style="height:40px;padding:0 12px;border:none;border-radius:10px;font-size:13px;font-weight:600;background:{{ t.bg }};color:{{ t.fg }};box-shadow:{{ t.sh }}">{{ t.label }}</button></sc-for></div>
+    <span style="margin-left:auto;font-size:13px;color:#6E5D63;font-variant-numeric:tabular-nums">{{ summary }}</span>
+  </div>
+  <div style="display:grid;grid-template-columns:{{ L.cols }};gap:16px;align-items:start">
+    <div ref="{{ refs.canvas }}" onPointerDown="{{ panDown }}" aria-label="Sơ đồ bàn Sảnh Ngọc Trai" style="position:relative;height:{{ L.h }};border:1px solid #EADFD6;border-radius:16px;overflow:hidden;background-color:#FBF6F1;background-image:radial-gradient(#E3D6CC 1px,transparent 1px);background-size:24px 24px;touch-action:none;cursor:grab">
+      <div style="position:absolute;left:0;top:0;width:1000px;height:680px;transform-origin:0 0;transform:{{ view }}">
+        <div style="position:absolute;left:330px;top:24px;width:340px;height:56px;border-radius:12px;background:#2B1D22;color:#FFF8F1;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;letter-spacing:0.08em">SÂN KHẤU</div>
+        <div style="position:absolute;left:470px;top:110px;width:60px;height:540px;border-left:1px dashed #D9C8BC;border-right:1px dashed #D9C8BC;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;font-size:11px;color:#6E5D63">lối đi</div>
+        <sc-for list="{{ tables }}" as="t" hint-placeholder-count="30">
+          <button data-table="1" onClick="{{ t.click }}" aria-label="{{ t.aria }}" style="position:absolute;left:{{ t.x }};top:{{ t.y }};width:{{ t.w }};height:{{ t.h }};border-radius:{{ t.r }};border:{{ t.bd }};background:#FFFFFF;padding:0;overflow:hidden;box-shadow:{{ t.sh }};cursor:pointer" style-focus="outline:none;box-shadow:0 0 0 3px #7A1F3D">
+            <span ref="{{ t.ref }}" style="position:absolute;inset:0;border-radius:inherit;background:{{ t.bg }}"></span>
+            <span style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;line-height:14px"><strong style="font-size:14px;color:{{ t.fg }}">{{ t.n }}</strong><span style="font-size:10px;color:{{ t.fg }}">{{ t.seats }} chỗ</span></span>
+          </button>
+        </sc-for>
+        <sc-if value="{{ pop.open }}" hint-placeholder-val="{{ false }}">
+          <div ref="{{ refs.pop }}" data-table="1" role="dialog" aria-label="{{ pop.title }}" style="position:absolute;left:{{ pop.x }};top:{{ pop.y }};width:220px;border-radius:16px;background:#FFFFFF;box-shadow:0 6px 24px rgba(43,29,34,0.18);padding:8px;display:flex;flex-direction:column;gap:2px;z-index:5;transform-origin:{{ pop.origin }}">
+            <strong style="font-size:14px;padding:8px 10px 6px">{{ pop.title }}</strong>
+            <sc-for list="{{ pop.opts }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.pick }}" aria-pressed="{{ o.aria }}" style="min-height:44px;border:none;border-radius:10px;background:{{ o.bg }};display:flex;align-items:center;gap:10px;padding:0 10px;font-size:14px;color:#2B1D22;text-align:left" style-hover="background:#FBF1EC"><span style="width:14px;height:14px;border-radius:50%;background:{{ o.c }};border:{{ o.bd }}"></span><span style="flex:1">{{ o.label }}</span><sc-if value="{{ o.on }}" hint-placeholder-val="{{ false }}"><i style="font-size:18px;color:#7A1F3D">check</i></sc-if></button></sc-for>
+          </div>
+        </sc-if>
+      </div>
+      <div style="position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:4px;background:#FFFFFF;border:1px solid #EADFD6;border-radius:12px;padding:4px"><button onClick="{{ zoomIn }}" aria-label="Phóng to" style="width:40px;height:40px;border:none;border-radius:8px;background:transparent;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>add</i></button><button onClick="{{ zoomOut }}" aria-label="Thu nhỏ" style="width:40px;height:40px;border:none;border-radius:8px;background:transparent;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>remove</i></button><button onClick="{{ fit }}" aria-label="Vừa khung" style="width:40px;height:40px;border:none;border-radius:8px;background:transparent;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>fit_screen</i></button></div>
+      <span style="position:absolute;left:12px;bottom:12px;height:28px;padding:0 10px;border-radius:14px;background:rgba(255,255,255,0.92);font-size:12px;color:#6E5D63;display:flex;align-items:center">{{ zoomTxt }} · kéo để di chuyển · chạm bàn để gán nhóm</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:10px">
+        <strong style="font-size:15px">Chú thích nhóm</strong>
+        <sc-for list="{{ legend }}" as="g" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px"><span style="width:14px;height:14px;border-radius:50%;background:{{ g.c }};border:{{ g.bd }}"></span><span>{{ g.name }}</span><span style="font-size:13px;color:#6E5D63;font-variant-numeric:tabular-nums">{{ g.meta }}</span></div></sc-for>
+      </div>
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:10px">
+        <strong style="font-size:15px">Cảnh báo sức chứa</strong>
+        <sc-if value="{{ noWarn }}" hint-placeholder-val="{{ false }}"><span style="display:flex;gap:8px;font-size:14px;color:#2F6B4F"><i style="font-size:20px">check_circle</i>Mọi nhóm đã đủ chỗ.</span></sc-if>
+        <sc-for list="{{ warns }}" as="w" hint-placeholder-count="2"><div style="display:flex;gap:8px;align-items:flex-start;border-radius:12px;background:{{ w.bg }};padding:10px 12px;font-size:13px;line-height:20px"><i style="font-size:18px;color:{{ w.fg }}">{{ w.icon }}</i><span>{{ w.text }}</span></div></sc-for>
+      </div>
+      <sc-if value="{{ confirmed }}" hint-placeholder-val="{{ false }}"><div role="status" style="border-radius:12px;background:#E7F1EA;padding:12px 14px;display:flex;gap:8px;font-size:14px;color:#2F6B4F;font-weight:600"><i style="font-size:20px">check_circle</i>Đã xác nhận sơ đồ lúc 10:58 · nhà hàng sẽ chuẩn bị theo sơ đồ này.</div></sc-if>
+      <button onClick="{{ confirm }}" disabled="{{ cantConfirm }}" style="height:52px;border:none;border-radius:12px;background:{{ cBg }};color:{{ cFg }};font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="opacity:0.92"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ cLabel }}</button>
+      <sc-if value="{{ cantConfirm }}" hint-placeholder-val="{{ true }}"><span style="font-size:13px;color:#6E5D63">{{ cHint }}</span></sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  G = { trai: ['Nhà trai', '#3F5B6B', '#E6EEF2', 100], gai: ['Nhà gái', '#7A1F3D', '#F5E4E9', 110], ban: ['Bạn bè', '#8A5300', '#FCEFD6', 50], dn: ['Đồng nghiệp', '#2F6B4F', '#E7F1EA', 20] };
+  mkA() { const xs = [70, 210, 350, 590, 730, 870], ys = [130, 230, 330, 430, 530], out = []; let n = 1; ys.forEach((y, ri) => xs.forEach((x, ci) => { const rect = ri === 0 && (ci === 2 || ci === 3); out.push({ id: n, n: n++, x: rect ? (ci === 2 ? 330 : 550) : x, y, rect, seats: rect ? 12 : 10 }); })); return out; }
+  mkB() { const out = []; let n = 1; [[340, 120], [540, 120]].forEach(([x, y]) => out.push({ id: n, n: n++, x, y, rect: true, seats: 12 })); for (let r = 0; r < 5; r++) { const off = r % 2 ? 60 : 0, y = 210 + r * 92, cols = [40, 160, 280, 600, 720, 840].map(x => x + (x < 500 ? off : -off)); cols.forEach(x => { if (out.length < 30) out.push({ id: n, n: n++, x, y, rect: false, seats: 10 }); }); } return out; }
+  init(tpl) { const t = tpl === 'B' ? this.mkB() : this.mkA(), a = {}; const plan = [['trai', 10], ['gai', 9], ['ban', 5], ['dn', 2]]; let i = 0; plan.forEach(([g, k]) => { for (let j = 0; j < k; j++) a[t[i++].id] = g; }); return { tables: t, assign: a }; }
+  state = { tpl: 'A', ...this.init('A'), pop: null, z: 0.7, tx: 10, ty: 6, confirmed: false, busy: false };
+  el = {}; _rf = {};
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  get ctx() { return this.props.ctx || {}; }
+  get M() { return window.HYMotion; }
+  componentDidMount() { this.fit(); this.onWheel = e => { e.preventDefault(); this.zoomAt(e.deltaY < 0 ? 1.1 : 1 / 1.1, e); }; this.el.canvas && this.el.canvas.addEventListener('wheel', this.onWheel, { passive: false }); }
+  componentWillUnmount() { this.el.canvas && this.el.canvas.removeEventListener('wheel', this.onWheel); clearTimeout(this.t); }
+  sc() { return this.ctx.scale || 1; }
+  fit = () => { const cv = this.el.canvas; if (!cv) return; const w = cv.clientWidth, h = cv.clientHeight, z = Math.min(w / 1000, h / 680) * 0.98; this.setState({ z, tx: (w - 1000 * z) / 2, ty: (h - 680 * z) / 2 }); };
+  zoomAt(f, e) { const cv = this.el.canvas, s = this.state; if (!cv) return; const r = cv.getBoundingClientRect(), k = this.sc(); const px = e ? (e.clientX - r.left) / k : cv.clientWidth / 2, py = e ? (e.clientY - r.top) / k : cv.clientHeight / 2; const z = Math.max(0.35, Math.min(2.2, s.z * f)); this.setState({ z, tx: px - (px - s.tx) * z / s.z, ty: py - (py - s.ty) * z / s.z }); }
+  panDown = e => {
+    if (e.target.closest && e.target.closest('[data-table]')) return;
+    const k = this.sc(), sx = e.clientX, sy = e.clientY, tx0 = this.state.tx, ty0 = this.state.ty; let moved = false;
+    const mv = ev => { const dx = (ev.clientX - sx) / k, dy = (ev.clientY - sy) / k; if (Math.abs(dx) + Math.abs(dy) > 4) moved = true; this.setState({ tx: tx0 + dx, ty: ty0 + dy }); };
+    const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); if (!moved) this.setState({ pop: null }); };
+    window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+  };
+  ripple(id) { const M = this.M, el = this.el['f' + id]; M && M.play(el, [{ transform: 'scale(0)', opacity: 0.6 }, { transform: 'scale(1)', opacity: 1 }], 250, M.E.DEC); }
+  assign(id, g) {
+    const c = this.ctx, prev = this.state.assign[id];
+    this.setState(s => { const a = { ...s.assign }; if (g) a[id] = g; else delete a[id]; return { assign: a, pop: null, confirmed: false }; }, () => this.ripple(id));
+    if (c.sim && c.sim.reject) this.t = setTimeout(() => { this.setState(s => { const a = { ...s.assign }; if (prev) a[id] = prev; else delete a[id]; return { assign: a }; }, () => this.ripple(id)); c.toast(`Không gán được bàn ${id}. Đã hoàn lại. Mã: req_0c8f5e12`); }, 700);
+  }
+  openPop(t) { this.setState({ pop: t.id }, () => this.M && this.M.play(this.el.pop, [{ opacity: 0, transform: 'scale(0.92)' }, { opacity: 1, transform: 'none' }], 150, this.M.E.DEC)); }
+  renderVals() {
+    const c = this.ctx, m = !!c.mobile, s = this.state, G = this.G;
+    const seatsBy = {}; Object.keys(G).forEach(k => seatsBy[k] = { seats: 0, tables: 0 });
+    s.tables.forEach(t => { const g = s.assign[t.id]; if (g) { seatsBy[g].seats += t.seats; seatsBy[g].tables++; } });
+    const totalSeats = s.tables.reduce((a, t) => a + t.seats, 0), unassigned = s.tables.filter(t => !s.assign[t.id]);
+    const warns = []; Object.entries(G).forEach(([k, [name, , , n]]) => { const sb = seatsBy[k]; if (sb.seats < n) warns.push({ icon: 'warning', bg: '#FCEFD6', fg: '#8A5300', text: `${name}: ${n} khách, ${sb.tables} bàn = ${sb.seats} chỗ · thiếu ${n - sb.seats} chỗ.` }); else if (sb.seats - n >= 10) warns.push({ icon: 'info', bg: '#E6EEF2', fg: '#3F5B6B', text: `${name}: dư ${sb.seats - n} chỗ, có thể bớt 1 bàn.` }); });
+    if (unassigned.length) warns.push({ icon: 'table_restaurant', bg: '#F7EDE4', fg: '#6E5D63', text: `${unassigned.length} bàn chưa gán nhóm: ${unassigned.map(t => t.n).join(', ')}.` });
+    const lacking = Object.entries(G).some(([k, v]) => seatsBy[k].seats < v[3]);
+    const tables = s.tables.map(t => { const g = s.assign[t.id], gg = g ? G[g] : null, w = t.rect ? 120 : 76, h = t.rect ? 60 : 76;
+      return { n: t.n, seats: t.seats, x: t.x + 'px', y: t.y + 'px', w: w + 'px', h: h + 'px', r: t.rect ? '12px' : '50%', bd: gg ? `2px solid ${gg[1]}` : '2px dashed #9A877F', bg: gg ? gg[2] : '#FFFFFF', fg: gg ? gg[1] : '#6E5D63', sh: s.pop === t.id ? '0 0 0 3px #7A1F3D' : 'none', ref: this.rf('f' + t.id), aria: `Bàn ${t.n}, ${t.seats} chỗ, ${gg ? gg[0] : 'chưa gán'}`, click: e => { e.stopPropagation(); if (s.pop === t.id) this.setState({ pop: null }); else this.openPop(t); } }; });
+    const pt = s.tables.find(t => t.id === s.pop);
+    const pop = pt ? (() => { const right = pt.x > 700, below = pt.y < 420; return { open: true, title: `Bàn ${pt.n} · ${pt.seats} chỗ`, x: (right ? pt.x - 228 : pt.x + (pt.rect ? 128 : 84)) + 'px', y: (below ? pt.y : pt.y - 170) + 'px', origin: right ? 'right top' : 'left top',
+      opts: Object.entries(G).map(([k, [label, cc, bg, n]]) => { const on = s.assign[pt.id] === k; return { label: `${label} · ${seatsBy[k].seats}/${n}`, c: bg, bd: `2px solid ${cc}`, on, aria: on ? 'true' : 'false', bg: on ? '#F5E4E9' : 'transparent', pick: () => this.assign(pt.id, k) }; }).concat([{ label: 'Bỏ gán', c: '#FFFFFF', bd: '2px dashed #9A877F', on: false, aria: 'false', bg: 'transparent', pick: () => this.assign(pt.id, null) }]) }; })() : { open: false };
+    return {
+      refs: new Proxy({}, { get: (_, n) => typeof n === 'string' ? this.rf(n) : undefined }),
+      tpls: [['A', 'Mẫu A · 2 bàn VIP + 28 bàn tròn'], ['B', 'Mẫu B · lối đi giữa']].map(([v, label]) => { const on = s.tpl === v; return { label, aria: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', fg: on ? '#7A1F3D' : '#6E5D63', sh: on ? '0 1px 3px rgba(43,29,34,0.12)' : 'none', pick: () => { if (on) return; this.setState({ tpl: v, ...this.init(v), pop: null, confirmed: false }); c.toast(`Đã đổi sang ${label.split(' · ')[0]}. Nhóm được gán lại theo thứ tự.`); } }; }),
+      summary: `30 bàn · ${totalSeats} chỗ · 280 khách dự kiến · tối đa 400`,
+      view: `translate(${s.tx}px,${s.ty}px) scale(${s.z})`, zoomTxt: Math.round(s.z * 100) + '%', tables, pop, panDown: this.panDown,
+      zoomIn: () => this.zoomAt(1.2), zoomOut: () => this.zoomAt(1 / 1.2), fit: this.fit,
+      legend: Object.entries(G).map(([k, [name, cc, bg, n]]) => ({ name, c: bg, bd: `2px solid ${cc}`, meta: `${n} khách · ${seatsBy[k].tables} bàn · ${seatsBy[k].seats} chỗ` })).concat([{ name: 'Chưa gán', c: '#FFFFFF', bd: '2px dashed #9A877F', meta: `${unassigned.length} bàn` }]),
+      warns, noWarn: warns.length === 0, confirmed: s.confirmed, busy: s.busy,
+      cantConfirm: lacking || s.confirmed, cHint: s.confirmed ? 'Sửa bất kỳ bàn nào sẽ cần xác nhận lại.' : 'Cần đủ chỗ cho mọi nhóm trước khi xác nhận.', cBg: lacking || s.confirmed ? '#E6DDD7' : '#7A1F3D', cFg: lacking || s.confirmed ? '#8C7F7C' : '#FFFFFF',
+      cLabel: s.busy ? 'Đang gửi…' : s.confirmed ? 'Đã xác nhận' : 'Xác nhận sơ đồ',
+      confirm: () => { if (s.busy) return; this.setState({ busy: true }); this.t = setTimeout(() => { if (c.sim && c.sim.reject) { this.setState({ busy: false }); c.toast('Không xác nhận được sơ đồ. Mã: req_7a3e90bd'); return; } this.setState({ busy: false, confirmed: true }); c.toast('Đã xác nhận sơ đồ bàn'); }, 900); },
+      L: m ? { cols: 'minmax(0,1fr)', h: '460px' } : { cols: 'minmax(0,1fr) 320px', h: '600px' },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap&subset=vietnamese" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block" rel="stylesheet">
+<style>
+body{margin:0;background:#FFF8F1;color:#2B1D22;font-family:'Be Vietnam Pro',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+i{font-family:'Material Symbols Rounded';font-style:normal;font-weight:400;font-size:20px;line-height:1;display:inline-block;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+a{color:#7A1F3D;text-underline-offset:3px}
+a:hover{color:#5C1430}
+button{font-family:inherit;cursor:pointer}
+@keyframes hy-spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div style="max-width:1240px;margin:0 auto;padding:0 24px 120px">
+
+<header style="padding:40px 0 24px;display:flex;flex-wrap:wrap;align-items:center;gap:16px;border-bottom:1px solid #EADFD6">
+  <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:280px">
+    <a href="Hỷ Yến Design System.dc.html" style="font-size:13px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px"><i style="font-size:16px">arrow_back</i>Design system</a>
+    <h1 style="margin:0;font-family:'Playfair Display',serif;font-size:40px;line-height:52px;font-weight:600">Prototype chuyển động</h1>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;max-width:720px;text-wrap:pretty">Mỗi khung là một demo chạy được theo motion token. Chỉ animate transform và độ mờ. Bật "Giảm chuyển động" để xem mọi hiệu ứng quy về fade ≤ 150ms.</p>
+  </div>
+  <button role="switch" aria-checked="{{ swReduce.aria }}" onClick="{{ toggleReduce }}" style="min-height:48px;display:inline-flex;align-items:center;gap:12px;border:1px solid #EADFD6;background:#FFFFFF;padding:0 16px;font-size:15px;font-weight:600;color:#2B1D22;border-radius:12px" style-focus="outline:none;box-shadow:0 0 0 2px #FFF8F1,0 0 0 4px #7A1F3D"><span style="width:44px;height:26px;border-radius:13px;position:relative;background:{{ swReduce.track }};transition:background-color 150ms"><span style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 2px rgba(43,29,34,0.2);transform:{{ swReduce.thumb }};transition:transform 150ms cubic-bezier(0.2,0,0,1)"></span></span>Giảm chuyển động</button>
+</header>
+
+<div style="padding-top:32px;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px">
+
+  <article style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">01 · fade-through · 90 + 210ms</span><h3 style="margin:0;font-size:18px;font-weight:600">Đổi tab ngang hàng</h3><p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63">Nội dung cũ mờ đi (accelerate), nội dung mới hiện ra và phóng từ 0.92 (decelerate).</p></div>
+    <div style="position:relative;height:400px;border-radius:16px;background:#FFF8F1;border:1px solid #EADFD6;overflow:hidden">
+      <div style="height:56px;display:flex;align-items:center;padding:0 16px;font-size:16px;font-weight:600">Tiệc của Minh Anh</div>
+      <div role="tablist" style="position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid #EADFD6">
+        <sc-for list="{{ ftTabs }}" as="t" hint-placeholder-count="3"><button role="tab" aria-selected="{{ t.sel }}" onClick="{{ t.go }}" style="height:48px;border:none;background:transparent;font-size:14px;color:{{ t.color }};font-weight:{{ t.weight }};outline:none" style-hover="background:#FBF1EC" style-focus="box-shadow:inset 0 0 0 2px #7A1F3D">{{ t.label }}</button></sc-for>
+        <span style="position:absolute;left:0;bottom:-1px;width:33.333%;height:3px;display:flex;justify-content:center;transform:{{ ftX }};transition:{{ indTr }}"><span style="width:56px;height:3px;border-radius:3px 3px 0 0;background:#7A1F3D"></span></span>
+      </div>
+      <div ref="{{ refs.ftPanel }}" style="padding:16px;display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ ftItems }}" as="it" hint-placeholder-count="3"><div style="height:60px;border:1px solid #EADFD6;border-radius:12px;background:#FFFFFF;display:flex;align-items:center;gap:12px;padding:0 14px"><i style="color:#7A1F3D">{{ it.icon }}</i><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">{{ it.t }}</span><span style="font-size:12px;color:#6E5D63">{{ it.s }}</span></span></div></sc-for>
+      </div>
+    </div>
+  </article>
+
+  <article style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">02 · shared axis X · 300ms</span><h3 style="margin:0;font-size:18px;font-weight:600">Đi sâu vào chi tiết</h3><p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63">Trượt 30px kèm mờ theo hướng điều hướng. Quay lại thì đảo chiều.</p></div>
+    <div style="position:relative;height:400px;border-radius:16px;background:#FFF8F1;border:1px solid #EADFD6;overflow:hidden">
+      <div ref="{{ refs.saWrap }}" style="height:100%">
+        <sc-if value="{{ saList }}" hint-placeholder-val="{{ true }}">
+          <div style="height:56px;display:flex;align-items:center;padding:0 16px;font-size:16px;font-weight:600">Sảnh tiệc</div>
+          <div style="display:flex;flex-direction:column;padding:0 8px">
+            <sc-for list="{{ halls }}" as="h" hint-placeholder-count="3"><button onClick="{{ h.open }}" style="min-height:72px;border:none;background:transparent;border-radius:12px;display:flex;align-items:center;gap:12px;padding:8px;text-align:left;color:#2B1D22;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#FBF1EC" style-active="transform:{{ pressScale }}" style-focus="outline:none;box-shadow:inset 0 0 0 2px #7A1F3D"><span style="width:56px;height:56px;border-radius:12px;background:repeating-linear-gradient(135deg,#FBE9E3 0 8px,#F7EDE4 8px 16px);flex:none"></span><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">{{ h.name }}</span><span style="font-size:13px;color:#6E5D63">{{ h.meta }}</span></span><i style="color:#6E5D63">chevron_right</i></button></sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ saDetail }}" hint-placeholder-val="{{ false }}">
+          <div style="height:56px;display:flex;align-items:center;gap:4px;padding:0 4px"><button aria-label="Quay lại" onClick="{{ saBack }}" style="width:48px;height:48px;border:none;border-radius:50%;background:transparent;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>arrow_back</i></button><span style="font-size:16px;font-weight:600">{{ saHall.name }}</span></div>
+          <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:12px">
+            <div style="aspect-ratio:16/9;border-radius:16px;background:repeating-linear-gradient(135deg,#FBE9E3 0 10px,#F7EDE4 10px 20px);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">ảnh sảnh 16:9</div>
+            <span style="font-size:14px;line-height:22px;color:#6E5D63">{{ saHall.desc }}</span>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:8px;font-size:14px"><span style="color:#6E5D63">Sức chứa</span><strong>{{ saHall.cap }}</strong><span style="color:#6E5D63">Giá từ</span><strong>{{ saHall.price }}</strong></div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </article>
+
+  <article style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">03 · hero · 400ms emphasized</span><h3 style="margin:0;font-size:18px;font-weight:600">Ảnh thiệp từ danh sách sang chi tiết</h3><p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63">Ảnh giữ tỉ lệ 4:3 ở cả hai đầu nên chỉ cần translate + scale.</p></div>
+    <div style="position:relative;height:400px;border-radius:16px;background:#FFF8F1;border:1px solid #EADFD6;overflow:hidden">
+      <sc-if value="{{ heroList }}" hint-placeholder-val="{{ true }}">
+        <div style="height:56px;display:flex;align-items:center;padding:0 16px;font-size:16px;font-weight:600">Mẫu thiệp online</div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:0 12px">
+          <sc-for list="{{ cards }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.open }}" style="border:none;background:transparent;border-radius:12px;display:flex;align-items:center;gap:12px;padding:6px;text-align:left;color:#2B1D22;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#FBF1EC" style-active="transform:{{ pressScale }}" style-focus="outline:none;box-shadow:inset 0 0 0 2px #7A1F3D"><span ref="{{ c.ref }}" style="position:relative;width:96px;aspect-ratio:4/3;border-radius:12px;background:{{ c.bg }};flex:none;display:flex;align-items:flex-end;padding:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#6E5D63">thiệp 4:3</span><span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">{{ c.name }}</span><span style="font-size:13px;color:#6E5D63">{{ c.meta }}</span></span></button></sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ heroDetail }}" hint-placeholder-val="{{ false }}">
+        <div style="height:56px;display:flex;align-items:center;gap:4px;padding:0 4px"><button aria-label="Quay lại" onClick="{{ closeHero }}" style="width:48px;height:48px;border:none;border-radius:50%;background:transparent;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>arrow_back</i></button><span style="font-size:16px;font-weight:600">Chi tiết mẫu thiệp</span></div>
+        <div style="padding:0 16px;display:flex;flex-direction:column;gap:12px">
+          <div ref="{{ refs.heroTarget }}" style="position:relative;z-index:2;width:100%;aspect-ratio:4/3;border-radius:16px;background:{{ heroCard.bg }};display:flex;align-items:flex-end;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">thiệp 4:3</div>
+          <div ref="{{ refs.heroBody }}" style="display:flex;flex-direction:column;gap:4px"><strong style="font-family:'Playfair Display',serif;font-size:24px;line-height:32px;font-weight:600">{{ heroCard.name }}</strong><span style="font-size:13px;color:#6E5D63">{{ heroCard.meta }} · Dùng cho 420 khách</span></div>
+        </div>
+      </sc-if>
+    </div>
+  </article>
+
+  <article style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">04 · container transform · 450ms</span><h3 style="margin:0;font-size:18px;font-weight:600">Card mở thành trang</h3><p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63">Khung trang phóng từ đúng vị trí card; nội dung hiện sau 30% thời lượng.</p></div>
+    <div style="position:relative;height:400px;border-radius:16px;background:#FFF8F1;border:1px solid #EADFD6;overflow:hidden">
+      <div style="height:56px;display:flex;align-items:center;padding:0 16px;font-size:16px;font-weight:600">Tiệc sắp tới</div>
+      <div style="display:flex;flex-direction:column;gap:12px;padding:0 16px">
+        <button ref="{{ refs.ctCard }}" onClick="{{ openCt }}" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:6px;text-align:left;color:#2B1D22;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="border-color:#D9C8BC" style-active="transform:{{ pressScale }}" style-focus="outline:none;box-shadow:0 0 0 2px #FFF8F1,0 0 0 4px #7A1F3D"><span style="display:flex;align-items:center;gap:8px;width:100%"><strong style="font-size:15px">Minh Anh &amp; Quốc Huy</strong><span style="margin-left:auto;height:26px;padding:0 8px 0 6px;border-radius:12px;background:#E7F1EA;color:#2F6B4F;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600"><i style="font-size:15px">check_circle</i>Đã đặt cọc</span></span><span style="font-size:13px;color:#6E5D63">20/12/2026 · 10:30 · Sảnh Ngọc Trai</span></button>
+        <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:6px"><span style="display:flex;align-items:center;gap:8px"><strong style="font-size:15px">Thảo Vy &amp; Đức Long</strong><span style="margin-left:auto;height:26px;padding:0 8px 0 6px;border-radius:12px;background:#FCEFD6;color:#8A5300;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600"><i style="font-size:15px">schedule</i>Chờ duyệt</span></span><span style="font-size:13px;color:#6E5D63">26/12/2026 · 17:30 · Sảnh Hồng Ngọc</span></div>
+      </div>
+      <sc-if value="{{ ct }}" hint-placeholder-val="{{ false }}">
+        <div ref="{{ refs.ctPage }}" role="dialog" aria-label="Chi tiết tiệc" style="position:absolute;inset:0;background:#FFFFFF;z-index:3;overflow:hidden">
+          <div ref="{{ refs.ctPageBody }}" style="display:flex;flex-direction:column">
+            <div style="height:56px;display:flex;align-items:center;gap:4px;padding:0 4px;border-bottom:1px solid #EADFD6"><button aria-label="Đóng" onClick="{{ closeCt }}" style="width:48px;height:48px;border:none;border-radius:50%;background:transparent;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>close</i></button><span style="font-size:16px;font-weight:600">Minh Anh &amp; Quốc Huy</span></div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+              <span style="font-size:14px;color:#6E5D63">Tổng giá trị hợp đồng</span>
+              <span style="font-family:'Playfair Display',serif;font-size:32px;line-height:40px;font-weight:600;color:#7A1F3D;font-variant-numeric:tabular-nums">60.480.000 ₫</span>
+              <div style="display:grid;grid-template-columns:1fr auto;gap:8px;font-size:14px;border-top:1px solid #EADFD6;padding-top:12px"><span style="color:#6E5D63">Ngày giờ</span><strong>20/12/2026 · 10:30</strong><span style="color:#6E5D63">Sảnh</span><strong>Ngọc Trai</strong><span style="color:#6E5D63">Số bàn</span><strong>42 bàn</strong><span style="color:#6E5D63">Đã đặt cọc</span><strong>18.144.000 ₫</strong></div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </article>
+
+  <article style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">05 · micro-interaction · 150–800ms</span><h3 style="margin:0;font-size:18px;font-weight:600">Nhấn, tick tự vẽ, số tiền đếm lên</h3><p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63">Duyệt luôn chờ server (1,2 giây giả lập) rồi mới vẽ tick.</p></div>
+    <div style="position:relative;height:400px;border-radius:16px;background:#FFF8F1;border:1px solid #EADFD6;overflow:hidden;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:14px 16px;display:flex;align-items:center;gap:12px"><span style="flex:1;font-size:14px;font-weight:500">Nhấn giữ để thấy co 0.97</span><button style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:{{ pressScale }};background:#8B3A56" style-focus="outline:none;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #7A1F3D">Nhấn thử</button></div>
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:14px 16px;display:flex;align-items:center;gap:12px;min-height:76px">
+        <span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">Hợp đồng · phiên bản 3</span><span style="font-size:12px;color:#6E5D63">{{ apNote }}</span></span>
+        <sc-if value="{{ apIdle }}" hint-placeholder-val="{{ true }}"><button onClick="{{ approve }}" style="height:48px;min-width:132px;padding:0 16px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:{{ pressScale }}">Duyệt</button></sc-if>
+        <sc-if value="{{ apLoading }}" hint-placeholder-val="{{ false }}"><span aria-busy="true" style="height:48px;min-width:132px;padding:0 16px;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span>Đang duyệt</span></sc-if>
+        <sc-if value="{{ apDone }}" hint-placeholder-val="{{ false }}"><button onClick="{{ resetAp }}" aria-label="Đã duyệt. Nhấn để chạy lại" style="height:48px;min-width:132px;border:none;background:transparent;display:inline-flex;align-items:center;justify-content:center;gap:8px;color:#2F6B4F;font-size:14px;font-weight:600"><span ref="{{ refs.tickCircle }}" style="width:32px;height:32px;border-radius:50%;background:#2F6B4F;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path ref="{{ refs.tick }}" d="M7 12.5l3.5 3.5L17 9" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="16" stroke-dashoffset="0"></path></svg></span>Đã duyệt</button></sc-if>
+      </div>
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:14px;color:#6E5D63">Tổng giá trị hợp đồng</span>
+        <span ref="{{ refs.money }}" style="font-family:'Playfair Display',serif;font-size:34px;line-height:42px;font-weight:600;color:#7A1F3D;font-variant-numeric:tabular-nums lining-nums">60.480.000 ₫</span>
+        <button onClick="{{ countUp }}" style="align-self:flex-start;height:48px;padding:0 12px;margin-left:-12px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px" style-hover="background:#F4E7E3"><i style="font-size:18px">replay</i>Đếm lại (800ms)</button>
+      </div>
+    </div>
+  </article>
+
+  <article style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">06 · ăn mừng · ≤ 1200ms, 1 lần</span><h3 style="margin:0;font-size:18px;font-weight:600">Đặt cọc thành công</h3><p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63">Chỉ dùng ở đây và khi hai bên duyệt xong hợp đồng. Lỗi thì không đổi dữ liệu và hiện mã tham chiếu.</p></div>
+    <div style="position:relative;height:400px;border-radius:16px;background:#FFF8F1;border:1px solid #EADFD6;overflow:hidden;padding:20px;display:flex;flex-direction:column;justify-content:center;gap:16px">
+      <sc-if value="{{ depForm }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:4px;text-align:center"><span style="font-size:14px;color:#6E5D63">Số tiền đặt cọc (30%)</span><span style="font-family:'Playfair Display',serif;font-size:34px;line-height:42px;font-weight:600;color:#7A1F3D;font-variant-numeric:tabular-nums">18.144.000 ₫</span><span style="font-size:13px;color:#6E5D63">Chuyển khoản · Vietcombank · ND: HY-2412-018</span></div>
+        <button onClick="{{ confirmDep }}" disabled="{{ depBusy }}" aria-busy="{{ depBusyStr }}" style="height:48px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:{{ pressScale }}"><sc-if value="{{ depBusy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ depLabel }}</button>
+        <sc-if value="{{ depErr }}" hint-placeholder-val="{{ false }}"><div role="alert" style="border-radius:12px;background:#FDECEA;padding:12px;display:flex;gap:8px;font-size:13px;line-height:20px"><i style="color:#C62828;font-size:18px">error</i><span>Chưa xác nhận được khoản cọc. Số dư chưa thay đổi.<br><span style="color:#6E5D63">Mã tham chiếu: <code style="font-family:'JetBrains Mono',monospace;color:#2B1D22">req_91c04be7a2d3</code></span></span></div></sc-if>
+      </sc-if>
+      <sc-if value="{{ depOk }}" hint-placeholder-val="{{ false }}">
+        <div ref="{{ refs.depSuccess }}" style="display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+          <span style="width:64px;height:64px;border-radius:50%;background:#E7F1EA;color:#2F6B4F;display:flex;align-items:center;justify-content:center"><i style="font-size:34px">check_circle</i></span>
+          <strong style="font-family:'Playfair Display',serif;font-size:26px;line-height:34px;font-weight:600">Đặt cọc thành công</strong>
+          <span style="font-size:14px;line-height:22px;color:#6E5D63">Đã nhận 18.144.000 ₫ lúc 10:42. Hành trình chuyển sang bước Chuẩn bị.</span>
+          <button onClick="{{ resetDep }}" style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Chạy lại demo</button>
+        </div>
+      </sc-if>
+      <div ref="{{ refs.confetti }}" aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"></div>
+    </div>
+    <button role="switch" aria-checked="{{ swFail.aria }}" onClick="{{ toggleFail }}" style="align-self:flex-start;min-height:48px;display:inline-flex;align-items:center;gap:10px;border:none;background:transparent;padding:0 4px;font-size:14px;color:#2B1D22;border-radius:12px" style-focus="outline:none;box-shadow:0 0 0 2px #7A1F3D"><span style="width:44px;height:26px;border-radius:13px;position:relative;background:{{ swFail.track }};transition:background-color 150ms"><span style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 2px rgba(43,29,34,0.2);transform:{{ swFail.thumb }};transition:transform 150ms cubic-bezier(0.2,0,0,1)"></span></span>Giả lập lỗi máy chủ</button>
+  </article>
+
+  <article style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">07 · skeleton + stagger 50ms × 8</span><h3 style="margin:0;font-size:18px;font-weight:600">Tải danh sách khách</h3><p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63">Skeleton cùng chiều cao hàng thật (64px) nên không nhảy layout. Phần tử thứ 9 trở đi hiện ngay.</p></div>
+    <div style="position:relative;height:400px;border-radius:16px;background:#FFF8F1;border:1px solid #EADFD6;overflow:hidden;display:flex;flex-direction:column">
+      <div style="height:56px;flex:none;display:flex;align-items:center;padding:0 4px 0 16px;font-size:16px;font-weight:600;border-bottom:1px solid #EADFD6">Khách mời · 12<button aria-label="Tải lại" onClick="{{ reloadSk }}" style="margin-left:auto;width:48px;height:48px;border:none;border-radius:50%;background:transparent;color:#6E5D63;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>refresh</i></button></div>
+      <div style="flex:1;overflow-y:auto;position:relative">
+        <sc-if value="{{ skLoading }}" hint-placeholder-val="{{ true }}">
+          <div aria-busy="true" aria-label="Đang tải danh sách khách" style="position:relative;overflow:hidden">
+            <sc-for list="{{ skel }}" as="k" hint-placeholder-count="6"><div style="height:64px;display:flex;align-items:center;gap:12px;padding:0 16px"><span style="width:40px;height:40px;border-radius:50%;background:#F1E5DB;flex:none"></span><span style="flex:1;display:flex;flex-direction:column;gap:8px"><span style="height:12px;border-radius:6px;background:#F1E5DB;width:{{ k.a }}"></span><span style="height:10px;border-radius:5px;background:#F1E5DB;width:{{ k.b }}"></span></span><span style="width:84px;height:28px;border-radius:12px;background:#F1E5DB"></span></div></sc-for>
+            <div style="position:absolute;inset:0;pointer-events:none"><div ref="{{ refs.shimmer }}" style="width:40%;height:100%;transform:translateX(-100%);background:linear-gradient(90deg,rgba(255,248,241,0),rgba(255,248,241,0.85),rgba(255,248,241,0))"></div></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ skLoaded }}" hint-placeholder-val="{{ false }}">
+          <div ref="{{ refs.skList }}" style="display:flex;flex-direction:column">
+            <sc-for list="{{ guests }}" as="g" hint-placeholder-count="8"><div style="height:64px;display:flex;align-items:center;gap:12px;padding:0 16px"><span style="width:40px;height:40px;border-radius:50%;background:#FBE9E3;color:#7A1F3D;flex:none;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600">{{ g.ini }}</span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">{{ g.name }}</span><span style="font-size:12px;color:#6E5D63">{{ g.meta }}</span></span><span style="height:28px;padding:0 10px 0 6px;border-radius:12px;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;white-space:nowrap;background:{{ g.bg }};color:{{ g.fg }}"><i style="font-size:16px">{{ g.icon }}</i>{{ g.status }}</span></div></sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </article>
+
+  <article style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">08 · thao tác lạc quan · snackbar · offline</span><h3 style="margin:0;font-size:18px;font-weight:600">Xoá khách, hoàn tác, mất mạng</h3><p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63">Xoá hiện kết quả ngay. Server trả lời sau 2 giây; nếu lỗi, khách được hoàn lại kèm snackbar.</p></div>
+    <div style="position:relative;height:400px;border-radius:16px;background:#FFF8F1;border:1px solid #EADFD6;overflow:hidden">
+      <div style="height:56px;display:flex;align-items:center;padding:0 16px;font-size:16px;font-weight:600;border-bottom:1px solid #EADFD6;background:#FFF8F1;position:relative;z-index:2">Khách nhà gái</div>
+      <div role="status" style="position:absolute;top:56px;left:0;right:0;z-index:1;background:#E6EEF2;padding:10px 16px;display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:20px;transform:{{ bannerT }};opacity:{{ bannerO }};transition:{{ bannerTr }}"><i style="color:#3F5B6B;font-size:18px">cloud_off</i><span><strong>Không có kết nối – đang hiển thị dữ liệu đã lưu</strong><br><span style="color:#3F5B6B">Thay đổi sẽ được gửi khi có mạng.</span></span></div>
+      <div style="display:flex;flex-direction:column;padding:4px 0">
+        <sc-for list="{{ opGuests }}" as="g" hint-placeholder-count="5"><div ref="{{ g.ref }}" style="height:64px;display:flex;align-items:center;gap:12px;padding:0 4px 0 16px"><span style="width:40px;height:40px;border-radius:50%;background:#FBE9E3;color:#7A1F3D;flex:none;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600">{{ g.ini }}</span><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">{{ g.name }}</span><span style="font-size:12px;color:#6E5D63">{{ g.meta }}</span></span><button aria-label="{{ g.aria }}" onClick="{{ g.del }}" style="width:48px;height:48px;border:none;border-radius:50%;background:transparent;color:#6E5D63;display:flex;align-items:center;justify-content:center;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#F4E7E3;color:#C62828" style-active="transform:{{ pressScale }}" style-focus="outline:none;box-shadow:inset 0 0 0 2px #7A1F3D"><i>delete</i></button></div></sc-for>
+      </div>
+      <div role="status" aria-live="polite" style="position:absolute;left:12px;right:12px;bottom:12px;z-index:3;min-height:48px;border-radius:12px;background:#2B1D22;color:#FFF8F1;display:flex;align-items:center;gap:8px;padding:4px 4px 4px 16px;font-size:13px;line-height:18px;transform:{{ snackT }};opacity:{{ snackO }};transition:{{ snackTr }};pointer-events:{{ snackPE }}"><span style="flex:1;padding:6px 0">{{ snackMsg }}</span><sc-if value="{{ snackUndo }}" hint-placeholder-val="{{ true }}"><button onClick="{{ undoDel }}" style="height:40px;padding:0 12px;border:none;border-radius:12px;background:transparent;color:#F4B9A7;font-size:14px;font-weight:600" style-hover="background:rgba(244,185,167,0.12)">Hoàn tác</button></sc-if></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <button role="switch" aria-checked="{{ swOpFail.aria }}" onClick="{{ toggleOpFail }}" style="min-height:48px;display:inline-flex;align-items:center;gap:10px;border:none;background:transparent;padding:0 4px;font-size:14px;color:#2B1D22;border-radius:12px" style-focus="outline:none;box-shadow:0 0 0 2px #7A1F3D"><span style="width:44px;height:26px;border-radius:13px;position:relative;background:{{ swOpFail.track }};transition:background-color 150ms"><span style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 2px rgba(43,29,34,0.2);transform:{{ swOpFail.thumb }};transition:transform 150ms cubic-bezier(0.2,0,0,1)"></span></span>Giả lập lỗi</button>
+      <button role="switch" aria-checked="{{ swOff.aria }}" onClick="{{ toggleOffline }}" style="min-height:48px;display:inline-flex;align-items:center;gap:10px;border:none;background:transparent;padding:0 4px;font-size:14px;color:#2B1D22;border-radius:12px" style-focus="outline:none;box-shadow:0 0 0 2px #7A1F3D"><span style="width:44px;height:26px;border-radius:13px;position:relative;background:{{ swOff.track }};transition:background-color 150ms"><span style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 2px rgba(43,29,34,0.2);transform:{{ swOff.thumb }};transition:transform 150ms cubic-bezier(0.2,0,0,1)"></span></span>Mất mạng</button>
+      <button onClick="{{ resetGuests }}" style="min-height:48px;padding:0 12px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600" style-hover="background:#F4E7E3">Khôi phục danh sách</button>
+    </div>
+  </article>
+
+  <article style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">09 · app bar co giãn · theo cuộn</span><h3 style="margin:0;font-size:18px;font-weight:600">Trang chi tiết tiệc</h3><p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63">Cuộn trong khung. Tiêu đề lớn thu nhỏ bằng scale, tiêu đề nhỏ hiện dần; nền app bar Kem 92% thay cho blur.</p></div>
+    <div style="position:relative;height:400px;border-radius:16px;background:#FFF8F1;border:1px solid #EADFD6;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:56px;z-index:2;display:flex;align-items:center;gap:4px;padding:0 4px">
+        <span ref="{{ refs.abBg }}" style="position:absolute;inset:0;background:rgba(255,248,241,0.92);border-bottom:1px solid #EADFD6;opacity:0"></span>
+        <button aria-label="Quay lại" style="position:relative;width:48px;height:48px;border:none;border-radius:50%;background:transparent;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>arrow_back</i></button>
+        <span ref="{{ refs.abTitle }}" style="position:relative;font-size:16px;font-weight:600;opacity:0">Minh Anh &amp; Quốc Huy</span>
+      </div>
+      <div onScroll="{{ onAbScroll }}" style="height:100%;overflow-y:auto">
+        <div style="padding:64px 16px 24px;display:flex;flex-direction:column;gap:16px">
+          <div ref="{{ refs.abBig }}" style="transform-origin:0 50%;display:flex;flex-direction:column;gap:4px"><span style="font-family:'Playfair Display',serif;font-size:30px;line-height:38px;font-weight:600">Minh Anh &amp; Quốc Huy</span><span style="font-size:14px;color:#6E5D63">20/12/2026 · 10:30 · Sảnh Ngọc Trai</span></div>
+          <sc-for list="{{ detailRows }}" as="d" hint-placeholder-count="6"><div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:4px"><span style="font-size:13px;color:#6E5D63">{{ d.k }}</span><strong style="font-size:15px">{{ d.v }}</strong></div></sc-for>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">10 · parallax 0.3 + hiện dần · chỉ trang công khai</span><h3 style="margin:0;font-size:18px;font-weight:600">Trang giới thiệu nhà hàng</h3><p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63">Mỗi khối hiện một lần (400ms). Giảm chuyển động: tắt parallax, chỉ còn fade.</p></div>
+    <div style="position:relative;height:400px;border-radius:16px;background:#FFF8F1;border:1px solid #EADFD6;overflow:hidden">
+      <div ref="{{ refs.pubScroll }}" onScroll="{{ onPubScroll }}" style="position:relative;height:100%;overflow-y:auto">
+        <div style="position:relative;height:240px;overflow:hidden;background:#F7EDE4">
+          <div ref="{{ refs.pubImg }}" style="position:absolute;left:0;right:0;top:-40px;height:320px;background:repeating-linear-gradient(135deg,#FBE9E3 0 12px,#F7EDE4 12px 24px);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">ảnh sảnh chính · hero</div>
+          <div style="position:absolute;left:0;right:0;bottom:0;padding:16px;background:rgba(43,29,34,0.55);color:#FFF8F1"><span style="font-family:'Playfair Display',serif;font-size:26px;line-height:34px;font-weight:600">Nhà hàng Hỷ Yến</span></div>
+        </div>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ pubBlocks }}" as="p" hint-placeholder-count="4"><div ref="{{ p.ref }}" style="opacity:0;border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:6px"><strong style="font-size:15px">{{ p.t }}</strong><span style="font-size:13px;line-height:20px;color:#6E5D63">{{ p.s }}</span></div></sc-for>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article style="grid-column:1/-1;border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+      <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:260px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">11 · splash Flutter Web · fade-out 300ms accelerate</span><h3 style="margin:0;font-size:18px;font-weight:600">Splash thương hiệu → khung trang đầu</h3><p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63;max-width:640px">HTML/CSS thuần trong web/index.html, hiện ngay khi trình duyệt nhận HTML. Khung trang đầu dùng cùng nền Kem và cùng vị trí logo nên khi splash mờ đi không có cú nháy.</p></div>
+      <button onClick="{{ playSplash }}" style="height:48px;padding:0 20px;border:1px solid #7A1F3D;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#F4E7E3" style-active="transform:{{ pressScale }}"><i>replay</i>Phát lại</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
+      <div style="position:relative;height:420px;border-radius:16px;background:#FFF8F1;border:1px solid #EADFD6;overflow:hidden">
+        <div style="height:56px;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid #EADFD6"><span style="width:32px;height:32px;border-radius:50%;border:1.5px solid #C9A46A;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:13px;font-weight:600;color:#7A1F3D">HY</span><span style="font-family:'Playfair Display',serif;font-size:18px;font-weight:600">Hỷ Yến</span></div>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+          <div style="aspect-ratio:16/9;border-radius:16px;background:#F7EDE4"></div>
+          <span style="width:60%;height:16px;border-radius:8px;background:#F7EDE4"></span>
+          <span style="width:85%;height:12px;border-radius:6px;background:#F7EDE4"></span>
+          <span style="width:40%;height:12px;border-radius:6px;background:#F7EDE4"></span>
+        </div>
+        <sc-if value="{{ splash }}" hint-placeholder-val="{{ true }}">
+          <div ref="{{ refs.splash }}" role="status" aria-label="Đang tải Hỷ Yến" style="position:absolute;inset:0;background:#FFF8F1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:2">
+            <div ref="{{ refs.splashMark }}" style="display:flex;flex-direction:column;align-items:center;gap:12px"><span style="width:72px;height:72px;border-radius:50%;border:1.5px solid #C9A46A;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:28px;font-weight:600;color:#7A1F3D">HY</span><span style="font-family:'Playfair Display',serif;font-size:24px;line-height:32px;font-weight:600">Hỷ Yến</span></div>
+            <span style="width:120px;height:2px;border-radius:2px;background:#EADFD6;overflow:hidden"><span ref="{{ refs.splashBar }}" style="display:block;width:40%;height:100%;background:#7A1F3D"></span></span>
+          </div>
+        </sc-if>
+      </div>
+      <pre style="margin:0;height:420px;overflow:auto;border-radius:16px;background:#2B1D22;color:#FFF8F1;padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:19px;white-space:pre">{{ splashCode }}</pre>
+    </div>
+  </article>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  static DEC = 'cubic-bezier(0.05,0.7,0.1,1)';
+  state = { reduce: false, ft: 0, sa: null, hero: null, ct: false, ap: 'idle', dep: 'idle', depFail: false,
+    sk: 'loading', ops: null, opFail: false, offline: false, snack: null, splash: true };
+  el = {}; _rf = {}; timers = []; revealed = {};
+  E = { DEC: 'cubic-bezier(0.05,0.7,0.1,1)', ACC: 'cubic-bezier(0.3,0,0.8,0.15)', EMP: 'cubic-bezier(0.2,0,0,1)' };
+  NONE = { finished: Promise.resolve(), cancel() {} };
+  ini = n => { const p = n.split(' '); return (p[p.length - 2][0] + p[p.length - 1][0]).toUpperCase(); };
+  OP = [['Trần Bảo Ngọc', 'Bàn 7 · bạn cô dâu'], ['Nguyễn Hữu Tài', 'Bàn 7 · đồng nghiệp'], ['Lê Phương Thảo', 'Bàn 8 · bạn đại học'], ['Phạm Gia Huy', 'Bàn 8 · họ hàng'], ['Hoàng Mỹ Linh', 'Bàn 9 · hàng xóm']].map(([name, meta], id) => ({ id, name, meta }));
+  GUESTS = (() => {
+    const ST = { ok: { bg: '#E7F1EA', fg: '#2F6B4F', icon: 'check_circle', status: 'Tham dự' }, wait: { bg: '#FCEFD6', fg: '#8A5300', icon: 'schedule', status: 'Chưa trả lời' }, no: { bg: '#F7EDE4', fg: '#6E5D63', icon: 'cancel', status: 'Vắng mặt' } };
+    return [['Nguyễn Thị Thu Hà', 1, 'ok'], ['Trần Văn Bình', 1, 'ok'], ['Lê Hoàng Yến', 2, 'wait'], ['Phạm Quốc Bảo', 2, 'ok'], ['Võ Ngọc Diệp', 3, 'ok'], ['Đặng Thanh Tùng', 3, 'no'], ['Bùi Mai Phương', 4, 'ok'], ['Huỳnh Gia Khang', 4, 'wait'], ['Ngô Thảo Nguyên', 5, 'ok'], ['Dương Minh Trí', 5, 'ok'], ['Lý Bảo Châu', 6, 'wait'], ['Trịnh Hữu Phước', 6, 'ok']]
+      .map(([name, t, s]) => ({ name, ini: this.ini(name), meta: `Bàn ${t} · nhà gái`, ...ST[s] }));
+  })();
+  fin = a => a.finished.then(() => {}, () => {});
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  later(fn, ms) { const t = setTimeout(fn, ms); this.timers.push(t); return t; }
+
+  play(el, frames, dur, ease, o = {}) {
+    if (!el || !el.animate) return this.NONE;
+    if (!o.keep) el.getAnimations().forEach(a => a.cancel());
+    let delay = o.delay || 0, iter = o.iter || 1;
+    if (this.state.reduce) {
+      const ops = frames.map(f => f.opacity);
+      frames = ops[0] !== undefined && ops[0] !== ops[ops.length - 1] ? frames.map(f => ({ opacity: f.opacity ?? 1 })) : (o.exit ? [{ opacity: 1 }, { opacity: 0 }] : [{ opacity: 0 }, { opacity: 1 }]);
+      dur = Math.min(dur, o.half ? 75 : 150); ease = 'linear'; delay = 0; iter = 1;
+    }
+    return el.animate(frames, { duration: dur, easing: ease, fill: o.fill || 'both', delay, iterations: iter });
+  }
+  flip(el, a, b, dur, o) {
+    el.style.transformOrigin = '0 0';
+    return this.play(el, [{ transform: `translate(${a.left - b.left}px,${a.top - b.top}px) scale(${a.width / b.width},${a.height / b.height})` }, { transform: 'none' }], dur, this.E.EMP, o);
+  }
+
+  componentDidMount() {
+    const mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+    this.setState({ reduce: !!(mq && mq.matches), ops: this.OP }, () => { this.reloadSk(); this.playSplash(); this.checkReveal(); });
+  }
+  componentWillUnmount() { this.timers.forEach(clearTimeout); cancelAnimationFrame(this.raf); }
+
+  goFt = i => {
+    if (i === this.state.ft || this.ftBusy) return; this.ftBusy = true; const p = this.el.ftPanel, E = this.E;
+    this.fin(this.play(p, [{ opacity: 1 }, { opacity: 0 }], 90, E.ACC, { half: true })).then(() => this.setState({ ft: i }, () =>
+      this.fin(this.play(p, [{ opacity: 0, transform: 'scale(0.92)' }, { opacity: 1, transform: 'scale(1)' }], 210, E.DEC, { half: true })).then(() => { this.ftBusy = false; })));
+  };
+  goSa = to => {
+    const w = this.el.saWrap, d = to !== null ? 1 : -1, E = this.E;
+    this.fin(this.play(w, [{ opacity: 1, transform: 'translateX(0)' }, { opacity: 0, transform: `translateX(${-30 * d}px)` }], 90, E.ACC, { half: true })).then(() => this.setState({ sa: to }, () =>
+      this.play(w, [{ opacity: 0, transform: `translateX(${30 * d}px)` }, { opacity: 1, transform: 'translateX(0)' }], 210, E.DEC, { half: true })));
+  };
+  openHero = i => {
+    const r0 = this.el['hero' + i].getBoundingClientRect();
+    this.setState({ hero: i }, () => {
+      const t = this.el.heroTarget; this.flip(t, r0, t.getBoundingClientRect(), 400);
+      this.play(this.el.heroBody, [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }], 250, this.E.DEC, { delay: 150 });
+    });
+  };
+  closeHero = () => {
+    const i = this.state.hero, r0 = this.el.heroTarget.getBoundingClientRect();
+    this.setState({ hero: null }, () => { const s = this.el['hero' + i]; if (!s) return; s.style.zIndex = 5; this.fin(this.flip(s, r0, s.getBoundingClientRect(), 400)).then(() => { s.style.zIndex = ''; }); });
+  };
+  openCt = () => {
+    const r0 = this.el.ctCard.getBoundingClientRect();
+    this.setState({ ct: true }, () => {
+      const p = this.el.ctPage; this.flip(p, r0, p.getBoundingClientRect(), 450);
+      this.play(this.el.ctPageBody, [{ opacity: 0 }, { opacity: 0, offset: 0.3 }, { opacity: 1 }], 450, 'linear');
+    });
+  };
+  closeCt = () => {
+    const p = this.el.ctPage, a = p.getBoundingClientRect(), b = this.el.ctCard.getBoundingClientRect();
+    p.style.transformOrigin = '0 0';
+    this.play(this.el.ctPageBody, [{ opacity: 1 }, { opacity: 0 }], 135, this.E.ACC);
+    this.fin(this.play(p, [{ transform: 'none', opacity: 1 }, { transform: `translate(${b.left - a.left}px,${b.top - a.top}px) scale(${b.width / a.width},${b.height / a.height})`, opacity: 1 }], 400, this.E.EMP, { exit: true })).then(() => this.setState({ ct: false }));
+  };
+  approve = () => {
+    this.setState({ ap: 'loading' });
+    this.later(() => this.setState({ ap: 'done' }, () => {
+      this.play(this.el.tickCircle, [{ transform: 'scale(0.6)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], 150, this.E.EMP);
+      this.play(this.el.tick, [{ strokeDashoffset: 16 }, { strokeDashoffset: 0 }], 300, this.E.DEC, { delay: 100 });
+    }), 1200);
+  };
+  countUp = () => {
+    cancelAnimationFrame(this.raf); const el = this.el.money, T = 60480000, fmt = v => v.toLocaleString('vi-VN') + ' ₫';
+    if (!el) return;
+    if (this.state.reduce) { el.textContent = fmt(T); this.play(el, [{ opacity: 0 }, { opacity: 1 }], 150, 'linear'); return; }
+    const t0 = performance.now(), D = 800;
+    const step = now => { const t = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - t, 4); el.textContent = fmt(t < 1 ? Math.round(T * e / 1000) * 1000 : T); if (t < 1) this.raf = requestAnimationFrame(step); };
+    this.raf = requestAnimationFrame(step);
+  };
+  confirmDep = () => {
+    if (this.state.dep === 'loading') return;
+    this.setState({ dep: 'loading' });
+    this.later(() => {
+      if (this.state.depFail) return this.setState({ dep: 'error' });
+      this.setState({ dep: 'success' }, () => { this.play(this.el.depSuccess, [{ opacity: 0, transform: 'scale(0.96)' }, { opacity: 1, transform: 'scale(1)' }], 300, this.E.DEC); this.burst(); });
+    }, 1500);
+  };
+  burst() {
+    const box = this.el.confetti; if (this.state.reduce || !box) return;
+    const W = box.clientWidth, H = box.clientHeight, cols = ['#F4B9A7', '#C9A46A', '#7A1F3D', '#F4B9A7', '#E9D3B0'];
+    for (let i = 0; i < 28; i++) {
+      const p = document.createElement('span'), w = 6 + Math.random() * 6;
+      p.style.cssText = `position:absolute;left:${W / 2 - w / 2}px;top:${H * 0.3}px;width:${w}px;height:${w * 1.4}px;background:${cols[i % 5]};border-radius:60% 0 60% 0;opacity:0`;
+      box.appendChild(p);
+      const ang = Math.random() * Math.PI * 2, dist = 70 + Math.random() * 110, dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist * 0.6 - 30;
+      const rot = (Math.random() * 2 - 1) * 320, delay = Math.random() * 120, dur = 850 + Math.random() * (1200 - 850 - delay);
+      const a = p.animate([
+        { transform: 'translate(0,0) scale(0.4) rotate(0deg)', opacity: 1 },
+        { transform: `translate(${dx}px,${dy}px) scale(1) rotate(${rot / 2}deg)`, opacity: 1, offset: 0.35 },
+        { transform: `translate(${dx * 1.15}px,${dy + 110}px) scale(0.9) rotate(${rot}deg)`, opacity: 0 },
+      ], { duration: dur, delay, easing: this.E.DEC, fill: 'both' });
+      a.onfinish = () => p.remove();
+    }
+  }
+  reloadSk = () => {
+    this.setState({ sk: 'loading' }, () => {
+      if (!this.state.reduce && this.el.shimmer) this.shim = this.el.shimmer.animate([{ transform: 'translateX(-100%)' }, { transform: 'translateX(250%)' }], { duration: 1200, iterations: Infinity });
+      this.later(() => { if (this.shim) this.shim.cancel(); this.setState({ sk: 'loaded' }, () => {
+        const rows = this.el.skList ? Array.from(this.el.skList.children) : [];
+        rows.slice(0, 8).forEach((r, i) => this.play(r, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], 250, this.E.DEC, { delay: i * 50 }));
+      }); }, 1400);
+    });
+  };
+  showSnack(msg, undo, ms) { clearTimeout(this.snackT); this.setState({ snack: { msg, undo } }); this.snackT = this.later(() => this.setState({ snack: null }), ms); }
+  delGuest = g => {
+    const idx = this.state.ops.findIndex(x => x.id === g.id);
+    this.fin(this.play(this.el['g' + g.id], [{ opacity: 1 }, { opacity: 0 }], 150, this.E.ACC)).then(() => {
+      const el = this.el['g' + g.id]; if (el) el.getAnimations().forEach(a => a.cancel());
+      this.setState(s => ({ ops: s.ops.filter(x => x.id !== g.id) }));
+      const job = this.pending = { g, idx, undone: false };
+      this.showSnack(`Đã xoá khách ${g.name}`, true, 4000);
+      if (this.state.offline) return;
+      this.later(() => { if (job.undone || !this.state.opFail) return; this.restore(job); this.showSnack(`Không xoá được khách ${g.name}. Đã hoàn lại.`, false, 4000); }, 2000);
+    });
+  };
+  restore(job) {
+    this.setState(s => { if (s.ops.some(x => x.id === job.g.id)) return null; const ops = s.ops.slice(); ops.splice(Math.min(job.idx, ops.length), 0, job.g); return { ops }; },
+      () => this.play(this.el['g' + job.g.id], [{ opacity: 0 }, { opacity: 1 }], 150, this.E.DEC));
+  }
+  undoDel = () => { const j = this.pending; if (!j) return; j.undone = true; this.restore(j); this.showSnack(`Đã khôi phục khách ${j.g.name}`, false, 2000); };
+  onAbScroll = e => {
+    const st = e.currentTarget.scrollTop, k = Math.min(1, st / 72), el = this.el;
+    if (el.abBg) el.abBg.style.opacity = k;
+    if (el.abTitle) el.abTitle.style.opacity = Math.max(0, Math.min(1, (st - 44) / 28));
+    if (el.abBig) { el.abBig.style.transform = `scale(${1 - 0.12 * k})`; el.abBig.style.opacity = 1 - 0.7 * k; }
+  };
+  onPubScroll = e => {
+    const st = e.currentTarget.scrollTop;
+    if (this.el.pubImg) this.el.pubImg.style.transform = this.state.reduce ? 'none' : `translateY(${st * 0.3}px)`;
+    this.checkReveal();
+  };
+  checkReveal() {
+    const c = this.el.pubScroll; if (!c) return;
+    for (let i = 0; i < 4; i++) {
+      const el = this.el['pub' + i]; if (!el || this.revealed[i]) continue;
+      const top = el.getBoundingClientRect().top - c.getBoundingClientRect().top;
+      if (top < c.clientHeight - 32) { this.revealed[i] = true; this.play(el, [{ opacity: 0, transform: 'translateY(24px)' }, { opacity: 1, transform: 'none' }], 400, this.E.DEC); }
+    }
+  }
+  playSplash = () => {
+    this.setState({ splash: true }, () => {
+      this.play(this.el.splashMark, [{ opacity: 0, transform: 'scale(0.96)' }, { opacity: 1, transform: 'scale(1)' }], 300, this.E.DEC);
+      if (!this.state.reduce && this.el.splashBar) this.el.splashBar.animate([{ transform: 'translateX(-100%)' }, { transform: 'translateX(250%)' }], { duration: 1200, easing: this.E.EMP, iterations: Infinity });
+      clearTimeout(this.splT);
+      this.splT = this.later(() => this.fin(this.play(this.el.splash, [{ opacity: 1 }, { opacity: 0 }], 300, this.E.ACC, { exit: true })).then(() => this.setState({ splash: false })), 2000);
+    });
+  };
+  sw(on) { return { aria: on ? 'true' : 'false', track: on ? '#7A1F3D' : '#C9BFBC', thumb: on ? 'translateX(18px)' : 'translateX(0)' }; }
+
+  renderVals() {
+    const s = this.state, r = s.reduce, E = this.E, ops = s.ops || this.OP;
+    const FT = [
+      { label: 'Tổng quan', items: [['event', '20/12/2026 · 10:30', 'Sảnh Ngọc Trai, tầng 2'], ['table_restaurant', '42 bàn', '420 khách'], ['payments', '60.480.000 ₫', 'Đã cọc 18.144.000 ₫']] },
+      { label: 'Thực đơn', items: [['soup_kitchen', 'Súp bào ngư vi cá', 'Khai vị'], ['restaurant', 'Gà hấp lá chanh', 'Món chính'], ['set_meal', 'Cá chẽm hấp xì dầu', 'Món chính'], ['icecream', 'Chè hạt sen long nhãn', 'Tráng miệng']] },
+      { label: 'Khách mời', items: [['groups', 'Nhà trai · 210 khách', '198 đã xác nhận'], ['groups', 'Nhà gái · 210 khách', '114 đã xác nhận'], ['mark_email_unread', '3 phản hồi mới', 'Từ thiệp online']] },
+    ];
+    const HALLS = [
+      { name: 'Sảnh Ngọc Trai', meta: 'Tầng 2 · tối đa 45 bàn', cap: '45 bàn · 450 khách', price: '1.440.000 ₫/bàn', desc: 'Trần cao 6 m, sân khấu rộng, lối vào riêng cho cô dâu.' },
+      { name: 'Sảnh Hồng Ngọc', meta: 'Tầng 3 · tối đa 30 bàn', cap: '30 bàn · 300 khách', price: '1.440.000 ₫/bàn', desc: 'Không gian ấm cúng, cửa kính nhìn ra hồ.' },
+      { name: 'Sảnh Kim Cương', meta: 'Tầng 5 · tối đa 60 bàn', cap: '60 bàn · 600 khách', price: '1.580.000 ₫/bàn', desc: 'Sảnh lớn nhất, có màn LED và khu đón khách riêng.' },
+    ];
+    const CARDS = [
+      { name: 'Thiệp Hoa Đào', meta: 'Nền Kem, viền Đào', bg: 'repeating-linear-gradient(135deg,#FBE3DA 0 8px,#F7EDE4 8px 16px)' },
+      { name: 'Thiệp Champagne', meta: 'Chữ ký vàng nhũ', bg: 'repeating-linear-gradient(135deg,#F1E4CC 0 8px,#F7EDE4 8px 16px)' },
+      { name: 'Thiệp Vang Cổ Điển', meta: 'Nền Vang, chữ Kem', bg: 'repeating-linear-gradient(135deg,#EAD3D9 0 8px,#F7EDE4 8px 16px)' },
+    ];
+    const snack = s.snack, dt = r ? 'opacity 150ms linear' : null;
+    const refs = new Proxy({}, { get: (_, n) => typeof n === 'string' ? this.rf(n) : undefined });
+    const sc = 'script';
+    return {
+      refs,
+      swReduce: this.sw(r), swFail: this.sw(s.depFail), swOpFail: this.sw(s.opFail), swOff: this.sw(s.offline),
+      toggleReduce: () => this.setState({ reduce: !r }),
+      pressScale: r ? 'none' : 'scale(0.97)',
+      indTr: r ? 'none' : 'transform 250ms cubic-bezier(0.2,0,0,1)',
+      ftTabs: FT.map((t, i) => ({ label: t.label, sel: i === s.ft ? 'true' : 'false', color: i === s.ft ? '#7A1F3D' : '#6E5D63', weight: i === s.ft ? 600 : 500, go: () => this.goFt(i) })),
+      ftX: `translateX(${s.ft * 100}%)`,
+      ftItems: FT[s.ft].items.map(([icon, t, sub]) => ({ icon, t, s: sub })),
+      saList: s.sa === null, saDetail: s.sa !== null, saHall: HALLS[s.sa ?? 0],
+      halls: HALLS.map((h, i) => ({ ...h, open: () => this.goSa(i) })), saBack: () => this.goSa(null),
+      heroList: s.hero === null, heroDetail: s.hero !== null, heroCard: CARDS[s.hero ?? 0],
+      cards: CARDS.map((c, i) => ({ ...c, ref: this.rf('hero' + i), open: () => this.openHero(i) })),
+      closeHero: this.closeHero, ct: s.ct, openCt: this.openCt, closeCt: this.closeCt,
+      apIdle: s.ap === 'idle', apLoading: s.ap === 'loading', apDone: s.ap === 'done',
+      apNote: s.ap === 'done' ? 'Đã duyệt lúc 10:42 · chờ cặp đôi' : s.ap === 'loading' ? 'Đang gửi lên máy chủ…' : 'Nhà hàng chưa duyệt',
+      approve: this.approve, resetAp: () => this.setState({ ap: 'idle' }), countUp: this.countUp,
+      depForm: s.dep !== 'success', depOk: s.dep === 'success', depBusy: s.dep === 'loading', depBusyStr: s.dep === 'loading' ? 'true' : 'false', depErr: s.dep === 'error',
+      depLabel: s.dep === 'loading' ? 'Đang xác nhận với ngân hàng…' : s.dep === 'error' ? 'Thử lại' : 'Xác nhận đặt cọc',
+      confirmDep: this.confirmDep, resetDep: () => this.setState({ dep: 'idle' }), toggleFail: () => this.setState({ depFail: !s.depFail }),
+      skLoading: s.sk === 'loading', skLoaded: s.sk === 'loaded', reloadSk: this.reloadSk, guests: this.GUESTS,
+      skel: [['58%', '32%'], ['44%', '28%'], ['62%', '36%'], ['50%', '30%'], ['56%', '26%'], ['46%', '34%']].map(([a, b]) => ({ a, b })),
+      opGuests: ops.map(g => ({ ...g, ini: this.ini(g.name), aria: `Xoá khách ${g.name}`, ref: this.rf('g' + g.id), del: () => this.delGuest(g) })),
+      undoDel: this.undoDel, toggleOpFail: () => this.setState({ opFail: !s.opFail }), toggleOffline: () => this.setState({ offline: !s.offline }),
+      resetGuests: () => this.setState({ ops: this.OP, snack: null }),
+      bannerT: s.offline || r ? 'translateY(0)' : 'translateY(-100%)', bannerO: s.offline ? 1 : 0,
+      bannerTr: dt || (s.offline ? `transform 250ms ${E.DEC}, opacity 250ms ${E.DEC}` : `transform 200ms ${E.ACC}, opacity 200ms ${E.ACC}`),
+      snackMsg: snack ? snack.msg : '', snackUndo: !!(snack && snack.undo), snackPE: snack ? 'auto' : 'none',
+      snackT: snack || r ? 'translateY(0)' : 'translateY(24px)', snackO: snack ? 1 : 0,
+      snackTr: dt || (snack ? `transform 250ms ${E.DEC}, opacity 250ms ${E.DEC}` : `transform 150ms ${E.ACC}, opacity 150ms ${E.ACC}`),
+      onAbScroll: this.onAbScroll, onPubScroll: this.onPubScroll,
+      detailRows: [['Thời gian đón khách', '10:30 – 11:00'], ['Thực đơn', 'Gói Hồng Hỷ · 8 món'], ['Số bàn', '42 bàn chính · 2 bàn dự phòng'], ['Người phụ trách', 'Lê Thu Trang · 0903 118 226'], ['Trang trí', 'Hoa tươi tông Đào – Kem'], ['Ghi chú', 'Bàn 1 có 2 khách ăn chay']].map(([k, v]) => ({ k, v })),
+      pubBlocks: [['Ba sảnh tiệc, 30 đến 60 bàn', 'Mỗi sảnh có lối vào riêng và khu chụp ảnh cưới.'], ['Thực đơn từ 1.440.000 ₫/bàn', '12 gói thực đơn, có thể đổi món theo khẩu vị hai họ.'], ['Lịch trống tháng 12/2026', 'Còn 9 ngày, trong đó 3 ngày đẹp theo lịch âm.'], ['Đặt lịch tư vấn', 'Gặp chuyên viên tại nhà hàng hoặc gọi video, mỗi ngày 08:00 – 21:00.']].map(([t, sub], i) => ({ t, s: sub, ref: this.rf('pub' + i) })),
+      splash: s.splash, playSplash: this.playSplash,
+      splashCode: `<!-- web/index.html – đặt ngay sau thẻ body -->
+<style>
+  #hy-splash{position:fixed;inset:0;z-index:9;display:flex;
+    flex-direction:column;align-items:center;justify-content:center;
+    gap:16px;background:#FFF8F1;
+    transition:opacity 300ms cubic-bezier(.3,0,.8,.15)}
+  #hy-splash .mark{width:72px;height:72px;border-radius:50%;
+    border:1.5px solid #C9A46A;display:flex;align-items:center;
+    justify-content:center;color:#7A1F3D;
+    font:600 28px 'Playfair Display',Georgia,serif}
+  #hy-splash .bar{width:120px;height:2px;border-radius:2px;
+    background:#EADFD6;overflow:hidden}
+  #hy-splash .bar::after{content:"";display:block;width:40%;height:100%;
+    background:#7A1F3D;animation:hy-load 1.2s cubic-bezier(.2,0,0,1) infinite}
+  @keyframes hy-load{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+  #hy-splash.done{opacity:0;pointer-events:none}
+  @media (prefers-reduced-motion:reduce){
+    #hy-splash{transition-duration:150ms}
+    #hy-splash .bar::after{animation:none;width:100%;opacity:.4}}
+</style>
+<div id="hy-splash" role="status" aria-label="Đang tải Hỷ Yến">
+  <div class="mark">HY</div>
+  <div class="bar"></div>
+</div>
+<${sc}>
+  window.addEventListener('flutter-first-frame', function () {
+    var s = document.getElementById('hy-splash');
+    s.classList.add('done');
+    s.addEventListener('transitionend', function () { s.remove(); }, { once: true });
+  });
+</${sc}>
+
+// Flutter: frame đầu tiên dùng scaffoldBackgroundColor
+// Color(0xFFFFF8F1) và skeleton trang chủ – không dùng màn trắng.`,
+    };
+  }
+}
+</script>
+</body>
+</html>
