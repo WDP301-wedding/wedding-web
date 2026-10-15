@@ -24,6 +24,7 @@ import {
 } from './contract-api';
 import { ContractLinesTable } from './contract-lines';
 import { LineSelector } from './contract-lines';
+import { Celebrate } from '../../design-system/celebrate';
 
 const stateLabels: Record<ContractRevision['state'], string> = {
   DRAFT: 'Bản nháp',
@@ -349,6 +350,9 @@ function ContractCard({
               </button>
             ) : null}
 
+            {current.state === 'APPROVED' ? (
+              <Celebrate onceKey={'contract-' + current.revisionId} />
+            ) : null}
             {current.state === 'APPROVED' && contracts.eligibleForDeposit ? (
               <Link className="button" href={`/billing?bookingId=${bookingId}`}>
                 Đặt cọc {formatVnd(current.document.depositAmountVnd)}

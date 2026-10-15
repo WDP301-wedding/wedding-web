@@ -25,6 +25,8 @@ import {
   money,
   unresolved,
 } from './billing-display';
+import { BrandMark } from '../../design-system/brand-mark';
+import { Celebrate } from '../../design-system/celebrate';
 
 type Authorize = <T>(operation: (token: string) => Promise<T>) => Promise<T>;
 type CheckoutIntent =
@@ -307,8 +309,8 @@ export function CoupleBillingWorkspace({
   return (
     <main className="billing-shell billing-couple">
       <header className="billing-header">
-        <Link className="billing-wordmark latin-wordmark" lang="en" href="/">
-          Wedding Estate
+        <Link className="billing-wordmark" href="/" aria-label="Hỷ Yến — Trang chủ">
+          <BrandMark compact />
         </Link>
         <nav aria-label="Không gian cặp đôi">
           <Link href="/workspace">Đề xuất và kịch bản</Link>
@@ -611,6 +613,9 @@ export function CoupleBillingWorkspace({
               <button disabled={pending || intent !== null}>Kiểm tra trạng thái</button>
             </form>
             {attempt !== null && <AttemptStatus attempt={attempt} />}
+            {attempt?.status === 'SUCCEEDED' && attempt.applicationStatus === 'SUCCEEDED' ? (
+              <Celebrate onceKey={'payment-' + attempt.paymentAttemptId} />
+            ) : null}
           </section>
         </>
       )}
