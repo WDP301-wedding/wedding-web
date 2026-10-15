@@ -210,15 +210,16 @@ function PlanCard({
   );
 }
 
+// Màu gợi ý cho nhóm khách – lấy từ bảng màu Hỷ Yến, đủ đậm để phân biệt trên sơ đồ bàn.
 const palette = [
-  '#8C6D62',
-  '#334537',
-  '#C5A880',
-  '#4A5D4E',
-  '#7A3F35',
-  '#3E5C76',
-  '#A0526D',
-  '#6B7F3A',
+  '#7A1F3D',
+  '#C9A46A',
+  '#2F6B4F',
+  '#3F5B6B',
+  '#87334F',
+  '#8A5300',
+  '#E08E79',
+  '#6E5D63',
 ];
 
 function GroupsCard({
@@ -333,7 +334,7 @@ function GroupsCard({
               (token, key) =>
                 guestApi.createGroup(token, key, bookingId, {
                   name: formText(data, 'name'),
-                  color: (formText(data, 'color') || '#8C6D62').toUpperCase(),
+                  color: (formText(data, 'color') || '#7A1F3D').toUpperCase(),
                 }),
               'Đã tạo nhóm mới.',
             )

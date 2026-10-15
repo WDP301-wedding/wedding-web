@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { BrandMark } from '../../design-system/brand-mark';
 import { browserSession } from '../identity-access/browser-session';
 import type { WebIdentitySession, WebSessionSnapshot } from '../identity-access/session';
 
@@ -50,15 +51,11 @@ export function PublicHeader({
 
   return (
     <header className="public-header">
-      <Link className="estate-brand" href="/" aria-label="Wedding Estate — Trang chủ">
-        <small>THE</small>
-        <strong className="latin-wordmark" lang="en">
-          WEDDING ESTATE
-        </strong>
-        <span>Nơi ngày chung đôi bắt đầu</span>
+      <Link className="estate-brand" href="/" aria-label="Hỷ Yến — Trang chủ">
+        <BrandMark />
       </Link>
       <nav aria-label="Điều hướng chính">
-        <Link href="/halls">Không gian tiệc</Link>
+        <Link href="/halls">Sảnh tiệc</Link>
         <Link href="/menus">Thực đơn</Link>
         <Link href="/overview">Kế hoạch của bạn</Link>
         <Link className="public-account-link" href="/account">
@@ -66,7 +63,7 @@ export function PublicHeader({
         </Link>
         <div className="public-nav-actions">
           <Link className="public-button" href="/consultation">
-            Hẹn tư vấn <span aria-hidden="true">↗</span>
+            Nhận tư vấn
           </Link>
           {snapshot.status === 'authenticated' ? (
             <button

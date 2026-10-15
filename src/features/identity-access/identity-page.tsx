@@ -153,7 +153,7 @@ export function IdentityExperience({ session, initialCredential }: IdentityExper
           <div className="auth-state" role="status" aria-busy="true">
             <span className="preview-label">Phiên riêng tư</span>
             <h1>Đang khôi phục hành trình</h1>
-            <p>Wedding Estate đang kiểm tra phiên an toàn của bạn.</p>
+            <p>Hỷ Yến đang kiểm tra phiên an toàn của bạn.</p>
           </div>
         ) : null}
 
@@ -281,7 +281,7 @@ function AuthForm({
 }>) {
   return (
     <form className="identity-form" onSubmit={onSubmit}>
-      <span className="preview-label">Tài khoản Wedding Estate</span>
+      <span className="preview-label">Tài khoản Hỷ Yến</span>
       <p className="script-heading">Hành trình của hai bạn</p>
       <h1>{title}</h1>
       <p className="invitation-lead">{description}</p>

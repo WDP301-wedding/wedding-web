@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { BrandMark } from '../../design-system/brand-mark';
 import { PublicHeader } from './public-header';
 
 export { PublicHeader } from './public-header';
@@ -13,8 +14,8 @@ export function PublicShell({ children }: { children: ReactNode }) {
       <PublicHeader />
       <main id="public-content">{children}</main>
       <footer className="public-footer">
-        <Link className="estate-brand latin-wordmark" lang="en" href="/">
-          WEDDING ESTATE
+        <Link className="estate-brand" href="/" aria-label="Hỷ Yến — Trang chủ">
+          <BrandMark />
         </Link>
         <p>Cùng bạn chuẩn bị từng quyết định cho ngày chung đôi.</p>
         <nav aria-label="Điều hướng cuối trang">

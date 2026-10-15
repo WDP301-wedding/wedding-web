@@ -13,6 +13,7 @@ import {
   type CollaborationGateway,
   type ProposalView,
 } from './collaboration-api';
+import { BrandMark } from '../../design-system/brand-mark';
 
 type Authorize = <T>(operation: (accessToken: string) => Promise<T>) => Promise<T>;
 // Dùng chung một phiên cho cả ứng dụng: nhiều instance sẽ làm mới cookie refresh (bị xoay vòng)
@@ -173,10 +174,7 @@ export function CollaborationWorkspace({
       </a>
       <header className="collab-header">
         <Link className="collab-brand" href="/overview">
-          <small>THE</small>
-          <strong className="latin-wordmark" lang="en">
-            WEDDING ESTATE
-          </strong>
+          <BrandMark compact />
         </Link>
         <Link href="/billing">Thanh toán</Link>
         <span className="collab-access">
@@ -612,7 +610,7 @@ function EmptyState({ body, title }: Readonly<{ body: string; title: string }>) 
 function AccessState({ children, title }: Readonly<{ children?: React.ReactNode; title: string }>) {
   return (
     <main className="collab-access-state">
-      <p className="collab-kicker">Wedding Estate</p>
+      <p className="collab-kicker">Hỷ Yến</p>
       <h1>{title}</h1>
       {children}
     </main>

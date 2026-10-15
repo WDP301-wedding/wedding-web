@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { createPublicGateway, type Hall, type Menu, type Restaurant } from './public-api';
 import { PublicShell } from './public-shell';
 import { ConsultationForm } from './consultation-form';
+import { BrandMark } from '../../design-system/brand-mark';
 
 const gateway = createPublicGateway();
 const vnd = (value: number) =>
@@ -114,14 +115,12 @@ export function PublicWebsite({
                 />
               ) : (
                 <div className="public-image-placeholder">
-                  <span className="latin-wordmark" lang="en">
-                    WEDDING ESTATE
-                  </span>
+                  <BrandMark />
                   <p>Một không gian dành cho câu chuyện của hai bạn</p>
                 </div>
               )}
               <div className="public-image-caption">
-                {restaurant?.displayName ?? 'Wedding Estate'}
+                {restaurant?.displayName ?? 'Nhà hàng Hỷ Yến'}
                 <span>Chạm đến ngày bạn mong đợi</span>
               </div>
             </div>
@@ -334,7 +333,7 @@ function HallCard({ hall }: { hall: Hall }) {
 function Contact({ restaurant }: { restaurant: Restaurant | null }) {
   return (
     <address className="public-contact">
-      <strong>{restaurant?.displayName ?? 'Wedding Estate'}</strong>
+      <strong>{restaurant?.displayName ?? 'Nhà hàng Hỷ Yến'}</strong>
       {restaurant?.address ? <p>{restaurant.address}</p> : null}
       {restaurant?.publicPhone ? (
         <p>

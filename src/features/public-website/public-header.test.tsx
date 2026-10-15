@@ -42,7 +42,7 @@ describe('public navbar authentication', () => {
       '/account',
     );
     const actions = screen.getByRole('button', { name: 'Đăng xuất' }).parentElement!;
-    expect(within(actions).getByRole('link', { name: /Hẹn tư vấn/ })).toBeVisible();
+    expect(within(actions).getByRole('link', { name: /Nhận tư vấn/ })).toBeVisible();
     fireEvent.click(screen.getByRole('button', { name: 'Đăng xuất' }));
     await waitFor(() => expect(api.logout).toHaveBeenCalledWith('test-access'));
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/account'));

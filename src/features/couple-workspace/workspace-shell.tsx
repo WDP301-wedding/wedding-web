@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState, type ReactNode } from 'react';
+import { BrandMark } from '../../design-system/brand-mark';
 import { browserSession } from '../identity-access/browser-session';
 import { notificationApi } from '../notifications/notification-api';
 export type Section =
@@ -138,9 +139,8 @@ export function WorkspaceShell({
           >
             {menu ? '×' : '☰'}
           </button>
-          <Link className="brand" href="/overview">
-            <span>ngày chung đôi</span>
-            <strong>WEDDING</strong>
+          <Link className="brand" href="/overview" aria-label="Hỷ Yến — Tổng quan">
+            <BrandMark compact />
           </Link>
           <div className="booking-context">
             <span>Không gian chuẩn bị tiệc cưới</span>

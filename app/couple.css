@@ -81,9 +81,9 @@
   border-color: var(--champagne);
 }
 .v0-workspace .cw-alert {
-  border: 1px solid #e3c3bc;
-  background: #fbf1ee;
-  color: #7a3f35;
+  border: 1px solid #efc9c4;
+  background: #fdecea;
+  color: #b02323;
   padding: 14px 16px;
   display: grid;
   gap: 6px;
@@ -95,7 +95,7 @@
 .v0-workspace .cw-success {
   margin: 0;
   padding: 12px 16px;
-  background: #eef3ed;
+  background: #e7f1ea;
   color: var(--brand-sage);
 }
 .v0-workspace .cw-note {
@@ -156,7 +156,7 @@
 .v0-workspace .cw-inline-input {
   min-height: 42px;
   padding: 8px 10px;
-  border: 1px solid rgba(74, 93, 78, 0.3);
+  border: 1px solid rgba(154, 135, 127, 0.66);
   background: #fff;
   font-weight: 400;
   width: 100%;

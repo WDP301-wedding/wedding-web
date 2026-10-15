@@ -1,19 +1,55 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap&subset=vietnamese');
 
 :root {
-  --navy: #334537;
-  --navy-deep: #243b2a;
-  --brown: #232321;
-  --burgundy: #8c6d62;
-  --gold: #c5a880;
-  --powder: #f3efea;
-  --paper: #faf8f5;
-  --ink: #232321;
-  --muted: #62645f;
+  /* Hỷ Yến design system – docs/design/hy-yen-redesign.md. Tên biến cũ giữ nguyên để CSS hiện có tự đổi tông. */
+  --navy: #7a1f3d;
+  --navy-deep: #5c1430;
+  --brown: #2b1d22;
+  --burgundy: #87334f;
+  --gold: #c9a46a;
+  --powder: #f7ede4;
+  --paper: #fff8f1;
+  --ink: #2b1d22;
+  --muted: #6e5d63;
+  /* Bảng màu Hỷ Yến */
+  --hy-wine: #7a1f3d;
+  --hy-wine-pressed: #5c1430;
+  --hy-wine-soft: #f5e4e9;
+  --hy-peach: #f4b9a7;
+  --hy-cream: #fff8f1;
+  --hy-champagne: #c9a46a;
+  --hy-ink: #2b1d22;
+  --hy-ink-muted: #6e5d63;
+  --hy-outline: #eadfd6;
+  --hy-outline-strong: #9a877f;
+  --hy-surface: #ffffff;
+  --hy-surface-warm: #fbf4ee;
+  --hy-success: #2f6b4f;
+  --hy-success-bg: #e7f1ea;
+  --hy-warning: #8a5300;
+  --hy-warning-bg: #fcefd6;
+  --hy-error: #c62828;
+  --hy-error-bg: #fdecea;
+  --hy-info: #3f5b6b;
+  --hy-info-bg: #e6eef2;
+  /* Hình khối */
+  --hy-radius-sm: 12px;
+  --hy-radius-md: 16px;
+  --hy-radius-lg: 24px;
+  --hy-shadow-1: 0 1px 2px rgb(43 29 34 / 6%), 0 2px 8px rgb(43 29 34 / 4%);
+  --hy-shadow-2: 0 8px 24px rgb(43 29 34 / 10%);
+  /* Chuyển động – Material 3 emphasized */
+  --hy-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --hy-ease-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --hy-ease-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --hy-dur-fast: 150ms;
+  --hy-dur-medium: 250ms;
+  --hy-dur-medium2: 300ms;
+  --hy-dur-long: 400ms;
   --font-display: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
   --font-body: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
   --font-script: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
-  --font-wordmark: Lora, Georgia, 'Times New Roman', serif;
+  --font-wordmark: 'Playfair Display', Georgia, serif;
   color-scheme: light;
 }
 
@@ -38,7 +74,7 @@
   display: grid;
   gap: 0.75rem;
   padding: 1rem 0;
-  border-bottom: 1px solid #d9d0c1;
+  border-bottom: 1px solid #eadfd6;
 }
 
 .timeline-editor-actions {
@@ -190,8 +226,8 @@ textarea {
   padding: 0.75rem;
   color: var(--ink);
   background: white;
-  border: 1px solid #aeb6b0;
-  border-radius: 2px;
+  border: 1px solid #9a877f;
+  border-radius: var(--hy-radius-sm);
 }
 
 .collab-columns textarea {
@@ -205,7 +241,7 @@ textarea {
   color: var(--paper);
   background: var(--navy);
   border: 1px solid var(--navy);
-  border-radius: 2px;
+  border-radius: var(--hy-radius-sm);
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: normal;
@@ -229,7 +265,7 @@ textarea {
 }
 
 .collab-live [role='alert'] {
-  color: #8b3a32;
+  color: #b02323;
 }
 
 #proposal-content {
@@ -241,7 +277,7 @@ textarea {
 .collab-empty {
   padding: 2rem;
   background: var(--powder);
-  border: 1px solid #ded5c8;
+  border: 1px solid #eadfd6;
   text-align: center;
 }
 
@@ -275,7 +311,7 @@ textarea {
 
 .collab-proposal dl {
   margin: 0;
-  border-top: 1px solid rgba(197, 168, 128, 0.55);
+  border-top: 1px solid rgba(201, 164, 106, 0.55);
 }
 
 .collab-proposal dl div,
@@ -284,7 +320,7 @@ textarea {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(197, 168, 128, 0.35);
+  border-bottom: 1px solid rgba(201, 164, 106, 0.35);
 }
 
 .collab-proposal dd {
@@ -296,13 +332,13 @@ textarea {
   display: grid;
   grid-template-columns: 1.4fr 0.8fr;
   gap: 1px;
-  background: #dcd4c8;
-  border: 1px solid #dcd4c8;
+  background: #e6ddd7;
+  border: 1px solid #e6ddd7;
 }
 
 .collab-columns > * {
   padding: clamp(1.5rem, 4vw, 3.25rem);
-  background: #fffdf9;
+  background: #fffcf9;
 }
 
 .collab-columns h2 {
@@ -322,7 +358,7 @@ textarea {
   grid-template-columns: 4rem 1fr;
   gap: 1rem;
   padding: 1rem 0;
-  border-bottom: 1px solid #e1d9cd;
+  border-bottom: 1px solid #eadfd6;
 }
 
 .collab-timeline time {
@@ -504,7 +540,7 @@ textarea {
 .primary-action:hover,
 .primary-action:focus-visible {
   background: var(--navy-deep);
-  outline: 3px solid rgb(176 138 71 / 32%);
+  outline: 3px solid rgb(122 31 61 / 28%);
   outline-offset: 3px;
 }
 
@@ -533,7 +569,7 @@ textarea {
   position: relative;
   min-height: 760px;
   background:
-    linear-gradient(180deg, rgb(16 43 85 / 2%), rgb(16 43 85 / 26%)),
+    linear-gradient(180deg, rgb(43 29 34 / 2%), rgb(43 29 34 / 26%)),
     url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=85')
       center / cover;
 }
@@ -551,7 +587,7 @@ textarea {
   gap: 4px;
   padding: 22px 40px;
   color: white;
-  background: rgb(16 43 85 / 88%);
+  background: rgb(43 29 34 / 88%);
   grid-template-columns: repeat(3, minmax(0, 1fr));
   font-family: var(--font-body);
   font-size: var(--caption-size);
@@ -713,18 +749,18 @@ textarea {
   padding: 0 14px;
   color: var(--ink);
   background: white;
-  border: 1px solid #aab8cc;
+  border: 1px solid #9a877f;
   border-radius: 0;
   outline: none;
 }
 
 .field input:focus {
   border-color: var(--navy);
-  box-shadow: 0 0 0 3px rgb(22 58 112 / 13%);
+  box-shadow: 0 0 0 3px rgb(122 31 61 / 14%);
 }
 
 .field input[readonly] {
-  background: #f6f3ef;
+  background: #fbf4ee;
 }
 
 .field small {
@@ -852,8 +888,8 @@ textarea {
 }
 
 .form-error {
-  color: #793f3f;
-  background: #f8eeee;
+  color: #b02323;
+  background: #fdecea;
 }
 
 .form-success {
@@ -977,7 +1013,7 @@ textarea {
 }
 
 .access-locked {
-  background: #f4f1eb;
+  background: #fbf4ee;
 }
 
 .form-security-note,
