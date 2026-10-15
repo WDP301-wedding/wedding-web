@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import { JourneyStepper, journeyIndex, journeySteps } from '../../design-system/journey-stepper';
 import { WorkspaceShell } from '../couple-workspace/workspace-shell';
 import { browserSession } from '../identity-access/identity-page';
 import { createExperienceGateway, type Overview } from '../identity-access/experience-api';
@@ -9,6 +9,13 @@ import type { WebSessionSnapshot } from '../identity-access/session';
 import { ApiClientError } from '../../lib/api/client';
 
 const gateway = createExperienceGateway();
+
+/** Số ngày còn lại tới ngày cưới, tính theo lịch Việt Nam (không phụ thuộc múi giờ máy). */
+function daysUntil(eventDate: string): number {
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
+  const diff = Date.parse(`${eventDate}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`);
+  return Math.round(diff / 86_400_000);
+}
 const phases = {
   DRAFT: 'Đang trao đổi',
   AWAITING_DEPOSIT: 'Đã thống nhất kịch bản',
@@ -71,7 +78,7 @@ export function CoupleOverview() {
         <div className="public-section-heading">
           <div>
             <span className="public-kicker">Hành trình của hai bạn</span>
-            <h1>Kế hoạch ngày chung đôi</h1>
+            <h1>Tổng quan</h1>
           </div>
           <Link href="/account">Hồ sơ & bảo mật →</Link>
         </div>
@@ -101,34 +108,34 @@ export function CoupleOverview() {
             <Link href="/consultation">Liên hệ nhà hàng →</Link>
           </div>
         ) : null}
-        {page?.data.map((booking) => (
-          <article key={booking.bookingId} className="overview-booking">
-            <div className="hero-card">
-              <Image
-                className="overview-image"
-                src="/images/v0-wedding-venue.png"
-                alt="Không gian sân vườn minh họa cho thiết kế"
-                width={1000}
-                height={700}
-              />
-              <div className="overview-event">
-                <span>{phases[booking.phase]}</span>
-                <h2>
-                  {new Date(`${booking.eventDate}T00:00:00+07:00`).toLocaleDateString('vi-VN', {
-                    timeZone: 'Asia/Ho_Chi_Minh',
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </h2>
-                <p>
-                  {booking.hallName} · {booking.shiftCode === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối'}
-                </p>
-                <p>{booking.planningHeadcount} khách dự kiến</p>
-                <div
-                  className="overview-links"
-                  style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}
-                >
+        {page?.data.map((booking) => {
+          const days = daysUntil(booking.eventDate);
+          const step = journeyIndex(booking.phase, booking.eventDate);
+          return (
+            <article key={booking.bookingId} className="overview-booking hy-overview">
+              <div className="hy-overview-top">
+                <div className="hy-countdown">
+                  <span className="hy-countdown-phase">{phases[booking.phase]}</span>
+                  {days > 0 && booking.phase !== 'CANCELLED' ? (
+                    <p className="hy-countdown-days">
+                      <small>Còn đến ngày cưới</small>
+                      <strong>{days}</strong> ngày
+                    </p>
+                  ) : null}
+                  <h2>
+                    {new Date(`${booking.eventDate}T00:00:00+07:00`).toLocaleDateString('vi-VN', {
+                      timeZone: 'Asia/Ho_Chi_Minh',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </h2>
+                  <p>
+                    {booking.hallName} · {booking.shiftCode === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối'}
+                  </p>
+                  <p>{booking.planningHeadcount} khách dự kiến</p>
+                </div>
+                <nav className="hy-overview-links" aria-label="Lối tắt của tiệc">
                   <Link
                     className="public-button"
                     href={`/workspace?bookingId=${booking.bookingId}`}
@@ -163,51 +170,60 @@ export function CoupleOverview() {
                   >
                     Công nợ
                   </Link>
-                </div>
+                </nav>
               </div>
-            </div>
-            <div className="overview-next">
-              <h3>Cùng chuẩn bị bước tiếp theo</h3>
-              <ul>
-                <li>
-                  <strong>Đề xuất tiệc</strong>
-                  <span>Đã mở cho hai bạn</span>
-                </li>
-                <li>
-                  <strong>Kịch bản</strong>
+              <section className="hy-journey-card" aria-label="Hành trình cưới">
+                <div className="hy-journey-head">
+                  <h3>Hành trình cưới</h3>
                   <span>
-                    {booking.hasTimeline
-                      ? 'Đã có bản để cùng xem lại'
-                      : 'Đang chờ kịch bản đầu tiên'}
+                    {step < 0 ? 'Tiệc đã huỷ' : `Bước ${step + 1}/6 · ${journeySteps[step]}`}
                   </span>
-                </li>
-                <li>
-                  <strong>Nhà hàng duyệt</strong>
-                  <span>
-                    {booking.managerApproved
-                      ? 'Đã duyệt phiên bản hiện tại'
-                      : 'Chưa duyệt phiên bản hiện tại'}
-                  </span>
-                </li>
-                <li>
-                  <strong>Hai bạn duyệt</strong>
-                  <span>
-                    {booking.coupleApproved
-                      ? 'Đã duyệt phiên bản hiện tại'
-                      : 'Cần xem lại và xác nhận'}
-                  </span>
-                </li>
-              </ul>
-              <p className="public-muted">
-                {booking.phase === 'CANCELLED' || booking.phase === 'COMPLETED'
-                  ? 'Hồ sơ được giữ lại để bạn xem lịch sử.'
-                  : booking.hasTimeline && !booking.coupleApproved
-                    ? 'Mở kịch bản để xem lại các mốc và gửi phê duyệt.'
-                    : 'Trao đổi với nhà hàng khi cần điều chỉnh kế hoạch.'}
-              </p>
-            </div>
-          </article>
-        ))}
+                </div>
+                <JourneyStepper current={step} />
+              </section>
+              <div className="overview-next">
+                <h3>Cùng chuẩn bị bước tiếp theo</h3>
+                <ul>
+                  <li>
+                    <strong>Đề xuất tiệc</strong>
+                    <span>Đã mở cho hai bạn</span>
+                  </li>
+                  <li>
+                    <strong>Kịch bản</strong>
+                    <span>
+                      {booking.hasTimeline
+                        ? 'Đã có bản để cùng xem lại'
+                        : 'Đang chờ kịch bản đầu tiên'}
+                    </span>
+                  </li>
+                  <li>
+                    <strong>Nhà hàng duyệt</strong>
+                    <span>
+                      {booking.managerApproved
+                        ? 'Đã duyệt phiên bản hiện tại'
+                        : 'Chưa duyệt phiên bản hiện tại'}
+                    </span>
+                  </li>
+                  <li>
+                    <strong>Hai bạn duyệt</strong>
+                    <span>
+                      {booking.coupleApproved
+                        ? 'Đã duyệt phiên bản hiện tại'
+                        : 'Cần xem lại và xác nhận'}
+                    </span>
+                  </li>
+                </ul>
+                <p className="public-muted">
+                  {booking.phase === 'CANCELLED' || booking.phase === 'COMPLETED'
+                    ? 'Hồ sơ được giữ lại để bạn xem lịch sử.'
+                    : booking.hasTimeline && !booking.coupleApproved
+                      ? 'Mở kịch bản để xem lại các mốc và gửi phê duyệt.'
+                      : 'Trao đổi với nhà hàng khi cần điều chỉnh kế hoạch.'}
+                </p>
+              </div>
+            </article>
+          );
+        })}
         {page?.nextCursor ? (
           <button disabled={pending} onClick={() => void more()}>
             Xem thêm hồ sơ
