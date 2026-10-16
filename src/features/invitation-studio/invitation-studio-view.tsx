@@ -6,6 +6,7 @@ import { readPublicEnv } from '../../lib/env';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import type {
+  ContractedPrintSource,
   InvitationGateway,
   DesignView,
   PrintOrderView,
@@ -440,6 +441,28 @@ export function InvitationStudioView({
     }
   };
 
+  // Dòng in thiệp đã có trong hợp đồng/phụ lục (nếu có). Chọn nguồn này để không bị tính tiền 2 lần.
+  const [printSources, setPrintSources] = useState<readonly ContractedPrintSource[]>([]);
+  const [printSourceIndex, setPrintSourceIndex] = useState(0);
+  useEffect(() => {
+    let active = true;
+    if (!gateway.contractedPrintSources) return;
+    gateway
+      .contractedPrintSources(accessToken, bookingId)
+      .then((sources) => {
+        if (!active) return;
+        setPrintSources(sources);
+        if (sources[0]) setPrintQuantity(sources[0].quantity);
+      })
+      .catch(() => {
+        // Booking theo đề xuất cũ không có hợp đồng: giữ luồng in tính phí riêng như trước.
+      });
+    return () => {
+      active = false;
+    };
+  }, [gateway, accessToken, bookingId]);
+  const selectedPrintSource = printSources[printSourceIndex];
+
   const handleRequestPrint = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentDesign) {
@@ -448,13 +471,27 @@ export function InvitationStudioView({
     }
     setIsOrdering(true);
     setNotice(null);
-    const signature = `${currentDesign.designId}:${printQuantity}`;
+    const signature = `${currentDesign.designId}:${printQuantity}:${selectedPrintSource?.offeringId ?? ''}`;
     const key = getOrGenerateKey(orderKeyRef, signature, 'request-print-order');
     try {
       const newOrder = await gateway.requestPrintOrder(
         accessToken,
         bookingId,
-        [{ designId: currentDesign.designId, quantity: printQuantity }],
+        [
+          {
+            designId: currentDesign.designId,
+            quantity: printQuantity,
+            ...(selectedPrintSource
+              ? {
+                  commercialSource: {
+                    agreementRevisionId: selectedPrintSource.agreementRevisionId,
+                    offeringId: selectedPrintSource.offeringId,
+                    sourceRevisionId: selectedPrintSource.sourceRevisionId,
+                  },
+                }
+              : {}),
+          },
+        ],
         key,
       );
       setOrders([newOrder, ...orders]);
@@ -1315,6 +1352,36 @@ export function InvitationStudioView({
               }}
               className="space-y-4 max-w-md"
             >
+              {printSources.length > 0 ? (
+                <div>
+                  <label
+                    htmlFor="print-source"
+                    className="block text-sm font-medium text-neutral-700 mb-1"
+                  >
+                    Mẫu in theo hợp đồng
+                  </label>
+                  <select
+                    id="print-source"
+                    value={printSourceIndex}
+                    onChange={(e) => {
+                      const index = Number(e.target.value);
+                      setPrintSourceIndex(index);
+                      setPrintQuantity(printSources[index]?.quantity ?? printQuantity);
+                    }}
+                    className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md"
+                  >
+                    {printSources.map((source, index) => (
+                      <option key={source.offeringId} value={index}>
+                        {source.name} · {source.quantity} bản trong hợp đồng
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    Số bản trong hợp đồng đã được tính tiền, nhà hàng không thu lại. Muốn in thêm
+                    hoặc đổi mẫu, hãy tạo phụ lục hợp đồng.
+                  </p>
+                </div>
+              ) : null}
               <div>
                 <label
                   htmlFor="print-quantity"

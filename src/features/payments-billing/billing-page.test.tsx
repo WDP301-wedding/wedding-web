@@ -13,6 +13,8 @@ const context: BillingContext = {
   phase: 'AWAITING_DEPOSIT',
   depositAmountVnd: 1234567,
   timelineRevisionId: 'timeline',
+  contract: null,
+  contractRequired: false,
 };
 function gateway(): CoupleBillingGateway {
   return {

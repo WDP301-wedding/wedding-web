@@ -44,6 +44,23 @@ export type ReviseDesignInput = {
   textFields?: DesignTextFields;
 };
 
+export type ContractedPrintSource = Readonly<{
+  agreementRevisionId: string;
+  offeringId: string;
+  sourceRevisionId: string;
+  name: string;
+  quantity: number;
+}>;
+export type PrintRequestLine = Readonly<{
+  designId: string;
+  quantity: number;
+  commercialSource?: Readonly<{
+    agreementRevisionId: string;
+    offeringId: string;
+    sourceRevisionId: string;
+  }>;
+}>;
+
 export interface InvitationGateway {
   listDesigns(this: void, accessToken: string, bookingId: string): Promise<readonly DesignView[]>;
   getDesign(
@@ -114,9 +131,19 @@ export interface InvitationGateway {
     this: void,
     accessToken: string,
     bookingId: string,
-    lines: readonly { designId: string; quantity: number }[],
+    lines: readonly PrintRequestLine[],
     idempotencyKey?: string,
   ): Promise<PrintOrderView>;
+  /**
+   * Các dòng "in thiệp" trong thoả thuận đang hiệu lực (hợp đồng + phụ lục đã duyệt).
+   * Đơn in phải trỏ tới nguồn này để backend không tính tiền in lần hai.
+   * Tuỳ chọn để các bản giả lập trong test cũ vẫn hợp lệ.
+   */
+  contractedPrintSources?(
+    this: void,
+    accessToken: string,
+    bookingId: string,
+  ): Promise<readonly ContractedPrintSource[]>;
   approvePrintOrder(
     this: void,
     accessToken: string,
@@ -382,10 +409,56 @@ export function createInvitationGateway(client?: ApiClient): InvitationGateway {
           path: { bookingId },
           header: { 'Idempotency-Key': intent('request-print-order', idempotencyKey) },
         },
-        body: { lines },
+        body: { lines: lines.map((line) => ({ ...line })) },
       });
       if (error !== undefined) throw new Error('Không thể gửi yêu cầu in thiệp.', { cause: error });
       return required(data).data as unknown as PrintOrderView;
+    },
+
+    async contractedPrintSources(accessToken, bookingId) {
+      const [appendices, contracts] = await Promise.all([
+        api().GET('/bookings/{bookingId}/contract-appendices', {
+          headers: headers(accessToken),
+          params: { path: { bookingId } },
+        }),
+        api().GET('/bookings/{bookingId}/contracts', {
+          headers: headers(accessToken),
+          params: { path: { bookingId } },
+        }),
+      ]);
+      type Line = {
+        category: string;
+        sourceId: string;
+        sourceRevisionId: string;
+        name: string;
+        quantity: number;
+      };
+      const appendixData = appendices.data?.data as
+        | {
+            effectiveRevisionId: string;
+            revisions: readonly { revisionId: string; document: { afterLines: readonly Line[] } }[];
+          }
+        | undefined;
+      const contractData = contracts.data?.data as
+        | { revisions: readonly { revisionId: string; document: { lines: readonly Line[] } }[] }
+        | undefined;
+      if (!appendixData) return [];
+      const effective = appendixData.effectiveRevisionId;
+      const lines =
+        appendixData.revisions.find((revision) => revision.revisionId === effective)?.document
+          .afterLines ??
+        contractData?.revisions.find((revision) => revision.revisionId === effective)?.document
+          .lines ??
+        [];
+      return lines
+        .filter((line) => line.category === 'PRINT')
+        .map((line) => ({
+          agreementRevisionId: effective,
+          offeringId: line.sourceId,
+          sourceRevisionId: line.sourceRevisionId,
+          name: line.name,
+          quantity: line.quantity,
+        }));
     },
 
     async approvePrintOrder(

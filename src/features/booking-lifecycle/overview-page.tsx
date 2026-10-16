@@ -137,10 +137,26 @@ export function CoupleOverview() {
                   </Link>
                   <Link
                     className="button button-secondary"
-                    href={`/invitations?bookingId=${booking.bookingId}`}
+                    href={`/contract?bookingId=${booking.bookingId}`}
                   >
-                    Thiệp cưới
+                    Hợp đồng
                   </Link>
+                  {booking.accessLevel === 'FULL' ? (
+                    <>
+                      <Link
+                        className="button button-secondary"
+                        href={`/guests?bookingId=${booking.bookingId}`}
+                      >
+                        Khách mời
+                      </Link>
+                      <Link
+                        className="button button-secondary"
+                        href={`/invitations?bookingId=${booking.bookingId}`}
+                      >
+                        Thiệp cưới
+                      </Link>
+                    </>
+                  ) : null}
                   <Link
                     className="button button-secondary"
                     href={`/billing?bookingId=${booking.bookingId}`}

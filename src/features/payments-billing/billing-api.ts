@@ -13,6 +13,18 @@ export type BillingContext = Readonly<{
   phase: components['schemas']['BookingProposalResponse']['data']['phase'];
   depositAmountVnd: number;
   timelineRevisionId: string | null;
+  /**
+   * Hợp đồng FULL_CONTRACT_V1 đã duyệt kép (nếu có). Khi có, khoản cọc là 30% tổng hợp đồng và
+   * body đặt cọc PHẢI kèm đúng `contractRevisionId` + `documentDigest` + `timelineRevisionId` của
+   * hợp đồng đó, để backend chắc chắn hai bên đang trả tiền cho đúng phiên bản đã duyệt.
+   */
+  contract: Readonly<{
+    revisionId: string;
+    documentDigest: string;
+    eligibleForDeposit: boolean;
+  }> | null;
+  /** Booking theo mô hình hợp đồng mới nhưng chưa có hợp đồng được duyệt → chưa thể đặt cọc. */
+  contractRequired: boolean;
 }>;
 export interface CoupleBillingGateway {
   loadContext(this: void, token: string, bookingId: string): Promise<BillingContext>;
@@ -66,18 +78,44 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
   const headers = (token: string) => ({ Authorization: `Bearer ${token}` });
   return {
     async loadContext(token, bookingId) {
-      const { data } = await api().GET('/bookings/{bookingId}/proposal', {
-        params: { path: { bookingId } },
-        headers: headers(token),
-        cache: 'no-store',
-      });
+      const [{ data }, contracts] = await Promise.all([
+        api().GET('/bookings/{bookingId}/proposal', {
+          params: { path: { bookingId } },
+          headers: headers(token),
+          cache: 'no-store',
+        }),
+        api()
+          .GET('/bookings/{bookingId}/contracts', {
+            params: { path: { bookingId } },
+            headers: headers(token),
+            cache: 'no-store',
+          })
+          .then((response) => response.data?.data ?? null)
+          // Booking theo đề xuất cũ có thể không đọc được hợp đồng: coi như chưa có hợp đồng.
+          .catch(() => null),
+      ]);
       const value = required(data);
+      const revisions = contracts?.revisions ? Array.from(contracts.revisions) : [];
+      const current = revisions.find(
+        (revision) => revision.revisionId === contracts?.currentRevisionId,
+      );
+      const approved = current !== undefined && current.state === 'APPROVED' ? current : null;
       return {
         bookingId: value.bookingId,
         accessLevel: value.capabilities.accessLevel,
         phase: value.phase,
-        depositAmountVnd: value.proposal.depositAmountVnd,
-        timelineRevisionId: value.timeline?.revisionId ?? null,
+        depositAmountVnd: approved?.document.depositAmountVnd ?? value.proposal.depositAmountVnd,
+        timelineRevisionId:
+          approved?.document.timelineRevisionId ?? value.timeline?.revisionId ?? null,
+        contract:
+          approved === null
+            ? null
+            : {
+                revisionId: approved.revisionId,
+                documentDigest: approved.documentDigest,
+                eligibleForDeposit: contracts?.eligibleForDeposit ?? false,
+              },
+        contractRequired: contracts?.modelVersion === 'FULL_CONTRACT_V1' && approved === null,
       };
     },
     async load(token, bookingId, query = {}) {

@@ -27,8 +27,6 @@ function fixture() {
     refreshSession: vi.fn().mockResolvedValue(issued),
     logout: vi.fn().mockResolvedValue(undefined),
     acceptInvitation: vi.fn(),
-    completePasswordReset: vi.fn(),
-    requestPasswordReset: vi.fn(),
   };
   return { api, session: new WebIdentitySession(api) };
 }
