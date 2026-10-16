@@ -1485,3 +1485,358 @@ body {
     animation: none;
   }
 }
+
+/* ---------- Đề xuất & kịch bản: bố cục hai cột ---------- */
+.v0-workspace .collab-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+}
+.v0-workspace .collab-intro > div {
+  display: grid;
+  gap: 6px;
+}
+.v0-workspace .collab-intro p {
+  margin: 0;
+}
+.v0-workspace .collab-access {
+  justify-self: start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--hy-wine-soft);
+  color: var(--hy-wine);
+  font-size: 12px;
+  font-weight: 600;
+}
+.v0-workspace .collab-switch {
+  display: grid;
+  gap: 6px;
+  min-width: min(100%, 320px);
+  color: var(--hy-ink-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.v0-workspace .collab-switch select {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface);
+  color: var(--hy-ink);
+}
+.v0-workspace .collab-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 20px;
+  align-items: start;
+}
+.v0-workspace .collab-main,
+.v0-workspace .collab-side {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+/* Cột duyệt dính khi cuộn: nút "Phê duyệt" luôn trong tầm mắt khi đọc timeline dài. */
+.v0-workspace .collab-side {
+  position: sticky;
+  top: 20px;
+}
+.v0-workspace .collab-proposal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 20px 32px;
+  margin: 0;
+  padding: 24px 28px;
+}
+.v0-workspace .collab-proposal dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+  margin: 0;
+}
+.v0-workspace .collab-proposal dl > div {
+  display: grid;
+  gap: 2px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid rgb(255 255 255 / 20%);
+}
+.v0-workspace .collab-proposal dt {
+  color: rgb(255 255 255 / 76%);
+  font-size: 12px;
+}
+.v0-workspace .collab-proposal dd {
+  margin: 0;
+  color: #ffffff;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.v0-workspace .collab-timeline,
+.v0-workspace .collab-decisions,
+.v0-workspace .collab-next-card,
+.v0-workspace .collab-cancel-box {
+  display: grid;
+  gap: 14px;
+  padding: 20px 24px;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+  box-shadow: var(--hy-shadow-1);
+}
+.v0-workspace .collab-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.v0-workspace .collab-card-head p,
+.v0-workspace .collab-decisions p,
+.v0-workspace .collab-next-card > p {
+  margin: 0;
+}
+.v0-workspace .collab-timeline h2,
+.v0-workspace .collab-decisions h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.v0-workspace .collab-shift-note,
+.v0-workspace .collab-hint {
+  margin: 0;
+  color: var(--hy-ink-muted);
+  font-size: 13px;
+}
+.v0-workspace .collab-timeline ol {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.v0-workspace .collab-timeline li {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--hy-outline);
+}
+.v0-workspace .collab-timeline li:last-child {
+  border-bottom: 0;
+}
+.v0-workspace .collab-timeline li span {
+  display: grid;
+  gap: 2px;
+}
+.v0-workspace .collab-timeline li small {
+  color: var(--hy-ink-muted);
+}
+/* Khối mở/đóng (sửa kịch bản, rút duyệt, đổi/huỷ). */
+.v0-workspace .collab-edit,
+.v0-workspace .collab-more {
+  display: grid;
+  gap: 12px;
+}
+.v0-workspace .collab-edit > summary,
+.v0-workspace .collab-more > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  color: var(--hy-wine);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  justify-self: start;
+}
+.v0-workspace .collab-edit > summary::-webkit-details-marker,
+.v0-workspace .collab-more > summary::-webkit-details-marker {
+  display: none;
+}
+.v0-workspace .collab-edit > summary::after,
+.v0-workspace .collab-more > summary::after {
+  content: '▾';
+  transition: transform var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .collab-edit[open] > summary::after,
+.v0-workspace .collab-more[open] > summary::after {
+  transform: rotate(180deg);
+}
+.v0-workspace .collab-edit[open] > *:not(summary),
+.v0-workspace .collab-more[open] > *:not(summary) {
+  animation: hy-enter var(--hy-dur-medium) var(--hy-ease-decelerate) backwards;
+}
+.v0-workspace .collab-more > summary {
+  border: 0;
+  padding: 0;
+  min-height: 36px;
+  color: var(--hy-ink-muted);
+}
+.v0-workspace .collab-cancel-box > summary {
+  color: var(--hy-ink);
+}
+.v0-workspace .collab-approve {
+  min-height: 48px;
+  border: 1px solid var(--hy-wine);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-wine);
+  color: #ffffff;
+  font-weight: 600;
+}
+.v0-workspace .approval-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hy-outline);
+}
+.v0-workspace .approval-row span {
+  color: var(--hy-ink-muted);
+}
+.v0-workspace .collab-next {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: var(--hy-radius-sm);
+}
+.v0-workspace .collab-next p {
+  margin: 0;
+  font-size: 14px;
+}
+.v0-workspace .collab-next-done {
+  background: var(--hy-success-bg);
+  color: var(--hy-success);
+}
+.v0-workspace .collab-next-muted {
+  background: var(--hy-surface-warm);
+  color: var(--hy-ink-muted);
+}
+.v0-workspace .collab-next .button {
+  justify-self: start;
+}
+.v0-workspace .collab-empty {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding: 20px;
+  border: 1px dashed var(--hy-outline-strong);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface-warm);
+}
+.v0-workspace .collab-empty p {
+  margin: 0;
+  color: var(--hy-ink-muted);
+}
+@media (max-width: 1100px) {
+  .v0-workspace .collab-layout,
+  .v0-workspace .collab-proposal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .v0-workspace .collab-side {
+    position: static;
+  }
+}
+/* Form trong trang đề xuất (trước đây nằm trong .collab-columns). */
+.v0-workspace .collab-layout label {
+  display: grid;
+  gap: 6px;
+  color: var(--hy-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+.v0-workspace .collab-layout input,
+.v0-workspace .collab-layout textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface);
+  color: var(--hy-ink);
+  font-weight: 400;
+}
+.v0-workspace .collab-layout textarea {
+  resize: vertical;
+}
+.v0-workspace .collab-layout form,
+.v0-workspace .collab-layout fieldset {
+  display: grid;
+  gap: 12px;
+}
+.v0-workspace .collab-layout button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--hy-wine);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-wine);
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--hy-dur-fast) var(--hy-ease-emphasized),
+    transform var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .collab-layout button:hover:not(:disabled) {
+  background: var(--hy-wine-pressed);
+}
+.v0-workspace .collab-layout button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.v0-workspace .collab-layout button:disabled {
+  border-color: var(--hy-outline);
+  background: #f3e8df;
+  color: #9a877f;
+  cursor: not-allowed;
+}
+.v0-workspace .collab-layout .collab-secondary,
+.v0-workspace .collab-layout .timeline-editor-actions button {
+  border-color: var(--hy-outline-strong);
+  background: var(--hy-surface) !important;
+  color: var(--hy-wine) !important;
+}
+.v0-workspace .collab-intro .script-heading {
+  margin: 0;
+  color: var(--hy-wine);
+  font-size: 13px;
+  font-weight: 600;
+}
+.v0-workspace .collab-proposal h2 {
+  margin: 6px 0;
+  color: #ffffff;
+  font-size: clamp(24px, 2.4vw, 30px);
+  line-height: 1.25;
+}
+.v0-workspace .collab-proposal-title p {
+  margin: 0;
+  color: rgb(255 255 255 / 86%);
+}
+.v0-workspace .collab-proposal-title > span {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 16%);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+.v0-workspace .collab-proposal dl {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+.v0-workspace .collab-proposal dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 0;
+  border-top: 0;
+  text-align: left;
+}
+.v0-workspace .collab-proposal dd {
+  text-align: right;
+}
+.v0-workspace .collab-timeline ol {
+  border: 0;
+}

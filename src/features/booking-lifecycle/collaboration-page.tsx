@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ApiClientError } from '../../lib/api/client';
 import { TimelineEditor } from './timeline-editor';
+import { Skeleton } from '../../design-system/skeleton';
 import { type WebSessionSnapshot } from '../identity-access/session';
 import { browserSession } from '../identity-access/browser-session';
 import { createExperienceGateway } from '../identity-access/experience-api';
@@ -13,9 +14,23 @@ import {
   type CollaborationGateway,
   type ProposalView,
 } from './collaboration-api';
-import { BrandMark } from '../../design-system/brand-mark';
 
 type Authorize = <T>(operation: (accessToken: string) => Promise<T>) => Promise<T>;
+export type BookingChoice = Readonly<{ bookingId: string; label: string }>;
+/** Danh sách tiệc của cặp đôi (để tự mở tiệc và cho phép đổi tiệc). Tách ra prop để test được. */
+export type ListBookings = (authorize: Authorize) => Promise<readonly BookingChoice[]>;
+
+const uuidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/iu;
+
+const listCoupleBookings: ListBookings = async (authorize) => {
+  const overview = await authorize((token) => createExperienceGateway().overview(token));
+  return overview.data.map((item) => ({
+    bookingId: item.bookingId,
+    label: `${item.hallName} · ${item.eventDate.split('-').reverse().join('/')} · ${
+      item.shiftCode === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối'
+    }`,
+  }));
+};
 // Dùng chung một phiên cho cả ứng dụng: nhiều instance sẽ làm mới cookie refresh (bị xoay vòng)
 // nhiều lần không cần thiết và có thể làm backend thu hồi phiên.
 const session = browserSession;
@@ -65,44 +80,35 @@ export function CollaborationWorkspace({
   authorize,
   gateway,
   onBookingChange,
+  listBookings = listCoupleBookings,
 }: Readonly<{
   access: 'restricted' | 'full';
   authorize: Authorize;
   gateway: CollaborationGateway;
   onBookingChange?: ((bookingId: string) => void) | undefined;
+  listBookings?: ListBookings;
 }>) {
-  const [bookingId, setBookingId] = useState('');
   const [proposal, setProposal] = useState<ProposalView | null>(null);
   const [pending, setPending] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [availableBookings, setAvailableBookings] = useState<
-    readonly { bookingId: string; label: string }[]
-  >([]);
+  // null = đang tải danh sách tiệc; [] = cặp đôi chưa có tiệc nào.
+  const [availableBookings, setAvailableBookings] = useState<readonly BookingChoice[] | null>(null);
+  const requestedRef = useRef(false);
 
   const activeRequestIdRef = useRef<string | null>(null);
 
-  // Fetch couple bookings if authenticated to allow friendly dropdown selection
+  // Lấy danh sách tiệc của cặp đôi: dùng để tự mở tiệc và hiện ô "Đổi tiệc" khi có nhiều tiệc.
   useEffect(() => {
     let active = true;
-    const expGateway = createExperienceGateway();
-    void authorize((token) => expGateway.overview(token))
-      .then((overview) => {
-        if (!active || !overview?.data) return;
-        const mapped = overview.data.map((item) => ({
-          bookingId: item.bookingId,
-          label: `${item.hallName} · ${item.eventDate} · ${item.shiftCode === 'LUNCH' ? 'Trưa' : 'Tối'}`,
-        }));
-        setAvailableBookings(mapped);
-      })
-      .catch(() => {
-        // Restricted access or no couple bookings
-      });
+    void listBookings(authorize)
+      .then((items) => active && setAvailableBookings(items))
+      .catch(() => active && setAvailableBookings([]));
     return () => {
       active = false;
     };
-  }, [authorize]);
+  }, [authorize, listBookings]);
 
   const load = useCallback(
     async (id: string) => {
@@ -118,7 +124,6 @@ export function CollaborationWorkspace({
         }
         setProposal(loadedProposal);
         setLoaded(true);
-        setBookingId(id);
         if (typeof window !== 'undefined') {
           const url = new URL(window.location.href);
           url.searchParams.set('bookingId', id);
@@ -140,15 +145,26 @@ export function CollaborationWorkspace({
     },
     [authorize, gateway, onBookingChange],
   );
+  /**
+   * Tự mở đúng tiệc, không bắt người dùng nhập mã:
+   * 1) `?bookingId=` hợp lệ trên URL (đến từ sidebar, tổng quan, email) → mở ngay;
+   * 2) không có → đợi danh sách tiệc, mở tiệc đầu tiên;
+   * 3) không có tiệc nào → hiện trạng thái trống.
+   * `requestedRef` đảm bảo chỉ tự mở một lần; đổi tiệc sau đó do người dùng chọn.
+   */
   useEffect(() => {
-    const value = new URLSearchParams(window.location.search).get('bookingId');
-    if (value)
-      queueMicrotask(() => {
-        setBookingId(value);
-        if (/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/iu.test(value))
-          void load(value);
-      });
-  }, [load]);
+    if (requestedRef.current) return;
+    const fromUrl = new URLSearchParams(window.location.search).get('bookingId');
+    if (fromUrl && uuidPattern.test(fromUrl)) {
+      requestedRef.current = true;
+      queueMicrotask(() => void load(fromUrl));
+      return;
+    }
+    if (availableBookings === null) return;
+    requestedRef.current = true;
+    const first = availableBookings[0];
+    queueMicrotask(() => (first ? void load(first.bookingId) : setLoaded(true)));
+  }, [availableBookings, load]);
   const command = async (operation: (token: string) => Promise<void>, success: string) => {
     setPending(true);
     setError(null);
@@ -172,69 +188,34 @@ export function CollaborationWorkspace({
       <a className="skip-link" href="#proposal-content">
         Đi đến đề xuất
       </a>
-      <header className="collab-header">
-        <Link className="collab-brand" href="/overview">
-          <BrandMark compact />
-        </Link>
-        <Link href="/billing">Thanh toán</Link>
-        <span className="collab-access">
-          {access === 'full' ? 'Không gian cặp đôi' : 'Không gian tư vấn'}
-        </span>
-      </header>
       <section className="collab-intro">
-        <p className="script-heading">Một kế hoạch cùng vun đắp</p>
-        <h1>Đề xuất ngày trọng đại</h1>
-        <p>
-          Xem lại lựa chọn, cùng duyệt kịch bản và gửi yêu cầu bằng hồ sơ được nhà hàng xác thực.
-        </p>
-
-        {availableBookings.length > 0 && (
-          <div className="collab-booking-select-wrapper mb-3 text-left">
-            <label htmlFor="collab-booking-select" className="block text-sm font-medium mb-1">
-              Chọn hồ sơ tiệc cưới của bạn:
-            </label>
+        <div>
+          <p className="script-heading">Thống nhất</p>
+          <h1>Đề xuất & kịch bản</h1>
+          <span className="collab-access">
+            {access === 'full' ? 'Không gian cặp đôi' : 'Không gian tư vấn'}
+          </span>
+          <p>Xem lại lựa chọn của tiệc, cùng nhà hàng duyệt kịch bản và gửi yêu cầu khi cần.</p>
+        </div>
+        {availableBookings && availableBookings.length > 1 ? (
+          <label className="collab-switch">
+            Đổi tiệc cưới
             <select
-              id="collab-booking-select"
-              value={proposal?.bookingId ?? bookingId}
-              onChange={(e) => {
-                const selectedId = e.target.value;
-                if (selectedId) {
-                  setBookingId(selectedId);
-                  void load(selectedId);
-                }
+              value={proposal?.bookingId ?? ''}
+              disabled={pending}
+              onChange={(event) => {
+                if (event.target.value) void load(event.target.value);
               }}
-              className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883] bg-white text-sm"
             >
-              <option value="">-- Danh sách tiệc cưới đã lưu --</option>
-              {availableBookings.map((b) => (
-                <option key={b.bookingId} value={b.bookingId}>
-                  {b.label} (#{b.bookingId.slice(0, 8)})
+              {proposal ? null : <option value="">Chọn tiệc…</option>}
+              {availableBookings.map((item) => (
+                <option key={item.bookingId} value={item.bookingId}>
+                  {item.label}
                 </option>
               ))}
             </select>
-          </div>
-        )}
-
-        <form
-          className="collab-lookup"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void load(bookingId.trim());
-          }}
-        >
-          <label>
-            Mã hồ sơ đặt tiệc
-            <input
-              value={bookingId}
-              onChange={(event) => setBookingId(event.target.value)}
-              required
-              placeholder="Mã trong lời mời của bạn"
-            />
           </label>
-          <button disabled={pending || bookingId.trim() === ''} type="submit">
-            Mở đề xuất
-          </button>
-        </form>
+        ) : null}
       </section>
       <div className="collab-live" aria-live="polite">
         {pending ? <p role="status">Đang đồng bộ hồ sơ…</p> : null}
@@ -243,14 +224,20 @@ export function CollaborationWorkspace({
       </div>
       <section id="proposal-content">
         {!loaded ? (
+          <Skeleton label="Đang mở đề xuất của hai bạn…" />
+        ) : proposal === null && availableBookings?.length === 0 && !error ? (
           <EmptyState
-            title="Sẵn sàng khi bạn có mã hồ sơ"
-            body="Mã booking được cung cấp trong quá trình tư vấn. Dữ liệu chỉ hiển thị sau khi máy chủ xác nhận quyền."
-          />
+            title="Chưa có hồ sơ tiệc cưới"
+            body="Nhà hàng sẽ mở đề xuất sau buổi tư vấn và gửi lời mời vào không gian cưới qua email."
+          >
+            <Link className="button" href="/consultation">
+              Liên hệ tư vấn
+            </Link>
+          </EmptyState>
         ) : proposal === null ? (
           <EmptyState
             title="Chưa thể mở đề xuất"
-            body="Kiểm tra lại mã hồ sơ hoặc yêu cầu Quản lý cấp quyền cộng tác."
+            body="Liên kết có thể đã cũ hoặc tài khoản chưa được cấp quyền cho tiệc này. Hãy chọn lại tiệc hoặc liên hệ nhà hàng."
           />
         ) : (
           <ProposalWorkspace
@@ -280,42 +267,97 @@ function ProposalWorkspace({
   command: (operation: (token: string) => Promise<void>, success: string) => Promise<void>;
 }>) {
   const timeline = proposal.timeline;
+  const billingHref = `/billing?bookingId=${proposal.bookingId}`;
+  const bothApproved = Boolean(timeline?.managerApprovedAt && timeline?.coupleApprovedAt);
+  const confirmed = proposal.phase === 'CONFIRMED';
+  // Bước tiếp theo theo giai đoạn: giữ đúng câu chữ cũ để người dùng (và test) nhận ra.
+  const next =
+    proposal.phase === 'CANCELLED' ? (
+      <NextStep
+        tone="muted"
+        title="Hồ sơ tiệc đã hủy"
+        body="Hồ sơ tiệc cưới này đã kết thúc hoặc bị hủy."
+      />
+    ) : proposal.phase === 'COMPLETED' ? (
+      <NextStep
+        tone="done"
+        title="Tiệc cưới đã hoàn tất"
+        body="Sự kiện đã diễn ra thành công. Bạn có thể kiểm tra lịch sử quyết toán tại trang công nợ."
+        href={billingHref}
+        action="Xem quyết toán công nợ →"
+      />
+    ) : confirmed ? (
+      <NextStep
+        tone="done"
+        title="Tiệc cưới đã xác nhận chính thức"
+        body="Hồ sơ đã được đặt cọc. Mọi điều chỉnh kịch bản lúc này sẽ gửi dưới dạng yêu cầu thay đổi để nhà hàng duyệt."
+        href={billingHref}
+        action="Xem công nợ & thanh toán số dư →"
+      />
+    ) : proposal.phase === 'AWAITING_DEPOSIT' || (proposal.phase === 'DRAFT' && bothApproved) ? (
+      <NextStep
+        tone="done"
+        title="Đã thống nhất kịch bản"
+        body="Kịch bản đã được cả hai bên phê duyệt. Hồ sơ đủ điều kiện để tiến hành đặt cọc giữ sảnh chính thức."
+        href={billingHref}
+        action="Chuyển sang đặt cọc →"
+      />
+    ) : (
+      <NextStep
+        tone="muted"
+        title="Đang chờ thống nhất kịch bản"
+        body="Khi nhà hàng và hai bạn cùng duyệt một bản kịch bản, bạn có thể lập hợp đồng và đặt cọc."
+      />
+    );
   return (
-    <>
-      <section className="collab-proposal" aria-label="Tóm tắt đề xuất">
-        <div className="collab-proposal-title">
-          <span>{phaseLabels[proposal.phase] ?? proposal.phase}</span>
-          <h2>{proposal.proposal.hall.name}</h2>
-          <p>
-            {proposal.eventDate} · {proposal.proposal.shift.startTime}–
-            {proposal.proposal.shift.endTime}
-          </p>
-        </div>
-        <dl>
-          <div>
-            <dt>Thực đơn</dt>
-            <dd>{proposal.proposal.menu.name}</dd>
+    <div className="collab-layout">
+      <div className="collab-main">
+        <section className="collab-proposal" aria-label="Tóm tắt đề xuất">
+          <div className="collab-proposal-title">
+            <span>{phaseLabels[proposal.phase] ?? proposal.phase}</span>
+            <h2>{proposal.proposal.hall.name}</h2>
+            <p>
+              {proposal.eventDate.split('-').reverse().join('/')} ·{' '}
+              {proposal.proposal.shift.code === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối'}{' '}
+              {proposal.proposal.shift.startTime}–{proposal.proposal.shift.endTime}
+            </p>
           </div>
-          <div>
-            <dt>Số bàn</dt>
-            <dd>{proposal.proposal.tableCount}</dd>
-          </div>
-          <div>
-            <dt>Tổng dự kiến</dt>
-            <dd>{money(proposal.proposal.baseChargeVnd)}</dd>
-          </div>
-          <div>
-            <dt>Tiền cọc</dt>
-            <dd>{money(proposal.proposal.depositAmountVnd)}</dd>
-          </div>
-        </dl>
-      </section>
-      <section className="collab-columns">
+          <dl>
+            <div>
+              <dt>Thực đơn</dt>
+              <dd>{proposal.proposal.menu.name}</dd>
+            </div>
+            <div>
+              <dt>Số bàn</dt>
+              <dd>{proposal.proposal.tableCount}</dd>
+            </div>
+            <div>
+              <dt>Khách dự kiến</dt>
+              <dd>{proposal.planningHeadcount}</dd>
+            </div>
+            <div>
+              <dt>Tổng dự kiến</dt>
+              <dd>{money(proposal.proposal.baseChargeVnd)}</dd>
+            </div>
+            <div>
+              <dt>Tiền cọc (30%)</dt>
+              <dd>{money(proposal.proposal.depositAmountVnd)}</dd>
+            </div>
+          </dl>
+        </section>
+
         <article className="collab-timeline">
-          <p className="collab-kicker">
-            Kịch bản hiện tại · Revision {timeline?.revisionNumber ?? 0}
-          </p>
-          <h2>Dòng thời gian</h2>
+          <div className="collab-card-head">
+            <div>
+              <p className="collab-kicker">
+                Kịch bản hiện tại · Bản {timeline?.revisionNumber ?? 0}
+              </p>
+              <h2>Dòng thời gian</h2>
+            </div>
+            <span className="collab-shift-note">
+              Giờ hợp lệ: {proposal.proposal.shift.startTime}–{proposal.proposal.shift.endTime}
+            </span>
+          </div>
           {timeline === null || timeline.items.length === 0 ? (
             <EmptyState
               title="Chưa có mốc chương trình"
@@ -334,42 +376,51 @@ function ProposalWorkspace({
               ))}
             </ol>
           )}
-          <p>
-            Giờ bắt đầu mỗi mốc phải từ {proposal.proposal.shift.startTime} đến trước{' '}
-            {proposal.proposal.shift.endTime} theo ca tiệc đã chọn.
-          </p>
-          <TimelineEditor
-            key={proposal.bookingId + ':' + (timeline?.revisionId ?? 'empty')}
-            disabled={pending || !proposal.capabilities.canEditTimeline}
-            initialItems={timeline?.items ?? []}
-            needsReason={proposal.phase === 'CONFIRMED'}
-            onSave={(items, reason) => {
-              const input = {
-                bookingId: proposal.bookingId,
-                expectedRevision: proposal.revision,
-                predecessorRevisionId: timeline?.revisionId ?? null,
-                items,
-              };
-              return command(
-                (token) =>
-                  proposal.phase === 'CONFIRMED'
-                    ? gateway.requestChange(token, { ...input, reason })
-                    : gateway.saveTimeline(token, input),
-                proposal.phase === 'CONFIRMED'
-                  ? 'Đã gửi yêu cầu thay đổi kịch bản.'
-                  : 'Đã lưu revision kịch bản mới.',
-              );
-            }}
-          />
+          {/* Form sửa chỉ mở khi cần, để trang gọn; mở sẵn khi chưa có mốc nào. */}
+          <details className="collab-edit" open={timeline === null || timeline.items.length === 0}>
+            <summary>{confirmed ? 'Đề xuất thay đổi kịch bản' : 'Chỉnh sửa kịch bản'}</summary>
+            <p className="collab-hint">
+              Giờ bắt đầu mỗi mốc phải từ {proposal.proposal.shift.startTime} đến trước{' '}
+              {proposal.proposal.shift.endTime} theo ca tiệc đã chọn.
+              {confirmed ? ' Tiệc đã cọc nên thay đổi cần nhà hàng duyệt.' : ''}
+            </p>
+            <TimelineEditor
+              key={proposal.bookingId + ':' + (timeline?.revisionId ?? 'empty')}
+              disabled={pending || !proposal.capabilities.canEditTimeline}
+              initialItems={timeline?.items ?? []}
+              needsReason={confirmed}
+              onSave={(items, reason) => {
+                const input = {
+                  bookingId: proposal.bookingId,
+                  expectedRevision: proposal.revision,
+                  predecessorRevisionId: timeline?.revisionId ?? null,
+                  items,
+                };
+                return command(
+                  (token) =>
+                    confirmed
+                      ? gateway.requestChange(token, { ...input, reason })
+                      : gateway.saveTimeline(token, input),
+                  confirmed ? 'Đã gửi yêu cầu thay đổi kịch bản.' : 'Đã lưu revision kịch bản mới.',
+                );
+              }}
+            />
+          </details>
         </article>
-        <aside className="collab-decisions">
+      </div>
+
+      <aside className="collab-side">
+        <section className="collab-decisions" aria-label="Phê duyệt kịch bản">
           <p className="collab-kicker">Quyết định của hai bên</p>
           <h2>Phê duyệt</h2>
-          <Approval label="Quản lý" value={timeline?.managerApprovedAt ?? null} />
-          <Approval label="Cặp đôi" value={timeline?.coupleApprovedAt ?? null} />
-          {timeline === null ? null : (
+          <Approval label="Nhà hàng" value={timeline?.managerApprovedAt ?? null} />
+          <Approval label="Hai bạn" value={timeline?.coupleApprovedAt ?? null} />
+          {timeline === null ? (
+            <p className="collab-hint">Chưa có kịch bản để duyệt.</p>
+          ) : (
             <>
               <button
+                className="collab-approve"
                 disabled={pending || !proposal.capabilities.canApproveTimeline}
                 type="button"
                 onClick={() =>
@@ -386,175 +437,54 @@ function ProposalWorkspace({
               >
                 Phê duyệt revision này
               </button>
-              <form
-                className="collab-withdraw"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  const reason = field(new FormData(event.currentTarget), 'reason');
-                  void command(
-                    (token) =>
-                      gateway.withdraw(token, {
-                        bookingId: proposal.bookingId,
-                        revisionId: timeline.revisionId,
-                        expectedRevision: proposal.revision,
-                        reason,
-                      }),
-                    'Đã rút phê duyệt.',
-                  );
-                }}
-              >
-                <label>
-                  Lý do rút phê duyệt
-                  <textarea name="reason" required maxLength={500} rows={2} />
-                </label>
-                <button
-                  className="collab-secondary"
-                  disabled={pending || !proposal.capabilities.canWithdrawApproval}
-                  type="submit"
+              <details className="collab-more">
+                <summary>Rút lại phê duyệt</summary>
+                <form
+                  className="collab-withdraw"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const reason = field(new FormData(event.currentTarget), 'reason');
+                    void command(
+                      (token) =>
+                        gateway.withdraw(token, {
+                          bookingId: proposal.bookingId,
+                          revisionId: timeline.revisionId,
+                          expectedRevision: proposal.revision,
+                          reason,
+                        }),
+                      'Đã rút phê duyệt.',
+                    );
+                  }}
                 >
-                  Rút phê duyệt
-                </button>
-              </form>
-              {(() => {
-                if (proposal.phase === 'CANCELLED') {
-                  return (
-                    <div
-                      className="collab-status-banner"
-                      style={{
-                        marginTop: '16px',
-                        padding: '12px 14px',
-                        background: '#f5f5f5',
-                        border: '1px solid #d4d4d4',
-                        borderRadius: '4px',
-                      }}
-                    >
-                      <strong style={{ display: 'block', color: '#525252', fontSize: '13px' }}>
-                        Hồ sơ tiệc đã hủy
-                      </strong>
-                      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#737373' }}>
-                        Hồ sơ tiệc cưới này đã kết thúc hoặc bị hủy.
-                      </p>
-                    </div>
-                  );
-                }
-                if (proposal.phase === 'COMPLETED') {
-                  return (
-                    <div
-                      className="collab-status-banner"
-                      style={{
-                        marginTop: '16px',
-                        padding: '12px 14px',
-                        background: '#f0fdf4',
-                        border: '1px solid #86efac',
-                        borderRadius: '4px',
-                      }}
-                    >
-                      <strong style={{ display: 'block', color: '#166534', fontSize: '13px' }}>
-                        Tiệc cưới đã hoàn tất
-                      </strong>
-                      <p style={{ margin: '4px 0 8px', fontSize: '12px', color: '#15803d' }}>
-                        Sự kiện đã diễn ra thành công. Bạn có thể kiểm tra lịch sử quyết toán tại
-                        trang công nợ.
-                      </p>
-                      <Link
-                        style={{
-                          display: 'inline-block',
-                          padding: '6px 12px',
-                          background: '#166534',
-                          color: '#fff',
-                          borderRadius: '3px',
-                          fontSize: '12px',
-                          textDecoration: 'none',
-                        }}
-                        href={`/billing?bookingId=${proposal.bookingId}`}
-                      >
-                        Xem quyết toán công nợ →
-                      </Link>
-                    </div>
-                  );
-                }
-                if (proposal.phase === 'CONFIRMED') {
-                  return (
-                    <div
-                      className="collab-status-banner"
-                      style={{
-                        marginTop: '16px',
-                        padding: '12px 14px',
-                        background: '#f0fdf4',
-                        border: '1px solid #86efac',
-                        borderRadius: '4px',
-                      }}
-                    >
-                      <strong style={{ display: 'block', color: '#166534', fontSize: '13px' }}>
-                        Tiệc cưới đã xác nhận chính thức
-                      </strong>
-                      <p style={{ margin: '4px 0 8px', fontSize: '12px', color: '#15803d' }}>
-                        Hồ sơ đã được đặt cọc. Mọi điều chỉnh kịch bản lúc này sẽ gửi dưới dạng yêu
-                        cầu thay đổi (Change Request).
-                      </p>
-                      <Link
-                        style={{
-                          display: 'inline-block',
-                          padding: '6px 12px',
-                          background: '#1e3a2f',
-                          color: '#fff',
-                          borderRadius: '3px',
-                          fontSize: '12px',
-                          textDecoration: 'none',
-                        }}
-                        href={`/billing?bookingId=${proposal.bookingId}`}
-                      >
-                        Xem công nợ & thanh toán số dư →
-                      </Link>
-                    </div>
-                  );
-                }
-                if (
-                  proposal.phase === 'AWAITING_DEPOSIT' ||
-                  (proposal.phase === 'DRAFT' &&
-                    timeline?.managerApprovedAt &&
-                    timeline?.coupleApprovedAt)
-                ) {
-                  return (
-                    <div
-                      className="collab-deposit-banner"
-                      style={{
-                        marginTop: '16px',
-                        padding: '12px 14px',
-                        background: '#eef3ed',
-                        border: '1px solid #74c69d',
-                        borderRadius: '4px',
-                      }}
-                    >
-                      <strong style={{ display: 'block', color: '#1e3a2f', fontSize: '13px' }}>
-                        Đã thống nhất kịch bản
-                      </strong>
-                      <p style={{ margin: '4px 0 8px', fontSize: '12px', color: '#526154' }}>
-                        Kịch bản đã được cả hai bên phê duyệt. Hồ sơ đủ điều kiện để tiến hành đặt
-                        cọc giữ sảnh chính thức.
-                      </p>
-                      <Link
-                        style={{
-                          display: 'inline-block',
-                          padding: '6px 12px',
-                          background: '#1e3a2f',
-                          color: '#fff',
-                          borderRadius: '3px',
-                          fontSize: '12px',
-                          textDecoration: 'none',
-                        }}
-                        href={`/billing?bookingId=${proposal.bookingId}`}
-                      >
-                        Chuyển sang đặt cọc →
-                      </Link>
-                    </div>
-                  );
-                }
-                return null;
-              })()}
+                  <label>
+                    Lý do rút phê duyệt
+                    <textarea name="reason" required maxLength={500} rows={2} />
+                  </label>
+                  <button
+                    className="collab-secondary"
+                    disabled={pending || !proposal.capabilities.canWithdrawApproval}
+                    type="submit"
+                  >
+                    Rút phê duyệt
+                  </button>
+                </form>
+              </details>
             </>
           )}
-          {access === 'full' && proposal.capabilities.canRequestCancellation ? (
+        </section>
+
+        <section className="collab-next-card" aria-label="Bước tiếp theo">
+          <p className="collab-kicker">Bước tiếp theo</p>
+          {next}
+        </section>
+
+        {access === 'full' && proposal.capabilities.canRequestCancellation ? (
+          <details className="collab-more collab-cancel-box">
+            <summary>Cần đổi hoặc huỷ tiệc?</summary>
+            <p className="collab-hint">
+              Muốn đổi giờ hay nội dung chương trình, hãy dùng “Đề xuất thay đổi kịch bản”. Yêu cầu
+              huỷ sẽ được Quản lý xem xét theo chính sách đã ký.
+            </p>
             <form
               className="collab-cancel"
               onSubmit={(event) => {
@@ -580,10 +510,10 @@ function ProposalWorkspace({
                 Gửi yêu cầu hủy
               </button>
             </form>
-          ) : null}
-        </aside>
-      </section>
-    </>
+          </details>
+        ) : null}
+      </aside>
+    </div>
   );
 }
 
@@ -599,11 +529,43 @@ function Approval({ label, value }: Readonly<{ label: string; value: string | nu
     </div>
   );
 }
-function EmptyState({ body, title }: Readonly<{ body: string; title: string }>) {
+function EmptyState({
+  body,
+  children,
+  title,
+}: Readonly<{ body: string; title: string; children?: React.ReactNode }>) {
   return (
     <div className="collab-empty">
       <strong>{title}</strong>
       <p>{body}</p>
+      {children}
+    </div>
+  );
+}
+
+/** Thẻ "Bước tiếp theo" ở cột phải – nội dung tuỳ giai đoạn của tiệc. */
+function NextStep({
+  tone,
+  title,
+  body,
+  href,
+  action,
+}: Readonly<{
+  tone: 'done' | 'muted';
+  title: string;
+  body: string;
+  href?: string;
+  action?: string;
+}>) {
+  return (
+    <div className={'collab-next collab-next-' + tone}>
+      <strong>{title}</strong>
+      <p>{body}</p>
+      {href && action ? (
+        <Link className="button" href={href}>
+          {action}
+        </Link>
+      ) : null}
     </div>
   );
 }

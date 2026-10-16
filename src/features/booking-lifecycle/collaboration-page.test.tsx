@@ -65,17 +65,25 @@ function fakeGateway(initialProposal: ProposalView = proposal): CollaborationGat
   };
 }
 const authorize = <T,>(operation: (token: string) => Promise<T>) => operation('couple-token');
+/** Danh sách tiệc giả: trang tự mở tiệc đầu tiên, không còn ô nhập mã. */
+const only =
+  (...ids: string[]) =>
+  () =>
+    Promise.resolve(ids.map((bookingId, index) => ({ bookingId, label: `Tiệc ${index + 1}` })));
 afterEach(() => {
   vi.restoreAllMocks();
   window.history.replaceState({}, '', '/');
 });
 async function open(gateway: CollaborationGateway, value: ProposalView = proposal) {
   vi.mocked(gateway.load).mockResolvedValue(value);
-  render(<CollaborationWorkspace access="full" authorize={authorize} gateway={gateway} />);
-  fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
-    target: { value: proposal.bookingId },
-  });
-  fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+  render(
+    <CollaborationWorkspace
+      access="full"
+      authorize={authorize}
+      gateway={gateway}
+      listBookings={only(proposal.bookingId, '00000000-0000-4000-8000-000000000999')}
+    />,
+  );
   await screen.findByText('Sảnh Ánh Dương');
 }
 function failure(code: string, status?: number) {
@@ -128,16 +136,36 @@ describe('Booking collaboration workspace', () => {
     await waitFor(() => expect(gateway.load).toHaveBeenCalledWith('couple-token', id));
     expect(await screen.findByText('Sảnh Ánh Dương')).toBeVisible();
   });
-  it('reads the invitation booking ID from the URL without loading unauthorized data', async () => {
+  it('ignores a malformed booking link and opens nothing when the couple has no booking', async () => {
     window.history.replaceState({}, '', '/workspace?bookingId=from-invitation');
     const gateway = fakeGateway();
-    render(<CollaborationWorkspace access="restricted" authorize={authorize} gateway={gateway} />);
-    await waitFor(() =>
-      expect(screen.getByLabelText('Mã hồ sơ đặt tiệc')).toHaveValue('from-invitation'),
+    render(
+      <CollaborationWorkspace
+        access="restricted"
+        authorize={authorize}
+        gateway={gateway}
+        listBookings={only()}
+      />,
     );
+    expect(await screen.findByText('Chưa có hồ sơ tiệc cưới')).toBeVisible();
     expect(gateway.load).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText('Mã hồ sơ đặt tiệc')).not.toBeInTheDocument();
   });
-
+  it('opens the first booking automatically when the URL has no booking', async () => {
+    const gateway = fakeGateway();
+    render(
+      <CollaborationWorkspace
+        access="full"
+        authorize={authorize}
+        gateway={gateway}
+        listBookings={only(proposal.bookingId)}
+      />,
+    );
+    expect(await screen.findByText('Sảnh Ánh Dương')).toBeVisible();
+    expect(gateway.load).toHaveBeenCalledWith('couple-token', proposal.bookingId);
+    // Chỉ một tiệc thì không cần ô đổi tiệc.
+    expect(screen.queryByLabelText('Đổi tiệc cưới')).not.toBeInTheDocument();
+  });
   it('saves an empty initial timeline using the current booking revision', async () => {
     const gateway = fakeGateway();
     await open(gateway, { ...proposal, timeline: null });
@@ -250,7 +278,9 @@ describe('Booking collaboration workspace', () => {
     const gateway = fakeGateway();
     await open(gateway);
     vi.mocked(gateway.load).mockRejectedValue(failure('BOOKING_NOT_FOUND', 404));
-    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+    fireEvent.change(screen.getByLabelText('Đổi tiệc cưới'), {
+      target: { value: '00000000-0000-4000-8000-000000000999' },
+    });
     expect(await screen.findByText('Chưa thể mở đề xuất')).toBeVisible();
     expect(screen.queryByText('Sảnh Ánh Dương')).not.toBeInTheDocument();
   });
@@ -301,11 +331,14 @@ describe('Booking collaboration workspace', () => {
   });
   it('renders a restricted proposal and exact timeline from the server', async () => {
     const gateway = fakeGateway();
-    render(<CollaborationWorkspace access="restricted" authorize={authorize} gateway={gateway} />);
-    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
-      target: { value: proposal.bookingId },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+    render(
+      <CollaborationWorkspace
+        access="restricted"
+        authorize={authorize}
+        gateway={gateway}
+        listBookings={only(proposal.bookingId)}
+      />,
+    );
 
     expect(await screen.findByText('Sảnh Ánh Dương')).toBeVisible();
     expect(screen.getByText('Đón khách')).toBeVisible();
@@ -314,11 +347,14 @@ describe('Booking collaboration workspace', () => {
 
   it('submits approval against the displayed revision and refreshes it', async () => {
     const gateway = fakeGateway();
-    render(<CollaborationWorkspace access="full" authorize={authorize} gateway={gateway} />);
-    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
-      target: { value: proposal.bookingId },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+    render(
+      <CollaborationWorkspace
+        access="full"
+        authorize={authorize}
+        gateway={gateway}
+        listBookings={only(proposal.bookingId)}
+      />,
+    );
     fireEvent.click(await screen.findByRole('button', { name: 'Phê duyệt revision này' }));
 
     await waitFor(() =>
@@ -341,11 +377,14 @@ describe('Booking collaboration workspace', () => {
       },
     };
     const gateway = fakeGateway(mutuallyApprovedProposal);
-    render(<CollaborationWorkspace access="full" authorize={authorize} gateway={gateway} />);
-    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
-      target: { value: proposal.bookingId },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+    render(
+      <CollaborationWorkspace
+        access="full"
+        authorize={authorize}
+        gateway={gateway}
+        listBookings={only(proposal.bookingId)}
+      />,
+    );
     expect((await screen.findAllByText('Đã thống nhất kịch bản')).length).toBeGreaterThan(0);
     expect(screen.getByText(/Kịch bản đã được cả hai bên phê duyệt/)).toBeVisible();
     const depositLink = screen.getByRole('link', { name: 'Chuyển sang đặt cọc →' });
@@ -363,11 +402,14 @@ describe('Booking collaboration workspace', () => {
       },
     };
     const gateway = fakeGateway(confirmedProposal);
-    render(<CollaborationWorkspace access="full" authorize={authorize} gateway={gateway} />);
-    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
-      target: { value: proposal.bookingId },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+    render(
+      <CollaborationWorkspace
+        access="full"
+        authorize={authorize}
+        gateway={gateway}
+        listBookings={only(proposal.bookingId)}
+      />,
+    );
 
     expect(await screen.findByText('Tiệc cưới đã xác nhận chính thức')).toBeVisible();
     expect(screen.queryByText('Đã thống nhất kịch bản')).not.toBeInTheDocument();
@@ -387,11 +429,14 @@ describe('Booking collaboration workspace', () => {
       },
     };
     const gateway = fakeGateway(completedProposal);
-    render(<CollaborationWorkspace access="full" authorize={authorize} gateway={gateway} />);
-    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
-      target: { value: proposal.bookingId },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+    render(
+      <CollaborationWorkspace
+        access="full"
+        authorize={authorize}
+        gateway={gateway}
+        listBookings={only(proposal.bookingId)}
+      />,
+    );
 
     expect(await screen.findByText('Tiệc cưới đã hoàn tất')).toBeVisible();
     expect(screen.queryByText('Đã thống nhất kịch bản')).not.toBeInTheDocument();
@@ -428,24 +473,18 @@ describe('Booking collaboration workspace', () => {
         authorize={authorize}
         gateway={gateway}
         onBookingChange={onBookingChange}
+        listBookings={only(bookingAId, bookingBId)}
       />,
     );
 
-    // 1. Load Booking A
-    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
-      target: { value: bookingAId },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+    // 1. Booking A mở tự động (tiệc đầu tiên trong danh sách)
 
     expect(await screen.findByText('Sảnh Ánh Dương')).toBeVisible();
     expect(window.location.search).toContain(`bookingId=${bookingAId}`);
     expect(onBookingChange).toHaveBeenCalledWith(bookingAId);
 
     // 2. Switch to Booking B
-    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
-      target: { value: bookingBId },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+    fireEvent.change(screen.getByLabelText('Đổi tiệc cưới'), { target: { value: bookingBId } });
 
     expect(await screen.findByText('Sảnh Kim Cương')).toBeVisible();
     expect(screen.queryByText('Sảnh Ánh Dương')).not.toBeInTheDocument();
@@ -465,20 +504,20 @@ describe('Booking collaboration workspace', () => {
       }),
     };
 
-    render(<CollaborationWorkspace access="full" authorize={authorize} gateway={gateway} />);
+    render(
+      <CollaborationWorkspace
+        access="full"
+        authorize={authorize}
+        gateway={gateway}
+        listBookings={only(bookingAId, bookingBId)}
+      />,
+    );
 
-    // 1. Load Booking A
-    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
-      target: { value: bookingAId },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+    // 1. Booking A mở tự động
     expect(await screen.findByText('Sảnh Ánh Dương')).toBeVisible();
 
     // 2. Try loading Booking B (fails)
-    fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
-      target: { value: bookingBId },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Mở đề xuất' }));
+    fireEvent.change(screen.getByLabelText('Đổi tiệc cưới'), { target: { value: bookingBId } });
 
     // Must show error and empty state; must NOT retain proposal A
     expect(await screen.findByRole('alert')).toHaveTextContent(
