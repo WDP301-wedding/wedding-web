@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<sc-if value="{{ locked }}" hint-placeholder-val="{{ false }}">
+  <div role="status" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:48px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:640px;margin:0 auto">
+    <span style="width:64px;height:64px;border-radius:50%;background:#F7EDE4;color:#6E5D63;display:flex;align-items:center;justify-content:center"><i style="font-size:30px">lock</i></span>
+    <span style="height:28px;padding:0 10px 0 6px;border-radius:14px;background:#F7EDE4;color:#6E5D63;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600"><i style="font-size:16px">lock</i>Mở sau đặt cọc</span>
+    <strong style="font-size:20px">Phụ lục mở sau khi đặt cọc</strong>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;max-width:440px">Phụ lục ghi lại thay đổi so với hợp đồng đã duyệt (thêm bàn, thêm dịch vụ, đơn in). Trước cọc, hai bạn sửa trực tiếp hợp đồng.</p>
+    <button onClick="{{ goPayment }}" style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">Đi tới Thanh toán</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+<div style="display:grid;grid-template-columns:{{ L.cols }};gap:16px;align-items:start">
+  <sc-if value="{{ showList }}" hint-placeholder-val="{{ true }}">
+  <section aria-label="Danh sách phụ lục" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden;position:{{ L.stick }};top:88px">
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #EADFD6"><strong style="font-size:15px;flex:1">Phụ lục hợp đồng</strong><button onClick="{{ openPropose }}" disabled="{{ after }}" style="height:36px;padding:0 10px;border:none;border-radius:10px;background:transparent;color:{{ propFg }};font-size:13px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3"><i style="font-size:18px">add</i>Đề xuất thay đổi</button></div>
+    <div data-stagger="1" style="display:flex;flex-direction:column">
+      <sc-for list="{{ items }}" as="a" hint-placeholder-count="3">
+        <button onClick="{{ a.pick }}" aria-current="{{ a.cur }}" style="border:none;border-top:1px solid #EADFD6;background:{{ a.bg }};padding:12px 16px;display:flex;flex-direction:column;gap:6px;text-align:left;color:#2B1D22;box-shadow:{{ a.bar }}" style-hover="background:#FBF1EC">
+          <span style="display:flex;align-items:center;gap:8px;width:100%"><strong style="font-size:14px;flex:1">{{ a.title }}</strong><span style="font-size:13px;font-weight:700;color:{{ a.dfg }};font-variant-numeric:tabular-nums">{{ a.diff }}</span></span>
+          <span style="font-size:12px;color:#6E5D63">{{ a.sub }}</span>
+          <span style="height:24px;padding:0 8px 0 4px;border-radius:12px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;background:{{ a.cbg }};color:{{ a.cfg }};align-self:flex-start"><i style="font-size:14px">{{ a.icon }}</i>{{ a.status }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid #EADFD6;display:flex;gap:8px;font-size:13px;font-variant-numeric:tabular-nums;background:#FBF7F3"><span style="flex:1;color:#6E5D63">Tổng sau các phụ lục đã duyệt</span><strong>{{ approvedTotal }}</strong></div>
+  </section>
+  </sc-if>
+
+  <sc-if value="{{ showDetail }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+    <sc-if value="{{ m }}" hint-placeholder-val="{{ false }}"><button onClick="{{ back }}" style="align-self:flex-start;height:40px;padding:0 10px 0 4px;border:none;border-radius:10px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px"><i>arrow_back</i>Danh sách phụ lục</button></sc-if>
+    <sc-if value="{{ stale }}" hint-placeholder-val="{{ false }}"><div role="alert" style="border-radius:12px;background:#FCEFD6;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><i style="color:#8A5300">sync_problem</i><span style="flex:1 1 200px;font-size:14px">Nội dung vừa được cập nhật – tải lại để xem phiên bản mới</span><button onClick="{{ reload }}" style="height:40px;padding:0 14px;border:none;border-radius:10px;background:#7A1F3D;color:#FFFFFF;font-size:13px;font-weight:600">Tải lại</button></div></sc-if>
+    <section style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+      <div style="padding:16px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;border-bottom:1px solid #EADFD6">
+        <div style="flex:1 1 220px;display:flex;flex-direction:column;gap:4px"><strong style="font-size:18px">{{ d.title }}</strong><span style="font-size:13px;color:#6E5D63">{{ d.meta }}</span><span style="font-size:13px;line-height:19px">Lý do: {{ d.reason }}</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button onClick="{{ pdf }}" style="height:40px;padding:0 12px;border:1px solid #D9C8BC;border-radius:10px;background:#FFFFFF;color:#2B1D22;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px" style-hover="background:#FBF1EC"><i style="font-size:18px">picture_as_pdf</i>PDF</button></div>
+      </div>
+      <div role="tablist" style="display:flex;gap:4px;padding:10px 16px 0"><sc-for list="{{ views }}" as="v" hint-placeholder-count="2"><button role="tab" aria-selected="{{ v.aria }}" onClick="{{ v.click }}" style="height:36px;padding:0 12px;border:none;border-bottom:2px solid {{ v.line }};background:transparent;color:{{ v.fg }};font-size:13px;font-weight:600">{{ v.label }}</button></sc-for></div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;min-width:{{ L.tblMin }};border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums">
+          <thead><tr style="text-align:left;color:#6E5D63;background:#FBF7F3"><th style="padding:8px 16px;font-weight:600">Dòng</th><th style="padding:8px;font-weight:600;text-align:right">Trước</th><th style="padding:8px;font-weight:600;text-align:right">Sau</th><th style="padding:8px 16px 8px 8px;font-weight:600;text-align:right">Chênh lệch</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ d.rows }}" as="r" hint-placeholder-count="6">
+              <tr style="border-top:1px solid #EADFD6;background:{{ r.bg }};box-shadow:{{ r.bar }}">
+                <td style="padding:10px 16px;vertical-align:top"><span style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:{{ r.fw }};text-decoration:{{ r.strike }}">{{ r.name }}</span><span style="font-size:11px;color:#6E5D63">{{ r.kind }}</span></span></td>
+                <td style="padding:10px 8px;text-align:right;vertical-align:top;color:#6E5D63;text-decoration:{{ r.strikeB }}">{{ r.before }}</td>
+                <td style="padding:10px 8px;text-align:right;vertical-align:top;font-weight:{{ r.fw }}">{{ r.after }}</td>
+                <td style="padding:10px 16px 10px 8px;text-align:right;vertical-align:top;font-weight:700;color:{{ r.dfg }}">{{ r.diff }}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+      <div style="padding:14px 16px;border-top:1px solid #EADFD6;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;font-variant-numeric:tabular-nums">
+        <span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:#6E5D63">Tổng trước</span><strong style="font-size:15px">{{ d.tBefore }}</strong></span>
+        <span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:#6E5D63">Tổng sau</span><strong style="font-size:15px">{{ d.tAfter }}</strong></span>
+        <span style="display:flex;flex-direction:column;gap:2px;border-radius:10px;background:{{ d.dbg }};padding:6px 10px;margin:-6px -4px"><span style="font-size:12px;color:#6E5D63">Chênh lệch</span><strong ref="{{ refs.diff }}" style="font-size:18px;color:{{ d.dfg }}">{{ d.tDiff }}</strong></span>
+      </div>
+    </section>
+
+    <section aria-label="Duyệt hai bên" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <strong style="font-size:15px">Duyệt phiên bản {{ d.ver }}</strong>
+      <div style="display:grid;grid-template-columns:{{ L.apprCols }};gap:8px">
+        <sc-for list="{{ d.appr }}" as="p" hint-placeholder-count="2"><div style="border:1px solid #EADFD6;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:50%;background:{{ p.bg }};color:{{ p.fg }};display:flex;align-items:center;justify-content:center;flex:none"><i style="font-size:20px">{{ p.icon }}</i></span><span style="display:flex;flex-direction:column"><strong style="font-size:14px">{{ p.who }}</strong><span style="font-size:12px;color:#6E5D63">{{ p.text }}</span></span></div></sc-for>
+      </div>
+      <sc-if value="{{ d.canApprove }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span style="flex:1 1 220px;font-size:13px;line-height:19px;color:#6E5D63">Duyệt nghĩa là hai bạn đồng ý tổng mới {{ d.tAfter }}. Khoản chênh lệch thu trong số dư.</span><button onClick="{{ reject }}" style="height:44px;padding:0 14px;border:1px solid #7A1F3D;border-radius:12px;background:#FFFFFF;color:#7A1F3D;font-size:14px;font-weight:600">Yêu cầu sửa</button><button onClick="{{ approve }}" style="height:44px;padding:0 18px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px"><i style="font-size:18px">task_alt</i>Duyệt phụ lục</button></div>
+      </sc-if>
+      <sc-if value="{{ d.both }}" hint-placeholder-val="{{ false }}"><div ref="{{ refs.both }}" style="border-radius:12px;background:#E7F1EA;padding:10px 12px;display:flex;gap:8px;align-items:center;font-size:14px;color:#1F4D38"><i>verified</i><span style="flex:1">Hai bên đã duyệt cùng phiên bản {{ d.ver }}. Tổng hợp đồng mới được dùng cho số dư.</span><button onClick="{{ goPayment }}" style="height:36px;padding:0 10px;border:none;border-radius:10px;background:transparent;color:#1F4D38;font-size:13px;font-weight:600;text-decoration:underline">Xem Ví tiệc</button></div></sc-if>
+      <div style="display:flex;gap:6px;align-items:center"><button role="switch" aria-checked="{{ staleAria }}" onClick="{{ simStale }}" style="height:32px;display:inline-flex;align-items:center;gap:6px;border:1px dashed #C9A46A;border-radius:10px;background:#FFFCF6;padding:0 8px;font-size:11px;font-weight:600;color:#6B4E1F">Mô phỏng: nhà hàng vừa sửa</button></div>
+    </section>
+  </div>
+  </sc-if>
+
+  <div style="position:fixed;inset:0;z-index:55;pointer-events:{{ ov.pe }}">
+    <div onClick="{{ closeOv }}" style="position:absolute;inset:0;background:rgba(43,29,34,0.4);opacity:{{ ov.o }};transition:opacity 250ms linear"></div>
+    <sc-if value="{{ ov.show }}" hint-placeholder-val="{{ false }}">
+      <div ref="{{ refs.panel }}" role="dialog" aria-modal="true" aria-label="Đề xuất thay đổi" style="position:absolute;top:0;right:0;bottom:0;width:{{ L.panelW }};background:#FFF8F1;display:flex;flex-direction:column">
+        <div style="height:60px;display:flex;align-items:center;padding:0 8px 0 20px;border-bottom:1px solid #EADFD6;background:#FFFFFF"><strong style="flex:1;font-size:17px">Đề xuất thay đổi</strong><button aria-label="Đóng" onClick="{{ closeOv }}" style="width:44px;height:44px;border:none;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>close</i></button></div>
+        <div style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+          <span style="font-size:13px;line-height:19px;color:#6E5D63">Chọn dòng cần đổi và số lượng mới. Nhà hàng xem, báo giá và tạo phụ lục để hai bên cùng duyệt.</span>
+          <sc-for list="{{ pr.lines }}" as="l" hint-placeholder-count="5">
+            <div style="border:1px solid {{ l.border }};border-radius:12px;background:#FFFFFF;padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" checked="{{ l.on }}" onChange="{{ l.toggle }}" style="width:20px;height:20px;accent-color:#7A1F3D"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">{{ l.name }}</span><span style="font-size:12px;color:#6E5D63;font-variant-numeric:tabular-nums">{{ l.kind }} · hiện tại {{ l.cur }}</span></span></label>
+              <sc-if value="{{ l.on }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;padding-left:30px"><span style="font-size:13px;flex:1">Số lượng mới</span><div style="display:flex;align-items:center;border:1px solid #9A877F;border-radius:10px;overflow:hidden"><button aria-label="Giảm" onClick="{{ l.dec }}" style="width:40px;height:40px;border:none;background:#FFFFFF"><i style="font-size:18px">remove</i></button><span style="width:52px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums">{{ l.q }}</span><button aria-label="Tăng" onClick="{{ l.inc }}" style="width:40px;height:40px;border:none;background:#FFFFFF"><i style="font-size:18px">add</i></button></div></div></sc-if>
+            </div>
+          </sc-for>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ pr.lc }}">Lý do <span style="color:#C62828">*</span></span><textarea value="{{ pr.reason }}" onChange="{{ pr.onReason }}" rows="3" aria-invalid="{{ pr.inv }}" style="border:1px solid {{ pr.bc }};border-radius:12px;padding:10px 12px;font-size:15px;line-height:22px;font-family:inherit;resize:vertical;outline:none" style-focus="border-color:#7A1F3D"></textarea><sc-if value="{{ pr.err }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828">{{ pr.err }}</span></sc-if></label>
+          <div style="border-radius:12px;background:#FFFFFF;border:1px solid #EADFD6;padding:12px;display:flex;gap:8px;font-size:13px;font-variant-numeric:tabular-nums"><span style="flex:1;color:#6E5D63">Chênh lệch ước tính</span><strong style="color:{{ pr.dfg }}">{{ pr.diff }}</strong></div>
+        </div>
+        <div style="padding:12px 16px;border-top:1px solid #EADFD6;background:#FFFFFF;display:flex;gap:8px;justify-content:flex-end"><button onClick="{{ closeOv }}" style="height:48px;padding:0 14px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600">Huỷ</button><button onClick="{{ pr.send }}" style="height:48px;padding:0 20px;border:none;border-radius:12px;background:{{ pr.btnBg }};color:#FFFFFF;font-size:15px;font-weight:600">Gửi đề xuất</button></div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  BASE = [['menu', 'Thực đơn', 'Thực đơn Hoa Sen', 'bàn', 30, 6500000], ['svc', 'Dịch vụ', 'MC dẫn chương trình', 'gói', 1, 3000000], ['inv', 'Đồ in', 'Thiệp in', 'thiệp', 300, 12000]];
+  state = { sel: 'PL2', mView: 'list', view: 'diff', stale: false, ov: false, pick: {}, reason: '', rErr: '',
+    list: [
+      { id: 'PL2', ver: 2, date: '14/10/2026', reason: 'Thêm 2 bàn họ hàng xa, thêm ban nhạc acoustic khi đón khách, in thêm 50 thiệp.', st: 'wait', resto: true, couple: false,
+        ch: [['menu', 'Thực đơn Hoa Sen', 'bàn', 30, 32, 6500000], ['inv', 'Thiệp in', 'thiệp', 300, 350, 12000], ['svc', 'Ban nhạc acoustic', 'gói', 0, 1, 5000000]] },
+      { id: 'PL1', ver: 1, date: '02/10/2026', reason: 'Thêm bảng chào mừng ở sảnh.', st: 'ok', resto: true, couple: true, ch: [['inv', 'Bảng chào mừng 60×90', 'bảng', 0, 1, 450000]] },
+    ] };
+  el = {}; _rf = {};
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  get ctx() { return this.props.ctx || {}; }
+  get M() { return window.HYMotion; }
+  toast(t) { (this.ctx.toast || (() => {}))(t); }
+  componentDidUpdate(pp, ps) { const M = this.M, s = this.state; if (!M) return;
+    if (s.ov && !ps.ov && this.el.panel) M.play(this.el.panel, [{ transform: 'translateX(100%)' }, { transform: 'none' }], 250, M.E.DEC);
+    if (ps.sel !== s.sel && this.el.diff) { const a = this.diffOf(this.state.list.find(x => x.id === s.sel)); M.countUp(this.el.diff, 0, Math.abs(a), 800); setTimeout(() => { if (this.el.diff) this.el.diff.textContent = (a >= 0 ? '+' : '−') + this.el.diff.textContent; }, 820); } }
+  diffOf(a) { return a.ch.reduce((t, [, , , b, af, p]) => t + (af - b) * p, 0); }
+  renderVals() {
+    const c = this.ctx, m = !!c.mobile, s = this.state, ph = this.props.phase || 'pre', go = c.go || (() => {});
+    const vnd = v => Math.round(v).toLocaleString('vi-VN') + ' ₫', sg = v => (v > 0 ? '+' : v < 0 ? '−' : '') + vnd(Math.abs(v));
+    const base = this.BASE.reduce((t, x) => t + x[4] * x[5], 0);
+    const ordered = s.list.slice().reverse();
+    const beforeOf = id => { let t = base; for (const a of ordered) { if (a.id === id) return t; if (a.st === 'ok') t += this.diffOf(a); } return t; };
+    const approvedTotal = base + s.list.filter(a => a.st === 'ok').reduce((t, a) => t + this.diffOf(a), 0);
+    const a = s.list.find(x => x.id === s.sel) || s.list[0], dA = this.diffOf(a), tb = beforeOf(a.id);
+    const KIND = { menu: 'Thực đơn', svc: 'Dịch vụ', inv: 'Đồ in' };
+    const chMap = {}; a.ch.forEach(r => { chMap[r[1]] = r; });
+    const allRows = this.BASE.map(([k, , name, unit, q, p]) => chMap[name] || [k, name, unit, q, q, p]).concat(a.ch.filter(r => !this.BASE.find(b => b[2] === r[1])));
+    const rows = allRows.filter(r => s.view === 'all' || r[3] !== r[4]).map(([k, name, unit, b, af, p]) => { const d = (af - b) * p, changed = b !== af, added = b === 0, removed = af === 0;
+      return { name, kind: `${KIND[k]} · ${vnd(p)} / ${unit}`, before: b ? `${b} ${unit} · ${vnd(b * p)}` : '—', after: af ? `${af} ${unit} · ${vnd(af * p)}` : 'Bỏ', diff: changed ? sg(d) : '—',
+        dfg: d > 0 ? '#8A5300' : d < 0 ? '#2F6B4F' : '#6E5D63', bg: added ? '#EEF6F0' : removed ? '#FDF1F0' : changed ? '#FFF6E0' : '#FFFFFF', bar: changed ? `inset 3px 0 0 ${added ? '#2F6B4F' : removed ? '#C62828' : '#C9A46A'}` : 'none', fw: changed ? 600 : 400, strike: removed ? 'line-through' : 'none', strikeB: changed && !added ? 'line-through' : 'none' }; });
+    const ST = { wait: ['Chờ bạn duyệt', 'schedule', '#FCEFD6', '#8A5300'], ok: ['Hai bên đã duyệt', 'verified', '#E7F1EA', '#2F6B4F'], resto: ['Chờ nhà hàng báo giá', 'hourglass_top', '#F7EDE4', '#6E5D63'], fix: ['Đã yêu cầu sửa', 'undo', '#FDECEA', '#C62828'] };
+    const P = this.BASE.map(([k, , name, unit, q, p], i) => ({ k, name, unit, q, p, i })), pk = s.pick, prDiff = P.reduce((t, x) => t + (pk[x.i] !== undefined ? (pk[x.i] - x.q) * x.p : 0), 0), any = Object.keys(pk).length > 0;
+    const showDetail = !m || s.mView === 'detail';
+    return {
+      refs: new Proxy({}, { get: (_, n) => typeof n === 'string' ? this.rf(n) : undefined }), m,
+      locked: ph === 'pre' || ph === 'none', open: !(ph === 'pre' || ph === 'none'), goPayment: () => go('payment'), after: ph === 'after', propFg: ph === 'after' ? '#9A877F' : '#7A1F3D',
+      showList: !m || s.mView === 'list', showDetail, back: () => this.setState({ mView: 'list' }),
+      items: s.list.map(x => { const on = x.id === a.id && showDetail, d = this.diffOf(x), st = ST[x.st]; return { title: `Phụ lục ${x.id.slice(2)}`, sub: `Phiên bản ${x.ver} · ${x.date}`, diff: x.st === 'resto' ? 'Chờ báo giá' : sg(d), dfg: d > 0 ? '#8A5300' : '#2F6B4F', status: st[0], icon: st[1], cbg: st[2], cfg: st[3], cur: on ? 'true' : 'false', bg: on ? '#FBF1EC' : '#FFFFFF', bar: on ? 'inset 3px 0 0 #7A1F3D' : 'none', pick: () => this.setState({ sel: x.id, mView: 'detail' }) }; }),
+      approvedTotal: vnd(approvedTotal),
+      stale: s.stale, staleAria: s.stale ? 'true' : 'false', simStale: () => this.setState({ stale: !s.stale }), reload: () => { this.setState({ stale: false }); this.toast('Đã tải phiên bản mới nhất'); },
+      views: [['diff', 'Chỉ dòng thay đổi'], ['all', 'Toàn bộ Trước | Sau']].map(([v, label]) => { const on = s.view === v; return { label, aria: on ? 'true' : 'false', line: on ? '#7A1F3D' : 'transparent', fg: on ? '#7A1F3D' : '#6E5D63', click: () => this.setState({ view: v }) }; }),
+      d: { title: `Phụ lục ${a.id.slice(2)}`, meta: `Phiên bản ${a.ver} · tạo ${a.date} · so với hợp đồng${a.id === 'PL2' ? ' + Phụ lục 1' : ''}`, reason: a.reason, ver: a.ver, rows,
+        tBefore: vnd(tb), tAfter: a.st === 'resto' ? 'Chờ báo giá' : vnd(tb + dA), tDiff: a.st === 'resto' ? '—' : sg(dA), dfg: dA > 0 ? '#8A5300' : '#2F6B4F', dbg: dA > 0 ? '#FCEFD6' : '#E7F1EA',
+        appr: [['Nhà hàng', a.resto], ['Hai bạn', a.couple]].map(([who, ok]) => ({ who, icon: ok ? 'check' : 'schedule', bg: ok ? '#E7F1EA' : '#FCEFD6', fg: ok ? '#2F6B4F' : '#8A5300', text: ok ? `Đã duyệt phiên bản ${a.ver}` : a.st === 'resto' && who === 'Nhà hàng' ? 'Đang báo giá' : 'Chưa duyệt' })),
+        canApprove: a.st === 'wait' && !s.stale, both: a.st === 'ok' },
+      pdf: () => this.toast(`Đang tải phu-luc-${a.id.slice(2)}-v${a.ver}.pdf`),
+      approve: () => { this.setState(st => ({ list: st.list.map(x => x.id === a.id ? { ...x, couple: true, st: 'ok' } : x) }), () => { const M = this.M; M && M.celebrate && M.celebrate(); M && this.el.both && M.play(this.el.both, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], 300, M.E.DEC); }); this.toast(`Hai bên đã duyệt Phụ lục ${a.id.slice(2)}`); },
+      reject: () => { this.setState(st => ({ list: st.list.map(x => x.id === a.id ? { ...x, st: 'fix' } : x) })); this.toast('Đã gửi yêu cầu sửa cho nhà hàng'); },
+      openPropose: () => this.setState({ ov: true, pick: {}, reason: '', rErr: '' }), closeOv: () => this.setState({ ov: false }),
+      ov: { pe: s.ov ? 'auto' : 'none', o: s.ov ? 1 : 0, show: s.ov },
+      pr: { lines: P.map(x => { const on = pk[x.i] !== undefined, q = on ? pk[x.i] : x.q, stp = x.unit === 'thiệp' ? 10 : 1; return { name: x.name, kind: KIND[x.k], cur: `${x.q} ${x.unit}`, on, q, border: on ? '#7A1F3D' : '#EADFD6',
+          toggle: () => this.setState(st => { const n = { ...st.pick }; if (on) delete n[x.i]; else n[x.i] = x.q + stp; return { pick: n }; }),
+          dec: () => this.setState(st => ({ pick: { ...st.pick, [x.i]: Math.max(0, q - stp) } })), inc: () => this.setState(st => ({ pick: { ...st.pick, [x.i]: q + stp } })) }; }),
+        reason: s.reason, onReason: e => this.setState({ reason: e.target.value, rErr: '' }), err: s.rErr, inv: s.rErr ? 'true' : 'false', bc: s.rErr ? '#C62828' : '#9A877F', lc: s.rErr ? '#C62828' : '#2B1D22',
+        diff: any ? sg(prDiff) : '—', dfg: prDiff > 0 ? '#8A5300' : '#2F6B4F', btnBg: any ? '#7A1F3D' : '#C9BFBC',
+        send: () => { if (!any) return this.toast('Chọn ít nhất 1 dòng cần đổi'); if (!s.reason.trim()) return this.setState({ rErr: 'Nhập lý do để nhà hàng xem xét' }); const id = 'PL' + (s.list.length + 1); this.setState(st => ({ ov: false, sel: id, mView: 'detail', list: [{ id, ver: 1, date: new Date().toLocaleDateString('vi-VN'), reason: st.reason.trim(), st: 'resto', resto: false, couple: true, ch: P.filter(x => st.pick[x.i] !== undefined).map(x => [x.k, x.name, x.unit, x.q, st.pick[x.i], x.p]) }].concat(st.list) })); this.toast(`Đã gửi đề xuất. Nhà hàng sẽ tạo Phụ lục ${id.slice(2)}.`); } },
+      L: m ? { cols: 'minmax(0,1fr)', stick: 'static', tblMin: '520px', apprCols: '1fr', panelW: '100%' } : { cols: '320px minmax(0,1fr)', stick: 'sticky', tblMin: '0', apprCols: '1fr 1fr', panelW: '460px' },
+    };
+  }
+}
+</script>
+</body>
+</html>

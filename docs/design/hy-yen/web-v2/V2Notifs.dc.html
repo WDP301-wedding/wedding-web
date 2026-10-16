@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:grid;grid-template-columns:{{ L.cols }};gap:16px;align-items:start;max-width:1040px">
+  <section aria-label="Thông báo" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden;min-width:0">
+    <div style="padding:12px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #EADFD6">
+      <div role="tablist" style="display:flex;gap:6px;flex:1"><sc-for list="{{ filters }}" as="f" hint-placeholder-count="2"><button role="tab" aria-selected="{{ f.aria }}" onClick="{{ f.click }}" style="height:36px;padding:0 12px;border-radius:10px;border:{{ f.border }};background:{{ f.bg }};color:#2B1D22;font-size:13px;font-weight:600">{{ f.label }}</button></sc-for></div>
+      <button onClick="{{ readAll }}" disabled="{{ noUnread }}" style="height:36px;padding:0 10px;border:none;border-radius:10px;background:transparent;color:{{ allFg }};font-size:13px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3"><i style="font-size:18px">done_all</i>Đánh dấu tất cả đã đọc</button>
+    </div>
+    <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 16px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center"><i style="font-size:32px;color:#9A877F">notifications_off</i><strong style="font-size:15px">Không còn thông báo chưa đọc</strong><span style="font-size:13px;color:#6E5D63">Xem tất cả để mở lại thông báo cũ.</span></div></sc-if>
+    <sc-for list="{{ days }}" as="d" hint-placeholder-count="2">
+      <div style="padding:10px 16px 6px;font-size:12px;font-weight:700;color:#6E5D63;letter-spacing:0.04em;text-transform:uppercase;background:#FBF7F3;border-top:1px solid #EADFD6">{{ d.label }}</div>
+      <div data-stagger="1" style="display:flex;flex-direction:column">
+        <sc-for list="{{ d.items }}" as="n" hint-placeholder-count="2">
+          <div style="display:flex;align-items:flex-start;border-top:1px solid #EADFD6;background:{{ n.bg }}">
+            <button onClick="{{ n.open }}" style="flex:1;min-width:0;border:none;background:transparent;display:flex;gap:12px;padding:12px 4px 12px 16px;text-align:left;color:#2B1D22" style-hover="background:#FBF1EC">
+              <span style="width:40px;height:40px;border-radius:50%;background:{{ n.ibg }};color:{{ n.ifg }};display:flex;align-items:center;justify-content:center;flex:none"><i style="font-size:20px">{{ n.icon }}</i></span>
+              <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;line-height:20px;font-weight:{{ n.fw }};text-wrap:pretty">{{ n.title }}</span><span style="font-size:13px;line-height:19px;color:#6E5D63;text-wrap:pretty">{{ n.body }}</span><span style="font-size:12px;color:#6E5D63;display:flex;align-items:center;gap:4px">{{ n.time }} · <span style="color:#7A1F3D;font-weight:600">{{ n.dest }}</span></span></span>
+            </button>
+            <button aria-label="{{ n.aria }}" onClick="{{ n.toggle }}" style="width:44px;height:44px;margin:10px 6px 0 0;border:none;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;flex:none" style-hover="background:#F4E7E3"><span style="width:10px;height:10px;border-radius:50%;background:{{ n.dot }};border:{{ n.ring }}"></span></button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </section>
+
+  <section aria-label="Email nhắc" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden;position:{{ L.stick }};top:88px">
+    <div style="padding:14px 16px;border-bottom:1px solid #EADFD6;display:flex;flex-direction:column;gap:2px"><strong style="font-size:15px">Email nhắc</strong><span style="font-size:12px;color:#6E5D63">Gửi tới thuha.tran@gmail.com</span></div>
+    <sc-for list="{{ prefs }}" as="p" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid #EADFD6"><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">{{ p.label }}</span><span style="font-size:12px;line-height:18px;color:#6E5D63">{{ p.sub }}</span></span><button role="switch" aria-checked="{{ p.aria }}" aria-label="{{ p.label }}" onClick="{{ p.toggle }}" disabled="{{ p.fixed }}" style="width:52px;height:32px;border:none;border-radius:16px;position:relative;flex:none;background:{{ p.track }};opacity:{{ p.op }}"><span style="position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#FFFFFF;transform:{{ p.thumb }};transition:transform 150ms cubic-bezier(0.2,0,0,1)"></span></button></div></sc-for>
+    <div style="padding:10px 16px 14px;font-size:12px;line-height:18px;color:#6E5D63">Thông báo về thanh toán luôn được gửi để tránh trễ hạn.</div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  N0 = [
+    { id: 1, day: 'Hôm nay', icon: 'description', title: 'Hợp đồng phiên bản 2 đang chờ bạn duyệt', body: 'Nhà hàng đã duyệt. Thêm 2 bàn, tổng mới 214.600.000 ₫.', time: '09:12', to: 'contract', dest: 'Mở Hợp đồng', unread: true, tone: 'wait' },
+    { id: 2, day: 'Hôm nay', icon: 'request_quote', title: 'Nhà hàng đã gửi báo giá đơn in DI-0013', body: '50 thiệp in thêm · 600.000 ₫.', time: '08:40', to: 'prepCard', dest: 'Mở Đặt in', unread: true, tone: 'wait' },
+    { id: 3, day: 'Hôm qua', icon: 'schedule', title: 'Kịch bản phiên bản 4: khai tiệc đổi sang 11:30', body: 'Cần hai bên duyệt cùng phiên bản.', time: '16:05', to: 'script', dest: 'Mở Kịch bản', unread: true, tone: 'info' },
+    { id: 4, day: 'Hôm qua', icon: 'account_balance_wallet', title: 'Nhắc hạn đặt cọc 60.480.000 ₫', body: 'Hạn 21/10/2026. Thanh toán qua VNPay.', time: '09:00', to: 'payment', dest: 'Mở Thanh toán', unread: false, tone: 'due' },
+    { id: 5, day: '12/10/2026', icon: 'verified', title: 'Tên cô dâu & chú rể đã được hai bên duyệt', body: 'Trần Thu Hà & Lê Minh Quân.', time: '14:22', to: 'names', dest: 'Mở Tên', unread: false, tone: 'ok' },
+  ];
+  state = { list: this.N0, f: 'all', prefs: { pay: true, approve: true, week: true, digest: false } };
+  get ctx() { return this.props.ctx || {}; }
+  componentDidMount() { const M = window.HYMotion; M && M.stagger(document); }
+  mark(id, v) { const prev = this.state.list; this.setState({ list: prev.map(n => n.id === id ? { ...n, unread: v } : n) }); }
+  renderVals() {
+    const c = this.ctx, m = !!c.mobile, s = this.state, go = c.go || (() => {}), toast = c.toast || (() => {});
+    const TONE = { wait: ['#FCEFD6', '#8A5300'], info: ['#F5E4E9', '#5C1430'], due: ['#FDECEA', '#C62828'], ok: ['#E7F1EA', '#2F6B4F'] };
+    const vis = s.list.filter(n => s.f === 'all' || n.unread), unread = s.list.filter(n => n.unread).length;
+    const days = []; vis.forEach(n => { let d = days.find(x => x.label === n.day); if (!d) days.push(d = { label: n.day, items: [] }); d.items.push(n); });
+    const P = [['pay', 'Hạn thanh toán', 'Trước hạn cọc và số dư 3 ngày, 1 ngày.', true], ['approve', 'Việc chờ bạn duyệt', 'Kịch bản, hợp đồng, phụ lục, báo giá in.'], ['week', 'Nhắc trước ngày cưới', '30 ngày, 7 ngày và 1 ngày trước 20/12/2026.'], ['digest', 'Tóm tắt hằng tuần', 'Sáng thứ Hai, tiến độ chuẩn bị.']];
+    return {
+      filters: [['all', 'Tất cả'], ['unread', `Chưa đọc (${unread})`]].map(([v, label]) => { const on = s.f === v; return { label, aria: on ? 'true' : 'false', bg: on ? '#F5E4E9' : '#FFFFFF', border: on ? '1px solid #7A1F3D' : '1px solid #D9C8BC', click: () => this.setState({ f: v }) }; }),
+      noUnread: unread === 0, allFg: unread ? '#7A1F3D' : '#9A877F',
+      readAll: () => { const prev = s.list; this.setState({ list: prev.map(n => ({ ...n, unread: false })) }); toast(`Đã đánh dấu ${unread} thông báo là đã đọc`); },
+      empty: vis.length === 0,
+      days: days.map(d => ({ label: d.label, items: d.items.map(n => ({ ...n, fw: n.unread ? 600 : 400, bg: n.unread ? '#FFFCF9' : '#FFFFFF', ibg: TONE[n.tone][0], ifg: TONE[n.tone][1], dot: n.unread ? '#C62828' : 'transparent', ring: n.unread ? 'none' : '1.5px solid #C9BFBC', aria: n.unread ? 'Đánh dấu đã đọc' : 'Đánh dấu chưa đọc',
+        toggle: () => this.mark(n.id, !n.unread), open: () => { this.mark(n.id, false); go(n.to); } })) })),
+      prefs: P.map(([k, label, sub, fixed]) => { const on = fixed || s.prefs[k]; return { label, sub, fixed: !!fixed, op: fixed ? 0.6 : 1, aria: on ? 'true' : 'false', track: on ? '#7A1F3D' : '#C9BFBC', thumb: on ? 'translateX(20px)' : 'none', toggle: () => { this.setState({ prefs: { ...s.prefs, [k]: !on } }); toast(on ? `Đã tắt email: ${label}` : `Đã bật email: ${label}`); } }; }),
+      L: m ? { cols: 'minmax(0,1fr)', stick: 'static' } : { cols: 'minmax(0,1fr) 340px', stick: 'sticky' },
+    };
+  }
+}
+</script>
+</body>
+</html>

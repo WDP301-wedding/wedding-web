@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@500&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#FFF8F1;color:#2B1D22;font-family:'Be Vietnam Pro',sans-serif}a{color:#7A1F3D}a:hover{color:#5C1430}</style>
+</helmet>
+<div style="max-width:1080px;margin:0 auto;padding:40px 24px 80px;display:flex;flex-direction:column;gap:32px">
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <span style="font-family:'Playfair Display',serif;font-size:28px;color:#7A1F3D">HY</span>
+    <h1 style="margin:0;font-size:30px;line-height:38px">Rà soát Web Khách Hàng v2</h1>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;max-width:720px">Đối chiếu prototype <a href="Hỷ Yến Web Khách Hàng v2.dc.html">Hỷ Yến Web Khách Hàng v2</a> với sitemap A–C, 5 trạng thái, bản mobile 390 và các ràng buộc nghiệp vụ. Ngày rà soát 16/10/2026.</p>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font-size:20px">1. Màn còn thiếu hoặc cần bổ sung</h2>
+    <div style="display:flex;flex-direction:column;border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+      <sc-for list="{{ gaps }}" as="g" hint-placeholder-count="4">
+        <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;padding:12px 16px;border-top:1px solid #EADFD6;font-size:14px;line-height:21px"><span style="height:24px;padding:0 8px;border-radius:12px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-self:start;background:{{ g.bg }};color:{{ g.fg }}">{{ g.level }}</span><span><strong>{{ g.title }}</strong> — {{ g.body }}</span></div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font-size:20px">2. Ma trận trạng thái &amp; mobile</h2>
+    <p style="margin:0;font-size:13px;color:#6E5D63">✓ có trong prototype · — không áp dụng · ! cần bổ sung. Đang tải / Trống / Lỗi / Mất kết nối bật bằng thanh "Trạng thái" trên cùng; "Khoá" bật bằng công tắc giai đoạn Trước cọc.</p>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow-x:auto">
+      <table style="width:100%;min-width:760px;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:#FBF7F3;color:#6E5D63;text-align:left"><th style="padding:10px 16px;font-weight:600">Màn</th><th style="padding:10px 8px;font-weight:600;text-align:center">Skeleton</th><th style="padding:10px 8px;font-weight:600;text-align:center">Trống</th><th style="padding:10px 8px;font-weight:600;text-align:center">Lỗi + mã</th><th style="padding:10px 8px;font-weight:600;text-align:center">Khoá</th><th style="padding:10px 8px;font-weight:600;text-align:center">Mất mạng</th><th style="padding:10px 16px 10px 8px;font-weight:600;text-align:center">Mobile 390</th></tr></thead>
+        <tbody>
+          <sc-for list="{{ matrix }}" as="r" hint-placeholder-count="10">
+            <tr style="border-top:1px solid #EADFD6"><td style="padding:9px 16px"><span style="color:#6E5D63;font-variant-numeric:tabular-nums;margin-right:6px">{{ r.code }}</span>{{ r.name }}</td><sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="6"><td title="{{ c.note }}" style="padding:9px 8px;text-align:center;font-weight:700;color:{{ c.fg }}">{{ c.v }}</td></sc-for></tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font-size:20px">3. Ràng buộc nghiệp vụ</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">
+      <sc-for list="{{ rules }}" as="r" hint-placeholder-count="6">
+        <div style="border:1px solid #EADFD6;border-radius:14px;background:#FFFFFF;padding:14px 16px;display:flex;gap:10px"><span aria-hidden="true" style="width:22px;height:22px;border-radius:50%;background:#E7F1EA;color:{{ r.fg }};font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none">✓</span><span style="display:flex;flex-direction:column;gap:4px"><strong style="font-size:14px">{{ r.title }}</strong><span style="font-size:13px;line-height:20px;color:#6E5D63">{{ r.body }}</span></span></div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font-size:20px">4. Màn hình → route Next.js (App Router)</h2>
+    <p style="margin:0;font-size:13px;line-height:20px;color:#6E5D63">Nhóm route: <code>(public)</code> Server Component + ISR · <code>(auth)</code> · <code>(space)</code> dùng chung layout sidebar, cache dữ liệu tiệc, <code>loading.tsx</code> skeleton theo route · <code>/t/</code> thiệp khách mời tĩnh. Mã tiệc lấy từ phiên đăng nhập; đổi tiệc bằng <code>?tiec=</code>, không bao giờ bắt nhập.</p>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow-x:auto">
+      <table style="width:100%;min-width:760px;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:#FBF7F3;color:#6E5D63;text-align:left"><th style="padding:10px 16px;font-weight:600">Mã</th><th style="padding:10px 8px;font-weight:600">Màn hình</th><th style="padding:10px 8px;font-weight:600">Route</th><th style="padding:10px 8px;font-weight:600">Render</th><th style="padding:10px 16px 10px 8px;font-weight:600">File thiết kế</th></tr></thead>
+        <tbody>
+          <sc-for list="{{ routes }}" as="r" hint-placeholder-count="20">
+            <tr style="border-top:1px solid #EADFD6"><td style="padding:9px 16px;color:#6E5D63;font-variant-numeric:tabular-nums">{{ r.code }}</td><td style="padding:9px 8px">{{ r.name }}</td><td style="padding:9px 8px"><code style="font-size:12px;background:#F7EDE4;padding:2px 6px;border-radius:6px;white-space:nowrap">{{ r.route }}</code></td><td style="padding:9px 8px;color:#6E5D63">{{ r.render }}</td><td style="padding:9px 16px 9px 8px;color:#6E5D63">{{ r.file }}</td></tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const LV = { fix: ['Đã sửa', '#E7F1EA', '#2F6B4F'], add: ['Cần thêm', '#FDECEA', '#C62828'], opt: ['Cân nhắc', '#FCEFD6', '#8A5300'] };
+    const gaps = [
+      ['fix', 'Thiệp khách mời không có trong ô chọn màn', 'nhóm C thiếu trong menu chọn màn của prototype; đã thêm.'],
+      ['add', 'Ưu đãi, Câu hỏi thường gặp', 'hiện là khối trên Trang chủ (header cuộn tới). Nếu cần trang riêng cho SEO: /uu-dai, /cau-hoi-thuong-gap.'],
+      ['add', 'Yêu cầu đổi / huỷ tiệc', 'có trạng thái "Tiệc đã huỷ" ở Tổng quan nhưng chưa có form gửi yêu cầu đổi ngày/ca hoặc huỷ (v1 có). Đề xuất đặt trong Thanh toán hoặc menu tài khoản.'],
+      ['add', 'Trang 404 / phiên hết hạn', 'chưa có màn chung cho link sai trong không gian cưới và hết phiên đăng nhập (chuyển về Đăng nhập kèm lời giải thích).'],
+      ['opt', 'Mobile: trình soạn thiệp', 'mobile dùng 3 tab Mẫu / Xem trước / Chỉnh sửa; cân nhắc bottom sheet kéo được để vừa sửa vừa xem.'],
+      ['opt', 'Trống ở từng màn con', 'Khách, Đơn in, Phụ lục, Thông báo đã có trạng thái trống riêng. Kịch bản, Hợp đồng đang dùng mẫu chung; nên có trống riêng "Nhà hàng đang soạn".'],
+    ].map(([k, title, body]) => ({ level: LV[k][0], bg: LV[k][1], fg: LV[k][2], title, body }));
+    const Y = { v: '✓', fg: '#2F6B4F', note: '' }, N = { v: '—', fg: '#9A877F', note: 'Không áp dụng' }, W = n => ({ v: '!', fg: '#C62828', note: n });
+    const row = (code, name, cells) => ({ code, name, cells });
+    const all = [Y, Y, Y, N, Y, Y], lock = [Y, Y, Y, Y, Y, Y];
+    const matrix = [
+      row('A2', 'Trang chủ + Ước tính', all), row('A3', 'Danh sách / chi tiết sảnh', all), row('A4', 'Thực đơn', all), row('A2', 'Gửi tư vấn + thành công', [Y, N, Y, N, Y, Y]),
+      row('T1–T4', 'Đăng nhập, quên mật khẩu, lời mời, hồ sơ', [Y, N, Y, N, Y, Y]),
+      row('B1', 'Tổng quan (3 giai đoạn, chưa có tiệc, đã huỷ)', lock),
+      row('B2', 'Kịch bản · Tên · Hợp đồng', [Y, W('Dùng mẫu chung'), Y, N, Y, Y]),
+      row('B3', 'Ví tiệc + kết quả VNPay', [Y, Y, Y, N, Y, Y]),
+      row('B4', 'Khách & sơ đồ', lock), row('B4', 'Thiệp & in', lock), row('B4', 'Phụ lục', lock),
+      row('B5', 'Quyết toán (chờ hoá đơn / có hoá đơn)', lock), row('B6', 'Thông báo', [Y, Y, Y, N, Y, Y]),
+      row('C1', 'Thiệp khách mời (công khai / cá nhân / hết hạn / sai link)', [Y, N, Y, N, W('Chưa có banner offline riêng'), Y]),
+    ];
+    const ok = ['check_circle', '#2F6B4F'];
+    const rules = [
+      ['Không có ô nhập mã', 'Không có ô nhập mã hồ sơ, mã tiệc hay mã giao dịch. Ô 6 số duy nhất là OTP email (quên/đổi mật khẩu). Kết quả VNPay tự kiểm tra.'],
+      ['Không RSVP', 'Thiệp và danh sách khách không có xác nhận tham dự, không đếm người đi kèm.'],
+      ['Một QR chung', 'Xuất bản thiệp tạo 1 link + 1 QR. Link cá nhân chỉ thêm dòng tên khách, không có QR riêng.'],
+      ['Khách không tự đặt', 'Trang công khai chỉ "Ước tính – chưa giữ chỗ" và gửi yêu cầu tư vấn.'],
+      ['Khoá trước cọc', 'Khách & sơ đồ, Thiệp & in, Phụ lục, Quyết toán khoá với giải thích + "Đi tới Thanh toán".'],
+      ['Duyệt cùng phiên bản', 'Kịch bản, hợp đồng, phụ lục: 2 bên duyệt cùng số phiên bản; sửa tạo phiên bản mới; có cảnh báo "Nội dung vừa được cập nhật – tải lại".'],
+      ['Check-in "Chưa ghi nhận"', 'Mặc định tắt; khi bật và chưa có dữ liệu hiển thị "Chưa ghi nhận", không hiện số 0.'],
+      ['Số khách dự kiến tách biệt', 'Ô số dự kiến riêng; danh sách tên tuỳ chọn, nhập CSV không đổi số dự kiến.'],
+      ['Tiền thừa hoàn thủ công', 'Quyết toán hiện tiền thừa + liên hệ, không có nút hoàn tự động.'],
+    ].map(([title, body]) => ({ icon: ok[0], fg: ok[1], title, body }));
+    const R = [
+      ['A2', 'Trang chủ + Ước tính tiệc', '/', 'SC + ISR', 'V2Public'], ['A3', 'Danh sách sảnh', '/sanh?khach=280', 'SC + ISR', 'V2Public'], ['A3', 'Chi tiết sảnh', '/sanh/[slug]', 'SC + ISR', 'V2Public'],
+      ['A4', 'Thực đơn', '/thuc-don', 'SC + ISR', 'V2Public'], ['A2', 'Gửi yêu cầu tư vấn', '/tu-van?sanh=&thuc-don=&ngay=', 'SC + form client', 'V2Public'], ['A5', 'Gửi tư vấn thành công', '/tu-van/da-gui', 'SC', 'V2Public'],
+      ['T1', 'Đăng nhập', '/dang-nhap', 'Client', 'V2Account'], ['T2', 'Quên mật khẩu', '/quen-mat-khau', 'Client', 'V2Account'], ['T3', 'Nhận lời mời', '/loi-moi/[token]', 'SC kiểm token + client', 'V2Account'], ['T4', 'Hồ sơ · phiên đăng nhập', '/ho-so', 'Client', 'V2Account'],
+      ['B1', 'Tổng quan', '/khong-gian', 'Layout cache + client', 'V2Space'], ['B2', 'Kịch bản', '/khong-gian/thoa-thuan/kich-ban', 'Client', 'V2Agreement'], ['B2', 'Tên cô dâu & chú rể', '/khong-gian/thoa-thuan/ten', 'Client', 'V2Agreement'], ['B2', 'Hợp đồng', '/khong-gian/thoa-thuan/hop-dong', 'Client', 'V2Agreement'],
+      ['B3', 'Ví tiệc', '/khong-gian/thanh-toan', 'Client', 'V2Payment'], ['B3', 'Kết quả VNPay', '/khong-gian/thanh-toan/ket-qua', 'Client (đọc query VNPay, gọi API xác nhận)', 'V2Payment'],
+      ['B4', 'Khách & sơ đồ', '/khong-gian/chuan-bi/khach', 'Client, tách code sơ đồ', 'V2Guests'], ['B4', 'Thiệp & in', '/khong-gian/chuan-bi/thiep', 'Client, tách code Studio', 'V2Card'], ['B4', 'Phụ lục', '/khong-gian/chuan-bi/phu-luc', 'Client', 'V2Addendum'],
+      ['B5', 'Quyết toán', '/khong-gian/quyet-toan', 'Client', 'V2Settle'], ['B6', 'Thông báo', '/khong-gian/thong-bao', 'Client', 'V2Notifs'],
+      ['C1', 'Thiệp khách mời (công khai / cá nhân)', '/t/[slug] · /t/[slug]?k=[khach]', 'SC + ISR, 404/410 cho sai/hết hạn', 'V2Guest'],
+    ];
+    return { gaps, matrix, rules, routes: R.map(([code, name, route, render, file]) => ({ code, name, route, render, file: file + '.dc.html' })) };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@600&family=JetBrains+Mono:wght@400;500&display=swap&subset=vietnamese" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block" rel="stylesheet">
+<style>
+body{margin:0;background:#F1E8E0;color:#2B1D22;font-family:'Be Vietnam Pro',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+i{font-family:'Material Symbols Rounded';font-style:normal;font-weight:400;font-size:20px;line-height:1;display:inline-block;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+a{color:#7A1F3D;text-underline-offset:3px}
+a:hover{color:#5C1430}
+button{font-family:inherit;cursor:pointer}
+input,textarea,select{font-family:inherit}
+@keyframes hy-spin{to{transform:rotate(360deg)}}
+@keyframes hy-shimmer{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+</style>
+<script src="./hy-motion.js"></script>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column">
+
+<header style="position:sticky;top:0;z-index:40;background:#FFFFFF;border-bottom:1px solid #EADFD6;padding:12px 20px;display:flex;flex-direction:column;gap:12px">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <span style="width:36px;height:36px;border-radius:50%;border:1.5px solid #C9A46A;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px;font-weight:600;color:#7A1F3D">HY</span>
+    <div style="display:flex;flex-direction:column"><strong style="font-size:15px">Web khách hàng v2 · Thiết kế lại</strong><span style="font-size:12px;color:#6E5D63">Next.js · P2 công khai "lên kế hoạch trước" · C1 không gian cưới theo hành trình</span></div>
+    <div role="tablist" style="margin-left:auto;display:flex;background:#F7EDE4;border-radius:12px;padding:3px;gap:2px"><sc-for list="{{ tb.mode }}" as="o" hint-placeholder-count="2"><button role="tab" aria-selected="{{ o.aria }}" onClick="{{ o.click }}" style="height:36px;padding:0 14px;border:none;border-radius:9px;font-size:13px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};box-shadow:{{ o.sh }}">{{ o.label }}</button></sc-for></div>
+  </div>
+  <sc-if value="{{ isProto }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+    <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:11px;font-weight:600;color:#6E5D63">Breakpoint</span>
+      <div role="radiogroup" style="display:flex;background:#F7EDE4;border-radius:12px;padding:3px;gap:2px"><sc-for list="{{ tb.bp }}" as="o" hint-placeholder-count="2"><button role="radio" aria-checked="{{ o.aria }}" onClick="{{ o.click }}" style="height:32px;padding:0 12px;border:none;border-radius:9px;font-size:13px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};box-shadow:{{ o.sh }}">{{ o.label }}</button></sc-for></div></label>
+    <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:11px;font-weight:600;color:#6E5D63">Màn hình</span>
+      <select value="{{ screen }}" onChange="{{ onScreen }}" style="height:38px;border:1px solid #9A877F;border-radius:12px;padding:0 10px;font-size:13px;background:#FFFFFF;color:#2B1D22;max-width:300px">
+        <sc-for list="{{ selGroups }}" as="g" hint-placeholder-count="2"><optgroup label="{{ g.label }}"><sc-for list="{{ g.items }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.text }}</option></sc-for></optgroup></sc-for>
+      </select></label>
+    <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:11px;font-weight:600;color:#6E5D63">Trạng thái màn</span>
+      <div role="radiogroup" style="display:flex;flex-wrap:wrap;background:#F7EDE4;border-radius:12px;padding:3px;gap:2px"><sc-for list="{{ tb.vs }}" as="o" hint-placeholder-count="5"><button role="radio" aria-checked="{{ o.aria }}" onClick="{{ o.click }}" style="height:32px;padding:0 10px;border:none;border-radius:9px;font-size:12px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};box-shadow:{{ o.sh }}">{{ o.label }}</button></sc-for></div></label>
+    <div style="display:flex;gap:4px;flex-wrap:wrap">
+      <sc-for list="{{ tb.sw }}" as="w" hint-placeholder-count="2"><button role="switch" aria-checked="{{ w.aria }}" onClick="{{ w.click }}" style="height:38px;display:inline-flex;align-items:center;gap:8px;border:none;background:transparent;padding:0 6px;font-size:12px;font-weight:500;color:#2B1D22;border-radius:10px" style-hover="background:#FBF1EC"><span style="width:36px;height:22px;border-radius:11px;position:relative;flex:none;background:{{ w.track }}"><span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#FFFFFF;transform:{{ w.thumb }};transition:transform 150ms cubic-bezier(0.2,0,0,1)"></span></span>{{ w.label }}</button></sc-for>
+    </div>
+  </div>
+  </sc-if>
+</header>
+
+<sc-if value="{{ isMap }}" hint-placeholder-val="{{ true }}">
+<main style="width:100%;max-width:1280px;margin:0 auto;padding:32px 20px 64px;display:flex;flex-direction:column;gap:40px">
+  <section style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:6px"><h1 style="margin:0;font-size:28px;line-height:36px;font-weight:700">Sơ đồ trang</h1><p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;max-width:720px;text-wrap:pretty">Ba khu: trang công khai cho khách lạ, Không gian cưới cho cặp đôi đã có booking, và trang thiệp cho khách mời. Bấm vào màn đã có prototype để mở.</p></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+      <sc-for list="{{ sitemap }}" as="g" hint-placeholder-count="3">
+        <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:10px;background:{{ g.bg }};color:{{ g.fg }};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">{{ g.key }}</span><span style="display:flex;flex-direction:column"><strong style="font-size:16px">{{ g.label }}</strong><span style="font-size:12px;color:#6E5D63">{{ g.who }}</span></span></div>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ g.items }}" as="s" hint-placeholder-count="6"><button onClick="{{ s.open }}" disabled="{{ s.off }}" style="min-height:44px;border:none;border-top:1px solid #EADFD6;background:transparent;display:flex;align-items:center;gap:10px;padding:6px 4px;text-align:left;color:#2B1D22;padding-left:{{ s.indent }}" style-hover="background:#FBF1EC"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#7A1F3D;min-width:30px">{{ s.code }}</span><span style="flex:1;font-size:14px">{{ s.label }}</span><span style="height:22px;padding:0 8px;border-radius:11px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;background:{{ s.cbg }};color:{{ s.cfg }}">{{ s.chip }}</span></button></sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+  <section style="display:flex;flex-direction:column;gap:16px">
+    <h2 style="margin:0;font-size:24px;line-height:32px;font-weight:700">3 luồng chính</h2>
+    <sc-for list="{{ flows }}" as="f" hint-placeholder-count="3">
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">Luồng {{ f.n }}</span><strong style="font-size:17px">{{ f.title }}</strong><span style="font-size:13px;color:#6E5D63">{{ f.sub }}</span></div>
+        <ol style="list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;align-items:stretch;gap:8px">
+          <sc-for list="{{ f.steps }}" as="s" hint-placeholder-count="5"><li style="display:flex;align-items:center;gap:8px"><button onClick="{{ s.open }}" disabled="{{ s.off }}" style="min-height:64px;max-width:200px;border:1px solid {{ s.bc }};border-radius:12px;background:{{ s.bg }};padding:10px 12px;display:flex;flex-direction:column;gap:2px;text-align:left;color:#2B1D22" style-hover="border-color:#7A1F3D"><span style="font-size:13px;font-weight:600">{{ s.label }}</span><span style="font-size:12px;line-height:17px;color:#6E5D63">{{ s.note }}</span></button><sc-if value="{{ s.arrow }}" hint-placeholder-val="{{ true }}"><i style="color:#C9A46A">arrow_forward</i></sc-if></li></sc-for>
+        </ol>
+      </div>
+    </sc-for>
+  </section>
+</main>
+</sc-if>
+
+<sc-if value="{{ isProto }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;display:flex;flex-wrap:wrap;gap:20px;padding:20px;align-items:flex-start">
+  <div ref="{{ refs.stage }}" style="flex:1 1 560px;min-width:0">
+    <div style="position:relative;height:{{ fr.outerH }}">
+      <div data-screen-label="{{ cur.code }} {{ cur.label }}" style="position:absolute;top:0;left:{{ fr.left }};width:{{ fr.w }};height:{{ fr.h }};transform:{{ fr.t }};transform-origin:0 0;background:#FFF8F1;border-radius:{{ fr.r }};overflow:hidden;box-shadow:0 6px 24px rgba(43,29,34,0.10);border:1px solid #EADFD6">
+        <div ref="{{ refs.scroller }}" style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden">
+          <div ref="{{ refs.page }}" style="min-height:100%">
+            <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}"><div role="status" style="background:#E6EEF2;padding:10px 16px;display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:20px"><i style="color:#3F5B6B;font-size:18px">cloud_off</i><span style="flex:1"><strong>Không có kết nối – đang hiển thị dữ liệu đã lưu</strong><br><span style="color:#3F5B6B">Bạn vẫn có thể điền form; yêu cầu sẽ gửi khi có mạng.</span></span><button onClick="{{ retryOnline }}" style="height:40px;padding:0 12px;border:none;border-radius:12px;background:transparent;color:#2B1D22;font-size:14px;font-weight:600" style-hover="background:rgba(63,91,107,0.1)">Thử lại</button></div></sc-if>
+            <sc-if value="{{ stateShown }}" hint-placeholder-val="{{ false }}">
+              <div style="height:64px;display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1px solid #EADFD6"><span style="width:36px;height:36px;border-radius:50%;border:1.5px solid #C9A46A;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px;font-weight:600;color:#7A1F3D">HY</span><span style="font-size:18px;font-weight:700">Hỷ Yến</span></div>
+              <div style="padding:{{ L.pad }};max-width:1120px;margin:0 auto"><dc-import name="HyState" kind="{{ sv.kind }}" info="{{ sv.info }}" on-cta="{{ sv.cta }}" on-retry="{{ sv.retry }}" reduce="{{ reduce }}" hint-size="100%,480px"></dc-import></div>
+            </sc-if>
+            <sc-if value="{{ childShown }}" hint-placeholder-val="{{ true }}">
+              <sc-if value="{{ c.pub }}" hint-placeholder-val="{{ true }}"><dc-import name="V2Public" screen="{{ screen }}" params="{{ params }}" ctx="{{ ctx }}" hint-size="100%,900px"></dc-import></sc-if>
+              <sc-if value="{{ c.space }}" hint-placeholder-val="{{ false }}"><dc-import name="V2Space" screen="{{ screen }}" params="{{ params }}" ctx="{{ ctx }}" hint-size="100%,900px"></dc-import></sc-if>
+              <sc-if value="{{ c.guest }}" hint-placeholder-val="{{ false }}"><dc-import name="V2Guest" ctx="{{ ctx }}" hint-size="100%,860px"></dc-import></sc-if>
+              <sc-if value="{{ c.acc }}" hint-placeholder-val="{{ false }}"><dc-import name="V2Account" screen="{{ screen }}" params="{{ params }}" ctx="{{ ctx }}" hint-size="100%,900px"></dc-import></sc-if>
+              <sc-if value="{{ c.todo }}" hint-placeholder-val="{{ false }}"><div style="padding:80px 24px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center"><i style="font-size:32px;color:#7A1F3D">construction</i><strong style="font-size:18px">{{ cur.label }}</strong><span style="font-size:14px;color:#6E5D63">Màn này thuộc phần tiếp theo.</span></div></sc-if>
+            </sc-if>
+          </div>
+        </div>
+        <div role="status" aria-live="polite" style="position:absolute;z-index:45;left:{{ L.snL }};right:{{ L.snR }};bottom:{{ L.snB }};min-height:48px;border-radius:12px;background:#2B1D22;color:#FFF8F1;display:flex;align-items:center;gap:8px;padding:4px 16px;font-size:14px;line-height:20px;transform:{{ sn.t }};opacity:{{ sn.o }};transition:{{ sn.tr }};pointer-events:none"><span style="flex:1;padding:8px 0">{{ sn.msg }}</span></div>
+        <div ref="{{ refs.overlay }}" aria-hidden="true" style="position:absolute;inset:0;z-index:60;pointer-events:none;overflow:hidden"></div>
+      </div>
+    </div>
+  </div>
+  <sc-if value="{{ notesOn }}" hint-placeholder-val="{{ true }}">
+    <aside aria-label="Ghi chú motion và trạng thái" style="flex:0 1 340px;min-width:280px;background:#FFFFFF;border:1px solid #EADFD6;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:4px"><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#7A1F3D">{{ cur.code }} · {{ fr.label }}</span><strong style="font-size:20px;line-height:28px;font-weight:700">{{ cur.label }}</strong></div>
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Motion (token đã có)</span>
+        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px"><sc-for list="{{ notes }}" as="t" hint-placeholder-count="4"><li style="display:flex;gap:8px;font-size:13px;line-height:20px"><span style="width:6px;height:6px;border-radius:50%;background:#C9A46A;flex:none;margin-top:7px"></span><span>{{ t.x }}</span></li></sc-for></ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #EADFD6;padding-top:16px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Trạng thái của màn</span>
+        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:20px;color:#6E5D63"><sc-for list="{{ stNotes }}" as="t" hint-placeholder-count="4"><li>{{ t.x }}</li></sc-for></ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #EADFD6;padding-top:16px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Chung</span>
+        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:20px;color:#6E5D63"><li>Giữa các trang: shared axis X 300ms emphasizedDecelerate.</li><li>Khối nội dung hiện khi cuộn tới: 400ms, trượt 24px, một lần.</li><li>Danh sách: stagger 50ms, tối đa 8 mục.</li><li>Giảm chuyển động: fade ≤ 150ms, tắt trượt và cánh hoa.</li></ul>
+      </div>
+    </aside>
+  </sc-if>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { mode: 'proto', mobile: false, screen: 'home', params: {}, vstate: 'normal', reduce: false, notesOn: true, snack: null, stageW: 1000 };
+  el = {}; _rf = {};
+  S = {
+    home: { g: 'A', code: 'A2', label: 'Trang chủ + Ước tính tiệc', built: 1 },
+    halls: { g: 'A', code: 'A3', label: 'Danh sách sảnh', built: 1 },
+    hall: { g: 'A', code: 'A3', label: 'Chi tiết sảnh', built: 1, sub: 1 },
+    menus: { g: 'A', code: 'A4', label: 'Thực đơn', built: 1 },
+    consult: { g: 'A', code: 'A2', label: 'Gửi yêu cầu tư vấn', built: 1 },
+    consultDone: { g: 'A', code: 'A5', label: 'Gửi tư vấn thành công', built: 1, sub: 1 },
+    login: { g: 'T', code: 'T1', label: 'Đăng nhập', built: 1 },
+    forgot: { g: 'T', code: 'T2', label: 'Quên mật khẩu (email → OTP → mật khẩu mới)', built: 1 },
+    invite: { g: 'T', code: 'T3', label: 'Nhận lời mời · đặt mật khẩu', built: 1 },
+    inviteExpired: { g: 'T', code: 'T3', label: 'Lời mời hết hạn', built: 1, sub: 1 },
+    inviteUsed: { g: 'T', code: 'T3', label: 'Lời mời đã dùng', built: 1, sub: 1 },
+    profile: { g: 'T', code: 'T4', label: 'Hồ sơ · phiên đăng nhập', built: 1 },
+    overview: { g: 'B', code: 'B1', label: 'Tổng quan + khung', built: 1 },
+    script: { g: 'B', code: 'B2', label: 'Thoả thuận · Kịch bản', built: 1 },
+    names: { g: 'B', code: 'B2', label: 'Thoả thuận · Tên cô dâu & chú rể', sub: 1, built: 1 },
+    contract: { g: 'B', code: 'B2', label: 'Thoả thuận · Hợp đồng', sub: 1, built: 1 },
+    payment: { g: 'B', code: 'B3', label: 'Thanh toán · Ví tiệc', built: 1 },
+    payResult: { g: 'B', code: 'B3', label: 'Kết quả VNPay (4 trạng thái)', sub: 1, built: 1 },
+    prepGuests: { g: 'B', code: 'B4', label: 'Chuẩn bị: Khách & sơ đồ', built: 1 },
+    prepCard: { g: 'B', code: 'B4', label: 'Chuẩn bị: Thiệp & in', sub: 1, built: 1 },
+    prepAddendum: { g: 'B', code: 'B4', label: 'Chuẩn bị: Phụ lục', sub: 1, built: 1 },
+    settle: { g: 'B', code: 'B5', label: 'Quyết toán', built: 1 },
+    notifs: { g: 'B', code: 'B6', label: 'Thông báo', built: 1 },
+    guestCard: { g: 'C', code: 'C1', label: 'Thiệp khách mời', built: 1 },
+  };
+  NOTES = {
+    home: ['Hero tĩnh, không parallax: ảnh tải trước, chữ và công cụ ước tính hiện cùng lúc.', 'Bấm "Xem ước tính": kết quả fade + trượt 8px 250ms emphasizedDecelerate, thẻ sảnh và dòng thực đơn stagger 50ms.', 'Đổi số khách / ca: tổng tiền đếm tới giá trị mới 800ms, chữ số tabular.', 'Câu hỏi thường gặp: chevron xoay 150ms standard, nội dung fade 150ms.', 'Mobile: thanh dưới "Gọi · Bản đồ · Nhận tư vấn" cố định, không animate.'],
+    halls: ['Đổi số khách: thanh sức chứa đổi bề rộng 250ms standard; thẻ vượt sức chứa mờ 150ms.', 'Thẻ sảnh: nhấn co 0.98 (150ms), mở chi tiết bằng Hero ảnh 400ms emphasized.'],
+    hall: ['Ảnh bay từ thẻ danh sách: translate + scale 400ms emphasized.', 'Gallery: đổi ảnh crossfade 150ms; thumbnail đang chọn viền Vang 2px.', 'Nút "Tư vấn sảnh này" dính (cột phải desktop, thanh dưới mobile), không animate.'],
+    menus: ['Thẻ thực đơn: stagger 50ms khi vào trang.', '"Ước tính với thực đơn này": shared axis X về trang chủ, cuộn tới công cụ ước tính, thực đơn được chọn sẵn.'],
+    consult: ['Lựa chọn từ ước tính hiện ở cột trái (đọc lại, không phải nhập lại).', 'Lỗi trường fade 150ms ngay dưới ô, không rung.', 'Gửi: nút giữ chiều rộng, spinner tới khi server trả lời.'],
+    login: ['Vào từ trang công khai: shared axis X 300ms.', 'Hiện/ẩn mật khẩu: đổi icon tức thì, không animate.', 'Lỗi hiện dưới ô nhập, fade 150ms; giữ nguyên email đã nhập.', 'Đăng nhập: nút giữ chiều rộng + spinner → shared axis sang Tổng quan.'],
+    forgot: ['Chuyển bước email → OTP → mật khẩu mới → thành công: shared axis X 300ms (lùi thì trượt ngược).', 'Thanh bước: đoạn đã qua đổi màu 250ms standard.', 'OTP: tự nhảy ô khi nhập, dán 6 số vào bất kỳ ô nào; sai mã → xoá ô, focus ô đầu, lỗi fade 150ms.', 'Đếm ngược gửi lại 60 giây: chỉ đổi chữ.', 'Độ mạnh mật khẩu: 4 vạch đổi màu 150ms.', 'Thành công: tick tự vẽ 300ms.'],
+    invite: ['Thẻ chào hiện cùng form, không animate riêng.', 'Đặt mật khẩu xong: shared axis vào thẳng Tổng quan, không qua đăng nhập.'],
+    inviteExpired: ['Trang tĩnh; fade-in 150ms.'], inviteUsed: ['Trang tĩnh; fade-in 150ms.'],
+    profile: ['Thẻ stagger 50ms khi vào.', 'Đăng xuất một phiên: hàng biến mất (lạc quan) + snackbar 250ms.', 'Đổi mật khẩu: shared axis sang luồng OTP với email khoá sẵn.'],
+    overview: ['Mục sidebar → mục sidebar: fade-through 90ms ra + 210ms vào (scale 0.98→1).', 'Mục con hiện dưới mục cha khi mục cha đang chọn.', 'Thanh hành trình: scaleX 450ms emphasized tới bước hiện tại, chạy lại khi đổi giai đoạn.', 'Tóm tắt tiền đếm lên 800ms; Việc cần làm và thông báo stagger 50ms.', 'Bấm mục khoá: desktop dialog fade + scale 300ms; mobile bottom sheet trượt lên 300ms decelerate, ra 200ms accelerate.', 'Mobile: bottom nav đổi pill 150ms standard; "Thêm" mở sheet.'],
+    script: ['Đổi bước con: fade-through 90 + 210ms; thanh 3 bước đổi viền 150ms.', 'Mở "Chỉnh sửa" / Lịch sử: panel trượt từ phải 250ms emphasizedDecelerate, các mốc stagger 50ms.', 'Kéo thả mốc: hàng đang kéo mờ 40%, thả vào vị trí mới không animate.', 'Lỗi giờ ngoài ca hiện ngay dưới hàng; tổng lỗi ở chân panel.', 'Duyệt kịch bản: snackbar, không cánh hoa.', 'Xung đột: banner Cảnh báo trượt xuống 8px 250ms kèm "Tải lại".'],
+    names: ['Xem trước dòng in cập nhật tức thì khi gõ.', 'Nút "Lưu thành phiên bản mới" chỉ hiện khi có thay đổi.'],
+    contract: ['Tổng và cọc 30% đếm lên 800ms khi vào bước Hợp đồng.', 'Lịch sử & so sánh: panel phải 250ms; ô thay đổi nền Cảnh báo, giá trị cũ gạch ngang.', 'Xem PDF: dialog fade + scale 0.92→1 250ms.', 'Duyệt đủ hai bên: tick tự vẽ 300ms + cánh hoa ≤ 1200ms một lần; thẻ "Sẵn sàng đặt cọc" trượt lên 8px 250ms.'],
+    payment: ['Vào Ví tiệc: vòng tiến độ chạy 800ms emphasized, % và số còn lại đếm lên 800ms.', 'Lịch sử giao dịch stagger 50ms.', 'Bấm nút chính: sheet xác nhận (mobile trượt lên 300ms, desktop fade + scale 250ms), nhắc lại số tiền.', 'Tiếp tục tới VNPay: nút giữ chiều rộng + spinner rồi chuyển trang.'],
+    payResult: ['Đang xác nhận: vòng xoay, không có thanh tiến độ giả.', 'Thành công: tick tự vẽ 300ms + cánh hoa ≤ 1200ms một lần + rung mạnh hơn.', 'Thất bại / Chưa rõ: chỉ fade 210ms, không ăn mừng.', 'Chưa rõ: nút thanh toán ở Ví tiệc bị khoá đến khi đối soát xong.'],
+    prepGuests: ['Danh sách tên stagger 50ms khi tải và khi đổi lọc nhóm.', 'Sửa / thêm khách: panel phải 250ms; nhập CSV: dialog fade + scale 250ms, 3 bước chuyển tức thì trong dialog.', 'Kéo chip nhóm vào bàn: bàn đích viền gạch Vang + quầng 6px; thả → màu nhóm lan từ tâm scale 0→1 250ms (lạc quan).', 'Server từ chối: màu cũ lan lại + snackbar có mã tham chiếu.', 'Bấm bàn: popover fade + scale 0.92→1 150ms.', 'Zoom / kéo theo con trỏ, không quán tính; Ctrl + cuộn để zoom.'],
+    prepCard: ['Đổi mẫu: thiệp xem trước fade 200ms; chữ cập nhật ngay khi gõ.', 'Đổi ảnh bìa: crossfade 200ms; ảnh AI: ô skeleton shimmer tới khi có ảnh.', 'Xuất bản: dialog scale 0.92→1 250ms, bước shared-axis X 300ms, spinner thật không có % giả.', 'Đơn in: stagger 50ms; thanh 6 bước, bước hiện tại đậm.'],
+    prepAddendum: ['Danh sách stagger 50ms; chọn phụ lục: tổng chênh lệch đếm lên 800ms.', 'Dòng thay đổi tô nền + vạch trái (vàng = đổi, xanh = thêm, đỏ = bỏ).', 'Duyệt đủ hai bên: cánh hoa 1 lần + thẻ xác nhận trượt lên 300ms.', 'Đề xuất thay đổi: panel phải 250ms.'],
+    settle: ['Phát sinh stagger 50ms.', 'Số dư / tiền thừa đếm lên 800ms khi vào và khi đổi phiên bản.', 'Biên lai không có animation trang trí; nút thanh toán vô hiệu khi offline hoặc đang xem phiên bản cũ.'],
+    notifs: ['Nhóm theo ngày, mỗi nhóm stagger 50ms.', 'Đánh dấu đã đọc lạc quan: chấm đỏ → vòng rỗng tức thì, không chờ server.', 'Bấm thông báo: đánh dấu đọc rồi fade-through sang màn liên quan.'],
+    guestCard: ['Mở phong bì 1 lần khi vào: con dấu mờ 200ms → nắp lật rotateX 450ms → thiệp trượt lên 500ms → phong bì mờ 300ms (tổng ≈1.6s).', 'Nội dung stagger 50ms sau khi mở.', 'Giảm chuyển động: bỏ phong bì, hiện thiệp ngay.', 'Thiệp cá nhân thêm thẻ tên khách; không có RSVP.'],
+    consultDone: ['Nền tròn scale 0.6→1 150ms, dấu tick tự vẽ 300ms emphasizedDecelerate.', 'Tóm tắt yêu cầu và các bước tiếp theo stagger 50ms.'],
+  };
+  ST = {
+    home: ['Đang tải: skeleton cho hero, thẻ sảnh, thẻ thực đơn.', 'Trống (catalog chưa cập nhật): vẫn giữ form tư vấn.', 'Lỗi: mã tham chiếu + Thử lại.', 'Mất mạng: dùng dữ liệu đã lưu, form gửi khi có mạng.', 'Ước tính không có sảnh vừa: hướng dẫn gửi tư vấn để được gợi ý.'],
+    overview: ['Chưa có tiệc: giải thích + Gửi yêu cầu tư vấn / Gọi; mọi mục khác khoá "Chưa có tiệc".', 'Tiệc đã huỷ: banner đỏ, hành trình xám, Chuẩn bị/Quyết toán khoá "Đã huỷ", tài liệu chỉ xem.', 'Trước cọc: Chuẩn bị và Quyết toán khoá "Mở sau đặt cọc".', 'Đang tải / lỗi / mất mạng: dùng chung với các màn khác.'],
+    halls: ['Không có sảnh vừa số khách: gợi ý giảm số khách hoặc gửi tư vấn.'],
+  };
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; this.bind(); }); }
+  bind() { const M = window.HYMotion; if (!M) return; if (this.el.scroller) M.scroller = this.el.scroller; if (this.el.overlay) M.overlay = this.el.overlay; }
+  componentDidMount() {
+    const mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+    this.setState({ reduce: !!(mq && mq.matches) });
+    const ro = () => { const w = this.el.stage ? this.el.stage.clientWidth : this.state.stageW; if (Math.abs(w - this.state.stageW) > 1) this.setState({ stageW: w }); };
+    this.ro = window.ResizeObserver ? new ResizeObserver(ro) : null;
+    this.iv = setInterval(() => { if (this.el.stage && this.ro && !this.obs) { this.ro.observe(this.el.stage); this.obs = this.el.stage; } else if (this.obs && this.obs !== this.el.stage) { this.ro.disconnect(); this.obs = null; } ro(); }, 300);
+  }
+  componentWillUnmount() { clearInterval(this.iv); this.ro && this.ro.disconnect(); clearTimeout(this.snT); }
+  go = (screen, params = {}, opts = {}) => {
+    if (!this.S[screen]) return;
+    const M = window.HYMotion;
+    const fromB = this.S[this.state.screen].g === 'B', toB = this.S[screen].g === 'B';
+    if (toB && fromB) { this.setState({ screen, params, mode: 'proto' }, () => { if (this.el.scroller) this.el.scroller.scrollTop = 0; }); return; }
+    if (!this.S[screen].built && !toB) { this.toast(`"${this.S[screen].label}" thuộc phần tiếp theo của bản thiết kế.`); return; }
+    this.setState({ screen, params, mode: 'proto' }, () => {
+      this.bind();
+      if (this.el.scroller && !params.anchor) this.el.scroller.scrollTop = 0;
+      if (M && !opts.hero) { M.play(this.el.page, [{ opacity: 0, transform: `translateX(${opts.back ? -30 : 30}px)` }, { opacity: 1, transform: 'none' }], 300, M.E.DEC); M.stagger(this.el.page); }
+    });
+  };
+  toast = msg => { clearTimeout(this.snT); this.setState({ snack: msg }); this.snT = setTimeout(() => this.setState({ snack: null }), 3500); };
+  seg(list, val, fn) { return list.map(([v, label]) => { const on = v === val; return { label, aria: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', fg: on ? '#7A1F3D' : '#6E5D63', sh: on ? '0 1px 3px rgba(43,29,34,0.12)' : 'none', click: () => fn(v) }; }); }
+  sw(label, on, click) { return { label, aria: on ? 'true' : 'false', track: on ? '#7A1F3D' : '#C9BFBC', thumb: on ? 'translateX(14px)' : 'none', click }; }
+  renderVals() {
+    const s = this.state, S = this.S, M = window.HYMotion; if (M) M.reduce = s.reduce;
+    const meta = S[s.screen], m = s.mobile;
+    const fw = m ? 390 : 1440, fh = m ? 844 : 900, k = Math.min(1, (s.stageW || 1000) / fw), left = Math.max(0, ((s.stageW || 1000) - fw * k) / 2);
+    let kind = null; if (s.vstate === 'loading') kind = 'loading'; else if (s.vstate === 'error') kind = 'error'; else if (s.vstate === 'empty') kind = 'empty';
+    const ref = 'req_' + ((s.screen.length * 2654435761) % 4294967296).toString(16).padStart(8, '0');
+    const info = kind === 'error' ? { title: `Không tải được ${meta.label.toLowerCase()}`, body: 'Máy chủ đang bận hoặc kết nối bị gián đoạn. Thử lại sau ít phút.', refCode: ref }
+      : kind === 'empty' ? { title: 'Nhà hàng đang cập nhật sảnh và thực đơn', body: 'Bạn vẫn có thể gửi yêu cầu tư vấn; quản lý tiệc sẽ gọi lại trong 24 giờ.', cta: 'Gửi yêu cầu tư vấn', icon: 'storefront' } : {};
+    const G = [['A', 'Trang công khai', 'Khách lạ', '#F5E4E9', '#5C1430'], ['T', 'Tài khoản', 'Cặp đôi được nhà hàng mời', '#E7F1EA', '#2F6B4F'], ['B', 'Không gian cưới', 'Cặp đôi đã có booking', '#FCEFD6', '#8A5300'], ['C', 'Thiệp khách mời', 'Khách được mời', '#E6EEF2', '#3F5B6B']];
+    const sitemap = G.map(([key, label, who, bg, fg]) => ({ key, label, who, bg, fg, items: Object.keys(S).filter(id => S[id].g === key).map(id => ({ code: S[id].code, label: S[id].label, indent: S[id].sub ? '24px' : '4px', off: !S[id].built, chip: S[id].built ? 'Prototype' : 'Phần tiếp theo', cbg: S[id].built ? '#E7F1EA' : '#F7EDE4', cfg: S[id].built ? '#2F6B4F' : '#6E5D63', open: () => this.go(id) })) }));
+    const F = [
+      ['Khách lạ → gửi tư vấn', 'Không đăng nhập, không giữ chỗ', [['home', 'Trang chủ', 'Nhập ngày, ca, số khách'], ['home', 'Ước tính', 'Sảnh vừa + chi phí theo thực đơn'], ['hall', 'Chi tiết sảnh', 'Gallery, sức chứa'], ['consult', 'Form điền sẵn', 'Chỉ thêm họ tên, SĐT'], ['consultDone', 'Thành công', 'Nhà hàng gọi trong 24 giờ']]],
+      ['Cặp đôi → thoả thuận → cọc', 'Từ email lời mời', [['invite', 'Nhận lời mời', 'Đặt mật khẩu lần đầu'], ['overview', 'Tổng quan', 'Việc cần làm ngay'], ['script', 'Kịch bản', 'Hai bên duyệt'], ['names', 'Tên cô dâu & chú rể', ''], ['contract', 'Hợp đồng', 'Duyệt cùng phiên bản'], ['payment', 'Đặt cọc 30%', 'VNPay'], ['payResult', 'Kết quả', '4 trạng thái']]],
+      ['Cặp đôi sau cọc → chuẩn bị', 'Mục Chuẩn bị mở khoá', [['prepGuests', 'Khách', 'Số dự kiến + nhóm màu'], ['prepGuests', 'Sơ đồ bàn', 'Kéo nhóm thả vào bàn'], ['prepCard', 'Thiệp', 'Soạn → xuất bản → chia sẻ'], ['prepCard', 'Đặt in', 'Giỏ hàng'], ['guestCard', 'Khách mở thiệp', 'Link + QR chung']]],
+    ];
+    const flows = F.map(([title, sub, st], i) => ({ n: i + 1, title, sub, steps: st.map(([id, label, note], j) => ({ label, note, arrow: j < st.length - 1, off: !S[id].built, bg: S[id].built ? '#FFFFFF' : '#FBF7F3', bc: S[id].built ? '#D9C8BC' : '#EADFD6', open: () => this.go(id) })) }));
+    return {
+      refs: new Proxy({}, { get: (_, n) => typeof n === 'string' ? this.rf(n) : undefined }),
+      isMap: s.mode === 'map', isProto: s.mode === 'proto', sitemap, flows,
+      screen: s.screen, params: s.params, reduce: s.reduce, notesOn: s.notesOn, cur: meta,
+      ctx: { go: this.go, toast: this.toast, mobile: m, reduce: s.reduce, offline: s.vstate === 'offline' },
+      c: { pub: meta.g === 'A', acc: meta.g === 'T', space: meta.g === 'B', guest: meta.g === 'C', todo: false }, offline: s.vstate === 'offline', stateShown: !!kind, childShown: !kind,
+      sv: { kind: kind || 'loading', info, cta: () => { this.setState({ vstate: 'normal' }); this.go('consult'); }, retry: () => this.setState({ vstate: 'normal' }) },
+      notes: (this.NOTES[s.screen] || []).map(x => ({ x })),
+      stNotes: (this.ST[s.screen] || ['Đang tải: skeleton cùng khung với nội dung thật.', 'Lỗi: mã tham chiếu + Thử lại.', 'Mất mạng: banner trên cùng, dữ liệu đã lưu.']).map(x => ({ x })),
+      fr: { w: fw + 'px', h: fh + 'px', t: `scale(${k})`, left: left + 'px', outerH: fh * k + 'px', r: m ? '28px' : '12px', label: m ? 'Mobile 390' : 'Desktop 1440' },
+      L: { pad: m ? '16px' : '32px', snL: m ? '12px' : 'calc(50% - 280px)', snR: m ? '12px' : 'calc(50% - 280px)', snB: m ? '88px' : '24px' },
+      sn: { msg: s.snack || '', o: s.snack ? 1 : 0, t: s.snack || s.reduce ? 'none' : 'translateY(24px)', tr: s.reduce ? 'opacity 150ms linear' : (s.snack ? 'transform 250ms cubic-bezier(0.05,0.7,0.1,1), opacity 250ms cubic-bezier(0.05,0.7,0.1,1)' : 'transform 150ms cubic-bezier(0.3,0,0.8,0.15), opacity 150ms cubic-bezier(0.3,0,0.8,0.15)') },
+      selGroups: [['A', 'A · Công khai'], ['T', 'Tài khoản'], ['B', 'B · Không gian cưới'], ['C', 'C · Thiệp khách mời']].map(([g, label]) => ({ label, items: Object.keys(S).filter(id => (S[id].built || g === 'B') && S[id].g === g).map(id => ({ id, text: `${S[id].code} · ${S[id].label}` })) })),
+      onScreen: e => this.go(e.target.value),
+      retryOnline: () => this.setState({ vstate: 'normal' }),
+      tb: {
+        mode: this.seg([['map', 'Sơ đồ trang & luồng'], ['proto', 'Prototype']], s.mode, v => this.setState({ mode: v })),
+        bp: this.seg([[false, 'Desktop 1440'], [true, 'Mobile 390']], m, v => this.setState({ mobile: v })),
+        vs: this.seg([['normal', 'Bình thường'], ['loading', 'Đang tải'], ['empty', 'Trống'], ['error', 'Lỗi'], ['offline', 'Mất kết nối']], s.vstate, v => this.setState({ vstate: v })),
+        sw: [this.sw('Giảm chuyển động', s.reduce, () => this.setState({ reduce: !s.reduce })), this.sw('Ghi chú', s.notesOn, () => this.setState({ notesOn: !s.notesOn }))],
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

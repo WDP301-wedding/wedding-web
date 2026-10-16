@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="min-height:100%;background:#EFE4DA;display:flex;flex-direction:column;align-items:center;padding:{{ L.pad }};gap:12px">
+  <div style="width:100%;max-width:390px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:11px;font-weight:600;color:#6B4E1F">Mô phỏng:</span><sc-for list="{{ scen }}" as="o" hint-placeholder-count="4"><button aria-pressed="{{ o.aria }}" onClick="{{ o.click }}" style="height:30px;padding:0 10px;border:1px dashed #C9A46A;border-radius:10px;background:{{ o.bg }};color:#6B4E1F;font-size:11px;font-weight:600">{{ o.label }}</button></sc-for><button onClick="{{ replay }}" style="height:30px;padding:0 10px;border:1px dashed #C9A46A;border-radius:10px;background:#FFFCF6;color:#6B4E1F;font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px"><i style="font-size:14px">replay</i>Mở lại phong bì</button></div>
+
+  <div style="width:100%;max-width:390px;min-height:{{ L.minH }};background:#FFF8F1;border-radius:{{ L.r }};overflow:hidden;position:relative;box-shadow:{{ L.sh }}">
+    <sc-if value="{{ bad }}" hint-placeholder-val="{{ false }}">
+      <div role="status" style="min-height:{{ L.minH }};display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:32px 28px">
+        <span style="font-family:'Playfair Display',serif;font-size:28px;color:#7A1F3D">HY</span>
+        <span style="width:64px;height:64px;border-radius:50%;background:#F7EDE4;color:#6E5D63;display:flex;align-items:center;justify-content:center"><i style="font-size:30px">{{ err.icon }}</i></span>
+        <strong style="font-size:20px">{{ err.title }}</strong>
+        <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;text-wrap:pretty">{{ err.body }}</p>
+        <span style="font-size:12px;color:#9A877F">Mã tham chiếu: {{ err.code }}</span>
+        <a href="tel:0283822" style="height:48px;padding:0 20px;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px;text-decoration:none"><i style="font-size:18px">call</i>Liên hệ nhà hàng Hỷ Yến</a>
+        <span style="font-size:13px;line-height:20px;color:#6E5D63">Hoặc hỏi lại cô dâu, chú rể để nhận link mới.</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ ok }}" hint-placeholder-val="{{ true }}">
+      <div ref="{{ refs.card }}" style="display:flex;flex-direction:column">
+        <div style="aspect-ratio:4/5;background:linear-gradient(170deg,#B98A7A,#5C1430 85%);position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:28px 24px;color:#FFF8F1">
+          <span style="position:absolute;top:20px;left:0;right:0;text-align:center;font-family:'Playfair Display',serif;font-size:24px;color:#E9D3B0">HY</span>
+          <span style="position:absolute;top:56px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:0.12em;opacity:0.8">ẢNH CƯỚI</span>
+          <span style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.9">Trân trọng kính mời</span>
+          <strong style="font-size:30px;line-height:1.2;font-weight:600;margin-top:6px">Trần Thu Hà<br><span style="font-size:16px;font-weight:400;opacity:0.85">và</span><br>Lê Minh Quân</strong>
+        </div>
+        <sc-if value="{{ personal }}" hint-placeholder-val="{{ false }}"><div style="margin:-22px 20px 0;position:relative;background:#FFFFFF;border-radius:14px;box-shadow:0 8px 20px rgba(43,29,34,0.12);padding:14px 16px;text-align:center;display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:#6E5D63">Thiệp mời dành riêng cho</span><strong style="font-size:18px;color:#7A1F3D">Anh Đỗ Hoàng Nam</strong></div></sc-if>
+        <div data-stagger="1" style="padding:28px 24px 32px;display:flex;flex-direction:column;gap:24px">
+          <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px"><span style="font-size:13px;color:#6E5D63">Tiệc cưới được tổ chức vào</span><strong style="font-size:22px;font-variant-numeric:tabular-nums">10:30 · Chủ nhật</strong><strong style="font-size:28px;color:#7A1F3D;font-variant-numeric:tabular-nums">20.12.2026</strong><span style="font-size:13px;color:#6E5D63">Nhằm ngày 11 tháng 11 năm Bính Ngọ</span></div>
+          <div style="border-top:1px solid #EADFD6;padding-top:20px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px"><i style="color:#C9A46A">location_on</i><strong style="font-size:17px">Sảnh Ngọc Trai · Nhà hàng Hỷ Yến</strong><span style="font-size:14px;line-height:21px;color:#6E5D63">125 Nguyễn Văn Trỗi, Phường 12, Quận Phú Nhuận, TP. Hồ Chí Minh</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <a href="https://maps.google.com/?q=Nh%C3%A0+h%C3%A0ng+H%E1%BB%B7+Y%E1%BA%BFn" target="_blank" rel="noopener" style="height:52px;border-radius:14px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none"><i style="font-size:20px">map</i>Mở bản đồ</a>
+            <button onClick="{{ addCal }}" style="height:52px;border:1px solid #7A1F3D;border-radius:14px;background:#FFFFFF;color:#7A1F3D;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px"><i style="font-size:20px">event</i>Thêm vào lịch</button>
+          </div>
+          <div style="border-top:1px solid #EADFD6;padding-top:20px;display:flex;flex-direction:column;gap:12px">
+            <strong style="font-size:15px;text-align:center">Chương trình</strong>
+            <sc-for list="{{ prog }}" as="p" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:64px 14px 1fr;gap:10px;align-items:start"><span style="font-size:15px;font-weight:700;color:#7A1F3D;font-variant-numeric:tabular-nums;text-align:right">{{ p.t }}</span><span style="width:10px;height:10px;border-radius:50%;border:2px solid #C9A46A;margin-top:5px"></span><span style="display:flex;flex-direction:column"><span style="font-size:15px;font-weight:600">{{ p.name }}</span><span style="font-size:13px;color:#6E5D63">{{ p.sub }}</span></span></div></sc-for>
+          </div>
+          <p style="margin:0;text-align:center;font-size:14px;line-height:22px;font-style:italic;color:#6E5D63;text-wrap:pretty">Sự hiện diện của bạn là niềm vinh hạnh cho gia đình chúng tôi.</p>
+          <span style="text-align:center;font-size:11px;color:#9A877F">Thiệp được tạo bởi Hỷ Yến</span>
+        </div>
+      </div>
+
+      <div ref="{{ refs.env }}" aria-hidden="true" style="position:absolute;inset:0;background:#FFF8F1;display:{{ envDisplay }};flex-direction:column;align-items:center;justify-content:center;gap:20px;perspective:900px;z-index:2">
+        <div style="position:relative;width:280px;height:190px">
+          <div style="position:absolute;inset:0;background:#7A1F3D;border-radius:8px"></div>
+          <div ref="{{ refs.letter }}" style="position:absolute;left:16px;right:16px;top:12px;height:160px;background:#FFFFFF;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px"><span style="font-family:'Playfair Display',serif;font-size:26px;color:#7A1F3D">HY</span><span style="font-size:12px;color:#6E5D63">Thu Hà &amp; Minh Quân</span></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;height:120px;background:#87334F;clip-path:polygon(0 0,50% 55%,100% 0,100% 100%,0 100%);border-radius:0 0 8px 8px"></div>
+          <div ref="{{ refs.flap }}" style="position:absolute;left:0;right:0;top:0;height:110px;background:#5C1430;clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top center;border-radius:8px 8px 0 0"></div>
+          <div ref="{{ refs.seal }}" style="position:absolute;left:50%;top:92px;width:40px;height:40px;margin-left:-20px;border-radius:50%;background:#C9A46A;color:#5C1430;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px">HY</div>
+        </div>
+        <span style="font-size:13px;color:#6E5D63">Đang mở thiệp…</span>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { sc: 'public', env: true, k: 0 };
+  el = {}; _rf = {};
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  get ctx() { return this.props.ctx || {}; }
+  componentDidMount() { this.open(); }
+  componentDidUpdate(pp, ps) { if (ps.k !== this.state.k) this.open(); }
+  open() {
+    const M = window.HYMotion, e = this.el;
+    if (!M || M.reduce || !e.env || !e.flap) { this.setState({ env: false }); return; }
+    M.play(e.seal, [{ opacity: 1 }, { opacity: 0, transform: 'scale(0.6)' }], 200, M.E.ACC, { fill: 'forwards', delay: 300 });
+    M.play(e.flap, [{ transform: 'rotateX(0deg)' }, { transform: 'rotateX(180deg)' }], 450, M.E.EMP, { fill: 'forwards', delay: 450 });
+    M.play(e.letter, [{ transform: 'none' }, { transform: 'translateY(-90px)' }], 500, M.E.DEC, { fill: 'forwards', delay: 850 });
+    M.fin(M.play(e.env, [{ opacity: 1 }, { opacity: 0 }], 300, 'linear', { fill: 'forwards', delay: 1350 })).then(() => {
+      this.setState({ env: false }, () => { M.play(this.el.card, [{ opacity: 0, transform: 'translateY(24px)' }, { opacity: 1, transform: 'none' }], 400, M.E.DEC); M.stagger(this.el.card); });
+    });
+  }
+  renderVals() {
+    const c = this.ctx, m = !!c.mobile, s = this.state, toast = c.toast || (() => {});
+    const ERR = { expired: { icon: 'event_busy', title: 'Thiệp này đã hết hạn', body: 'Tiệc cưới của Thu Hà & Minh Quân đã diễn ra ngày 20/12/2026. Cảm ơn bạn đã quan tâm.', code: 'inv_exp_4c21' }, invalid: { icon: 'link_off', title: 'Link thiệp không hợp lệ', body: 'Link có thể bị gõ sai hoặc thiệp đã được gỡ. Kiểm tra lại đường dẫn bạn nhận được.', code: 'inv_404_9b7e' } };
+    const bad = s.sc === 'expired' || s.sc === 'invalid';
+    return {
+      refs: new Proxy({}, { get: (_, n) => typeof n === 'string' ? this.rf(n) : undefined }),
+      scen: [['public', 'Thiệp công khai'], ['personal', 'Thiệp cá nhân'], ['expired', 'Hết hạn'], ['invalid', 'Không hợp lệ']].map(([v, label]) => ({ label, aria: s.sc === v ? 'true' : 'false', bg: s.sc === v ? '#FBF1DE' : '#FFFCF6', click: () => this.setState({ sc: v, env: !(v === 'expired' || v === 'invalid'), k: s.k + 1 }) })),
+      replay: () => !bad && this.setState({ env: true, k: s.k + 1 }),
+      bad, ok: !bad, personal: s.sc === 'personal', err: ERR[s.sc] || ERR.invalid, envDisplay: s.env ? 'flex' : 'none',
+      prog: [['10:30', 'Đón khách', 'Sảnh Ngọc Trai, tầng 2'], ['11:00', 'Lễ thành hôn', 'Nghi thức trên sân khấu'], ['11:30', 'Khai tiệc', 'Thực đơn Hoa Sen'], ['12:30', 'Giao lưu', 'Ban nhạc acoustic'], ['14:00', 'Kết thúc', '']].map(([t, name, sub]) => ({ t, name, sub })),
+      addCal: () => { try { const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT', 'DTSTART:20261220T033000Z', 'DTEND:20261220T070000Z', 'SUMMARY:Tiệc cưới Thu Hà & Minh Quân', 'LOCATION:Sảnh Ngọc Trai · Nhà hàng Hỷ Yến', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = 'tiec-cuoi-thuha-minhquan.ics'; a.click(); } catch (e) {} toast('Đã tạo sự kiện lịch 20/12/2026 · 10:30'); },
+      L: m ? { pad: '12px 0 0', minH: '780px', r: '0', sh: 'none' } : { pad: '32px 24px 48px', minH: '760px', r: '28px', sh: '0 20px 48px rgba(43,29,34,0.18)' },
+    };
+  }
+}
+</script>
+</body>
+</html>

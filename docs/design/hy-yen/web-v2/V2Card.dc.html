@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<sc-if value="{{ locked }}" hint-placeholder-val="{{ false }}">
+  <div role="status" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:48px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:640px;margin:0 auto">
+    <span style="width:64px;height:64px;border-radius:50%;background:#F7EDE4;color:#6E5D63;display:flex;align-items:center;justify-content:center"><i style="font-size:30px">lock</i></span>
+    <span style="height:28px;padding:0 10px 0 6px;border-radius:14px;background:#F7EDE4;color:#6E5D63;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600"><i style="font-size:16px">lock</i>Mở sau đặt cọc</span>
+    <strong style="font-size:20px">Thiệp &amp; đơn in mở sau khi đặt cọc</strong>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;max-width:440px">Sau khi đặt cọc 60.480.000 ₫, hai bạn chọn mẫu thiệp, xuất bản link + QR chung và đặt in thiệp, bao thư, bảng chào mừng.</p>
+    <button onClick="{{ goPayment }}" style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">Đi tới Thanh toán</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div role="tablist" style="display:flex;background:#F7EDE4;border-radius:12px;padding:4px;gap:4px"><sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2"><button role="tab" aria-selected="{{ t.aria }}" onClick="{{ t.click }}" style="height:40px;padding:0 16px;border:none;border-radius:10px;font-size:14px;font-weight:600;background:{{ t.bg }};color:{{ t.fg }};display:flex;align-items:center;gap:6px">{{ t.label }}<sc-if value="{{ t.badge }}" hint-placeholder-val="{{ false }}"><span style="min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#7A1F3D;color:#FFFFFF;font-size:11px;display:inline-flex;align-items:center;justify-content:center">{{ t.badge }}</span></sc-if></button></sc-for></div>
+    <span style="flex:1"></span>
+    <sc-if value="{{ isStudio }}" hint-placeholder-val="{{ true }}">
+      <span style="height:28px;padding:0 10px 0 6px;border-radius:14px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;background:{{ pub.bg }};color:{{ pub.fg }}"><i style="font-size:16px">{{ pub.icon }}</i>{{ pub.label }}</span>
+      <button onClick="{{ openPublish }}" style="height:44px;padding:0 18px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px" style-hover="background:#87334F"><i style="font-size:18px">{{ pub.btnIcon }}</i>{{ pub.btn }}</button>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ isStudio }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ m }}" hint-placeholder-val="{{ false }}"><div role="tablist" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#F7EDE4;border-radius:12px;padding:4px"><sc-for list="{{ panes }}" as="p" hint-placeholder-count="3"><button role="tab" aria-selected="{{ p.aria }}" onClick="{{ p.click }}" style="height:40px;border:none;border-radius:10px;font-size:14px;font-weight:600;background:{{ p.bg }};color:{{ p.fg }}">{{ p.label }}</button></sc-for></div></sc-if>
+    <div style="display:grid;grid-template-columns:{{ L.cols }};gap:16px;align-items:start">
+      <sc-if value="{{ show.tpl }}" hint-placeholder-val="{{ true }}">
+      <section aria-label="Mẫu thiệp" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:14px;display:flex;flex-direction:column;gap:10px;position:{{ L.stick }};top:88px">
+        <strong style="font-size:14px">Mẫu thiệp</strong>
+        <div data-stagger="1" style="display:grid;grid-template-columns:{{ L.tplCols }};gap:10px">
+          <sc-for list="{{ tpls }}" as="t" hint-placeholder-count="4">
+            <button aria-pressed="{{ t.aria }}" onClick="{{ t.pick }}" style="border:{{ t.border }};border-radius:12px;background:#FFFFFF;padding:6px;display:flex;flex-direction:column;gap:6px;text-align:left;color:#2B1D22">
+              <span style="aspect-ratio:3/4;border-radius:8px;background:{{ t.bg }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid {{ t.line }}"><span style="font-family:'Playfair Display',serif;font-size:18px;color:{{ t.fg }}">HY</span><span style="width:28px;height:1px;background:{{ t.accent }}"></span></span>
+              <span style="font-size:12px;font-weight:600;padding:0 2px">{{ t.name }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ show.prev }}" hint-placeholder-val="{{ true }}">
+      <section aria-label="Xem trước trực tiếp" style="border:1px solid #EADFD6;border-radius:16px;background:#F7EDE4;padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6E5D63;align-self:stretch"><i style="font-size:16px">visibility</i><span style="flex:1">Xem trước trực tiếp</span><span>Khách xem trên điện thoại</span></div>
+        <div ref="{{ refs.card }}" style="width:100%;max-width:340px;border-radius:20px;overflow:hidden;background:{{ cur.bg }};color:{{ cur.fg }};box-shadow:0 12px 32px rgba(43,29,34,0.16);display:flex;flex-direction:column">
+          <div ref="{{ refs.photo }}" style="aspect-ratio:4/3;background:{{ photo.bg }};display:flex;align-items:flex-end;padding:10px;position:relative">
+            <span style="height:24px;padding:0 8px;border-radius:12px;background:rgba(255,255,255,0.85);color:#2B1D22;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px"><i style="font-size:14px">{{ photo.icon }}</i>{{ photo.label }}</span>
+          </div>
+          <div style="padding:24px 22px 26px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px">
+            <span style="font-family:'Playfair Display',serif;font-size:22px;color:{{ cur.accent }}">HY</span>
+            <span style="font-size:{{ fs.s }};letter-spacing:0.08em;text-transform:uppercase;opacity:0.85;text-wrap:pretty">{{ f.invite }}</span>
+            <strong style="font-size:{{ fs.l }};line-height:1.25;font-weight:600">{{ f.bride }}<br><span style="font-size:{{ fs.s }};font-weight:400;opacity:0.8">và</span><br>{{ f.groom }}</strong>
+            <span style="width:40px;height:1px;background:{{ cur.accent }}"></span>
+            <span style="font-size:{{ fs.m }};font-weight:600;font-variant-numeric:tabular-nums">10:30 · Chủ nhật, 20/12/2026</span>
+            <span style="font-size:{{ fs.s }};line-height:1.5;opacity:0.9">Sảnh Ngọc Trai · Nhà hàng Hỷ Yến<br>Ca trưa 10:30–14:00</span>
+            <sc-if value="{{ f.thanks }}" hint-placeholder-val="{{ true }}"><span style="font-size:{{ fs.s }};line-height:1.5;font-style:italic;opacity:0.85;text-wrap:pretty">{{ f.thanks }}</span></sc-if>
+            <span style="height:32px;padding:0 12px;border-radius:16px;border:1px solid {{ cur.accent }};font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;margin-top:4px"><i style="font-size:16px">map</i>Mở bản đồ</span>
+          </div>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ show.props }}" hint-placeholder-val="{{ true }}">
+      <section aria-label="Thuộc tính" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;display:flex;flex-direction:column;position:{{ L.stick }};top:88px;min-width:0">
+        <div style="padding:14px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #EADFD6">
+          <strong style="font-size:14px">Chữ</strong>
+          <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:13px;font-weight:500">Lời mời</span><input value="{{ f.invite }}" onChange="{{ on.invite }}" maxLength="60" style="height:44px;border:1px solid #9A877F;border-radius:10px;padding:0 12px;font-size:15px;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:13px;font-weight:500">Cô dâu</span><input value="{{ f.bride }}" readOnly="{{ true }}" style="height:44px;border:1px solid #EADFD6;border-radius:10px;padding:0 10px;font-size:14px;background:#FBF7F3;color:#6E5D63;min-width:0"></label><label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:13px;font-weight:500">Chú rể</span><input value="{{ f.groom }}" readOnly="{{ true }}" style="height:44px;border:1px solid #EADFD6;border-radius:10px;padding:0 10px;font-size:14px;background:#FBF7F3;color:#6E5D63;min-width:0"></label></div>
+          <span style="font-size:12px;line-height:18px;color:#6E5D63;display:flex;gap:4px"><i style="font-size:16px">info</i><span>Tên, ngày giờ và sảnh lấy từ Thoả thuận và booking. <button onClick="{{ goNames }}" style="border:none;background:none;padding:0;color:#7A1F3D;font-size:12px;font-weight:600;text-decoration:underline">Sửa tên</button></span></span>
+          <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:13px;font-weight:500">Lời cảm ơn <span style="font-weight:400;color:#6E5D63">(tuỳ chọn)</span></span><textarea value="{{ f.thanks }}" onChange="{{ on.thanks }}" rows="2" maxLength="140" style="border:1px solid #9A877F;border-radius:10px;padding:10px 12px;font-size:14px;line-height:20px;resize:vertical;font-family:inherit;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></textarea></label>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;font-weight:500;flex:1">Cỡ chữ</span><div role="radiogroup" aria-label="Cỡ chữ" style="display:flex;border:1px solid #D9C8BC;border-radius:10px;overflow:hidden"><sc-for list="{{ sizes }}" as="z" hint-placeholder-count="3"><button role="radio" aria-checked="{{ z.aria }}" onClick="{{ z.pick }}" style="width:44px;height:36px;border:none;background:{{ z.bg }};color:{{ z.fg }};font-size:13px;font-weight:600">{{ z.label }}</button></sc-for></div></div>
+        </div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:10px">
+          <strong style="font-size:14px">Ảnh bìa</strong>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+            <sc-for list="{{ photos }}" as="p" hint-placeholder-count="6"><button aria-pressed="{{ p.aria }}" aria-label="{{ p.label }}" onClick="{{ p.pick }}" style="aspect-ratio:1;border-radius:8px;border:{{ p.border }};background:{{ p.bg }};padding:0;display:flex;align-items:flex-end;justify-content:flex-start"><sc-if value="{{ p.ai }}" hint-placeholder-val="{{ false }}"><span style="margin:4px;height:18px;padding:0 5px;border-radius:9px;background:rgba(255,255,255,0.9);color:#5C1430;font-size:10px;font-weight:700;display:inline-flex;align-items:center">AI</span></sc-if></button></sc-for>
+            <sc-if value="{{ aiBusy }}" hint-placeholder-val="{{ false }}"><span aria-label="Đang tạo ảnh" style="aspect-ratio:1;border-radius:8px;background:#F7EDE4;position:relative;overflow:hidden"><span style="position:absolute;inset:0;width:40%;background:linear-gradient(90deg,transparent,#FFFFFF,transparent);animation:hy-shimmer 1.2s linear infinite"></span></span></sc-if>
+          </div>
+          <span style="font-size:12px;color:#6E5D63">Thư viện ảnh của hai bạn · 6 ảnh</span>
+          <button onClick="{{ openAi }}" disabled="{{ aiBusy }}" style="min-height:48px;border:1px solid #C9A46A;border-radius:12px;background:#FFFCF6;color:#6B4E1F;display:flex;align-items:center;gap:10px;padding:8px 12px;text-align:left" style-hover="background:#FBF1DE"><i style="color:#8A5300">auto_awesome</i><span style="flex:1;display:flex;flex-direction:column"><strong style="font-size:14px;color:#2B1D22">Tạo ảnh AI</strong><span style="font-size:12px">Có phí · 49.000 ₫ / ảnh, cộng vào hoá đơn cuối</span></span><i style="font-size:18px">chevron_right</i></button>
+        </div>
+      </section>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isPrint }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:{{ L.printCols }};gap:16px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+        <section style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+          <div style="padding:14px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #EADFD6"><strong style="font-size:15px;flex:1">Đơn in của hai bạn</strong><span style="font-size:12px;color:#6E5D63">{{ orderCount }}</span></div>
+          <div data-stagger="1" style="display:flex;flex-direction:column">
+            <sc-for list="{{ orders }}" as="o" hint-placeholder-count="2">
+              <div ref="{{ o.ref }}" style="padding:14px 16px;display:flex;flex-direction:column;gap:12px;border-top:1px solid #EADFD6">
+                <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
+                  <span style="flex:1 1 200px;display:flex;flex-direction:column;gap:2px"><strong style="font-size:14px">{{ o.title }}</strong><span style="font-size:12px;color:#6E5D63">{{ o.sub }}</span></span>
+                  <span style="height:28px;padding:0 10px 0 6px;border-radius:14px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;background:{{ o.cbg }};color:{{ o.cfg }}"><i style="font-size:16px">{{ o.icon }}</i>{{ o.status }}</span>
+                </div>
+                <ol aria-label="Tiến độ đơn in" style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px">
+                  <sc-for list="{{ o.steps }}" as="s" hint-placeholder-count="6"><li aria-current="{{ s.cur }}" style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="height:4px;border-radius:2px;background:{{ s.bar }}"></span><span style="font-size:{{ L.stepFs }};line-height:1.3;color:{{ s.fg }};font-weight:{{ s.fw }};overflow-wrap:anywhere">{{ s.label }}</span></li></sc-for>
+                </ol>
+                <sc-if value="{{ o.quote }}" hint-placeholder-val="{{ false }}"><div style="border-radius:12px;background:#FCEFD6;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><i style="color:#8A5300">request_quote</i><span style="flex:1 1 180px;font-size:13px;line-height:19px">Nhà hàng báo giá <strong style="font-variant-numeric:tabular-nums">{{ o.quoteText }}</strong>. Duyệt để bắt đầu sản xuất; khoản này vào phụ lục.</span><button onClick="{{ o.approve }}" style="height:40px;padding:0 14px;border:none;border-radius:10px;background:#7A1F3D;color:#FFFFFF;font-size:13px;font-weight:600">Duyệt báo giá</button></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+        <section style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+          <div style="padding:14px 16px;border-bottom:1px solid #EADFD6;display:flex;flex-direction:column;gap:2px"><strong style="font-size:15px">Sản phẩm in</strong><span style="font-size:12px;color:#6E5D63">Giá tham khảo. Nhà hàng gửi báo giá chính thức sau khi nhận yêu cầu.</span></div>
+          <div data-stagger="1" style="display:flex;flex-direction:column">
+            <sc-for list="{{ products }}" as="p" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid #EADFD6;flex-wrap:wrap">
+                <span style="width:48px;height:48px;border-radius:10px;background:#F7EDE4;color:#7A1F3D;display:flex;align-items:center;justify-content:center;flex:none"><i>{{ p.icon }}</i></span>
+                <span style="flex:1 1 140px;display:flex;flex-direction:column;min-width:0"><strong style="font-size:14px">{{ p.name }}</strong><span style="font-size:12px;color:#6E5D63;font-variant-numeric:tabular-nums">{{ p.price }}</span></span>
+                <div style="display:flex;align-items:center;border:1px solid #9A877F;border-radius:10px;overflow:hidden"><button aria-label="{{ p.decAria }}" onClick="{{ p.dec }}" style="width:40px;height:40px;border:none;background:#FFFFFF;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i style="font-size:18px">remove</i></button><span style="width:52px;text-align:center;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">{{ p.qty }}</span><button aria-label="{{ p.incAria }}" onClick="{{ p.inc }}" style="width:40px;height:40px;border:none;background:#FFFFFF;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i style="font-size:18px">add</i></button></div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+      <section aria-label="Giỏ in" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:12px;position:{{ L.stick }};top:88px">
+        <div style="display:flex;align-items:center;gap:8px"><i style="color:#7A1F3D">shopping_bag</i><strong style="font-size:15px;flex:1">Giỏ in</strong><span style="font-size:12px;color:#6E5D63">{{ cart.count }}</span></div>
+        <sc-if value="{{ cart.empty }}" hint-placeholder-val="{{ true }}"><div style="padding:20px 8px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center"><i style="font-size:28px;color:#9A877F">shopping_bag</i><strong style="font-size:14px">Giỏ đang trống</strong><span style="font-size:13px;color:#6E5D63">Chọn số lượng ở danh sách sản phẩm.</span></div></sc-if>
+        <sc-for list="{{ cart.lines }}" as="l" hint-placeholder-count="0"><div style="display:flex;gap:8px;font-size:13px;font-variant-numeric:tabular-nums"><span style="flex:1">{{ l.name }} × {{ l.qty }}</span><span>{{ l.sum }}</span></div></sc-for>
+        <sc-if value="{{ cart.has }}" hint-placeholder-val="{{ false }}"><div style="border-top:1px solid #EADFD6;padding-top:10px;display:flex;gap:8px;align-items:baseline"><span style="flex:1;font-size:13px;color:#6E5D63">Tạm tính (tham khảo)</span><strong style="font-size:18px;font-variant-numeric:tabular-nums">{{ cart.total }}</strong></div></sc-if>
+        <button onClick="{{ sendOrder }}" disabled="{{ cart.empty }}" style="height:48px;border:none;border-radius:12px;background:{{ cart.btnBg }};color:#FFFFFF;font-size:15px;font-weight:600" style-hover="opacity:0.92">Gửi yêu cầu in</button>
+        <span style="font-size:12px;line-height:18px;color:#6E5D63">Chưa thanh toán ở bước này. Sau khi bạn duyệt báo giá, khoản in được thêm vào phụ lục hợp đồng.</span>
+      </section>
+    </div>
+  </sc-if>
+
+  <div style="position:fixed;inset:0;z-index:55;pointer-events:{{ ov.pe }}">
+    <div onClick="{{ closeOv }}" style="position:absolute;inset:0;background:rgba(43,29,34,0.4);opacity:{{ ov.o }};transition:opacity 250ms linear"></div>
+    <sc-if value="{{ ov.pub }}" hint-placeholder-val="{{ false }}">
+      <div ref="{{ refs.dlg }}" role="dialog" aria-modal="true" aria-label="Xuất bản thiệp" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:{{ L.dlgW }};max-height:calc(100% - 24px);background:#FFFFFF;border-radius:20px;display:flex;flex-direction:column;overflow:hidden">
+        <div style="padding:16px 8px 12px 20px;display:flex;align-items:center;border-bottom:1px solid #EADFD6"><strong style="flex:1;font-size:17px">Xuất bản thiệp</strong><button aria-label="Đóng" onClick="{{ closeOv }}" style="width:44px;height:44px;border:none;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>close</i></button></div>
+        <ol style="list-style:none;margin:0;padding:12px 20px 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px"><sc-for list="{{ pubSteps }}" as="s" hint-placeholder-count="3"><li aria-current="{{ s.cur }}" style="display:flex;flex-direction:column;gap:6px"><span style="height:4px;border-radius:2px;background:{{ s.bar }}"></span><span style="font-size:12px;font-weight:600;color:{{ s.fg }}">{{ s.label }}</span></li></sc-for></ol>
+        <div ref="{{ refs.pubBody }}" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+          <sc-if value="{{ ps.s0 }}" hint-placeholder-val="{{ true }}">
+            <span style="font-size:14px;color:#6E5D63">Kiểm tra lần cuối trước khi khách mời xem được thiệp.</span>
+            <sc-for list="{{ checks }}" as="k" hint-placeholder-count="4"><div style="display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:20px"><i style="color:{{ k.color }};font-size:20px">{{ k.icon }}</i><span style="flex:1;display:flex;flex-direction:column"><span style="font-weight:600">{{ k.label }}</span><span style="font-size:13px;color:#6E5D63">{{ k.val }}</span></span></div></sc-for>
+          </sc-if>
+          <sc-if value="{{ ps.s1 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:20px 0"><span role="progressbar" aria-label="Đang xuất bản" style="width:40px;height:40px;border-radius:50%;border:4px solid #F5E4E9;border-top-color:#7A1F3D;animation:hy-spin 0.9s linear infinite"></span><strong style="font-size:16px">Đang xuất bản…</strong><span style="font-size:13px;color:#6E5D63">Thiệp công khai dùng một link và một mã QR chung cho mọi khách.</span></div>
+          </sc-if>
+          <sc-if value="{{ ps.s2 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+              <div aria-label="Mã QR chung của thiệp" role="img" style="width:168px;height:168px;padding:10px;border:1px solid #EADFD6;border-radius:12px;background:#FFFFFF;display:grid;grid-template-columns:repeat(21,1fr);flex:none"><sc-for list="{{ qr }}" as="q" hint-placeholder-count="0"><span style="background:{{ q }}"></span></sc-for></div>
+              <div style="flex:1 1 200px;display:flex;flex-direction:column;gap:8px"><strong style="font-size:16px">Thiệp đã xuất bản</strong><span style="font-size:13px;line-height:19px;color:#6E5D63">Một link + một QR chung cho tất cả khách mời. Link thiệp cá nhân (có tên khách) sao chép ở mục Khách &amp; sơ đồ.</span></div>
+            </div>
+            <div style="border:1px solid #EADFD6;border-radius:12px;padding:6px 6px 6px 12px;display:flex;align-items:center;gap:8px"><i style="color:#7A1F3D;font-size:18px">link</i><span style="flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">hyyen.vn/t/thuha-minhquan</span><button onClick="{{ copyLink }}" style="height:40px;padding:0 12px;border:none;border-radius:10px;background:#F5E4E9;color:#5C1430;font-size:13px;font-weight:600">Sao chép</button></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><button onClick="{{ dlQr }}" style="height:44px;padding:0 14px;border:1px solid #7A1F3D;border-radius:12px;background:#FFFFFF;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px"><i style="font-size:18px">qr_code_2</i>Tải QR (PNG)</button><button onClick="{{ share }}" style="height:44px;padding:0 14px;border:1px solid #7A1F3D;border-radius:12px;background:#FFFFFF;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px"><i style="font-size:18px">share</i>Chia sẻ</button><button onClick="{{ goPrint }}" style="height:44px;padding:0 14px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px"><i style="font-size:18px">print</i>Đặt in thiệp</button></div>
+          </sc-if>
+        </div>
+        <div style="padding:12px 16px;border-top:1px solid #EADFD6;display:flex;gap:8px;justify-content:flex-end"><button onClick="{{ closeOv }}" style="height:44px;padding:0 14px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600">{{ ps.cancel }}</button><sc-if value="{{ ps.s0 }}" hint-placeholder-val="{{ true }}"><button onClick="{{ doPublish }}" style="height:44px;padding:0 18px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:14px;font-weight:600">Xuất bản</button></sc-if></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ ov.ai }}" hint-placeholder-val="{{ false }}">
+      <div ref="{{ refs.dlg }}" role="alertdialog" aria-modal="true" aria-label="Tạo ảnh AI có phí" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:{{ L.aiW }};background:#FFFFFF;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px"><i style="color:#8A5300">auto_awesome</i><strong style="font-size:17px;flex:1">Tạo ảnh AI</strong></div>
+        <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:13px;font-weight:500">Mô tả ảnh</span><textarea value="{{ aiPrompt }}" onChange="{{ onAiPrompt }}" rows="3" style="border:1px solid #9A877F;border-radius:10px;padding:10px 12px;font-size:14px;line-height:20px;font-family:inherit;resize:vertical;outline:none" style-focus="border-color:#7A1F3D"></textarea></label>
+        <div style="border-radius:12px;background:#FBF7F3;padding:12px;display:flex;flex-direction:column;gap:4px;font-size:13px;font-variant-numeric:tabular-nums"><div style="display:flex"><span style="flex:1">Phí tạo ảnh</span><strong>49.000 ₫</strong></div><span style="color:#6E5D63;line-height:19px">Cộng vào hoá đơn cuối, không trả ngay. Mỗi lần tạo tính phí, kể cả khi bạn không dùng ảnh.</span></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end"><button onClick="{{ closeOv }}" style="height:44px;padding:0 14px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600">Huỷ</button><button onClick="{{ doAi }}" style="height:44px;padding:0 16px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:14px;font-weight:600">Tạo ảnh · 49.000 ₫</button></div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  TPL = [{ id: 'vang', name: 'Vang cổ điển', bg: '#7A1F3D', fg: '#FFF8F1', accent: '#E9D3B0', line: '#7A1F3D' }, { id: 'kem', name: 'Kem tối giản', bg: '#FFF8F1', fg: '#2B1D22', accent: '#7A1F3D', line: '#EADFD6' }, { id: 'cham', name: 'Champagne', bg: '#F1E4CC', fg: '#2B1D22', accent: '#8A5300', line: '#E3D0AE' }, { id: 'dao', name: 'Hoa đào', bg: '#F9E3DC', fg: '#5C1430', accent: '#7A1F3D', line: '#F0CFC4' }];
+  PH0 = ['#B98A7A', '#8F6B5E', '#C7A88E', '#6E5D63', '#D6B9A6', '#A2766A'].map((bg, i) => ({ id: 'p' + i, bg: `linear-gradient(160deg, ${bg}, #2B1D22)`, label: `Ảnh ${i + 1}` }));
+  PROD = [['mail', 'Thiệp in thêm', 12000, 'thiệp'], ['drafts', 'Bao thư', 3000, 'chiếc'], ['photo_frame', 'Bảng chào mừng 60×90', 450000, 'bảng'], ['table_restaurant', 'Bảng tên bàn', 25000, 'chiếc'], ['menu_book', 'Sổ ký tên', 350000, 'cuốn']];
+  ST = ['Yêu cầu', 'Báo giá', 'Đã duyệt', 'Đang sản xuất', 'Sẵn sàng', 'Đã bàn giao'];
+  state = { tab: 'studio', pane: 'prev', tpl: 'kem', photo: 'p0', photos: this.PH0, f: { invite: 'Trân trọng kính mời', thanks: 'Sự hiện diện của bạn là niềm vinh hạnh cho gia đình chúng tôi.' }, size: 'm', published: false, dirty: false, ov: null, pubStep: 0, aiBusy: false, aiPrompt: 'Hai bạn đứng dưới giàn hoa giấy, ánh nắng chiều, tông kem ấm',
+    qty: {}, orders: [{ id: 'DI-0012', title: '300 thiệp in · mẫu Kem tối giản', sub: 'Trong hợp đồng · 300 × 12.000 ₫', step: 3 }] };
+  el = {}; _rf = {};
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  get ctx() { return this.props.ctx || {}; }
+  get M() { return window.HYMotion; }
+  toast(t) { (this.ctx.toast || (() => {}))(t); }
+  componentDidUpdate(pp, ps) {
+    const M = this.M, s = this.state; if (!M) return;
+    if (s.ov && ps.ov !== s.ov && this.el.dlg) M.play(this.el.dlg, [{ opacity: 0, transform: 'translate(-50%,-50%) scale(0.92)' }, { opacity: 1, transform: 'translate(-50%,-50%)' }], 250, M.E.DEC);
+    if (s.ov === 'pub' && ps.pubStep !== s.pubStep && this.el.pubBody) M.play(this.el.pubBody, [{ opacity: 0, transform: 'translateX(30px)' }, { opacity: 1, transform: 'none' }], 300, M.E.EMP);
+    if (ps.tpl !== s.tpl && this.el.card) M.play(this.el.card, [{ opacity: 0.4 }, { opacity: 1 }], 200, 'linear');
+    if (ps.photo !== s.photo && this.el.photo) M.play(this.el.photo, [{ opacity: 0 }, { opacity: 1 }], 200, 'linear');
+    if (ps.tab !== s.tab) setTimeout(() => M.stagger(document), 0);
+  }
+  edit(k, v) { this.setState(s => ({ f: { ...s.f, [k]: v }, dirty: s.published })); }
+  renderVals() {
+    const c = this.ctx, m = !!c.mobile, s = this.state, ph = this.props.phase || 'pre', go = c.go || (() => {});
+    const cur = this.TPL.find(t => t.id === s.tpl), ph0 = s.photos.find(p => p.id === s.photo) || s.photos[0];
+    const FS = { s: { s: '11px', m: '13px', l: '22px' }, m: { s: '12px', m: '14px', l: '26px' }, l: { s: '13px', m: '16px', l: '30px' } }[s.size];
+    const vnd = v => v.toLocaleString('vi-VN') + ' ₫';
+    const lines = this.PROD.map(([icon, name, price, unit], i) => ({ icon, name, price, unit, i, q: s.qty[i] || 0 })).filter(x => x.q > 0), total = lines.reduce((a, x) => a + x.q * x.price, 0);
+    const n = 21, qr = []; for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { const f = (a, b) => x >= a && x < a + 7 && y >= b && y < b + 7; let on; const fin = f(0, 0) || f(14, 0) || f(0, 14); if (fin) { const lx = x % 14 === x ? x : x - 14, ly = y % 14 === y ? y : y - 14, dx = Math.min(lx, 6 - lx), dy = Math.min(ly, 6 - ly), d = Math.min(dx, dy); on = d !== 1; } else on = ((x * 7 + y * 13 + x * y * 3) % 5) < 2; qr.push(on ? '#2B1D22' : '#FFFFFF'); }
+    const pane = k => !m || s.pane === k;
+    const open = !!s.ov;
+    return {
+      refs: new Proxy({}, { get: (_, k) => typeof k === 'string' ? this.rf(k) : undefined }), m,
+      locked: ph === 'pre' || ph === 'none', open: !(ph === 'pre' || ph === 'none'), goPayment: () => go('payment'), goNames: () => go('names'),
+      tabs: [['studio', 'Thiệp', 0], ['print', 'Đặt in', s.orders.filter(o => o.step === 1).length]].map(([v, label, badge]) => { const on = s.tab === v; return { label, badge: badge || 0, aria: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', fg: on ? '#7A1F3D' : '#6E5D63', click: () => this.setState({ tab: v }) }; }),
+      isStudio: s.tab === 'studio', isPrint: s.tab === 'print',
+      pub: s.published ? (s.dirty ? { label: 'Có thay đổi chưa xuất bản', icon: 'edit_note', bg: '#FCEFD6', fg: '#8A5300', btn: 'Xuất bản cập nhật', btnIcon: 'publish' } : { label: 'Đã xuất bản', icon: 'public', bg: '#E7F1EA', fg: '#2F6B4F', btn: 'Chia sẻ', btnIcon: 'share' }) : { label: 'Nháp', icon: 'edit_note', bg: '#F7EDE4', fg: '#6E5D63', btn: 'Xuất bản', btnIcon: 'publish' },
+      openPublish: () => this.setState({ ov: 'pub', pubStep: s.published && !s.dirty ? 2 : 0 }),
+      panes: [['tpl', 'Mẫu'], ['prev', 'Xem trước'], ['props', 'Chỉnh sửa']].map(([v, label]) => { const on = s.pane === v; return { label, aria: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', fg: on ? '#7A1F3D' : '#6E5D63', click: () => this.setState({ pane: v }) }; }),
+      show: { tpl: pane('tpl'), prev: pane('prev'), props: pane('props') },
+      tpls: this.TPL.map(t => { const on = s.tpl === t.id; return { ...t, aria: on ? 'true' : 'false', border: on ? '2px solid #7A1F3D' : '1px solid #EADFD6', pick: () => this.setState({ tpl: t.id, dirty: s.published }) }; }),
+      cur, fs: FS, f: { ...s.f, bride: 'Trần Thu Hà', groom: 'Lê Minh Quân' },
+      photo: { bg: ph0.bg, label: ph0.ai ? 'Ảnh AI' : ph0.label, icon: ph0.ai ? 'auto_awesome' : 'image' },
+      on: { invite: e => this.edit('invite', e.target.value), thanks: e => this.edit('thanks', e.target.value) },
+      sizes: [['s', 'S'], ['m', 'M'], ['l', 'L']].map(([v, label]) => { const on = s.size === v; return { label, aria: on ? 'true' : 'false', bg: on ? '#7A1F3D' : '#FFFFFF', fg: on ? '#FFFFFF' : '#2B1D22', pick: () => this.setState({ size: v, dirty: s.published }) }; }),
+      photos: s.photos.map(p => { const on = s.photo === p.id; return { bg: p.bg, ai: !!p.ai, label: p.label, aria: on ? 'true' : 'false', border: on ? '3px solid #7A1F3D' : '1px solid #EADFD6', pick: () => this.setState({ photo: p.id, dirty: s.published }) }; }),
+      aiBusy: s.aiBusy, openAi: () => this.setState({ ov: 'ai' }), aiPrompt: s.aiPrompt, onAiPrompt: e => this.setState({ aiPrompt: e.target.value }),
+      doAi: () => { this.setState({ ov: null, aiBusy: true }); setTimeout(() => { const id = 'ai' + Date.now(); this.setState(st => ({ aiBusy: false, photos: st.photos.concat([{ id, ai: true, label: 'Ảnh AI', bg: 'linear-gradient(160deg,#E9D3B0,#B98A7A 60%,#5C1430)' }]), photo: id, dirty: st.published })); this.toast('Đã tạo ảnh AI · 49.000 ₫ sẽ cộng vào hoá đơn cuối'); }, 1800); },
+      ov: { pe: open ? 'auto' : 'none', o: open ? 1 : 0, pub: s.ov === 'pub', ai: s.ov === 'ai' }, closeOv: () => s.pubStep !== 1 && this.setState({ ov: null }),
+      pubSteps: ['Xem lại', 'Xuất bản', 'Chia sẻ'].map((label, i) => ({ label, cur: i === s.pubStep ? 'step' : 'false', bar: i <= s.pubStep ? '#7A1F3D' : '#EADFD6', fg: i <= s.pubStep ? '#7A1F3D' : '#6E5D63' })),
+      ps: { s0: s.pubStep === 0, s1: s.pubStep === 1, s2: s.pubStep === 2, cancel: s.pubStep === 2 ? 'Đóng' : 'Huỷ' },
+      checks: [['Tên cặp đôi', 'Trần Thu Hà & Lê Minh Quân'], ['Thời gian', '10:30 · Chủ nhật, 20/12/2026'], ['Địa điểm', 'Sảnh Ngọc Trai · có nút mở bản đồ'], ['Ảnh bìa', ph0.ai ? 'Ảnh AI' : ph0.label], ['Mẫu', cur.name]].map(([label, val]) => ({ label, val, icon: 'check_circle', color: '#2F6B4F' })),
+      doPublish: () => { this.setState({ pubStep: 1 }); setTimeout(() => { this.setState({ pubStep: 2, published: true, dirty: false }); this.toast('Thiệp đã xuất bản'); }, 1400); },
+      qr, copyLink: () => { try { navigator.clipboard.writeText('https://hyyen.vn/t/thuha-minhquan'); } catch (e) {} this.toast('Đã sao chép link thiệp'); }, dlQr: () => this.toast('Đang tải QR thuha-minhquan.png'), share: () => this.toast('Mở bảng chia sẻ của trình duyệt'), goPrint: () => this.setState({ ov: null, tab: 'print' }),
+      orderCount: `${s.orders.length} đơn`,
+      orders: s.orders.map(o => { const done = o.step === 5; return { title: o.title, sub: o.sub, ref: this.rf('o' + o.id), status: this.ST[o.step], icon: ['send', 'request_quote', 'task_alt', 'precision_manufacturing', 'inventory_2', 'check_circle'][o.step], cbg: o.step === 1 ? '#FCEFD6' : done || o.step === 4 ? '#E7F1EA' : '#F5E4E9', cfg: o.step === 1 ? '#8A5300' : done || o.step === 4 ? '#2F6B4F' : '#5C1430',
+        steps: this.ST.map((label, i) => ({ label, cur: i === o.step ? 'step' : 'false', bar: i <= o.step ? '#7A1F3D' : '#EADFD6', fg: i === o.step ? '#7A1F3D' : i < o.step ? '#2B1D22' : '#6E5D63', fw: i === o.step ? 700 : 400 })),
+        quote: o.step === 1, quoteText: o.quote ? vnd(o.quote) : '', approve: () => { this.setState(st => ({ orders: st.orders.map(x => x.id === o.id ? { ...x, step: 2 } : x) })); this.toast('Đã duyệt báo giá. Khoản in sẽ vào phụ lục tiếp theo.'); } }; }),
+      products: this.PROD.map(([icon, name, price, unit], i) => { const q = s.qty[i] || 0, stepN = price < 50000 ? 10 : 1; return { icon, name, qty: q, price: `${vnd(price)} / ${unit}`, decAria: `Giảm ${name}`, incAria: `Tăng ${name}`, dec: () => this.setState(st => ({ qty: { ...st.qty, [i]: Math.max(0, q - stepN) } })), inc: () => this.setState(st => ({ qty: { ...st.qty, [i]: q + stepN } })) }; }),
+      cart: { empty: !lines.length, has: !!lines.length, count: `${lines.length} sản phẩm`, total: vnd(total), btnBg: lines.length ? '#7A1F3D' : '#C9BFBC', lines: lines.map(x => ({ name: x.name, qty: x.q, sum: vnd(x.q * x.price) })) },
+      sendOrder: () => { if (!lines.length) return; const id = 'DI-00' + (13 + s.orders.length), quote = Math.round(total * 0.95 / 1000) * 1000; this.setState(st => ({ qty: {}, orders: [{ id, title: lines.map(x => `${x.q} ${x.name.toLowerCase()}`).join(' · '), sub: `Gửi ${new Date().toLocaleDateString('vi-VN')} · tạm tính ${vnd(total)}`, step: 0, quote }].concat(st.orders) })); this.toast(`Đã gửi yêu cầu in ${id}`); setTimeout(() => { this.setState(st => ({ orders: st.orders.map(x => x.id === id ? { ...x, step: 1 } : x) })); this.toast(`Nhà hàng đã gửi báo giá cho ${id}`); }, 2500); },
+      L: m ? { cols: 'minmax(0,1fr)', tplCols: 'repeat(2,minmax(0,1fr))', stick: 'static', printCols: 'minmax(0,1fr)', dlgW: 'calc(100% - 24px)', aiW: 'calc(100% - 24px)', stepFs: '10px' } : { cols: '220px minmax(0,1fr) 320px', tplCols: 'repeat(2,minmax(0,1fr))', stick: 'sticky', printCols: 'minmax(0,1fr) 320px', dlgW: '560px', aiW: '440px', stepFs: '11px' },
+    };
+  }
+}
+</script>
+</body>
+</html>

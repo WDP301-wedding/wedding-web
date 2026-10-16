@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div ref="{{ refs.root }}" style="min-height:100%;display:flex;flex-direction:column">
+
+<header style="position:sticky;top:0;z-index:20;height:{{ L.hh }};flex:none;display:flex;align-items:center;gap:4px;padding:0 {{ L.px }};background:rgba(255,248,241,0.94);border-bottom:1px solid #EADFD6">
+  <button onClick="{{ goHome }}" aria-label="Hỷ Yến – trang chủ" style="display:flex;align-items:center;gap:10px;border:none;background:transparent;padding:0 4px;height:48px;border-radius:12px;color:#2B1D22" style-focus="outline:none;box-shadow:0 0 0 2px #7A1F3D"><span style="width:36px;height:36px;border-radius:50%;border:1.5px solid #C9A46A;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px;font-weight:600;color:#7A1F3D">HY</span><span style="font-size:18px;font-weight:700">Hỷ Yến</span></button>
+  <sc-if value="{{ d }}" hint-placeholder-val="{{ true }}">
+    <nav aria-label="Chính" style="display:flex;gap:2px;margin-left:24px"><sc-for list="{{ navItems }}" as="a" hint-placeholder-count="4"><button onClick="{{ a.go }}" aria-current="{{ a.cur }}" style="height:44px;padding:0 14px;border:none;border-radius:12px;background:transparent;font-size:15px;font-weight:{{ a.fw }};color:{{ a.fg }}" style-hover="background:#F4E7E3">{{ a.label }}</button></sc-for></nav>
+  </sc-if>
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+    <button onClick="{{ goLogin }}" style="height:44px;padding:0 12px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Đăng nhập</button>
+    <sc-if value="{{ d }}" hint-placeholder-val="{{ true }}"><button onClick="{{ goConsult }}" style="height:44px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:scale(0.97)" style-focus="outline:none;box-shadow:0 0 0 2px #FFF8F1,0 0 0 4px #7A1F3D">Nhận tư vấn</button></sc-if>
+    <sc-if value="{{ m }}" hint-placeholder-val="{{ false }}"><button aria-label="{{ menuAria }}" aria-expanded="{{ menuExp }}" onClick="{{ toggleMenu }}" style="width:48px;height:48px;border:none;border-radius:50%;background:transparent;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i style="font-size:24px">{{ menuIcon }}</i></button></sc-if>
+  </div>
+</header>
+<sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+  <nav aria-label="Chính" style="position:sticky;top:64px;z-index:19;background:#FFFFFF;border-bottom:1px solid #EADFD6;padding:8px 12px 12px;display:flex;flex-direction:column">
+    <sc-for list="{{ navItems }}" as="a" hint-placeholder-count="4"><button onClick="{{ a.go }}" style="min-height:52px;border:none;border-radius:12px;background:transparent;text-align:left;padding:0 12px;font-size:16px;font-weight:{{ a.fw }};color:{{ a.fg }}" style-hover="background:#FBF1EC">{{ a.label }}</button></sc-for>
+  </nav>
+</sc-if>
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+  <section ref="{{ refs.est }}" aria-label="Ước tính tiệc của bạn" style="position:relative;background:#2B1D22;flex:none">
+    <div style="position:{{ L.heroImgPos }};inset:0;height:{{ L.heroImgH }};background:repeating-linear-gradient(135deg,#4A333B 0 14px,#3D2A31 14px 28px);display:flex;align-items:flex-start;justify-content:flex-end;padding:16px 24px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#BBA9AF">ảnh lớn Sảnh Ngọc Trai đã setup tiệc</div>
+    <div style="position:relative;max-width:1280px;margin:0 auto;padding:{{ L.heroPad }};display:grid;grid-template-columns:{{ L.heroCols }};gap:{{ L.gap }};align-items:end">
+      <div style="display:flex;flex-direction:column;gap:16px;color:#FFF8F1;padding-bottom:{{ L.heroTextPb }}">
+        <span style="font-size:14px;font-weight:600;color:#F4B9A7">Nhà hàng tiệc cưới · Quận 7, TP. Hồ Chí Minh</span>
+        <h1 style="margin:0;font-size:{{ L.h1 }};line-height:{{ L.h1lh }};font-weight:700;text-wrap:balance">Biết sảnh nào vừa, tiệc khoảng bao nhiêu – trước khi gọi</h1>
+        <p style="margin:0;font-size:16px;line-height:26px;color:#E3D6CC;max-width:520px;text-wrap:pretty">Nhập ngày, ca và số khách. Chúng tôi gợi ý sảnh đủ chỗ và chi phí ước tính theo từng thực đơn.</p>
+      </div>
+      <form onSubmit="{{ runEst }}" style="background:#FFFFFF;border-radius:20px;padding:{{ L.estPad }};display:flex;flex-direction:column;gap:16px;box-shadow:0 12px 32px rgba(43,29,34,0.18)">
+        <strong style="font-size:18px">Ước tính tiệc của bạn</strong>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Ngày</span><div style="position:relative"><input value="{{ est.date }}" onChange="{{ onEst.date }}" placeholder="dd/mm/yyyy" inputMode="numeric" style="width:100%;height:48px;border:1px solid #9A877F;border-radius:12px;padding:0 40px 0 14px;font-size:16px;color:#2B1D22;outline:none;font-variant-numeric:tabular-nums" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><i style="position:absolute;right:12px;top:14px;color:#7A1F3D">calendar_month</i></div></label>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Số khách</span><input value="{{ est.guests }}" onChange="{{ onEst.guests }}" inputMode="numeric" style="width:100%;height:48px;border:1px solid #9A877F;border-radius:12px;padding:0 14px;font-size:16px;color:#2B1D22;outline:none;font-variant-numeric:tabular-nums" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></label>
+        </div>
+        <div role="radiogroup" aria-label="Ca tiệc" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px"><sc-for list="{{ estShifts }}" as="o" hint-placeholder-count="2"><button type="button" role="radio" aria-checked="{{ o.aria }}" onClick="{{ o.pick }}" style="min-height:52px;border-radius:12px;border:{{ o.border }};background:{{ o.bg }};display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:6px 12px;text-align:left;color:#2B1D22"><span style="font-size:14px;font-weight:600;color:{{ o.fg }}">{{ o.label }}</span><span style="font-size:12px;color:#6E5D63;font-variant-numeric:tabular-nums">{{ o.time }}</span></button></sc-for></div>
+        <button type="submit" style="height:48px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:scale(0.97)">Xem ước tính</button>
+      </form>
+    </div>
+  </section>
+
+  <sc-if value="{{ estShown }}" hint-placeholder-val="{{ true }}">
+  <section ref="{{ refs.result }}" aria-label="Kết quả ước tính" style="max-width:1280px;width:100%;margin:0 auto;padding:{{ L.resPad }};display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h2 style="margin:0;font-size:{{ L.h2 }};line-height:{{ L.h2lh }};font-weight:700">{{ res.title }}</h2><span style="height:28px;padding:0 10px 0 6px;border-radius:14px;background:#FCEFD6;color:#8A5300;display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600"><i style="font-size:16px">info</i>Ước tính – chưa giữ chỗ</span></div>
+    <sc-if value="{{ res.none }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap"><i style="font-size:28px;color:#7A1F3D">groups</i><div style="flex:1 1 260px;display:flex;flex-direction:column;gap:4px"><strong style="font-size:16px">Chưa có sảnh nào đủ {{ est.guests }} khách</strong><span style="font-size:14px;line-height:22px;color:#6E5D63">Sảnh lớn nhất nhận tối đa 400 khách. Gửi yêu cầu tư vấn để quản lý tiệc gợi ý phương án phù hợp.</span></div><button onClick="{{ goConsultSel }}" style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600">Gửi yêu cầu tư vấn</button></div></sc-if>
+    <sc-if value="{{ res.some }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:{{ L.resCols }};gap:20px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:14px;font-weight:600;color:#6E5D63">1 · Sảnh vừa sức chứa</span>
+        <div data-stagger="1" role="radiogroup" aria-label="Chọn sảnh" style="display:grid;grid-template-columns:{{ L.hallFitCols }};gap:12px">
+          <sc-for list="{{ res.halls }}" as="h" hint-placeholder-count="2">
+            <div style="border:{{ h.border }};border-radius:16px;background:#FFFFFF;overflow:hidden;display:flex;flex-direction:column">
+              <button role="radio" aria-checked="{{ h.aria }}" onClick="{{ h.pick }}" style="border:none;background:transparent;padding:0;text-align:left;color:#2B1D22;display:flex;flex-direction:column">
+                <span style="width:100%;aspect-ratio:16/9;background:{{ h.bg }};display:flex;align-items:flex-end;justify-content:space-between;padding:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6E5D63"><span>{{ h.ph }}</span><sc-if value="{{ h.best }}" hint-placeholder-val="{{ false }}"><span style="height:24px;padding:0 8px;border-radius:12px;background:#2F6B4F;color:#FFFFFF;font-family:'Be Vietnam Pro',sans-serif;font-size:12px;font-weight:600;display:inline-flex;align-items:center">Vừa nhất</span></sc-if></span>
+                <span style="padding:12px 14px 4px;display:flex;align-items:center;gap:8px"><span style="width:20px;height:20px;border-radius:50%;border:{{ h.radio }};flex:none;display:flex;align-items:center;justify-content:center"><span style="width:10px;height:10px;border-radius:50%;background:{{ h.dot }}"></span></span><strong style="font-size:16px">{{ h.name }}</strong></span>
+                <span style="padding:0 14px 0 42px;font-size:13px;color:#6E5D63">{{ h.capText }}</span>
+              </button>
+              <button onClick="{{ h.view }}" style="align-self:flex-start;margin:4px 0 8px 32px;height:40px;padding:0 10px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3">Xem sảnh<i style="font-size:18px">arrow_forward</i></button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:14px;font-weight:600;color:#6E5D63">2 · Chi phí ước tính theo thực đơn · {{ res.tables }} bàn</span>
+        <div data-stagger="1" role="radiogroup" aria-label="Chọn thực đơn" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden;display:flex;flex-direction:column">
+          <sc-for list="{{ res.menus }}" as="r" hint-placeholder-count="3">
+            <button role="radio" aria-checked="{{ r.aria }}" onClick="{{ r.pick }}" style="min-height:72px;border:none;border-top:1px solid #EADFD6;background:{{ r.bg }};display:flex;align-items:center;gap:12px;padding:12px 16px;text-align:left;color:#2B1D22" style-hover="background:#FBF1EC">
+              <span style="width:20px;height:20px;border-radius:50%;border:{{ r.radio }};flex:none;display:flex;align-items:center;justify-content:center"><span style="width:10px;height:10px;border-radius:50%;background:{{ r.dot }}"></span></span>
+              <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">{{ r.name }}</span><span style="font-size:13px;color:#6E5D63;font-variant-numeric:tabular-nums">{{ r.calc }}</span></span>
+              <strong style="font-size:17px;font-variant-numeric:tabular-nums;color:#7A1F3D">{{ r.total }}</strong>
+            </button>
+          </sc-for>
+        </div>
+        <span style="font-size:13px;line-height:20px;color:#6E5D63">Số bàn = số khách ÷ 10, làm tròn lên. Chưa gồm dịch vụ (MC, trang trí), đồ in và VAT. Giá chốt theo hợp đồng sau buổi tư vấn.</span>
+        <button onClick="{{ goConsultSel }}" style="height:52px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:scale(0.97)">Gửi yêu cầu tư vấn với lựa chọn này<i style="font-size:18px">arrow_forward</i></button>
+      </div>
+    </div>
+    </sc-if>
+  </section>
+  </sc-if>
+
+  <section data-reveal="1" style="max-width:1280px;width:100%;margin:0 auto;padding:{{ L.sec }};display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600;color:#7A1F3D">Sảnh tiệc</span><h2 style="margin:0;font-size:{{ L.h2 }};line-height:{{ L.h2lh }};font-weight:700">3 sảnh, từ 60 đến 400 khách</h2></div><button onClick="{{ goHalls }}" style="margin-left:auto;height:44px;padding:0 12px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3">So sánh sảnh<i style="font-size:18px">arrow_forward</i></button></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+      <sc-for list="{{ halls }}" as="h" hint-placeholder-count="3">
+        <button onClick="{{ h.open }}" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:0;overflow:hidden;display:flex;flex-direction:column;text-align:left;color:#2B1D22;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="border-color:#D9C8BC" style-active="transform:scale(0.98)" style-focus="outline:none;box-shadow:0 0 0 2px #FFF8F1,0 0 0 4px #7A1F3D">
+          <span ref="{{ h.ref }}" style="position:relative;z-index:1;width:100%;aspect-ratio:4/3;background:{{ h.bg }};display:flex;align-items:flex-end;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">{{ h.ph }}</span>
+          <span style="padding:16px;display:flex;flex-direction:column;gap:6px"><strong style="font-size:18px">{{ h.name }}</strong><span style="font-size:14px;color:#6E5D63">{{ h.capText }} · {{ h.floor }}</span><span style="font-size:14px;font-weight:600;color:#7A1F3D;display:flex;align-items:center;gap:4px">Khám phá<i style="font-size:18px">arrow_forward</i></span></span>
+        </button>
+      </sc-for>
+    </div>
+  </section>
+
+  <section data-reveal="1" style="max-width:1280px;width:100%;margin:0 auto;padding:{{ L.sec }};display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600;color:#7A1F3D">Thực đơn nổi bật</span><h2 style="margin:0;font-size:{{ L.h2 }};line-height:{{ L.h2lh }};font-weight:700">Giá theo bàn 10 khách</h2></div><button onClick="{{ goMenus }}" style="margin-left:auto;height:44px;padding:0 12px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3">Tất cả thực đơn<i style="font-size:18px">arrow_forward</i></button></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+      <sc-for list="{{ menus }}" as="x" hint-placeholder-count="3"><div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:10px"><div style="display:flex;align-items:center;gap:8px"><strong style="font-size:17px;flex:1">{{ x.name }}</strong><sc-if value="{{ x.hot }}" hint-placeholder-val="{{ false }}"><span style="height:24px;padding:0 8px;border-radius:12px;background:#F5E4E9;color:#5C1430;font-size:12px;font-weight:600;display:inline-flex;align-items:center">Được chọn nhiều</span></sc-if></div><span style="font-size:22px;font-weight:700;color:#7A1F3D;font-variant-numeric:tabular-nums">{{ x.priceText }}</span><span style="font-size:14px;line-height:22px;color:#6E5D63">{{ x.highlight }}</span><button onClick="{{ x.estimate }}" style="align-self:flex-start;height:40px;padding:0 10px;margin-left:-10px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600" style-hover="background:#F4E7E3">Ước tính với thực đơn này</button></div></sc-for>
+    </div>
+  </section>
+
+  <section data-reveal="1" style="max-width:1280px;width:100%;margin:0 auto;padding:{{ L.sec }};display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600;color:#7A1F3D">Quy trình</span><h2 style="margin:0;font-size:{{ L.h2 }};line-height:{{ L.h2lh }};font-weight:700">4 bước đến ngày cưới</h2></div>
+    <ol style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:{{ L.proc }};gap:16px">
+      <sc-for list="{{ proc }}" as="p" hint-placeholder-count="4"><li style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:10px"><span style="width:36px;height:36px;border-radius:50%;background:#7A1F3D;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700">{{ p.n }}</span><strong style="font-size:16px">{{ p.t }}</strong><span style="font-size:14px;line-height:22px;color:#6E5D63">{{ p.s }}</span></li></sc-for>
+    </ol>
+  </section>
+
+  <section ref="{{ refs.offers }}" data-reveal="1" style="max-width:1280px;width:100%;margin:0 auto;padding:{{ L.sec }};display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600;color:#7A1F3D">Ưu đãi</span><h2 style="margin:0;font-size:{{ L.h2 }};line-height:{{ L.h2lh }};font-weight:700">Đang áp dụng</h2></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+      <sc-for list="{{ offers }}" as="o" hint-placeholder-count="3"><div style="border:1px solid #E9D3B0;border-radius:16px;background:#FFFCF6;padding:20px;display:flex;flex-direction:column;gap:8px"><span style="align-self:flex-start;height:24px;padding:0 8px;border-radius:12px;background:#F1E4CC;color:#6B4E1F;font-size:12px;font-weight:600;display:inline-flex;align-items:center">{{ o.tag }}</span><strong style="font-size:17px">{{ o.t }}</strong><span style="font-size:14px;line-height:22px;color:#6E5D63">{{ o.s }}</span><span style="font-size:13px;color:#6E5D63">{{ o.until }}</span></div></sc-for>
+    </div>
+  </section>
+
+  <section ref="{{ refs.faq }}" data-reveal="1" style="max-width:880px;width:100%;margin:0 auto;padding:{{ L.sec }};display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600;color:#7A1F3D">Câu hỏi thường gặp</span><h2 style="margin:0;font-size:{{ L.h2 }};line-height:{{ L.h2lh }};font-weight:700">Trước khi gửi tư vấn</h2></div>
+    <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+      <sc-for list="{{ faqs }}" as="q" hint-placeholder-count="5"><div style="border-top:1px solid #EADFD6"><button aria-expanded="{{ q.exp }}" onClick="{{ q.toggle }}" style="width:100%;min-height:60px;border:none;background:transparent;display:flex;align-items:center;gap:12px;padding:12px 20px;text-align:left;font-size:16px;font-weight:600;color:#2B1D22" style-hover="background:#FBF1EC"><span style="flex:1">{{ q.q }}</span><i style="color:#6E5D63;transform:{{ q.rot }};transition:transform 150ms cubic-bezier(0.2,0,0,1)">expand_more</i></button><sc-if value="{{ q.open }}" hint-placeholder-val="{{ false }}"><p style="margin:0;padding:0 20px 18px;font-size:15px;line-height:24px;color:#6E5D63;text-wrap:pretty">{{ q.a }}</p></sc-if></div></sc-for>
+    </div>
+  </section>
+</sc-if>
+
+<sc-if value="{{ isHalls }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px;width:100%;margin:0 auto;padding:{{ L.page }};display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;flex-direction:column;gap:6px"><h1 style="margin:0;font-size:{{ L.h2 }};line-height:{{ L.h2lh }};font-weight:700">Sảnh tiệc</h1><p style="margin:0;font-size:15px;color:#6E5D63">So sánh sức chứa theo số khách của bạn.</p></div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:12px 16px">
+      <span style="font-size:14px;font-weight:600">Số khách</span>
+      <div style="display:flex;align-items:center;border:1px solid #9A877F;border-radius:12px;overflow:hidden"><button aria-label="Giảm 10 khách" onClick="{{ fDec }}" style="width:44px;height:44px;border:none;background:#FFFFFF;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>remove</i></button><input aria-label="Số khách" value="{{ filter }}" onChange="{{ onFilter }}" inputMode="numeric" style="width:72px;height:44px;border:none;border-left:1px solid #EADFD6;border-right:1px solid #EADFD6;text-align:center;font-size:16px;font-weight:600;outline:none;font-variant-numeric:tabular-nums"><button aria-label="Tăng 10 khách" onClick="{{ fInc }}" style="width:44px;height:44px;border:none;background:#FFFFFF;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>add</i></button></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ fChips }}" as="c" hint-placeholder-count="4"><button aria-pressed="{{ c.aria }}" onClick="{{ c.pick }}" style="height:36px;padding:0 12px;border-radius:10px;border:{{ c.border }};background:{{ c.bg }};color:{{ c.fg }};font-size:13px;font-weight:600">{{ c.label }}</button></sc-for></div>
+      <span style="margin-left:auto;font-size:14px;color:#6E5D63">{{ fitCount }}</span>
+    </div>
+    <div data-stagger="1" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">
+      <sc-for list="{{ hallCmp }}" as="h" hint-placeholder-count="3">
+        <button onClick="{{ h.open }}" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:0;overflow:hidden;display:flex;flex-direction:column;text-align:left;color:#2B1D22;opacity:{{ h.op }};transition:opacity 150ms linear, transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="border-color:#D9C8BC" style-active="transform:scale(0.98)">
+          <span ref="{{ h.ref }}" style="position:relative;z-index:1;width:100%;aspect-ratio:16/9;background:{{ h.bg }};display:flex;align-items:flex-end;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">{{ h.ph }}</span>
+          <span style="padding:16px;display:flex;flex-direction:column;gap:10px">
+            <span style="display:flex;align-items:center;gap:8px"><strong style="font-size:18px;flex:1">{{ h.name }}</strong><span style="height:24px;padding:0 8px;border-radius:12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;background:{{ h.cbg }};color:{{ h.cfg }}">{{ h.chip }}</span></span>
+            <span style="display:flex;flex-direction:column;gap:6px"><span style="position:relative;height:10px;border-radius:5px;background:#F7EDE4"><span style="position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:#E9D3B0;width:{{ h.capW }};transition:width 250ms cubic-bezier(0.2,0,0,1)"></span><span style="position:absolute;top:-4px;width:3px;height:18px;border-radius:2px;background:{{ h.markC }};left:{{ h.markL }};transition:left 250ms cubic-bezier(0.2,0,0,1)"></span></span><span style="display:flex;justify-content:space-between;font-size:12px;color:#6E5D63;font-variant-numeric:tabular-nums"><span>{{ h.minText }}</span><span>{{ h.capText }}</span></span></span>
+            <span style="font-size:14px;line-height:22px;color:#6E5D63">{{ h.short }}</span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isHall }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px;width:100%;margin:0 auto;padding:{{ L.page }};display:flex;flex-direction:column;gap:20px">
+    <button onClick="{{ goHalls }}" style="align-self:flex-start;height:40px;padding:0 10px 0 4px;margin-left:-4px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3"><i style="font-size:18px">arrow_back</i>Sảnh tiệc</button>
+    <div style="display:grid;grid-template-columns:{{ L.galCols }};gap:12px">
+      <div ref="{{ refs.heroImg }}" style="position:relative;z-index:2;width:100%;aspect-ratio:{{ L.galRatio }};border-radius:16px;background:{{ hall.bg }};display:flex;align-items:flex-end;padding:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63"><span ref="{{ refs.galLabel }}">{{ hall.galLabel }}</span></div>
+      <div role="tablist" aria-label="Ảnh sảnh" style="display:grid;grid-template-columns:{{ L.thumbCols }};gap:12px">
+        <sc-for list="{{ hall.thumbs }}" as="t" hint-placeholder-count="4"><button role="tab" aria-selected="{{ t.aria }}" onClick="{{ t.pick }}" style="aspect-ratio:4/3;border-radius:12px;border:{{ t.border }};background:{{ t.bg }};padding:6px;display:flex;align-items:flex-end;font-family:'JetBrains Mono',monospace;font-size:10px;color:#6E5D63;text-align:left">{{ t.label }}</button></sc-for>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:{{ L.detCols }};gap:{{ L.gap }};align-items:start">
+      <div style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600;color:#7A1F3D">{{ hall.floor }}</span><h1 style="margin:0;font-size:{{ L.h1d }};line-height:{{ L.h1dlh }};font-weight:700">{{ hall.name }}</h1><p style="margin:0;font-size:16px;line-height:26px;color:#6E5D63;text-wrap:pretty">{{ hall.desc }}</p></div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px"><sc-for list="{{ hall.facts }}" as="f" hint-placeholder-count="3"><div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:14px;display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:#6E5D63">{{ f.k }}</span><strong style="font-size:17px;font-variant-numeric:tabular-nums">{{ f.v }}</strong></div></sc-for></div>
+        <div style="display:flex;flex-direction:column;gap:12px"><strong style="font-size:18px">Tiện ích</strong><ul data-stagger="1" style="margin:0;padding:0;list-style:none;display:grid;grid-template-columns:{{ L.featCols }};gap:8px 20px"><sc-for list="{{ hall.feats }}" as="x" hint-placeholder-count="5"><li style="display:flex;align-items:center;gap:10px;font-size:15px;min-height:36px"><i style="color:#2F6B4F;font-size:18px">check</i>{{ x.t }}</li></sc-for></ul></div>
+        <div style="display:flex;flex-direction:column;gap:12px"><strong style="font-size:18px">Thực đơn gợi ý cho sảnh này</strong>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"><sc-for list="{{ hall.menus }}" as="x" hint-placeholder-count="3"><div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:6px"><strong style="font-size:15px">{{ x.name }}</strong><span style="font-size:14px;font-weight:600;color:#7A1F3D">{{ x.priceText }}</span><span style="font-size:13px;color:#6E5D63;font-variant-numeric:tabular-nums">{{ x.example }}</span></div></sc-for></div>
+        </div>
+      </div>
+      <sc-if value="{{ d }}" hint-placeholder-val="{{ true }}">
+        <aside style="position:sticky;top:96px;border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:14px">
+          <strong style="font-size:18px">{{ hall.name }}</strong>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:8px 12px;font-size:14px;font-variant-numeric:tabular-nums"><span style="color:#6E5D63">Sức chứa</span><strong>{{ hall.capShort }}</strong><span style="color:#6E5D63">Ca</span><strong>Trưa · Tối</strong><span style="color:#6E5D63">Thực đơn từ</span><strong>5.200.000 ₫/bàn</strong></div>
+          <button onClick="{{ consultHall }}" style="height:52px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:scale(0.97)">Tư vấn sảnh này</button>
+          <span style="font-size:13px;line-height:20px;color:#6E5D63">Gửi yêu cầu không giữ chỗ. Quản lý tiệc gọi lại trong 24 giờ để kiểm tra lịch trống.</span>
+        </aside>
+      </sc-if>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isMenus }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px;width:100%;margin:0 auto;padding:{{ L.page }};display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;flex-direction:column;gap:6px"><h1 style="margin:0;font-size:{{ L.h2 }};line-height:{{ L.h2lh }};font-weight:700">Thực đơn</h1><p style="margin:0;font-size:15px;color:#6E5D63">Giá cho bàn 10 khách, áp dụng cho cả 3 sảnh.</p></div>
+    <div data-stagger="1" style="display:grid;grid-template-columns:{{ L.menuCols }};gap:16px;align-items:start">
+      <sc-for list="{{ menus }}" as="x" hint-placeholder-count="3">
+        <div style="border:{{ x.border }};border-radius:16px;background:#FFFFFF;overflow:hidden;display:flex;flex-direction:column">
+          <span style="width:100%;aspect-ratio:16/9;background:{{ x.bg }};display:flex;align-items:flex-end;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#6E5D63">{{ x.ph }}</span>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;gap:8px"><strong style="font-size:19px;flex:1">{{ x.name }}</strong><sc-if value="{{ x.hot }}" hint-placeholder-val="{{ false }}"><span style="height:24px;padding:0 8px;border-radius:12px;background:#F5E4E9;color:#5C1430;font-size:12px;font-weight:600;display:inline-flex;align-items:center">Được chọn nhiều</span></sc-if></div>
+            <span style="font-size:24px;font-weight:700;color:#7A1F3D;font-variant-numeric:tabular-nums">{{ x.priceText }}</span>
+            <sc-for list="{{ x.groups }}" as="g" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">{{ g.cat }}</span><ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px"><sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2"><li style="font-size:15px;line-height:22px;display:flex;gap:8px;align-items:center"><span style="width:6px;height:6px;border-radius:50%;background:#C9A46A;flex:none"></span>{{ it.n }}</li></sc-for></ul></div></sc-for>
+            <button onClick="{{ x.estimate }}" style="height:48px;border:1px solid #7A1F3D;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Ước tính với thực đơn này</button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ showForm }}" hint-placeholder-val="{{ true }}">
+  <section ref="{{ refs.form }}" data-reveal="{{ formReveal }}" style="max-width:1120px;width:100%;margin:0 auto;padding:{{ formPad }};display:grid;grid-template-columns:{{ L.formCols }};gap:{{ L.gap }};align-items:start">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <sc-if value="{{ isConsult }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ goBack }}" style="align-self:flex-start;height:40px;padding:0 10px 0 4px;margin-left:-4px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3"><i style="font-size:18px">arrow_back</i>Quay lại</button>
+      </sc-if>
+      <span style="font-size:13px;font-weight:600;color:#7A1F3D">Nhận tư vấn</span>
+      <h2 style="margin:0;font-size:{{ L.h2 }};line-height:{{ L.h2lh }};font-weight:700">{{ formTitle }}</h2>
+      <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;text-wrap:pretty">Gửi yêu cầu không phải đặt tiệc hay giữ chỗ. Quản lý tiệc gọi lại trong 24 giờ để kiểm tra lịch trống và tư vấn.</p>
+      <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px"><strong style="font-size:15px;flex:1">Lựa chọn của bạn</strong><span style="height:24px;padding:0 8px;border-radius:12px;background:#FCEFD6;color:#8A5300;font-size:12px;font-weight:600;display:inline-flex;align-items:center">Ước tính</span></div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:8px 12px;font-size:14px;font-variant-numeric:tabular-nums"><sc-for list="{{ selRows }}" as="r" hint-placeholder-count="3"><span style="color:#6E5D63">{{ r.k }}</span><strong style="text-align:right">{{ r.v }}</strong></sc-for></div>
+        </div>
+      </sc-if>
+    </div>
+    <form onSubmit="{{ submit }}" noValidate="{{ true }}" aria-label="Yêu cầu tư vấn" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:{{ L.formPad }};display:flex;flex-direction:column;gap:16px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ fe.name.lc }}">Họ và tên</span><input value="{{ form.name }}" onChange="{{ on.name }}" autoComplete="name" aria-invalid="{{ fe.name.inv }}" style="height:48px;border:1px solid {{ fe.name.bc }};border-radius:12px;padding:0 14px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><sc-if value="{{ fe.name.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#C62828">{{ fe.name.msg }}</span></sc-if></label>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ fe.phone.lc }}">Số điện thoại</span><input value="{{ form.phone }}" onChange="{{ on.phone }}" type="tel" autoComplete="tel" aria-invalid="{{ fe.phone.inv }}" style="height:48px;border:1px solid {{ fe.phone.bc }};border-radius:12px;padding:0 14px;font-size:16px;color:#2B1D22;outline:none;font-variant-numeric:tabular-nums" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><sc-if value="{{ fe.phone.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#C62828">{{ fe.phone.msg }}</span></sc-if></label>
+      </div>
+      <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500">Email <span style="font-weight:400;color:#6E5D63">(nhận lời mời vào Không gian cưới)</span></span><input value="{{ form.email }}" onChange="{{ on.email }}" type="email" autoComplete="email" style="height:48px;border:1px solid #9A877F;border-radius:12px;padding:0 14px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></label>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ fe.date.lc }}">Ngày mong muốn</span><input value="{{ form.date }}" onChange="{{ on.date }}" placeholder="dd/mm/yyyy" inputMode="numeric" aria-invalid="{{ fe.date.inv }}" style="height:48px;border:1px solid {{ fe.date.bc }};border-radius:12px;padding:0 14px;font-size:16px;color:#2B1D22;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><sc-if value="{{ fe.date.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#C62828">{{ fe.date.msg }}</span></sc-if></label>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ fe.guests.lc }}">Số khách</span><input value="{{ form.guests }}" onChange="{{ on.guests }}" inputMode="numeric" aria-invalid="{{ fe.guests.inv }}" style="height:48px;border:1px solid {{ fe.guests.bc }};border-radius:12px;padding:0 14px;font-size:16px;color:#2B1D22;outline:none;font-variant-numeric:tabular-nums;min-width:0" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><sc-if value="{{ fe.guests.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#C62828">{{ fe.guests.msg }}</span></sc-if></label>
+      </div>
+      <div role="radiogroup" aria-label="Ca tiệc" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px"><sc-for list="{{ formShifts }}" as="o" hint-placeholder-count="2"><button type="button" role="radio" aria-checked="{{ o.aria }}" onClick="{{ o.pick }}" style="min-height:52px;border-radius:12px;border:{{ o.border }};background:{{ o.bg }};display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:6px 12px;text-align:left;color:#2B1D22"><span style="font-size:14px;font-weight:600;color:{{ o.fg }}">{{ o.label }}</span><span style="font-size:12px;color:#6E5D63;font-variant-numeric:tabular-nums">{{ o.time }}</span></button></sc-for></div>
+      <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500">Ghi chú <span style="font-weight:400;color:#6E5D63">(không bắt buộc)</span></span><textarea value="{{ form.note }}" onChange="{{ on.note }}" rows="2" style="border:1px solid #9A877F;border-radius:12px;padding:12px 14px;font-size:16px;line-height:24px;color:#2B1D22;outline:none;resize:vertical" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></textarea></label>
+      <button type="submit" aria-busy="{{ busyStr }}" style="height:52px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:scale(0.97)"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ submitLabel }}</button>
+    </form>
+  </section>
+</sc-if>
+
+<sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:600px;width:100%;margin:0 auto;padding:{{ L.page }}">
+    <div role="status" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:{{ L.formPad }};display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px">
+      <span ref="{{ refs.tickC }}" style="width:72px;height:72px;border-radius:50%;background:#2F6B4F;display:flex;align-items:center;justify-content:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path ref="{{ refs.tickP }}" d="M6 12.5l4 4L18 8.5" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="24" stroke-dashoffset="0"></path></svg></span>
+      <h1 style="margin:0;font-size:26px;line-height:34px;font-weight:700">Đã gửi yêu cầu tư vấn</h1>
+      <div style="border-radius:12px;background:#E7F1EA;color:#1F4D38;padding:12px 16px;display:flex;gap:8px;align-items:center;font-size:15px;font-weight:600"><i style="font-size:20px">call</i>Nhà hàng sẽ gọi cho bạn trong 24 giờ</div>
+      <div data-stagger="1" style="width:100%;display:flex;flex-direction:column;border:1px solid #EADFD6;border-radius:12px;text-align:left">
+        <sc-for list="{{ doneRows }}" as="r" hint-placeholder-count="5"><div style="min-height:46px;display:flex;align-items:center;gap:12px;padding:8px 14px;border-top:1px solid #EADFD6;font-size:14px"><span style="color:#6E5D63;flex:1">{{ r.k }}</span><strong style="font-variant-numeric:tabular-nums;text-align:right">{{ r.v }}</strong></div></sc-for>
+      </div>
+      <div style="width:100%;display:flex;flex-direction:column;gap:12px;text-align:left"><strong style="font-size:15px">Bước tiếp theo</strong>
+        <ol data-stagger="1" style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px"><sc-for list="{{ nextSteps }}" as="t" hint-placeholder-count="3"><li style="display:flex;gap:12px;align-items:flex-start"><span style="width:28px;height:28px;border-radius:50%;background:#F5E4E9;color:#5C1430;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">{{ t.n }}</span><span style="font-size:14px;line-height:22px;padding-top:3px"><strong>{{ t.t }}</strong> – <span style="color:#6E5D63">{{ t.s }}</span></span></li></sc-for></ol>
+      </div>
+      <button onClick="{{ goHome }}" style="height:48px;padding:0 20px;border:1px solid #7A1F3D;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Về trang chủ</button>
+    </div>
+  </div>
+</sc-if>
+
+<footer style="margin-top:auto;background:#2B1D22;color:#FFF8F1;padding:{{ L.foot }};display:flex;flex-wrap:wrap;gap:24px 48px">
+  <div style="display:flex;flex-direction:column;gap:8px;flex:1 1 240px"><span style="font-size:20px;font-weight:700">Hỷ Yến</span><span style="font-size:14px;line-height:22px;color:#E3D6CC">128 Nguyễn Văn Linh, Quận 7, TP. Hồ Chí Minh</span></div>
+  <div style="display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:22px;color:#E3D6CC"><span>Hotline: <strong style="color:#FFF8F1">1900 6868</strong></span><span>Tư vấn: 08:00 – 21:00 mỗi ngày</span></div>
+</footer>
+
+<sc-if value="{{ mBar }}" hint-placeholder-val="{{ false }}">
+  <nav aria-label="Liên hệ nhanh" style="position:sticky;bottom:0;z-index:20;display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:8px;padding:10px 12px;background:rgba(255,248,241,0.96);border-top:1px solid #EADFD6">
+    <a href="tel:19006868" aria-label="Gọi 1900 6868" style="width:64px;height:52px;border-radius:12px;border:1px solid #D9C8BC;color:#2B1D22;text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:600;background:#FFFFFF"><i style="font-size:20px;color:#7A1F3D">call</i>Gọi</a>
+    <button onClick="{{ openMap }}" style="width:64px;height:52px;border-radius:12px;border:1px solid #D9C8BC;color:#2B1D22;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:600;background:#FFFFFF"><i style="font-size:20px;color:#7A1F3D">map</i>Bản đồ</button>
+    <button onClick="{{ mBarAction }}" style="height:52px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-active="transform:scale(0.97)">{{ mBarLabel }}</button>
+  </nav>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { est: { date: '20/12/2026', shift: 'trua', guests: '280' }, shown: true, pickHall: 'ngoc-trai', pickMenu: 'hoa-sen', filter: 280, faq: 0, menuOpen: false, gal: 0, busy: false, errs: {}, shift: 'trua',
+    form: { name: '', phone: '', email: '', date: '20/12/2026', guests: '280', note: '' }, sel: null };
+  el = {}; _rf = {};
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  get M() { return window.HYMotion; }
+  get ctx() { return this.props.ctx || {}; }
+  BG = ['repeating-linear-gradient(135deg,#FBE9E3 0 10px,#F7EDE4 10px 20px)', 'repeating-linear-gradient(135deg,#F1E4CC 0 10px,#F7EDE4 10px 20px)', 'repeating-linear-gradient(135deg,#EAD3D9 0 10px,#F7EDE4 10px 20px)'];
+  HALLS = [
+    { id: 'ngoc-trai', name: 'Sảnh Ngọc Trai', min: 250, cap: 400, floor: 'Tầng 2', short: 'Trần cao 6 m, sân khấu 12 m, lối đi riêng cho cô dâu.', desc: 'Sảnh lớn nhất với trần cao 6 m, sân khấu rộng 12 m và lối đi riêng cho cô dâu. Phù hợp tiệc từ 250 đến 400 khách.', feats: ['Sân khấu 12 m, màn LED', 'Khu đón khách và chụp ảnh riêng', 'Âm thanh, ánh sáng sân khấu', 'Phòng chờ cô dâu', 'Thang máy riêng từ sảnh chính', 'Bãi xe 120 chỗ'] },
+    { id: 'hong-ngoc', name: 'Sảnh Hồng Ngọc', min: 150, cap: 250, floor: 'Tầng 3', short: 'Ấm cúng, cửa kính nhìn ra hồ.', desc: 'Không gian ấm cúng, cửa kính nhìn ra hồ. Phù hợp tiệc từ 150 đến 250 khách.', feats: ['Cửa kính hướng hồ', 'Sân khấu 8 m', 'Khu đón khách riêng', 'Phòng chờ cô dâu'] },
+    { id: 'kim-cuong', name: 'Sảnh Kim Cương', min: 60, cap: 150, floor: 'Tầng 5', short: 'Tầng cao, tiệc thân mật dưới 150 khách.', desc: 'Sảnh nhỏ trên tầng cao, phù hợp tiệc thân mật từ 60 đến 150 khách.', feats: ['Tầm nhìn thành phố', 'Sân khấu 6 m', 'Quầy bar riêng'] },
+  ];
+  MENUS = [
+    { id: 'hoa-mai', name: 'Thực đơn Hoa Mai', price: 5200000, highlight: 'Gà quay da giòn, bò lúc lắc, lẩu nấm thập cẩm.', dishes: [['Khai vị', 'Gỏi bưởi tôm thịt'], ['Khai vị', 'Súp gà ngô non'], ['Món chính', 'Gà quay da giòn'], ['Món chính', 'Bò xào lúc lắc'], ['Món chính', 'Cá diêu hồng hấp gừng'], ['Món chính', 'Lẩu nấm thập cẩm'], ['Tráng miệng', 'Chè khúc bạch']] },
+    { id: 'hoa-sen', name: 'Thực đơn Hoa Sen', price: 6500000, hot: true, highlight: 'Cá chẽm hấp Hồng Kông, bò nướng tiêu xanh, lẩu thái hải sản.', dishes: [['Khai vị', 'Gỏi ngó sen tôm thịt'], ['Khai vị', 'Súp cua bóng cá'], ['Món chính', 'Gà hấp lá chanh'], ['Món chính', 'Bò nướng tiêu xanh'], ['Món chính', 'Cá chẽm hấp Hồng Kông'], ['Món chính', 'Lẩu thái hải sản'], ['Tráng miệng', 'Chè hạt sen long nhãn'], ['Tráng miệng', 'Trái cây theo mùa']] },
+    { id: 'hoa-lan', name: 'Thực đơn Hoa Lan', price: 7900000, highlight: 'Súp bào ngư, tôm sú hấp nước dừa, bò Úc sốt tiêu đen.', dishes: [['Khai vị', 'Gỏi bò bóp thấu'], ['Khai vị', 'Súp bào ngư'], ['Món chính', 'Tôm sú hấp nước dừa'], ['Món chính', 'Bò Úc sốt tiêu đen'], ['Món chính', 'Gà hầm hạt sen'], ['Món chính', 'Cá mú hấp xì dầu'], ['Món chính', 'Lẩu hải sản'], ['Tráng miệng', 'Bánh flan caramel'], ['Tráng miệng', 'Trái cây theo mùa']] },
+  ];
+  vnd(v) { return v.toLocaleString('vi-VN') + ' ₫'; }
+  componentDidMount() { this.after(); }
+  componentDidUpdate(pp) { const a = pp.params || {}, b = this.props.params || {}; if (pp.screen !== this.props.screen || a !== b) this.after(pp.screen); }
+  componentWillUnmount() { if (this.io) this.io.disconnect(); }
+  after(prev) {
+    const M = this.M, scr = this.props.screen, p = this.props.params || {};
+    if (prev !== undefined && prev !== scr) this.setState({ menuOpen: false, gal: 0 });
+    if (scr === 'hall' && M && M.hero && this.el.heroImg) { M.flip(this.el.heroImg, M.hero, 400); M.hero = null; }
+    if (scr === 'consultDone' && M) M.tick(this.el.tickC, this.el.tickP);
+    if (scr === 'consult' && prev !== 'consult') {
+      const sel = p.sel || null;
+      this.setState(s => ({ sel, errs: {}, shift: sel ? sel.shift : s.shift, form: { ...s.form, date: sel ? sel.date : s.form.date, guests: sel ? String(sel.guests) : s.form.guests, note: p.hallName && !sel ? `Muốn tư vấn ${p.hallName}.` : s.form.note } }));
+    }
+    if (scr === 'home' && p.menu) this.setState({ pickMenu: p.menu, shown: true });
+    if (p.anchor) setTimeout(() => this.scrollTo(p.anchor), 30);
+    setTimeout(() => this.reveal(), 20);
+  }
+  reveal() {
+    if (this.io) this.io.disconnect();
+    const root = this.el.root, sc = this.M && this.M.scroller; if (!root || !sc || !window.IntersectionObserver) return;
+    const r = sc.getBoundingClientRect(), k = (r.height / sc.clientHeight) || 1;
+    this.io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; this.io.unobserve(e.target); e.target.style.opacity = ''; this.M.play(e.target, [{ opacity: 0, transform: 'translateY(24px)' }, { opacity: 1, transform: 'none' }], 400, this.M.E.DEC); }), { root: sc, threshold: 0.08 });
+    root.querySelectorAll('[data-reveal="1"]').forEach(el => { const top = (el.getBoundingClientRect().top - r.top) / k; if (top > sc.clientHeight * 0.92) { el.style.opacity = '0'; this.io.observe(el); } });
+  }
+  scrollTo(n) { const sc = this.M && this.M.scroller, t = this.el[n]; if (!sc || !t) return; let y = 0, e = t; while (e && e !== sc) { y += e.offsetTop; e = e.offsetParent; } t.style.opacity = ''; sc.scrollTo({ top: Math.max(0, y - 72), behavior: this.M.reduce ? 'auto' : 'smooth' }); }
+  guests() { return Math.max(0, parseInt(String(this.state.est.guests).replace(/\D/g, ''), 10) || 0); }
+  fits(g) { return this.HALLS.filter(h => g > 0 && g <= h.cap); }
+  runEst = e => {
+    e && e.preventDefault();
+    const g = this.guests(), f = this.fits(g), M = this.M;
+    this.setState(s => ({ shown: true, pickHall: f.find(h => h.id === s.pickHall) ? s.pickHall : (f.length ? f[f.length - 1].id : null) }), () => {
+      if (M && this.el.result) { M.play(this.el.result, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], 250, M.E.DEC); M.stagger(this.el.result); }
+      this.scrollTo('result');
+    });
+  };
+  openHall(id) { const M = this.M, src = this.el['card-' + id]; if (M && src) M.hero = src.getBoundingClientRect(); this.ctx.go('hall', { id }, { hero: true }); }
+  selection() {
+    const g = this.guests(), s = this.state, tables = Math.ceil(g / 10), h = this.HALLS.find(x => x.id === s.pickHall), mn = this.MENUS.find(x => x.id === s.pickMenu);
+    return { date: s.est.date, shift: s.est.shift, guests: g, tables, hall: h ? h.name : '', menu: mn ? mn.name : '', total: mn ? tables * mn.price : 0, price: mn ? mn.price : 0 };
+  }
+  submit = e => {
+    e.preventDefault(); if (this.state.busy) return;
+    const f = this.state.form, errs = {};
+    if (!f.name.trim()) errs.name = 'Nhập họ và tên';
+    if (f.phone.replace(/\D/g, '').length !== 10) errs.phone = 'Số điện thoại cần đủ 10 chữ số';
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(f.date.trim())) errs.date = 'Nhập theo dạng dd/mm/yyyy';
+    if (!(+f.guests > 0)) errs.guests = 'Nhập số khách dự kiến';
+    this.setState({ errs }); if (Object.keys(errs).length) return;
+    this.setState({ busy: true });
+    setTimeout(() => { this.setState({ busy: false }); this.ctx.go('consultDone', { sel: this.state.sel }); }, 1000);
+  };
+  shiftOpts(val, fn) { return [['trua', 'Ca trưa', '10:30 – 14:00'], ['toi', 'Ca tối', '17:30 – 21:00']].map(([v, label, time]) => { const on = val === v; return { label, time, aria: on ? 'true' : 'false', bg: on ? '#F5E4E9' : '#FFFFFF', border: on ? '2px solid #7A1F3D' : '1px solid #9A877F', fg: on ? '#5C1430' : '#2B1D22', pick: () => fn(v) }; }); }
+  radio(on) { return { aria: on ? 'true' : 'false', radio: on ? '2px solid #7A1F3D' : '2px solid #9A877F', dot: on ? '#7A1F3D' : 'transparent' }; }
+  renderVals() {
+    const c = this.ctx, m = !!c.mobile, s = this.state, scr = this.props.screen || 'home', p = this.props.params || {}, go = c.go || (() => {});
+    const g = this.guests(), tables = Math.ceil(g / 10), fits = this.fits(g);
+    const halls = this.HALLS.map((h, i) => ({ ...h, bg: this.BG[i], ph: `ảnh ${h.name.toLowerCase()}`, capText: `${h.min}–${h.cap} khách`, ref: this.rf('card-' + h.id), open: () => this.openHall(h.id) }));
+    const menus = this.MENUS.map((x, i) => {
+      const groups = []; x.dishes.forEach(([cat, n]) => { let gg = groups.find(q => q.cat === cat); if (!gg) groups.push(gg = { cat, items: [] }); gg.items.push({ n }); });
+      return { ...x, groups, bg: this.BG[(i + 1) % 3], ph: `ảnh ${x.name.toLowerCase()}`, priceText: this.vnd(x.price) + '/bàn', border: x.id === p.focus ? '2px solid #7A1F3D' : '1px solid #EADFD6', estimate: () => go('home', { menu: x.id, anchor: 'est' }, { back: true }) };
+    });
+    const res = { none: s.shown && fits.length === 0, some: fits.length > 0, tables, title: g > 0 ? `${g} khách · ${tables} bàn · ${s.est.shift === 'trua' ? 'Ca trưa' : 'Ca tối'} ${s.est.date}` : 'Nhập số khách để xem ước tính',
+      halls: fits.map((h, i) => { const on = s.pickHall === h.id, idx = this.HALLS.indexOf(h); return { ...h, ...this.radio(on), best: i === fits.length - 1, bg: this.BG[idx], ph: h.name.toLowerCase(), capText: `${h.min}–${h.cap} khách · còn ${h.cap - g} chỗ`, border: on ? '2px solid #7A1F3D' : '1px solid #EADFD6', pick: () => this.setState({ pickHall: h.id }), view: () => go('hall', { id: h.id }) }; }).reverse(),
+      menus: this.MENUS.map(x => { const on = s.pickMenu === x.id; return { ...this.radio(on), name: x.name, calc: `${tables} bàn × ${this.vnd(x.price)}`, total: this.vnd(tables * x.price), bg: on ? '#FBF4EE' : '#FFFFFF', pick: () => this.setState({ pickMenu: x.id }) }; }) };
+    const onEst = {}; ['date', 'guests'].forEach(k => { onEst[k] = e => { const v = e.target.value; this.setState(st => ({ est: { ...st.est, [k]: v } })); }; });
+    const fv = s.filter, maxCap = 400;
+    const hallCmp = this.HALLS.map((h, i) => { const fit = fv <= h.cap, under = fv < h.min;
+      return { ...h, bg: this.BG[i], ph: `ảnh ${h.name.toLowerCase()}`, ref: this.rf('card-' + h.id), open: () => this.openHall(h.id), op: fit ? 1 : 0.55,
+        chip: !fit ? 'Vượt sức chứa' : under ? 'Rộng hơn nhu cầu' : 'Vừa', cbg: !fit ? '#FDECEA' : under ? '#F7EDE4' : '#E7F1EA', cfg: !fit ? '#C62828' : under ? '#6E5D63' : '#2F6B4F',
+        capW: (h.cap / maxCap * 100) + '%', markL: `calc(${Math.min(100, fv / maxCap * 100)}% - 1px)`, markC: fit ? '#7A1F3D' : '#C62828', minText: `Từ ${h.min} khách`, capText: `Tối đa ${h.cap} khách` }; });
+    let hall = {};
+    if (scr === 'hall') {
+      const i = Math.max(0, this.HALLS.findIndex(x => x.id === p.id)), x = this.HALLS[i], labels = ['toàn cảnh sảnh', 'sân khấu', 'lối đi cô dâu', 'khu đón khách', 'bàn tiệc'];
+      hall = { ...x, bg: this.BG[i], galLabel: `ảnh ${labels[s.gal]} · ${x.name}`, capShort: `${x.min}–${x.cap} khách`,
+        thumbs: labels.slice(1).map((l, j) => { const on = s.gal === j + 1; return { label: l, aria: on ? 'true' : 'false', bg: this.BG[(i + j + 1) % 3], border: on ? '2px solid #7A1F3D' : '1px solid #EADFD6', pick: () => { this.setState({ gal: on ? 0 : j + 1 }); const M = this.M; M && M.play(this.el.galLabel, [{ opacity: 0 }, { opacity: 1 }], 150, 'linear'); } }; }),
+        facts: [{ k: 'Sức chứa', v: `${x.cap} khách` }, { k: 'Số bàn tối đa', v: `${x.cap / 10} bàn` }, { k: 'Ca', v: 'Trưa · Tối' }],
+        feats: x.feats.map(t => ({ t })), menus: this.MENUS.map(mn => ({ name: mn.name, priceText: this.vnd(mn.price) + '/bàn', example: `Ví dụ ${x.min} khách: ${this.vnd(Math.ceil(x.min / 10) * mn.price)}` })) };
+    }
+    const fe = {}; ['name', 'phone', 'date', 'guests'].forEach(k => { const msg = s.errs[k] || ''; fe[k] = { msg, inv: msg ? 'true' : 'false', bc: msg ? '#C62828' : '#9A877F', lc: msg ? '#C62828' : '#2B1D22' }; });
+    const on = {}; Object.keys(s.form).forEach(k => { on[k] = e => { const v = e.target.value; this.setState(st => ({ form: { ...st.form, [k]: v }, errs: { ...st.errs, [k]: '' } })); }; });
+    const sel = scr === 'consult' ? s.sel : null;
+    const selRows = sel ? [['Sảnh', sel.hall || 'Nhờ tư vấn'], ['Thực đơn', sel.menu], ['Số bàn', `${sel.tables} bàn`], ['Chi phí ước tính', this.vnd(sel.total)]].map(([k, v]) => ({ k, v })) : [];
+    const ds = (p.sel) || null;
+    const doneRows = [['Họ tên', s.form.name || 'Trần Thu Hà'], ['Ngày · ca', `${s.form.date} · ${s.shift === 'trua' ? 'Ca trưa' : 'Ca tối'}`], ['Số khách', `${s.form.guests} khách`]].concat(ds ? [['Sảnh · thực đơn', `${ds.hall} · ${ds.menu.replace('Thực đơn ', '')}`], ['Chi phí ước tính', this.vnd(ds.total)]] : []).map(([k, v]) => ({ k, v }));
+    const navItems = [['Sảnh tiệc', 'halls'], ['Thực đơn', 'menus'], ['Ưu đãi', 'offers'], ['Câu hỏi thường gặp', 'faq']].map(([label, t]) => { const cur = t === scr; return { label, cur: cur ? 'page' : 'false', fw: cur ? 600 : 500, fg: cur ? '#7A1F3D' : '#2B1D22', go: () => { this.setState({ menuOpen: false }); if (t === 'halls' || t === 'menus') go(t); else if (scr === 'home') this.scrollTo(t); else go('home', { anchor: t }, { back: true }); } }; });
+    const showForm = scr === 'home' || scr === 'consult';
+    const L = m ? { hh: '64px', px: '8px', gap: '20px', h1: '30px', h1lh: '38px', h2: '24px', h2lh: '32px', heroImgPos: 'relative', heroImgH: '220px', heroPad: '0 16px 24px', heroCols: 'minmax(0,1fr)', heroTextPb: '0', estPad: '20px', resPad: '28px 16px 0', resCols: 'minmax(0,1fr)', hallFitCols: 'minmax(0,1fr)', sec: '48px 16px 0', proc: 'minmax(0,1fr)', page: '16px 16px 32px', galCols: 'minmax(0,1fr)', galRatio: '4/3', thumbCols: 'repeat(4,minmax(0,1fr))', detCols: 'minmax(0,1fr)', h1d: '28px', h1dlh: '36px', featCols: 'minmax(0,1fr)', menuCols: 'minmax(0,1fr)', formCols: 'minmax(0,1fr)', formPad: '20px', foot: '32px 16px 32px' }
+      : { hh: '72px', px: '40px', gap: '40px', h1: '46px', h1lh: '56px', h2: '30px', h2lh: '40px', heroImgPos: 'absolute', heroImgH: '100%', heroPad: '120px 40px 48px', heroCols: 'minmax(0,1fr) 440px', heroTextPb: '24px', estPad: '24px', resPad: '40px 40px 0', resCols: 'minmax(0,1fr) minmax(0,1fr)', hallFitCols: 'repeat(auto-fill,minmax(240px,1fr))', sec: '72px 40px 0', proc: 'repeat(4,minmax(0,1fr))', page: '24px 40px 64px', galCols: 'minmax(0,2fr) minmax(0,1fr)', galRatio: '16/10', thumbCols: 'repeat(2,minmax(0,1fr))', detCols: 'minmax(0,1fr) 340px', h1d: '36px', h1dlh: '44px', featCols: 'repeat(2,minmax(0,1fr))', menuCols: 'repeat(3,minmax(0,1fr))', formCols: 'minmax(0,1fr) minmax(0,1.2fr)', formPad: '28px', foot: '40px 40px' };
+    return {
+      refs: new Proxy({}, { get: (_, n) => typeof n === 'string' ? this.rf(n) : undefined }), L, m, d: !m,
+      isHome: scr === 'home', isHalls: scr === 'halls', isHall: scr === 'hall', isMenus: scr === 'menus', isConsult: scr === 'consult', isDone: scr === 'consultDone', showForm,
+      formPad: scr === 'home' ? (m ? '48px 16px 48px' : '72px 40px 80px') : L.page, formReveal: scr === 'home' ? '1' : '0',
+      formTitle: scr === 'consult' ? (sel ? 'Gửi yêu cầu với lựa chọn này' : 'Gửi yêu cầu tư vấn') : 'Để lại thông tin, chúng tôi gọi lại',
+      hasSel: !!sel, selRows,
+      menuOpen: m && s.menuOpen, menuIcon: s.menuOpen ? 'close' : 'menu', menuAria: s.menuOpen ? 'Đóng menu' : 'Mở menu', menuExp: s.menuOpen ? 'true' : 'false', toggleMenu: () => this.setState({ menuOpen: !s.menuOpen }), navItems,
+      est: s.est, onEst, runEst: this.runEst, estShown: s.shown, res,
+      estShifts: this.shiftOpts(s.est.shift, v => this.setState(st => ({ est: { ...st.est, shift: v } }))),
+      formShifts: this.shiftOpts(s.shift, v => this.setState({ shift: v })),
+      halls, menus: scr === 'home' ? menus : menus, hallCmp, hall,
+      filter: s.filter, onFilter: e => this.setState({ filter: parseInt(e.target.value.replace(/\D/g, ''), 10) || 0 }), fDec: () => this.setState({ filter: Math.max(10, fv - 10) }), fInc: () => this.setState({ filter: fv + 10 }),
+      fChips: [[100, 'Dưới 150'], [200, '150–250'], [300, '250–400'], [450, 'Trên 400']].map(([v, label]) => { const on2 = fv === v; return { label, aria: on2 ? 'true' : 'false', bg: on2 ? '#F5E4E9' : '#FFFFFF', fg: on2 ? '#5C1430' : '#2B1D22', border: on2 ? '1px solid #7A1F3D' : '1px solid #D9C8BC', pick: () => this.setState({ filter: v }) }; }),
+      fitCount: `${this.HALLS.filter(h => fv <= h.cap).length}/3 sảnh đủ chỗ cho ${fv} khách`,
+      proc: [['Tư vấn', 'Gửi yêu cầu, quản lý tiệc gọi lại trong 24 giờ và hẹn xem sảnh.'], ['Hợp đồng & cọc', 'Nhà hàng tạo booking, mời bạn vào Không gian cưới để duyệt hợp đồng và đặt cọc 30% qua VNPay.'], ['Chuẩn bị', 'Nhập khách theo nhóm, xếp nhóm vào bàn, thiết kế thiệp và đặt in.'], ['Ngày cưới', 'Nhà hàng vận hành tiệc theo kịch bản hai bên đã duyệt; quyết toán sau tiệc.']].map(([t, sub], i) => ({ n: i + 1, t, s: sub })),
+      offers: [['Đến 31/12/2026', 'Giảm 5% thực đơn tiệc trưa', 'Áp dụng tiệc ca trưa từ thứ Hai đến thứ Năm.', 'Áp dụng khi ký hợp đồng trước 30/11/2026'], ['Tiệc từ 300 khách', 'Tặng trang trí cổng hoa tươi', 'Cho tiệc tại Sảnh Ngọc Trai từ 30 bàn.', 'Đến 28/02/2027'], ['Đặt in qua Hỷ Yến', 'Tặng 50 thiệp in', 'Khi đặt in từ 300 thiệp trong Studio thiệp.', 'Đến 31/12/2026']].map(([tag, t, sub, until]) => ({ tag, t, s: sub, until })),
+      faqs: [['Gửi yêu cầu tư vấn có giữ chỗ không?', 'Không. Yêu cầu tư vấn chỉ giúp quản lý tiệc liên hệ bạn. Ngày và sảnh chỉ được giữ khi nhà hàng tạo booking và bạn đặt cọc.'], ['Ước tính chi phí có chính xác không?', 'Ước tính tính theo số bàn (số khách ÷ 10, làm tròn lên) nhân giá thực đơn. Chưa gồm dịch vụ, đồ in và VAT; giá chốt theo hợp đồng.'], ['Đặt cọc bao nhiêu và trả thế nào?', 'Tiền cọc là 30% tổng hợp đồng, thanh toán qua VNPay trong Không gian cưới sau khi hai bên duyệt hợp đồng.'], ['Có cần nhập danh sách tên khách không?', 'Không bắt buộc. Bạn chỉ cần số khách dự kiến và các nhóm khách; danh sách tên là tuỳ chọn.'], ['Khách mời có cần xác nhận tham dự không?', 'Không. Thiệp online có một link và một mã QR chung để bạn gửi khách; khách chỉ xem thông tin tiệc.']].map(([q, a], i) => { const o = s.faq === i; return { q, a, open: o, exp: o ? 'true' : 'false', rot: o ? 'rotate(180deg)' : 'none', toggle: () => this.setState({ faq: o ? -1 : i }) }; }),
+      form: s.form, on, fe, busy: s.busy, busyStr: s.busy ? 'true' : 'false', submitLabel: s.busy ? 'Đang gửi…' : 'Gửi yêu cầu tư vấn', submit: this.submit, doneRows,
+      nextSteps: [['Quản lý tiệc gọi lại', 'kiểm tra lịch trống và hẹn xem sảnh.'], ['Nhà hàng tạo booking', 'theo những gì hai bên thống nhất.'], ['Bạn nhận email lời mời', 'vào Không gian cưới để duyệt hợp đồng và đặt cọc.']].map(([t, sub], i) => ({ n: i + 1, t, s: sub })),
+      mBar: m && scr !== 'consult' && scr !== 'consultDone', mBarLabel: scr === 'hall' ? 'Tư vấn sảnh này' : 'Nhận tư vấn',
+      mBarAction: () => scr === 'hall' ? go('consult', { hallName: hall.name }) : go('consult'),
+      consultHall: () => go('consult', { hallName: hall.name }),
+      goConsultSel: () => go('consult', { sel: this.selection() }),
+      openMap: () => c.toast && c.toast('Mở Google Maps: 128 Nguyễn Văn Linh, Quận 7'),
+      goHome: () => go('home', {}, { back: true }), goHalls: () => go('halls', {}, { back: scr === 'hall' }), goMenus: () => go('menus'), goConsult: () => go('consult'),
+      goBack: () => go('home', { anchor: s.sel ? 'result' : undefined }, { back: true }),
+      goLogin: () => go('login'),
+    };
+  }
+}
+</script>
+</body>
+</html>

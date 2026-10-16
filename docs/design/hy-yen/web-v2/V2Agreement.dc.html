@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;flex-direction:column;gap:20px">
+  <ol aria-label="Các bước thoả thuận" style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+    <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+      <li style="display:flex;min-width:0"><button onClick="{{ s.go }}" aria-current="{{ s.cur }}" aria-label="{{ s.label }}" style="flex:1;min-width:0;min-height:56px;border-radius:14px;border:{{ s.border }};background:{{ s.bg }};display:flex;align-items:center;gap:{{ L.stepGap }};padding:{{ L.stepPad }};text-align:left;color:#2B1D22" style-hover="border-color:#7A1F3D">
+        <span style="width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:{{ s.nbg }};color:{{ s.nfg }}"><sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><i style="font-size:18px">check</i></sc-if>{{ s.num }}</span>
+        <span style="min-width:0;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s.shown }}</span><sc-if value="{{ d }}" hint-placeholder-val="{{ true }}"><span style="font-size:12px;color:{{ s.sfg }}">{{ s.state }}</span></sc-if></span>
+      </button></li>
+    </sc-for>
+  </ol>
+
+  <div style="border:1px dashed #C9A46A;border-radius:12px;padding:6px 10px;display:flex;align-items:center;gap:8px;background:#FFFCF6;flex-wrap:wrap">
+    <span style="font-size:12px;font-weight:600;color:#6B4E1F;display:flex;align-items:center;gap:4px"><i style="font-size:16px">science</i>Mô phỏng</span>
+    <button role="switch" aria-checked="{{ conflictAria }}" onClick="{{ toggleConflict }}" style="height:32px;display:inline-flex;align-items:center;gap:8px;border:none;background:transparent;padding:0 4px;font-size:12px;font-weight:600;color:#2B1D22"><span style="width:32px;height:20px;border-radius:10px;position:relative;background:{{ conflictTrack }}"><span style="position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#FFFFFF;transform:{{ conflictThumb }};transition:transform 150ms cubic-bezier(0.2,0,0,1)"></span></span>Nhà hàng vừa sửa (xung đột khi lưu / duyệt)</button>
+  </div>
+
+  <sc-if value="{{ stale }}" hint-placeholder-val="{{ false }}">
+    <div ref="{{ refs.stale }}" role="alert" style="border-radius:14px;background:#FCEFD6;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><i style="color:#8A5300">sync_problem</i><span style="flex:1 1 240px;font-size:14px;line-height:21px"><strong>Nội dung vừa được cập nhật – tải lại để xem phiên bản mới.</strong> Thao tác của bạn chưa được lưu.</span><button onClick="{{ reload }}" style="height:40px;padding:0 14px;border:none;border-radius:12px;background:#8A5300;color:#FFFFFF;font-size:14px;font-weight:600">Tải lại</button></div>
+  </sc-if>
+
+  <div style="display:grid;grid-template-columns:{{ L.cols }};gap:20px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:16px;min-width:0;order:{{ L.docOrder }}">
+
+      <sc-if value="{{ isScript }}" hint-placeholder-val="{{ true }}">
+        <section ref="{{ refs.doc }}" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+          <div style="padding:18px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid #EADFD6"><div style="flex:1 1 200px;display:flex;flex-direction:column;gap:2px"><strong style="font-size:18px">Kịch bản ngày cưới</strong><span style="font-size:13px;color:#6E5D63">Phiên bản {{ sc.ver }} · Ca trưa 10:30 – 14:00 · {{ sc.by }}</span></div><button onClick="{{ openHistory }}" style="height:40px;padding:0 10px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3"><i style="font-size:18px">history</i>Lịch sử</button><button onClick="{{ openEdit }}" style="height:40px;padding:0 14px;border:1px solid #7A1F3D;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px" style-hover="background:#F4E7E3"><i style="font-size:18px">{{ editIcon }}</i>{{ editLabel }}</button></div>
+          <ol data-stagger="1" style="list-style:none;margin:0;padding:8px 0">
+            <sc-for list="{{ sc.rows }}" as="r" hint-placeholder-count="7"><li style="display:grid;grid-template-columns:72px 20px minmax(0,1fr);gap:12px;padding:10px 20px;align-items:start"><strong style="font-size:15px;font-variant-numeric:tabular-nums;padding-top:1px">{{ r.time }}</strong><span style="display:flex;flex-direction:column;align-items:center;align-self:stretch"><span style="width:10px;height:10px;border-radius:50%;background:#7A1F3D;margin-top:6px;flex:none"></span><span style="flex:1;width:2px;background:{{ r.line }};margin-top:4px"></span></span><span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">{{ r.title }}</span><span style="font-size:13px;line-height:20px;color:#6E5D63">{{ r.note }}</span></span></li></sc-for>
+          </ol>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ isNames }}" hint-placeholder-val="{{ false }}">
+        <section style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:20px;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:2px"><strong style="font-size:18px">Tên cô dâu &amp; chú rể</strong><span style="font-size:13px;color:#6E5D63">Dùng trên hợp đồng, phụ lục và thiệp cưới. Ghi đúng như CCCD.</span></div>
+          <div style="display:grid;grid-template-columns:{{ L.names }};gap:14px">
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ ne.bride.lc }}">Cô dâu</span><input value="{{ nm.bride }}" onChange="{{ onNm.bride }}" readOnly="{{ ro }}" aria-invalid="{{ ne.bride.inv }}" style="height:48px;border:1px solid {{ ne.bride.bc }};border-radius:12px;padding:0 14px;font-size:16px;color:#2B1D22;outline:none;background:{{ roBg }}" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><sc-if value="{{ ne.bride.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828">{{ ne.bride.msg }}</span></sc-if></label>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ ne.groom.lc }}">Chú rể</span><input value="{{ nm.groom }}" onChange="{{ onNm.groom }}" readOnly="{{ ro }}" aria-invalid="{{ ne.groom.inv }}" style="height:48px;border:1px solid {{ ne.groom.bc }};border-radius:12px;padding:0 14px;font-size:16px;color:#2B1D22;outline:none;background:{{ roBg }}" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><sc-if value="{{ ne.groom.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828">{{ ne.groom.msg }}</span></sc-if></label>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600;color:#6E5D63">Xem trước dòng in trên hợp đồng</span>
+            <div style="border:1px solid #E3D8CF;border-radius:8px;background:#FFFEFB;padding:16px 18px;font-family:'Be Vietnam Pro',sans-serif;font-size:14px;line-height:24px;color:#2B1D22"><strong>BÊN B (Bên sử dụng dịch vụ):</strong> Bà <strong>{{ preview.bride }}</strong> và Ông <strong>{{ preview.groom }}</strong><br><span style="color:#6E5D63">Tiệc cưới ngày 20/12/2026 · Ca trưa · Sảnh Ngọc Trai</span></div>
+          </div>
+          <sc-if value="{{ namesDirty }}" hint-placeholder-val="{{ false }}"><button onClick="{{ saveNames }}" style="align-self:flex-start;height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">Lưu thành phiên bản mới</button></sc-if>
+        </section>
+      </sc-if>
+
+      <sc-if value="{{ isContract }}" hint-placeholder-val="{{ false }}">
+        <section style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+          <div style="padding:18px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #EADFD6"><div style="flex:1 1 200px;display:flex;flex-direction:column;gap:2px"><strong style="font-size:18px">Hợp đồng HY-2612-020</strong><span style="font-size:13px;color:#6E5D63">Phiên bản {{ ct.ver }} · Nhà hàng gửi 12/10/2026 · Chỉ xem, sửa do nhà hàng</span></div>
+            <button onClick="{{ openHistory }}" style="height:40px;padding:0 10px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3"><i style="font-size:18px">compare_arrows</i>Lịch sử &amp; so sánh</button>
+            <button onClick="{{ openPdf }}" style="height:40px;padding:0 10px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3"><i style="font-size:18px">visibility</i>Xem PDF</button>
+            <button onClick="{{ downloadPdf }}" aria-label="Tải PDF" style="height:40px;padding:0 12px;border:1px solid #7A1F3D;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3"><i style="font-size:18px">download</i>Tải PDF</button></div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;min-width:560px;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums">
+              <thead><tr style="background:#FBF7F3;color:#6E5D63;font-size:12px;text-align:left"><th style="padding:10px 20px;font-weight:600">Hạng mục</th><th style="padding:10px 8px;font-weight:600">Đơn vị</th><th style="padding:10px 8px;font-weight:600;text-align:right">SL</th><th style="padding:10px 8px;font-weight:600;text-align:right">Đơn giá</th><th style="padding:10px 20px;font-weight:600;text-align:right">Thành tiền</th></tr></thead>
+              <tbody>
+                <sc-for list="{{ ct.groups }}" as="g" hint-placeholder-count="3">
+                  <tr><td colspan="5" style="padding:14px 20px 6px;font-size:12px;font-weight:700;color:#7A1F3D;border-top:1px solid #EADFD6">{{ g.cat }}</td></tr>
+                  <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="1"><tr style="height:48px"><td style="padding:6px 20px">{{ r.name }}</td><td style="padding:6px 8px;color:#6E5D63">{{ r.unit }}</td><td style="padding:6px 8px;text-align:right">{{ r.qty }}</td><td style="padding:6px 8px;text-align:right">{{ r.price }}</td><td style="padding:6px 20px;text-align:right;font-weight:600">{{ r.total }}</td></tr></sc-for>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <div style="border-top:1px solid #EADFD6;padding:16px 20px;display:grid;grid-template-columns:1fr auto;gap:8px 16px;align-items:baseline;font-variant-numeric:tabular-nums">
+            <span style="font-size:15px;font-weight:600">Tổng hợp đồng</span><strong ref="{{ refs.total }}" style="font-size:24px;color:#7A1F3D;text-align:right">{{ ct.total }}</strong>
+            <span style="font-size:14px;color:#6E5D63">Tiền cọc 30% (làm tròn lên)</span><strong ref="{{ refs.deposit }}" style="font-size:16px;text-align:right">{{ ct.deposit }}</strong>
+          </div>
+        </section>
+      </sc-if>
+    </div>
+
+    <aside style="position:{{ L.asidePos }};top:96px;display:flex;flex-direction:column;gap:12px;order:{{ L.asideOrder }}">
+      <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}">
+        <div ref="{{ refs.ready }}" role="status" style="border-radius:16px;background:#2F6B4F;color:#FFFFFF;padding:18px;display:flex;flex-direction:column;gap:10px">
+          <span style="display:flex;align-items:center;gap:8px"><span ref="{{ refs.tickC }}" style="width:32px;height:32px;border-radius:50%;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path ref="{{ refs.tickP }}" d="M6 12.5l4 4L18 8.5" stroke="#2F6B4F" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="24" stroke-dashoffset="0"></path></svg></span><strong style="font-size:17px">Sẵn sàng đặt cọc</strong></span>
+          <span style="font-size:14px;line-height:21px;color:#E7F1EA">Hợp đồng phiên bản {{ ct.ver }} đã được hai bên duyệt. Đặt cọc 60.480.000 ₫ để giữ tiệc và mở mục Chuẩn bị.</span>
+          <button onClick="{{ goPayment }}" style="height:48px;border:none;border-radius:12px;background:#FFFFFF;color:#1F4D38;font-size:15px;font-weight:700" style-hover="background:#F1F7F3">Đặt cọc 60.480.000 ₫</button>
+        </div>
+      </sc-if>
+      <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:8px"><strong style="font-size:15px;flex:1">Duyệt phiên bản {{ ap.ver }}</strong><span style="height:24px;padding:0 8px;border-radius:12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;background:{{ ap.cbg }};color:{{ ap.cfg }}">{{ ap.chip }}</span></div>
+        <sc-for list="{{ ap.sides }}" as="x" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:10px"><span style="width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:{{ x.bg }};color:{{ x.fg }}"><i style="font-size:18px">{{ x.icon }}</i></span><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">{{ x.who }}</span><span style="font-size:12px;color:#6E5D63">{{ x.state }}</span></span></div></sc-for>
+        <sc-if value="{{ ap.canApprove }}" hint-placeholder-val="{{ true }}"><button onClick="{{ approve }}" style="height:48px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:scale(0.97)"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ ap.btn }}</button></sc-if>
+        <sc-if value="{{ ap.note }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;line-height:20px;color:#6E5D63">{{ ap.note }}</span></sc-if>
+      </div>
+      <button onClick="{{ next.go }}" style="min-height:56px;border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;display:flex;align-items:center;gap:10px;padding:10px 16px;text-align:left;color:#2B1D22" style-hover="border-color:#7A1F3D"><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:12px;color:#6E5D63">Bước tiếp theo</span><span style="font-size:15px;font-weight:600">{{ next.label }}</span></span><i style="color:#7A1F3D">arrow_forward</i></button>
+    </aside>
+  </div>
+
+  <div style="position:fixed;inset:0;z-index:55;pointer-events:{{ ov.pe }}">
+    <div onClick="{{ closeOv }}" style="position:absolute;inset:0;background:rgba(43,29,34,0.4);opacity:{{ ov.o }};transition:opacity 250ms linear"></div>
+
+    <sc-if value="{{ ov.edit }}" hint-placeholder-val="{{ false }}">
+      <div ref="{{ refs.dlg }}" role="dialog" aria-modal="true" aria-label="{{ editLabel }}" style="position:absolute;top:0;right:0;bottom:0;width:{{ L.panelW }};background:#FFF8F1;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(43,29,34,0.12);transform:{{ ov.pt }};transition:{{ ov.ptr }}">
+        <div style="height:64px;flex:none;display:flex;align-items:center;gap:8px;padding:0 8px 0 20px;border-bottom:1px solid #EADFD6;background:#FFFFFF"><strong style="flex:1;font-size:17px">{{ editLabel }} · tạo phiên bản {{ nextVer }}</strong><button aria-label="Đóng" onClick="{{ closeOv }}" style="width:44px;height:44px;border:none;border-radius:50%;background:transparent;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>close</i></button></div>
+        <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:13px;color:#6E5D63">Kéo biểu tượng ⋮⋮ để đổi thứ tự. Giờ phải nằm trong ca trưa 10:30 – 14:00.</span>
+          <sc-for list="{{ draftRows }}" as="r" hint-placeholder-count="5">
+            <div draggable="true" onDragStart="{{ r.dragStart }}" onDragOver="{{ r.dragOver }}" onDrop="{{ r.drop }}" onDragEnd="{{ r.dragEnd }}" style="border:1px solid {{ r.bc }};border-radius:12px;background:#FFFFFF;padding:10px;display:flex;flex-direction:column;gap:6px;opacity:{{ r.op }};box-shadow:{{ r.sh }}">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span aria-hidden="true" style="width:28px;height:40px;display:flex;align-items:center;justify-content:center;color:#9A877F;cursor:grab"><i>drag_indicator</i></span>
+                <input aria-label="Giờ" value="{{ r.time }}" onChange="{{ r.onTime }}" inputMode="numeric" placeholder="hh:mm" style="width:72px;height:40px;border:1px solid {{ r.tbc }};border-radius:10px;padding:0 8px;font-size:15px;font-variant-numeric:tabular-nums;outline:none;flex:none" style-focus="border-color:#7A1F3D">
+                <input aria-label="Tên mốc" value="{{ r.title }}" onChange="{{ r.onTitle }}" style="flex:1;min-width:0;height:40px;border:1px solid #D9C8BC;border-radius:10px;padding:0 10px;font-size:15px;outline:none" style-focus="border-color:#7A1F3D">
+                <button aria-label="Lên" onClick="{{ r.up }}" style="width:36px;height:40px;border:none;border-radius:10px;background:transparent;color:#6E5D63;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i style="font-size:18px">arrow_upward</i></button>
+                <button aria-label="Xoá mốc" onClick="{{ r.remove }}" style="width:36px;height:40px;border:none;border-radius:10px;background:transparent;color:#C62828;display:flex;align-items:center;justify-content:center" style-hover="background:#FDECEA"><i style="font-size:18px">delete</i></button>
+              </div>
+              <sc-if value="{{ r.err }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:{{ r.efg }};display:flex;gap:4px;align-items:center;padding-left:34px"><i style="font-size:14px">{{ r.eicon }}</i>{{ r.err }}</span></sc-if>
+            </div>
+          </sc-for>
+          <button onClick="{{ addRow }}" style="height:44px;border:1px dashed #9A877F;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px" style-hover="background:#FBF1EC"><i style="font-size:18px">add</i>Thêm mốc</button>
+          <sc-if value="{{ needReason }}" hint-placeholder-val="{{ false }}"><label style="display:flex;flex-direction:column;gap:6px;margin-top:6px"><span style="font-size:14px;font-weight:600;color:{{ reasonLc }}">Lý do thay đổi (bắt buộc)</span><textarea value="{{ reason }}" onChange="{{ onReason }}" rows="3" placeholder="Ví dụ: Gia đình muốn làm lễ rót rượu trước khai tiệc." aria-invalid="{{ reasonInv }}" style="border:1px solid {{ reasonBc }};border-radius:12px;padding:10px 12px;font-size:15px;line-height:22px;outline:none;resize:vertical" style-focus="border-color:#7A1F3D"></textarea><sc-if value="{{ reasonErr }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#C62828">{{ reasonErr }}</span></sc-if></label></sc-if>
+        </div>
+        <div style="flex:none;padding:12px 16px;border-top:1px solid #EADFD6;background:#FFFFFF;display:flex;gap:8px;align-items:center"><span style="flex:1;font-size:13px;color:{{ draftSumFg }}">{{ draftSum }}</span><button onClick="{{ closeOv }}" style="height:48px;padding:0 14px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Huỷ</button><button onClick="{{ saveDraft }}" style="height:48px;padding:0 18px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px" style-hover="background:#87334F"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ saveDraftLabel }}</button></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ ov.history }}" hint-placeholder-val="{{ false }}">
+      <div ref="{{ refs.dlg }}" role="dialog" aria-modal="true" aria-label="Lịch sử phiên bản" style="position:absolute;top:0;right:0;bottom:0;width:{{ L.histW }};background:#FFF8F1;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(43,29,34,0.12);transform:{{ ov.pt }};transition:{{ ov.ptr }}">
+        <div style="height:64px;flex:none;display:flex;align-items:center;gap:8px;padding:0 8px 0 20px;border-bottom:1px solid #EADFD6;background:#FFFFFF"><strong style="flex:1;font-size:17px">Lịch sử phiên bản · {{ docName }}</strong><button aria-label="Đóng" onClick="{{ closeOv }}" style="width:44px;height:44px;border:none;border-radius:50%;background:transparent;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>close</i></button></div>
+        <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px">
+          <div data-stagger="1" style="border:1px solid #EADFD6;border-radius:14px;background:#FFFFFF;overflow:hidden">
+            <sc-for list="{{ versions }}" as="v" hint-placeholder-count="3"><div style="min-height:60px;display:flex;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid #EADFD6"><span style="width:36px;height:36px;border-radius:10px;background:#F7EDE4;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#5C1430;flex:none">v{{ v.n }}</span><span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">{{ v.title }}</span><span style="font-size:12px;color:#6E5D63">{{ v.meta }}</span></span><span style="height:22px;padding:0 8px;border-radius:11px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;background:{{ v.cbg }};color:{{ v.cfg }}">{{ v.chip }}</span></div></sc-for>
+          </div>
+          <sc-if value="{{ isContract }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><strong style="font-size:15px;flex:1">So sánh phiên bản</strong><span style="font-size:13px;color:#6E5D63">v1 → v2</span></div>
+              <div style="display:flex;gap:12px;font-size:12px;color:#6E5D63;flex-wrap:wrap"><span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:4px;background:#FCEFD6;border:1px solid #E7C27A"></span>Đã thay đổi</span><span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:4px;background:#E7F1EA;border:1px solid #9CC3AE"></span>Thêm mới</span></div>
+              <div style="border:1px solid #EADFD6;border-radius:14px;background:#FFFFFF;overflow-x:auto">
+                <table style="width:100%;min-width:420px;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums">
+                  <thead><tr style="background:#FBF7F3;color:#6E5D63;font-size:12px;text-align:left"><th style="padding:8px 12px;font-weight:600">Hạng mục</th><th style="padding:8px;font-weight:600;text-align:right">SL</th><th style="padding:8px 12px;font-weight:600;text-align:right">Thành tiền</th></tr></thead>
+                  <tbody><sc-for list="{{ diff }}" as="r" hint-placeholder-count="4"><tr style="border-top:1px solid #EADFD6;background:{{ r.rowBg }}"><td style="padding:10px 12px;font-weight:{{ r.fw }}">{{ r.name }}</td><td style="padding:10px 8px;text-align:right"><span style="padding:2px 6px;border-radius:6px;background:{{ r.qbg }}"><sc-if value="{{ r.qOld }}" hint-placeholder-val="{{ false }}"><s style="color:#6E5D63;margin-right:4px">{{ r.qOld }}</s></sc-if>{{ r.qty }}</span></td><td style="padding:10px 12px;text-align:right"><span style="padding:2px 6px;border-radius:6px;background:{{ r.tbg }}"><sc-if value="{{ r.tOld }}" hint-placeholder-val="{{ false }}"><s style="color:#6E5D63;margin-right:4px">{{ r.tOld }}</s></sc-if>{{ r.total }}</span></td></tr></sc-for></tbody>
+                </table>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ ov.pdf }}" hint-placeholder-val="{{ false }}">
+      <div ref="{{ refs.dlg }}" role="dialog" aria-modal="true" aria-label="Xem trước PDF hợp đồng" style="position:absolute;left:50%;top:50%;width:{{ L.pdfW }};max-height:calc(100% - 32px);transform:{{ ov.dt }};opacity:{{ ov.dop }};transition:{{ ov.dtr }};background:#FFFFFF;border-radius:20px;display:flex;flex-direction:column;overflow:hidden">
+        <div style="height:56px;flex:none;display:flex;align-items:center;gap:8px;padding:0 8px 0 18px;border-bottom:1px solid #EADFD6"><strong style="flex:1;font-size:16px">HY-2612-020_v{{ ct.ver }}.pdf</strong><button onClick="{{ downloadPdf }}" style="height:40px;padding:0 12px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px"><i style="font-size:18px">download</i>Tải</button><button aria-label="Đóng" onClick="{{ closeOv }}" style="width:44px;height:44px;border:none;border-radius:50%;background:transparent;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>close</i></button></div>
+        <div style="flex:1;overflow-y:auto;background:#EDE6E0;padding:20px">
+          <div style="background:#FFFFFF;aspect-ratio:1/1.414;max-width:520px;margin:0 auto;padding:36px 32px;display:flex;flex-direction:column;gap:12px;box-shadow:0 2px 8px rgba(43,29,34,0.12);font-size:11px;line-height:17px;color:#2B1D22">
+            <span style="text-align:center;font-size:13px;font-weight:700">HỢP ĐỒNG DỊCH VỤ TIỆC CƯỚI</span><span style="text-align:center;color:#6E5D63">Số HY-2612-020 · Phiên bản {{ ct.ver }}</span>
+            <span><strong>BÊN A:</strong> Nhà hàng Hỷ Yến · 128 Nguyễn Văn Linh, Quận 7</span><span><strong>BÊN B:</strong> Bà {{ preview.bride }} và Ông {{ preview.groom }}</span>
+            <span>Tiệc ngày 20/12/2026 · Ca trưa 10:30 – 14:00 · Sảnh Ngọc Trai</span>
+            <sc-for list="{{ ct.flat }}" as="r" hint-placeholder-count="3"><span style="display:flex;justify-content:space-between;border-bottom:1px solid #EFE7E1;padding-bottom:4px;font-variant-numeric:tabular-nums"><span>{{ r.name }} · {{ r.qty }} {{ r.unit }}</span><span>{{ r.total }}</span></span></sc-for>
+            <span style="display:flex;justify-content:space-between;font-weight:700;font-variant-numeric:tabular-nums"><span>Tổng cộng</span><span>{{ ct.totalStatic }}</span></span>
+            <span style="display:flex;justify-content:space-between;font-variant-numeric:tabular-nums"><span>Đặt cọc 30%</span><span>{{ ct.depositStatic }}</span></span>
+            <span style="margin-top:auto;display:grid;grid-template-columns:1fr 1fr;text-align:center;gap:8px"><span>ĐẠI DIỆN BÊN A<br><span style="color:#2F6B4F">Đã duyệt điện tử</span></span><span>ĐẠI DIỆN BÊN B<br><span style="color:{{ pdfSignC }}">{{ pdfSign }}</span></span></span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { conflict: false, stale: false, busy: false, ov: null, dragIdx: null, reason: '', reasonErr: '',
+    sc: { ver: 4, by: 'Nhà hàng sửa 14/10/2026', resto: true, couple: false, rows: [['10:30', 'Đón khách', 'Khu đón khách tầng 2, chụp ảnh backdrop'], ['11:00', 'Lễ gia tiên tại sảnh', 'Hai họ, MC giới thiệu'], ['11:30', 'Khai tiệc', 'Cô dâu chú rể vào sảnh, cắt bánh, rót rượu'], ['11:45', 'Phục vụ món khai vị', ''], ['12:15', 'Giao lưu văn nghệ', 'Bạn bè hai bên'], ['13:00', 'Cô dâu chú rể chào bàn', ''], ['13:45', 'Tiễn khách', 'Cảm ơn tại cửa sảnh']] },
+    draft: [], nm: { bride: 'Trần Thu Hà', groom: 'Lê Minh Quân' }, nmSaved: { bride: 'Trần Thu Hà', groom: 'Lê Minh Quân' }, nmVer: 1, nmErr: {},
+    ct: { ver: 2, couple: false }, celebrated: false };
+  el = {}; _rf = {};
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  get ctx() { return this.props.ctx || {}; }
+  get M() { return window.HYMotion; }
+  post() { return this.props.phase && this.props.phase !== 'pre'; }
+  LINES = [['Thực đơn', 'Thực đơn Hoa Sen', 'bàn', 30, 6500000], ['Đồ in', 'Thiệp cưới in', 'thiệp', 300, 12000], ['Dịch vụ', 'MC dẫn chương trình', 'tiệc', 1, 3000000]];
+  componentDidMount() { this.enter(); }
+  componentDidUpdate(pp, ps) { if (pp.screen !== this.props.screen) this.enter(); const M = this.M; if (M && this.state.ov && ps.ov !== this.state.ov && this.el.dlg) { if (this.state.ov === 'pdf') M.play(this.el.dlg, [{ opacity: 0, transform: 'translate(-50%,-50%) scale(0.92)' }, { opacity: 1, transform: 'translate(-50%,-50%)' }], 250, M.E.DEC); else M.play(this.el.dlg, [{ transform: 'translateX(100%)' }, { transform: 'none' }], 250, M.E.DEC); M.stagger(this.el.dlg); } }
+  enter() { const M = this.M; if (this.props.screen === 'contract' && M) setTimeout(() => { M.countUp(this.el.total, 0, 201600000, 800); M.countUp(this.el.deposit, 0, 60480000, 800); }, 120); }
+  vnd(v) { return v.toLocaleString('vi-VN') + ' ₫'; }
+  mins(t) { const m = /^(\d{1,2}):(\d{2})$/.exec((t || '').trim()); return m ? (+m[1]) * 60 + (+m[2]) : NaN; }
+  checkConflict() { if (this.state.conflict) { this.setState({ stale: true, busy: false, ov: null }, () => { const M = this.M; M && M.play(this.el.stale, [{ opacity: 0, transform: 'translateY(-8px)' }, { opacity: 1, transform: 'none' }], 250, M.E.DEC); }); return true; } return false; }
+  approve = () => {
+    if (this.state.busy) return;
+    this.setState({ busy: true });
+    setTimeout(() => {
+      if (this.checkConflict()) return;
+      const scr = this.props.screen, c = this.ctx;
+      if (scr === 'script') { this.setState(s => ({ busy: false, sc: { ...s.sc, couple: true } })); c.toast('Đã duyệt kịch bản phiên bản ' + this.state.sc.ver); }
+      if (scr === 'contract') this.setState(s => ({ busy: false, ct: { ...s.ct, couple: true } }), () => { this.props.onCtOk && this.props.onCtOk(); const M = this.M; if (M) { M.tick(this.el.tickC, this.el.tickP); M.play(this.el.ready, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], 250, M.E.DEC); if (!this.state.celebrated) { M.celebrate(); this.setState({ celebrated: true }); } } });
+      if (scr === 'names') this.setState({ busy: false });
+    }, 800);
+  };
+  reload = () => this.setState(s => ({ stale: false, conflict: false, sc: { ...s.sc, ver: s.sc.ver + 1, by: 'Nhà hàng sửa vừa xong', resto: true, couple: false, rows: s.sc.rows.map(r => r[1] === 'Tiễn khách' ? ['13:50', r[1], r[2]] : r) } }), () => this.ctx.toast('Đã tải phiên bản mới nhất'));
+  openEdit = () => this.setState(s => ({ ov: 'edit', reason: '', reasonErr: '', draft: s.sc.rows.map((r, i) => ({ id: Date.now() + i, time: r[0], title: r[1], note: r[2] })) }));
+  rowErr(r, i, list) {
+    const t = this.mins(r.time);
+    if (isNaN(t)) return ['Nhập giờ dạng hh:mm', 'error', '#C62828'];
+    if (t < 630 || t > 840) return ['Ngoài ca trưa 10:30 – 14:00', 'error', '#C62828'];
+    if (!r.title.trim()) return ['Nhập tên mốc', 'error', '#C62828'];
+    if (i > 0 && t < this.mins(list[i - 1].time)) return ['Sớm hơn mốc phía trên', 'warning', '#8A5300'];
+    return null;
+  }
+  saveDraft = () => {
+    const d = this.state.draft, errs = d.map((r, i, l) => this.rowErr(r, i, l)).filter(e => e && e[1] === 'error');
+    if (errs.length) return this.ctx.toast(`Còn ${errs.length} mốc cần sửa trước khi lưu`);
+    if (this.post() && !this.state.reason.trim()) return this.setState({ reasonErr: 'Nhập lý do để nhà hàng xem xét' });
+    this.setState({ busy: true });
+    setTimeout(() => {
+      if (this.checkConflict()) return;
+      this.setState(s => ({ busy: false, ov: null, sc: { ...s.sc, ver: s.sc.ver + 1, by: this.post() ? 'Bạn đề xuất, chờ nhà hàng' : 'Bạn sửa vừa xong', resto: false, couple: true, rows: s.draft.map(r => [r.time, r.title, r.note]) } }));
+      this.ctx.toast(this.post() ? 'Đã gửi đề xuất thay đổi' : `Đã lưu phiên bản ${this.state.sc.ver}`);
+    }, 800);
+  };
+  moveRow(from, to) { if (to < 0 || to >= this.state.draft.length || from === to) return; const d = this.state.draft.slice(); const [x] = d.splice(from, 1); d.splice(to, 0, x); this.setState({ draft: d }); }
+  side(who, ok, when) { return { who, icon: ok ? 'check' : 'schedule', bg: ok ? '#E7F1EA' : '#FCEFD6', fg: ok ? '#2F6B4F' : '#8A5300', state: ok ? `Đã duyệt${when ? ' · ' + when : ''}` : 'Chờ duyệt' }; }
+  renderVals() {
+    const c = this.ctx, m = !!c.mobile, s = this.state, scr = this.props.screen || 'script', post = this.post(), go = c.go || (() => {}), reduce = c.reduce;
+    const scOk = post || (s.sc.resto && s.sc.couple), ctOk = post || s.ct.couple || !!this.props.ctOk, nmOk = post || true;
+    const ST = [['script', 'Kịch bản', scOk], ['names', 'Tên cô dâu & chú rể', nmOk], ['contract', 'Hợp đồng', ctOk]];
+    const steps = ST.map(([id, label, ok], i) => { const on = scr === id; return { label, shown: m ? ['Kịch bản', 'Tên', 'Hợp đồng'][i] : label, num: ok ? '' : i + 1, done: ok, cur: on ? 'step' : 'false', state: ok ? 'Hai bên đã duyệt' : 'Chờ bạn duyệt', sfg: ok ? '#2F6B4F' : '#8A5300', border: on ? '2px solid #7A1F3D' : '1px solid #EADFD6', bg: on ? '#FFFFFF' : '#FBF7F3', nbg: ok ? '#2F6B4F' : on ? '#7A1F3D' : '#F7EDE4', nfg: ok || on ? '#FFFFFF' : '#6E5D63', go: () => go(id) }; });
+    const groups = []; this.LINES.forEach(([cat, name, unit, qty, price]) => { let g = groups.find(x => x.cat === cat); if (!g) groups.push(g = { cat, rows: [] }); g.rows.push({ name, unit, qty: qty.toLocaleString('vi-VN'), price: this.vnd(price), total: this.vnd(qty * price) }); });
+    const ct = { ver: s.ct.ver, groups, flat: this.LINES.map(([, name, unit, qty, price]) => ({ name, unit, qty: qty.toLocaleString('vi-VN'), total: this.vnd(qty * price) })), total: this.vnd(201600000), deposit: this.vnd(60480000), totalStatic: this.vnd(201600000), depositStatic: this.vnd(60480000) };
+    const sc = { ver: s.sc.ver, by: s.sc.by, rows: s.sc.rows.map(([time, title, note], i, l) => ({ time, title, note, line: i < l.length - 1 ? '#EADFD6' : 'transparent' })) };
+    let ap;
+    if (scr === 'script') ap = { ver: s.sc.ver, sides: [this.side('Nhà hàng', post || s.sc.resto, s.sc.resto && !post ? '14/10' : ''), this.side('Hai bạn', post || s.sc.couple, '')], canApprove: !post && !s.sc.couple, btn: s.busy ? 'Đang duyệt…' : `Duyệt phiên bản ${s.sc.ver}`, note: !post && s.sc.couple && !s.sc.resto ? 'Bạn đã lưu phiên bản mới. Chờ nhà hàng duyệt.' : post ? 'Sau đặt cọc, thay đổi kịch bản được gửi dưới dạng đề xuất kèm lý do.' : '' };
+    else if (scr === 'names') ap = { ver: s.nmVer, sides: [this.side('Nhà hàng xác nhận', s.nmVer === 1 || post, s.nmVer === 1 ? '10/10' : ''), this.side('Hai bạn', true, '')], canApprove: false, btn: '', note: s.nmVer > 1 ? 'Tên mới được gửi, chờ nhà hàng xác nhận để cập nhật hợp đồng.' : post ? 'Tên đã in trên hợp đồng đã duyệt. Đổi tên sẽ tạo phụ lục.' : 'Sửa ô bên trái để tạo phiên bản mới.' };
+    else ap = { ver: s.ct.ver, sides: [this.side('Nhà hàng', true, '12/10 15:02'), this.side('Hai bạn', ctOk, s.ct.couple ? 'vừa xong' : post ? '14/10' : '')], canApprove: !ctOk, btn: s.busy ? 'Đang duyệt…' : `Duyệt hợp đồng phiên bản ${s.ct.ver}`, note: ctOk ? '' : 'Hợp đồng chỉ xem. Cần sửa? Liên hệ quản lý tiệc để nhà hàng tạo phiên bản mới.' };
+    const allOk = ap.sides.every(x => x.icon === 'check');
+    ap.chip = allOk ? 'Hai bên đã duyệt' : 'Chờ duyệt'; ap.cbg = allOk ? '#E7F1EA' : '#FCEFD6'; ap.cfg = allOk ? '#2F6B4F' : '#8A5300';
+    const NX = { script: ['names', 'Tên cô dâu & chú rể'], names: ['contract', 'Hợp đồng'], contract: ['payment', post ? 'Ví tiệc' : 'Đặt cọc 30%'] }[scr];
+    const draftRows = s.draft.map((r, i, l) => { const e = this.rowErr(r, i, l), upd = (k, v) => { const d = s.draft.slice(); d[i] = { ...d[i], [k]: v }; this.setState({ draft: d }); };
+      return { ...r, err: e ? e[0] : '', eicon: e ? e[1] : '', efg: e ? e[2] : '', bc: e && e[1] === 'error' ? '#E9B8B3' : '#EADFD6', tbc: e && e[1] === 'error' && e[0].includes('ca') || (e && e[0].includes('hh:mm')) ? '#C62828' : '#D9C8BC', op: s.dragIdx === i ? 0.4 : 1, sh: 'none',
+        onTime: ev => upd('time', ev.target.value), onTitle: ev => upd('title', ev.target.value), up: () => this.moveRow(i, i - 1), remove: () => this.setState({ draft: s.draft.filter((_, j) => j !== i) }),
+        dragStart: ev => { this.setState({ dragIdx: i }); try { ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', String(i)); } catch (x) {} }, dragOver: ev => ev.preventDefault(), drop: ev => { ev.preventDefault(); if (s.dragIdx !== null) this.moveRow(s.dragIdx, i); this.setState({ dragIdx: null }); }, dragEnd: () => this.setState({ dragIdx: null }) }; });
+    const nErrs = s.draft.map((r, i, l) => this.rowErr(r, i, l)).filter(e => e && e[1] === 'error').length;
+    const open = !!s.ov;
+    const ov = { pe: open ? 'auto' : 'none', o: open ? 1 : 0, edit: s.ov === 'edit', history: s.ov === 'history', pdf: s.ov === 'pdf', pt: 'none', ptr: 'none', dt: 'translate(-50%,-50%)', dop: 1, dtr: 'none' };
+    const VERS = scr === 'contract' ? [[2, 'Tăng lên 30 bàn, 300 thiệp', 'Nhà hàng · 12/10/2026', ctOk ? 'Hai bên đã duyệt' : 'Hiện hành'], [1, 'Bản đầu tiên', 'Nhà hàng · 08/10/2026', 'Thay thế']]
+      : scr === 'names' ? Array.from({ length: s.nmVer }, (_, i) => [s.nmVer - i, i === 0 && s.nmVer > 1 ? 'Bạn sửa tên' : 'Bản đầu tiên', i === 0 && s.nmVer > 1 ? 'Bạn · vừa xong' : 'Nhà hàng · 10/10/2026', i === 0 ? 'Hiện hành' : 'Thay thế'])
+      : Array.from({ length: s.sc.ver }, (_, i) => { const n = s.sc.ver - i; return [n, n === 4 ? 'Khai tiệc đổi sang 11:30' : n > 4 ? (s.sc.by.startsWith('Bạn') ? 'Bạn chỉnh mốc' : 'Nhà hàng chỉnh giờ tiễn khách') : n === 1 ? 'Bản đầu tiên' : 'Điều chỉnh mốc', n > 4 ? s.sc.by : `Nhà hàng · ${7 + n}/10/2026`, i === 0 ? (scOk ? 'Hai bên đã duyệt' : 'Hiện hành') : 'Thay thế']; });
+    const versions = VERS.map(([n, title, meta, chip]) => ({ n, title, meta, chip, cbg: chip === 'Thay thế' ? '#F7EDE4' : chip === 'Hiện hành' ? '#FCEFD6' : '#E7F1EA', cfg: chip === 'Thay thế' ? '#6E5D63' : chip === 'Hiện hành' ? '#8A5300' : '#2F6B4F' }));
+    const D = (name, qOld, qty, tOld, total, add) => ({ name, qOld, qty, tOld, total, fw: 400, rowBg: add ? '#E7F1EA' : 'transparent', qbg: qOld ? '#FCEFD6' : 'transparent', tbg: tOld ? '#FCEFD6' : 'transparent' });
+    const diff = [D('Thực đơn Hoa Sen', '28', '30', '182.000.000 ₫', '195.000.000 ₫'), D('Thiệp cưới in', '250', '300', '3.000.000 ₫', '3.600.000 ₫'), D('MC dẫn chương trình', '', '1', '', '3.000.000 ₫'), { ...D('Tổng', '', '', '188.000.000 ₫', '201.600.000 ₫'), fw: 700 }];
+    const nmErr = {}; ['bride', 'groom'].forEach(k => { const msg = s.nmErr[k] || ''; nmErr[k] = { msg, inv: msg ? 'true' : 'false', bc: msg ? '#C62828' : '#9A877F', lc: msg ? '#C62828' : '#2B1D22' }; });
+    const onNm = {}; ['bride', 'groom'].forEach(k => { onNm[k] = e => { const v = e.target.value; this.setState(st => ({ nm: { ...st.nm, [k]: v }, nmErr: { ...st.nmErr, [k]: '' } })); }; });
+    return {
+      refs: new Proxy({}, { get: (_, n) => typeof n === 'string' ? this.rf(n) : undefined }), m, d: !m, steps,
+      isScript: scr === 'script', isNames: scr === 'names', isContract: scr === 'contract', sc, ct, ap, busy: s.busy,
+      ready: scr === 'contract' && ctOk && !post, goPayment: () => go('payment'),
+      next: { label: NX[1], go: () => go(NX[0]) }, approve: this.approve,
+      stale: s.stale, reload: this.reload, conflictAria: s.conflict ? 'true' : 'false', conflictTrack: s.conflict ? '#7A1F3D' : '#C9BFBC', conflictThumb: s.conflict ? 'translateX(12px)' : 'none', toggleConflict: () => this.setState({ conflict: !s.conflict }),
+      editLabel: post ? 'Đề xuất thay đổi' : 'Chỉnh sửa', editIcon: post ? 'rate_review' : 'edit', nextVer: s.sc.ver + 1, openEdit: this.openEdit,
+      draftRows, addRow: () => this.setState({ draft: s.draft.concat([{ id: Date.now(), time: '', title: '', note: '' }]) }), saveDraft: this.saveDraft,
+      saveDraftLabel: s.busy ? 'Đang lưu…' : post ? 'Gửi đề xuất' : `Lưu phiên bản ${s.sc.ver + 1}`,
+      draftSum: nErrs ? `${nErrs} mốc cần sửa` : `${s.draft.length} mốc · hợp lệ`, draftSumFg: nErrs ? '#C62828' : '#2F6B4F',
+      needReason: post, reason: s.reason, onReason: e => this.setState({ reason: e.target.value, reasonErr: '' }), reasonErr: s.reasonErr, reasonInv: s.reasonErr ? 'true' : 'false', reasonBc: s.reasonErr ? '#C62828' : '#9A877F', reasonLc: s.reasonErr ? '#C62828' : '#2B1D22',
+      nm: s.nm, onNm, ne: nmErr, ro: false, roBg: '#FFFFFF', preview: { bride: s.nm.bride.trim() || '…', groom: s.nm.groom.trim() || '…' },
+      namesDirty: s.nm.bride !== s.nmSaved.bride || s.nm.groom !== s.nmSaved.groom,
+      saveNames: () => { const e = {}; if (!s.nm.bride.trim()) e.bride = 'Nhập tên cô dâu'; if (!s.nm.groom.trim()) e.groom = 'Nhập tên chú rể'; this.setState({ nmErr: e }); if (Object.keys(e).length) return; if (this.checkConflict()) return; this.setState(st => ({ nmSaved: { ...st.nm }, nmVer: st.nmVer + 1 })); c.toast('Đã lưu tên, chờ nhà hàng xác nhận'); },
+      docName: { script: 'Kịch bản', names: 'Tên', contract: 'Hợp đồng' }[scr], versions, diff,
+      openHistory: () => this.setState({ ov: 'history' }), openPdf: () => this.setState({ ov: 'pdf' }), closeOv: () => this.setState({ ov: null, dragIdx: null }),
+      downloadPdf: () => c.toast(`Đang tải HY-2612-020_v${s.ct.ver}.pdf`),
+      pdfSign: ctOk ? 'Đã duyệt điện tử' : 'Chờ duyệt', pdfSignC: ctOk ? '#2F6B4F' : '#8A5300',
+      ov,
+      L: m ? { stepGap: '6px', stepPad: '8px', cols: 'minmax(0,1fr)', docOrder: 1, asideOrder: 0, asidePos: 'static', names: 'minmax(0,1fr)', panelW: '100%', histW: '100%', pdfW: 'calc(100% - 24px)' } : { stepGap: '10px', stepPad: '8px 12px', cols: 'minmax(0,1fr) 320px', docOrder: 0, asideOrder: 1, asidePos: 'sticky', names: 'repeat(2,minmax(0,1fr))', panelW: '480px', histW: '520px', pdfW: '640px' },
+    };
+  }
+}
+</script>
+</body>
+</html>

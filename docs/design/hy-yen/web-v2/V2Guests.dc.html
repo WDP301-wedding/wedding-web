@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<sc-if value="{{ locked }}" hint-placeholder-val="{{ false }}">
+  <div role="status" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:48px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;max-width:640px;margin:0 auto">
+    <span style="width:64px;height:64px;border-radius:50%;background:#F7EDE4;color:#6E5D63;display:flex;align-items:center;justify-content:center"><i style="font-size:30px">lock</i></span>
+    <span style="height:28px;padding:0 10px 0 6px;border-radius:14px;background:#F7EDE4;color:#6E5D63;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600"><i style="font-size:16px">lock</i>Mở sau đặt cọc</span>
+    <strong style="font-size:20px">Khách &amp; sơ đồ bàn mở sau khi đặt cọc</strong>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;max-width:440px">Sau khi đặt cọc 60.480.000 ₫, hai bạn nhập số khách dự kiến, chia nhóm khách và xếp nhóm vào từng bàn trên sơ đồ của nhà hàng.</p>
+    <button onClick="{{ goPayment }}" style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">Đi tới Thanh toán</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+  <sc-if value="{{ m }}" hint-placeholder-val="{{ false }}"><div role="tablist" style="display:grid;grid-template-columns:1fr 1fr;background:#F7EDE4;border-radius:12px;padding:4px;gap:4px"><sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2"><button role="tab" aria-selected="{{ t.aria }}" onClick="{{ t.click }}" style="height:44px;border:none;border-radius:10px;font-size:15px;font-weight:600;background:{{ t.bg }};color:{{ t.fg }}">{{ t.label }}</button></sc-for></div></sc-if>
+
+  <div style="display:grid;grid-template-columns:{{ L.cols }};gap:16px;align-items:start">
+    <sc-if value="{{ showLeft }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+      <section style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="flex:1 1 160px;display:flex;flex-direction:column;gap:2px"><strong style="font-size:15px">Số khách dự kiến</strong><span style="font-size:12px;line-height:18px;color:#6E5D63">Dùng để chuẩn bị bàn; không cần khớp danh sách tên.</span></div>
+          <div style="display:flex;align-items:center;border:1px solid #9A877F;border-radius:12px;overflow:hidden"><button aria-label="Giảm 10" onClick="{{ expDec }}" style="width:44px;height:44px;border:none;background:#FFFFFF;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>remove</i></button><input aria-label="Số khách dự kiến" value="{{ expected }}" onChange="{{ onExpected }}" inputMode="numeric" style="width:64px;height:44px;border:none;border-left:1px solid #EADFD6;border-right:1px solid #EADFD6;text-align:center;font-size:17px;font-weight:700;outline:none;font-variant-numeric:tabular-nums"><button aria-label="Tăng 10" onClick="{{ expInc }}" style="width:44px;height:44px;border:none;background:#FFFFFF;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>add</i></button></div>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:#6E5D63;font-variant-numeric:tabular-nums"><span>Danh sách tên: <strong style="color:#2B1D22">{{ nameCount }}</strong> (tuỳ chọn)</span><span>Chỗ ngồi đã xếp: <strong style="color:#2B1D22">{{ seatTotal }}</strong></span></div>
+      </section>
+
+      <section style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center"><strong style="font-size:15px;flex:1">Nhóm khách</strong><button onClick="{{ addGroup }}" style="height:36px;padding:0 10px;border:none;border-radius:10px;background:transparent;color:#7A1F3D;font-size:13px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3"><i style="font-size:18px">add</i>Thêm nhóm</button></div>
+        <div role="group" aria-label="Lọc theo nhóm" style="display:flex;flex-wrap:wrap;gap:6px">
+          <sc-for list="{{ groupChips }}" as="g" hint-placeholder-count="5"><button aria-pressed="{{ g.aria }}" onClick="{{ g.click }}" style="height:36px;padding:0 10px 0 8px;border-radius:10px;border:{{ g.border }};background:{{ g.bg }};display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#2B1D22"><span style="width:12px;height:12px;border-radius:4px;background:{{ g.color }}"></span>{{ g.name }}<span style="font-weight:400;color:#6E5D63;font-variant-numeric:tabular-nums">{{ g.count }}</span></button></sc-for>
+        </div>
+      </section>
+
+      <section style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+        <div style="padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #EADFD6">
+          <span style="flex:1;display:flex;flex-direction:column"><strong style="font-size:14px">Check-in tại tiệc</strong><span style="font-size:12px;color:#6E5D63">Nhân viên đánh dấu khách đến bằng danh sách tên. Mặc định tắt.</span></span>
+          <button role="switch" aria-checked="{{ ciAria }}" aria-label="Bật check-in" onClick="{{ toggleCi }}" style="width:52px;height:32px;border:none;border-radius:16px;position:relative;flex:none;background:{{ ciTrack }}"><span style="position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#FFFFFF;transform:{{ ciThumb }};transition:transform 150ms cubic-bezier(0.2,0,0,1)"></span></button>
+        </div>
+        <div style="padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <div style="position:relative;flex:1 1 180px"><i style="position:absolute;left:12px;top:12px;color:#6E5D63">search</i><input value="{{ q }}" onChange="{{ onQ }}" placeholder="Tìm tên hoặc SĐT" aria-label="Tìm khách" style="width:100%;height:44px;border:1px solid #9A877F;border-radius:12px;padding:0 12px 0 40px;font-size:15px;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></div>
+          <button onClick="{{ newGuest }}" style="height:44px;padding:0 12px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#87334F"><i style="font-size:18px">person_add</i>Thêm</button>
+          <button onClick="{{ openCsv }}" style="height:44px;padding:0 12px;border:1px solid #7A1F3D;border-radius:12px;background:#FFFFFF;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3"><i style="font-size:18px">upload_file</i>CSV</button>
+        </div>
+        <sc-if value="{{ listEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:24px 16px 28px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center;border-top:1px solid #EADFD6"><i style="font-size:28px;color:#9A877F">{{ empty.icon }}</i><strong style="font-size:15px">{{ empty.title }}</strong><span style="font-size:13px;line-height:20px;color:#6E5D63;max-width:320px">{{ empty.body }}</span></div></sc-if>
+        <div data-stagger="1" style="display:flex;flex-direction:column;max-height:{{ L.listH }};overflow-y:auto">
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;border-top:1px solid #EADFD6">
+              <button onClick="{{ r.edit }}" style="flex:1;min-width:0;min-height:56px;border:none;background:transparent;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 16px;text-align:left;color:#2B1D22" style-hover="background:#FBF1EC">
+                <span style="width:10px;height:10px;border-radius:3px;background:{{ r.color }};flex:none"></span>
+                <span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</span><span style="font-size:12px;color:#6E5D63;font-variant-numeric:tabular-nums">{{ r.sub }}</span></span>
+                <sc-if value="{{ ciOn }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#6E5D63;white-space:nowrap">Chưa ghi nhận</span></sc-if>
+              </button>
+              <button aria-label="{{ r.copyAria }}" onClick="{{ r.copy }}" style="width:44px;height:44px;margin-right:6px;border:none;border-radius:50%;background:transparent;color:#6E5D63;display:flex;align-items:center;justify-content:center;flex:none" style-hover="background:#F4E7E3"><i style="font-size:18px">link</i></button>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ showRight }}" hint-placeholder-val="{{ true }}">
+    <section aria-label="Sơ đồ bàn" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden;display:flex;flex-direction:column;min-width:0;position:{{ L.rightPos }};top:88px">
+      <div style="padding:12px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #EADFD6">
+        <label style="display:flex;flex-direction:column;gap:2px;flex:1 1 180px"><span style="font-size:11px;font-weight:600;color:#6E5D63">Mẫu sơ đồ của nhà hàng</span><select value="{{ tpl }}" onChange="{{ onTpl }}" style="height:40px;border:1px solid #D9C8BC;border-radius:10px;padding:0 8px;font-size:14px;background:#FFFFFF;color:#2B1D22"><option value="a">Ngọc Trai · 30 bàn (28 tròn + 2 dài)</option><option value="b">Ngọc Trai · 32 bàn tròn</option></select></label>
+        <span style="height:28px;padding:0 10px 0 6px;border-radius:14px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;background:{{ stChip.bg }};color:{{ stChip.fg }}"><i style="font-size:16px">{{ stChip.icon }}</i>{{ stChip.label }}</span>
+      </div>
+      <div style="padding:10px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;border-bottom:1px solid #EADFD6;background:#FBF7F3">
+        <span style="font-size:12px;color:#6E5D63;margin-right:2px">Kéo nhóm thả vào bàn, hoặc bấm bàn:</span>
+        <sc-for list="{{ dragChips }}" as="g" hint-placeholder-count="4"><span draggable="true" onDragStart="{{ g.start }}" role="button" aria-label="{{ g.aria }}" style="height:32px;padding:0 10px 0 6px;border-radius:16px;background:{{ g.color }};color:{{ g.fg }};font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;cursor:grab;user-select:none"><i style="font-size:16px">drag_indicator</i>{{ g.name }}</span></sc-for>
+      </div>
+      <div ref="{{ refs.vp }}" onPointerDown="{{ panStart }}" onPointerMove="{{ panMove }}" onPointerUp="{{ panEnd }}" onPointerLeave="{{ panEnd }}" onWheel="{{ onWheel }}" style="position:relative;height:{{ L.canvasH }};overflow:hidden;background:#FFFCF9;background-image:radial-gradient(#EADFD6 1px, transparent 1px);background-size:20px 20px;cursor:{{ panCursor }};touch-action:none">
+        <div style="position:absolute;left:0;top:0;width:900px;height:620px;transform-origin:0 0;transform:{{ xf }}">
+          <div style="position:absolute;left:300px;top:20px;width:300px;height:44px;border-radius:8px;background:#F1E4CC;color:#6B4E1F;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">Sân khấu</div>
+          <sc-for list="{{ tables }}" as="t" hint-placeholder-count="12">
+            <button data-table="1" onClick="{{ t.click }}" onDragOver="{{ t.over }}" onDragLeave="{{ t.leave }}" onDrop="{{ t.drop }}" aria-label="{{ t.aria }}" style="position:absolute;left:{{ t.x }};top:{{ t.y }};width:{{ t.w }};height:{{ t.h }};border-radius:{{ t.r }};border:{{ t.border }};background:#FFFFFF;padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:{{ t.sh }}">
+              <span ref="{{ t.ref }}" style="position:absolute;inset:0;border-radius:{{ t.r }};background:{{ t.fill }}"></span>
+              <span style="position:relative;display:flex;flex-direction:column;align-items:center;line-height:1.1;color:{{ t.fg }}"><strong style="font-size:15px">{{ t.label }}</strong><span style="font-size:10px;opacity:0.9">{{ t.cap }} chỗ</span></span>
+            </button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ pop.show }}" hint-placeholder-val="{{ false }}">
+          <div ref="{{ refs.pop }}" role="dialog" aria-label="{{ pop.title }}" style="position:absolute;left:{{ pop.x }};top:{{ pop.y }};width:220px;background:#FFFFFF;border-radius:14px;box-shadow:0 8px 24px rgba(43,29,34,0.18);padding:8px;display:flex;flex-direction:column;gap:2px;z-index:3" onPointerDown="{{ stop }}">
+            <div style="display:flex;align-items:center;padding:4px 4px 6px 8px"><strong style="font-size:14px;flex:1">{{ pop.title }}</strong><button aria-label="Đóng" onClick="{{ closePop }}" style="width:32px;height:32px;border:none;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i style="font-size:18px">close</i></button></div>
+            <sc-for list="{{ pop.items }}" as="g" hint-placeholder-count="4"><button onClick="{{ g.pick }}" style="min-height:40px;border:none;border-radius:10px;background:{{ g.bg }};display:flex;align-items:center;gap:8px;padding:0 8px;font-size:14px;text-align:left;color:#2B1D22" style-hover="background:#FBF1EC"><span style="width:14px;height:14px;border-radius:4px;background:{{ g.color }}"></span><span style="flex:1">{{ g.name }}</span><sc-if value="{{ g.on }}" hint-placeholder-val="{{ false }}"><i style="font-size:18px;color:#7A1F3D">check</i></sc-if></button></sc-for>
+            <button onClick="{{ pop.clear }}" style="min-height:40px;border:none;border-top:1px solid #EADFD6;background:transparent;display:flex;align-items:center;gap:8px;padding:0 8px;font-size:14px;color:#C62828;text-align:left;margin-top:4px"><i style="font-size:18px">block</i>Bỏ gán nhóm</button>
+          </div>
+        </sc-if>
+        <div style="position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;background:#FFFFFF;border:1px solid #EADFD6;border-radius:12px;overflow:hidden" onPointerDown="{{ stop }}">
+          <button aria-label="Phóng to" onClick="{{ zoomIn }}" style="width:40px;height:40px;border:none;background:#FFFFFF;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>add</i></button>
+          <button aria-label="Thu nhỏ" onClick="{{ zoomOut }}" style="width:40px;height:40px;border:none;border-top:1px solid #EADFD6;background:#FFFFFF;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>remove</i></button>
+          <button aria-label="Vừa khung" onClick="{{ fit }}" style="width:40px;height:40px;border:none;border-top:1px solid #EADFD6;background:#FFFFFF;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i style="font-size:18px">fit_screen</i></button>
+        </div>
+      </div>
+      <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px;border-top:1px solid #EADFD6">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 12px">
+          <sc-for list="{{ legend }}" as="g" hint-placeholder-count="4"><span style="display:flex;align-items:center;gap:6px;font-size:12px;font-variant-numeric:tabular-nums"><span style="width:12px;height:12px;border-radius:4px;background:{{ g.color }};flex:none"></span><span style="flex:1">{{ g.name }}</span><span style="color:{{ g.fg }};font-weight:600">{{ g.text }}</span></span></sc-for>
+        </div>
+        <sc-if value="{{ warn.show }}" hint-placeholder-val="{{ false }}"><div role="alert" style="border-radius:10px;background:#FCEFD6;padding:8px 10px;display:flex;gap:8px;font-size:13px;line-height:19px"><i style="color:#8A5300;font-size:18px">warning</i><span>{{ warn.text }}</span></div></sc-if>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button role="switch" aria-checked="{{ rejAria }}" onClick="{{ toggleRej }}" style="height:32px;display:inline-flex;align-items:center;gap:6px;border:1px dashed #C9A46A;border-radius:10px;background:#FFFCF6;padding:0 8px;font-size:11px;font-weight:600;color:#6B4E1F"><span style="width:26px;height:16px;border-radius:8px;position:relative;background:{{ rejTrack }}"><span style="position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#FFFFFF;transform:{{ rejThumb }}"></span></span>Mô phỏng server từ chối</button>
+          <span style="flex:1"></span>
+          <button onClick="{{ saveDraft }}" disabled="{{ confirmed }}" style="height:44px;padding:0 14px;border:1px solid #7A1F3D;border-radius:12px;background:#FFFFFF;color:#7A1F3D;font-size:14px;font-weight:600" style-hover="background:#F4E7E3">Lưu nháp</button>
+          <button onClick="{{ confirmMap }}" style="height:44px;padding:0 16px;border:none;border-radius:12px;background:{{ cfBg }};color:#FFFFFF;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px" style-hover="opacity:0.92"><i style="font-size:18px">{{ cfIcon }}</i>{{ cfLabel }}</button>
+        </div>
+      </div>
+    </section>
+    </sc-if>
+  </div>
+
+  <div style="position:fixed;inset:0;z-index:55;pointer-events:{{ ov.pe }}">
+    <div onClick="{{ closeOv }}" style="position:absolute;inset:0;background:rgba(43,29,34,0.4);opacity:{{ ov.o }};transition:opacity 250ms linear"></div>
+    <sc-if value="{{ ov.edit }}" hint-placeholder-val="{{ false }}">
+      <div ref="{{ refs.dlg }}" role="dialog" aria-modal="true" aria-label="{{ ed.title }}" style="position:absolute;top:0;right:0;bottom:0;width:{{ L.panelW }};background:#FFF8F1;display:flex;flex-direction:column">
+        <div style="height:60px;display:flex;align-items:center;padding:0 8px 0 20px;border-bottom:1px solid #EADFD6;background:#FFFFFF"><strong style="flex:1;font-size:17px">{{ ed.title }}</strong><button aria-label="Đóng" onClick="{{ closeOv }}" style="width:44px;height:44px;border:none;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>close</i></button></div>
+        <div style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px">
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ ed.nlc }}">Họ tên</span><input value="{{ ed.name }}" onChange="{{ ed.onName }}" aria-invalid="{{ ed.ninv }}" style="height:48px;border:1px solid {{ ed.nbc }};border-radius:12px;padding:0 14px;font-size:16px;outline:none" style-focus="border-color:#7A1F3D"><sc-if value="{{ ed.nerr }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828">{{ ed.nerr }}</span></sc-if></label>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500">Số điện thoại <span style="font-weight:400;color:#6E5D63">(tuỳ chọn)</span></span><input value="{{ ed.phone }}" onChange="{{ ed.onPhone }}" type="tel" style="height:48px;border:1px solid #9A877F;border-radius:12px;padding:0 14px;font-size:16px;outline:none;font-variant-numeric:tabular-nums" style-focus="border-color:#7A1F3D"></label>
+          <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500">Nhóm</span><div role="radiogroup" style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ ed.groups }}" as="g" hint-placeholder-count="4"><button role="radio" aria-checked="{{ g.aria }}" onClick="{{ g.pick }}" style="height:40px;padding:0 12px 0 8px;border-radius:10px;border:{{ g.border }};background:{{ g.bg }};display:flex;align-items:center;gap:6px;font-size:14px;color:#2B1D22"><span style="width:12px;height:12px;border-radius:4px;background:{{ g.color }}"></span>{{ g.name }}</button></sc-for></div></div>
+          <sc-if value="{{ ed.existing }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid #EADFD6;border-radius:12px;background:#FFFFFF;padding:12px;display:flex;align-items:center;gap:10px"><i style="color:#7A1F3D">link</i><span style="flex:1;min-width:0;font-size:13px;color:#6E5D63;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">hyyen.vn/t/thuha-minhquan?k={{ ed.slug }}</span><button onClick="{{ ed.copy }}" style="height:36px;padding:0 10px;border:none;border-radius:10px;background:#F5E4E9;color:#5C1430;font-size:13px;font-weight:600">Sao chép</button></div></sc-if>
+        </div>
+        <div style="padding:12px 16px;border-top:1px solid #EADFD6;background:#FFFFFF;display:flex;gap:8px"><sc-if value="{{ ed.existing }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ed.remove }}" style="height:48px;padding:0 12px;border:none;border-radius:12px;background:transparent;color:#C62828;font-size:15px;font-weight:600" style-hover="background:#FDECEA">Xoá</button></sc-if><span style="flex:1"></span><button onClick="{{ closeOv }}" style="height:48px;padding:0 14px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600">Huỷ</button><button onClick="{{ ed.save }}" style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">Lưu</button></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ ov.csv }}" hint-placeholder-val="{{ false }}">
+      <div ref="{{ refs.dlg }}" role="dialog" aria-modal="true" aria-label="Nhập khách từ CSV" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:{{ L.csvW }};max-height:calc(100% - 24px);background:#FFFFFF;border-radius:20px;display:flex;flex-direction:column;overflow:hidden">
+        <div style="padding:16px 8px 12px 20px;display:flex;align-items:center;border-bottom:1px solid #EADFD6"><strong style="flex:1;font-size:17px">Nhập khách từ CSV</strong><button aria-label="Đóng" onClick="{{ closeOv }}" style="width:44px;height:44px;border:none;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>close</i></button></div>
+        <ol style="list-style:none;margin:0;padding:12px 20px 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px"><sc-for list="{{ csvSteps }}" as="s" hint-placeholder-count="3"><li aria-current="{{ s.cur }}" style="display:flex;flex-direction:column;gap:6px"><span style="height:4px;border-radius:2px;background:{{ s.bar }}"></span><span style="font-size:12px;font-weight:600;color:{{ s.fg }}">{{ s.label }}</span></li></sc-for></ol>
+        <div ref="{{ refs.csvBody }}" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+          <sc-if value="{{ csv.s0 }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ csvPick }}" style="min-height:160px;border:2px dashed #C9BFBC;border-radius:16px;background:#FFFCF9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#2B1D22" style-hover="border-color:#7A1F3D"><i style="font-size:32px;color:#7A1F3D">upload_file</i><strong style="font-size:15px">Chọn hoặc kéo thả file .csv</strong><span style="font-size:13px;color:#6E5D63">Cột: Họ tên, Số điện thoại (tuỳ chọn), Nhóm</span></button>
+            <button onClick="{{ csvTemplate }}" style="align-self:flex-start;height:40px;padding:0 10px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px" style-hover="background:#F4E7E3"><i style="font-size:18px">download</i>Tải file mẫu</button>
+          </sc-if>
+          <sc-if value="{{ csv.s1 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:13px"><span style="height:28px;padding:0 10px;border-radius:14px;background:#E7F1EA;color:#2F6B4F;display:inline-flex;align-items:center;font-weight:600">{{ csv.okCount }} dòng hợp lệ</span><span style="height:28px;padding:0 10px;border-radius:14px;background:#FDECEA;color:#C62828;display:inline-flex;align-items:center;font-weight:600">{{ csv.errCount }} dòng lỗi – sẽ bỏ qua</span><span style="color:#6E5D63;align-self:center">khach-moi.csv</span></div>
+            <div style="border:1px solid #EADFD6;border-radius:12px;overflow-x:auto"><table style="width:100%;min-width:440px;border-collapse:collapse;font-size:13px"><thead><tr style="background:#FBF7F3;color:#6E5D63;text-align:left"><th style="padding:8px 10px;font-weight:600">#</th><th style="padding:8px;font-weight:600">Họ tên</th><th style="padding:8px;font-weight:600">SĐT</th><th style="padding:8px;font-weight:600">Nhóm</th></tr></thead><tbody><sc-for list="{{ csv.rows }}" as="r" hint-placeholder-count="6"><tr style="border-top:1px solid #EADFD6;background:{{ r.bg }}"><td style="padding:8px 10px;color:#6E5D63;vertical-align:top">{{ r.n }}</td><td style="padding:8px;vertical-align:top">{{ r.name }}<sc-if value="{{ r.err }}" hint-placeholder-val="{{ false }}"><span style="display:flex;align-items:center;gap:4px;color:#C62828;font-size:12px;margin-top:2px"><i style="font-size:14px">error</i>{{ r.err }}</span></sc-if></td><td style="padding:8px;vertical-align:top;font-variant-numeric:tabular-nums">{{ r.phone }}</td><td style="padding:8px;vertical-align:top">{{ r.group }}</td></tr></sc-for></tbody></table></div>
+          </sc-if>
+          <sc-if value="{{ csv.s2 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:16px 0"><span style="width:56px;height:56px;border-radius:50%;background:#E7F1EA;color:#2F6B4F;display:flex;align-items:center;justify-content:center"><i style="font-size:28px">check</i></span><strong style="font-size:18px">Đã nhập {{ csv.okCount }} khách</strong><span style="font-size:14px;color:#6E5D63">Bỏ qua {{ csv.errCount }} dòng lỗi. Số khách dự kiến không thay đổi.</span></div>
+          </sc-if>
+        </div>
+        <div style="padding:12px 16px;border-top:1px solid #EADFD6;display:flex;gap:8px;justify-content:flex-end"><sc-if value="{{ csv.s1 }}" hint-placeholder-val="{{ false }}"><button onClick="{{ csvBack }}" style="height:44px;padding:0 14px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600">Chọn file khác</button></sc-if><button onClick="{{ csvNext }}" disabled="{{ csv.s0 }}" style="height:44px;padding:0 18px;border:none;border-radius:12px;background:{{ csv.btnBg }};color:#FFFFFF;font-size:14px;font-weight:600">{{ csv.btn }}</button></div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  G0 = [{ id: 'trai', name: 'Nhà trai', color: '#3F5B6B', fg: '#FFFFFF', want: 110 }, { id: 'gai', name: 'Nhà gái', color: '#7A1F3D', fg: '#FFFFFF', want: 110 }, { id: 'ban', name: 'Bạn bè', color: '#C9A46A', fg: '#2B1D22', want: 50 }, { id: 'cty', name: 'Đồng nghiệp', color: '#2F6B4F', fg: '#FFFFFF', want: 10 }];
+  N0 = [['Lê Văn Hùng', '0903 221 456', 'trai'], ['Nguyễn Thị Lan', '0912 778 102', 'trai'], ['Lê Minh Tuấn', '', 'trai'], ['Trần Văn Bình', '0988 111 234', 'gai'], ['Phạm Thị Mai', '0909 456 789', 'gai'], ['Trần Thu Trang', '', 'gai'], ['Đỗ Hoàng Nam', '0935 222 678', 'ban'], ['Vũ Ngọc Anh', '0977 300 411', 'ban'], ['Hoàng Đức Long', '', 'ban'], ['Bùi Thanh Hương', '0901 555 210', 'cty'], ['Ngô Quốc Việt', '0918 640 731', 'trai'], ['Đặng Thu Hằng', '', 'gai']];
+  state = { tab: 'list', expected: 280, groups: this.G0, guests: this.N0.map(([name, phone, g], i) => ({ id: i + 1, name, phone, g })), filter: null, q: '', ci: false,
+    tpl: 'a', assign: {}, zoom: 0.62, tx: 8, ty: 8, pan: null, pop: null, over: null, reject: false, confirmed: false, ov: null, ed: null, edErr: '', csvStep: 0, dragG: null };
+  el = {}; _rf = {};
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  get ctx() { return this.props.ctx || {}; }
+  get M() { return window.HYMotion; }
+  componentDidMount() { this.setState({ assign: this.seed('a') }); setTimeout(() => this.fit(), 50); }
+  componentDidUpdate(pp, ps) { const M = this.M; if (M && this.state.ov && ps.ov !== this.state.ov && this.el.dlg) M.play(this.el.dlg, this.state.ov === 'edit' ? [{ transform: 'translateX(100%)' }, { transform: 'none' }] : [{ opacity: 0, transform: 'translate(-50%,-50%) scale(0.92)' }, { opacity: 1, transform: 'translate(-50%,-50%)' }], 250, M.E.DEC); if (M && this.state.pop && (!ps.pop || ps.pop.id !== this.state.pop.id) && this.el.pop) M.play(this.el.pop, [{ opacity: 0, transform: 'scale(0.92)' }, { opacity: 1, transform: 'none' }], 150, M.E.DEC); if (this.props.ctx && pp.ctx && pp.ctx.mobile !== this.props.ctx.mobile) setTimeout(() => this.fit(), 50); }
+  layout(tpl) {
+    const T = [];
+    if (tpl === 'a') { T.push({ id: 'V1', label: 'GĐ1', shape: 'rect', x: 250, y: 90, w: 180, h: 54, cap: 12 }, { id: 'V2', label: 'GĐ2', shape: 'rect', x: 470, y: 90, w: 180, h: 54, cap: 12 }); let n = 1; for (let r = 0; r < 4; r++) for (let c = 0; c < 7; c++) T.push({ id: 'T' + n, label: String(n++), shape: 'round', x: 60 + c * 116, y: 180 + r * 108, w: 76, h: 76, cap: 10 }); }
+    else { let n = 1; for (let r = 0; r < 4; r++) for (let c = 0; c < 8; c++) T.push({ id: 'T' + n, label: String(n++), shape: 'round', x: 30 + c * 108, y: 100 + r * 124, w: 76, h: 76, cap: 10 }); }
+    return T;
+  }
+  seed(tpl) { const a = {}; this.layout(tpl).forEach((t, i) => { if (t.id === 'V1') a[t.id] = 'trai'; else if (t.id === 'V2') a[t.id] = 'gai'; else if (i < 13) a[t.id] = 'trai'; else if (i < 22) a[t.id] = 'gai'; else if (i < 25) a[t.id] = 'ban'; }); return a; }
+  fit = () => { const vp = this.el.vp; if (!vp) return; const k = Math.min(vp.clientWidth / 900, vp.clientHeight / 620); this.setState({ zoom: Math.max(0.3, k * 0.98), tx: (vp.clientWidth - 900 * k * 0.98) / 2, ty: (vp.clientHeight - 620 * k * 0.98) / 2 }); };
+  zoomBy(f) { const vp = this.el.vp, s = this.state; const cx = vp ? vp.clientWidth / 2 : 300, cy = vp ? vp.clientHeight / 2 : 200, z = Math.min(2, Math.max(0.3, s.zoom * f)); this.setState({ zoom: z, tx: cx - (cx - s.tx) * z / s.zoom, ty: cy - (cy - s.ty) * z / s.zoom }); }
+  assignTo(tid, gid) {
+    const prev = this.state.assign[tid], M = this.M, c = this.ctx;
+    if (this.state.confirmed) return c.toast('Sơ đồ đã xác nhận. Liên hệ nhà hàng để thay đổi.');
+    this.setState(s => ({ assign: { ...s.assign, [tid]: gid }, pop: null, over: null }), () => { const e = this.el['f' + tid]; M && e && gid && M.play(e, [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], 250, M.E.DEC); });
+    if (this.state.reject) setTimeout(() => { this.setState(s => ({ assign: { ...s.assign, [tid]: prev } }), () => { const e = this.el['f' + tid]; M && e && prev && M.play(e, [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], 250, M.E.DEC); }); c.toast('Không gán được nhóm cho bàn. Đã hoàn lại. Mã: req_8f2a61c0'); }, 700);
+  }
+  gOf(id) { return this.state.groups.find(g => g.id === id); }
+  renderVals() {
+    const c = this.ctx, m = !!c.mobile, s = this.state, ph = this.props.phase || 'pre', go = c.go || (() => {});
+    const tables = this.layout(s.tpl), seats = {}; tables.forEach(t => { const g = s.assign[t.id]; if (g) seats[g] = (seats[g] || 0) + t.cap; });
+    const seatTotal = Object.values(seats).reduce((a, b) => a + b, 0);
+    const q = s.q.trim().toLowerCase();
+    const list = s.guests.filter(x => (!s.filter || x.g === s.filter) && (!q || x.name.toLowerCase().includes(q) || x.phone.replace(/\s/g, '').includes(q.replace(/\s/g, ''))));
+    const legend = s.groups.map(g => { const have = seats[g.id] || 0, short = have < g.want; return { name: g.name, color: g.color, text: `${have}/${g.want} chỗ`, fg: short ? '#C62828' : '#2F6B4F', short }; });
+    const shorts = legend.filter(x => x.short), unassigned = tables.filter(t => !s.assign[t.id]).length;
+    const warn = { show: shorts.length > 0 || seatTotal < s.expected, text: shorts.length ? `Thiếu chỗ: ${shorts.map(x => `${x.name} (${x.text})`).join(', ')}. ${unassigned} bàn chưa gán nhóm.` : `Đã xếp ${seatTotal} chỗ cho ${s.expected} khách dự kiến. ${unassigned} bàn chưa gán.` };
+    const ed = s.ed || {};
+    const CSV = [['Nguyễn Hữu Phước', '0903 445 112', 'Nhà trai', ''], ['', '0912 000 341', 'Nhà gái', 'Thiếu họ tên'], ['Trần Bảo Ngọc', '0988 77', 'Bạn bè', 'Số điện thoại không hợp lệ'], ['Lý Gia Hân', '', 'Bạn bè', ''], ['Phan Văn Khoa', '0935 118 902', 'Hàng xóm', 'Nhóm "Hàng xóm" chưa có'], ['Mai Thị Thu', '0909 312 554', 'Nhà gái', '']];
+    const csvOk = CSV.filter(r => !r[3]).length;
+    const open = !!s.ov, pop = s.pop;
+    return {
+      refs: new Proxy({}, { get: (_, n) => typeof n === 'string' ? this.rf(n) : undefined }), m,
+      locked: ph === 'pre' || ph === 'none', open: !(ph === 'pre' || ph === 'none'), goPayment: () => go('payment'),
+      tabs: [['list', 'Khách'], ['map', 'Sơ đồ bàn']].map(([v, label]) => { const on = s.tab === v; return { label, aria: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', fg: on ? '#7A1F3D' : '#6E5D63', click: () => this.setState({ tab: v }, () => v === 'map' && setTimeout(this.fit, 30)) }; }),
+      showLeft: !m || s.tab === 'list', showRight: !m || s.tab === 'map',
+      expected: s.expected, onExpected: e => this.setState({ expected: parseInt(e.target.value.replace(/\D/g, ''), 10) || 0 }), expDec: () => this.setState({ expected: Math.max(0, s.expected - 10) }), expInc: () => this.setState({ expected: s.expected + 10 }),
+      nameCount: `${s.guests.length} người`, seatTotal: `${seatTotal} chỗ`,
+      groupChips: [{ id: null, name: 'Tất cả', color: 'transparent', count: s.guests.length }].concat(s.groups.map(g => ({ ...g, count: s.guests.filter(x => x.g === g.id).length }))).map(g => { const on = s.filter === g.id; return { name: g.name, color: g.color, count: g.count, aria: on ? 'true' : 'false', bg: on ? '#F5E4E9' : '#FFFFFF', border: on ? '1px solid #7A1F3D' : '1px solid #D9C8BC', click: () => this.setState({ filter: g.id }, () => this.M && this.M.stagger(this.el.vp ? this.el.vp.ownerDocument : document)) }; }),
+      addGroup: () => { const n = s.groups.length; this.setState({ groups: s.groups.concat([{ id: 'g' + Date.now(), name: `Nhóm ${n + 1}`, color: ['#8A5300', '#5C1430', '#4E6420'][n % 3], fg: '#FFFFFF', want: 0 }]) }); c.toast('Đã thêm nhóm mới'); },
+      ciOn: s.ci, ciAria: s.ci ? 'true' : 'false', ciTrack: s.ci ? '#7A1F3D' : '#C9BFBC', ciThumb: s.ci ? 'translateX(20px)' : 'none', toggleCi: () => { this.setState({ ci: !s.ci }); c.toast(s.ci ? 'Đã tắt check-in' : 'Đã bật check-in. Chưa có dữ liệu: hiển thị "Chưa ghi nhận".'); },
+      q: s.q, onQ: e => this.setState({ q: e.target.value }),
+      listEmpty: list.length === 0, empty: s.guests.length === 0 ? { icon: 'group_add', title: 'Danh sách tên đang trống', body: 'Không bắt buộc. Bạn có thể chỉ dùng số khách dự kiến và nhóm, hoặc thêm tên để gửi link thiệp cá nhân.' } : { icon: 'search_off', title: 'Không tìm thấy khách', body: 'Thử tên khác hoặc bỏ lọc nhóm.' },
+      rows: list.map(x => { const g = this.gOf(x.g) || {}; return { name: x.name, sub: `${g.name || 'Chưa có nhóm'}${x.phone ? ' · ' + x.phone : ''}`, color: g.color || '#C9BFBC', copyAria: `Sao chép link thiệp của ${x.name}`, copy: () => { try { navigator.clipboard.writeText(`https://hyyen.vn/t/thuha-minhquan?k=${x.id}a7`); } catch (e) {} c.toast(`Đã sao chép link thiệp của ${x.name}`); }, edit: () => this.setState({ ov: 'edit', ed: { ...x }, edErr: '' }) }; }),
+      newGuest: () => this.setState({ ov: 'edit', ed: { id: null, name: '', phone: '', g: s.filter || 'trai' }, edErr: '' }),
+      ed: { title: ed.id ? 'Sửa khách' : 'Thêm khách', name: ed.name || '', phone: ed.phone || '', existing: !!ed.id, slug: (ed.id || '') + 'a7', nerr: s.edErr, ninv: s.edErr ? 'true' : 'false', nbc: s.edErr ? '#C62828' : '#9A877F', nlc: s.edErr ? '#C62828' : '#2B1D22',
+        onName: e => this.setState({ ed: { ...ed, name: e.target.value }, edErr: '' }), onPhone: e => this.setState({ ed: { ...ed, phone: e.target.value } }),
+        groups: s.groups.map(g => { const on = ed.g === g.id; return { name: g.name, color: g.color, aria: on ? 'true' : 'false', bg: on ? '#F5E4E9' : '#FFFFFF', border: on ? '1px solid #7A1F3D' : '1px solid #D9C8BC', pick: () => this.setState({ ed: { ...ed, g: g.id } }) }; }),
+        copy: () => c.toast(`Đã sao chép link thiệp của ${ed.name}`),
+        remove: () => { this.setState({ guests: s.guests.filter(x => x.id !== ed.id), ov: null }); c.toast(`Đã xoá ${ed.name}`); },
+        save: () => { if (!ed.name.trim()) return this.setState({ edErr: 'Nhập họ tên khách' }); this.setState({ guests: ed.id ? s.guests.map(x => x.id === ed.id ? { ...ed } : x) : [{ ...ed, id: Date.now() }].concat(s.guests), ov: null }); c.toast(ed.id ? 'Đã lưu khách' : `Đã thêm ${ed.name}`); } },
+      openCsv: () => this.setState({ ov: 'csv', csvStep: 0 }), csvPick: () => this.setState({ csvStep: 1 }), csvBack: () => this.setState({ csvStep: 0 }), csvTemplate: () => c.toast('Đang tải khach-moi-mau.csv'),
+      csvNext: () => { if (s.csvStep === 1) { const add = CSV.filter(r => !r[3]).map(([name, phone, gn], i) => ({ id: Date.now() + i, name, phone, g: (s.groups.find(g => g.name === gn) || {}).id || 'ban' })); this.setState({ csvStep: 2, guests: add.concat(s.guests) }); } else this.setState({ ov: null }); },
+      csvSteps: ['Chọn file', 'Xem trước & lỗi', 'Kết quả'].map((label, i) => ({ label, cur: i === s.csvStep ? 'step' : 'false', bar: i <= s.csvStep ? '#7A1F3D' : '#EADFD6', fg: i <= s.csvStep ? '#7A1F3D' : '#6E5D63' })),
+      csv: { s0: s.csvStep === 0, s1: s.csvStep === 1, s2: s.csvStep === 2, okCount: csvOk, errCount: CSV.length - csvOk, btn: s.csvStep === 2 ? 'Xong' : `Nhập ${csvOk} khách hợp lệ`, btnBg: s.csvStep === 0 ? '#C9BFBC' : '#7A1F3D', rows: CSV.map(([name, phone, group, err], i) => ({ n: i + 2, name: name || '—', phone: phone || '—', group, err, bg: err ? '#FFF6F5' : '#FFFFFF' })) },
+      ov: { pe: open ? 'auto' : 'none', o: open ? 1 : 0, edit: s.ov === 'edit', csv: s.ov === 'csv' }, closeOv: () => this.setState({ ov: null }),
+      tpl: s.tpl, onTpl: e => { const v = e.target.value; this.setState({ tpl: v, assign: this.seed(v), pop: null, confirmed: false }); c.toast('Đã đổi mẫu sơ đồ; gán nhóm theo gợi ý ban đầu'); },
+      stChip: s.confirmed ? { label: 'Đã xác nhận', icon: 'check_circle', bg: '#E7F1EA', fg: '#2F6B4F' } : { label: 'Nháp', icon: 'edit_note', bg: '#F7EDE4', fg: '#6E5D63' },
+      dragChips: s.groups.map(g => ({ name: g.name, color: g.color, fg: g.fg, aria: `Kéo nhóm ${g.name} vào bàn`, start: e => { this.setState({ dragG: g.id, pop: null }); try { e.dataTransfer.setData('text/plain', g.id); e.dataTransfer.effectAllowed = 'copy'; } catch (x) {} } })),
+      xf: `translate(${s.tx}px,${s.ty}px) scale(${s.zoom})`, panCursor: s.pan ? 'grabbing' : 'grab',
+      panStart: e => { if (e.target.closest && (e.target.closest('[data-table]') || e.target.closest('[role="dialog"]'))) return; this.setState({ pan: { x: e.clientX, y: e.clientY, tx: s.tx, ty: s.ty }, pop: null }); },
+      panMove: e => { const p = this.state.pan; if (!p) return; const k = (c.scale || 1); this.setState({ tx: p.tx + (e.clientX - p.x) / k, ty: p.ty + (e.clientY - p.y) / k }); },
+      panEnd: () => this.state.pan && this.setState({ pan: null }),
+      onWheel: e => { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault && e.preventDefault(); this.zoomBy(e.deltaY < 0 ? 1.1 : 0.9); },
+      zoomIn: () => this.zoomBy(1.2), zoomOut: () => this.zoomBy(1 / 1.2), fit: this.fit, stop: e => e.stopPropagation(),
+      tables: tables.map(t => { const g = this.gOf(s.assign[t.id]), over = s.over === t.id, sel = pop && pop.id === t.id;
+        return { label: t.label, cap: t.cap, x: t.x + 'px', y: t.y + 'px', w: t.w + 'px', h: t.h + 'px', r: t.shape === 'round' ? '50%' : '10px', ref: this.rf('f' + t.id), fill: g ? g.color : 'transparent', fg: g ? g.fg : '#2B1D22',
+          border: over ? '3px dashed #7A1F3D' : sel ? '3px solid #2B1D22' : g ? '2px solid rgba(43,29,34,0.15)' : '2px solid #C9BFBC', sh: over ? '0 0 0 6px rgba(122,31,61,0.15)' : 'none',
+          aria: `Bàn ${t.label}, ${t.cap} chỗ, ${g ? 'nhóm ' + g.name : 'chưa gán nhóm'}`,
+          click: () => { const z = this.state; this.setState({ pop: { id: t.id, label: t.label, x: Math.min((this.el.vp ? this.el.vp.clientWidth : 600) - 230, Math.max(8, (t.x + t.w / 2) * z.zoom + z.tx - 110)), y: Math.max(8, (t.y + t.h) * z.zoom + z.ty + 6) } }); },
+          over: e => { e.preventDefault(); if (this.state.over !== t.id) this.setState({ over: t.id }); }, leave: () => this.setState({ over: null }),
+          drop: e => { e.preventDefault(); let gid = this.state.dragG; try { gid = e.dataTransfer.getData('text/plain') || gid; } catch (x) {} if (gid) this.assignTo(t.id, gid); this.setState({ dragG: null }); } }; }),
+      pop: pop ? { show: true, title: `Bàn ${pop.label}`, x: pop.x + 'px', y: Math.min(pop.y, (this.el.vp ? this.el.vp.clientHeight : 400) - 250) + 'px', items: s.groups.map(g => { const on = s.assign[pop.id] === g.id; return { name: g.name, color: g.color, on, bg: on ? '#F5E4E9' : 'transparent', pick: () => this.assignTo(pop.id, g.id) }; }), clear: () => this.assignTo(pop.id, null) } : { show: false, items: [] },
+      closePop: () => this.setState({ pop: null }),
+      legend, warn,
+      rejAria: s.reject ? 'true' : 'false', rejTrack: s.reject ? '#7A1F3D' : '#C9BFBC', rejThumb: s.reject ? 'translateX(10px)' : 'none', toggleRej: () => this.setState({ reject: !s.reject }),
+      confirmed: s.confirmed, saveDraft: () => c.toast('Đã lưu nháp sơ đồ'),
+      cfBg: s.confirmed ? '#2F6B4F' : '#7A1F3D', cfIcon: s.confirmed ? 'check_circle' : 'task_alt', cfLabel: s.confirmed ? 'Đã xác nhận sơ đồ' : 'Xác nhận sơ đồ',
+      confirmMap: () => { if (s.confirmed) return; this.setState({ confirmed: true, pop: null }); c.toast(shorts.length ? 'Đã xác nhận sơ đồ (còn nhóm thiếu chỗ – nhà hàng sẽ liên hệ).' : 'Đã xác nhận sơ đồ. Nhà hàng sẽ nhận bản này.'); },
+      L: m ? { cols: 'minmax(0,1fr)', listH: 'none', canvasH: '420px', rightPos: 'static', panelW: '100%', csvW: 'calc(100% - 24px)' } : { cols: 'minmax(0,0.9fr) minmax(0,1.3fr)', listH: '360px', canvasH: '440px', rightPos: 'sticky', panelW: '440px', csvW: '600px' },
+    };
+  }
+}
+</script>
+</body>
+</html>

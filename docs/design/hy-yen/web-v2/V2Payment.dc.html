@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;flex-direction:column;gap:20px">
+<sc-if value="{{ isWallet }}" hint-placeholder-val="{{ true }}">
+  <div style="display:grid;grid-template-columns:{{ L.top }};gap:16px;align-items:stretch">
+    <section aria-label="Ví tiệc" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:{{ L.walletDir }};gap:24px;align-items:center">
+      <div style="position:relative;width:168px;height:168px;flex:none">
+        <svg width="168" height="168" viewBox="0 0 168 168" aria-hidden="true"><circle cx="84" cy="84" r="72" fill="none" stroke="#F7EDE4" stroke-width="14"></circle><circle ref="{{ refs.ring }}" cx="84" cy="84" r="72" fill="none" stroke="{{ w.ringC }}" stroke-width="14" stroke-linecap="round" stroke-dasharray="452.4" stroke-dashoffset="{{ w.dash }}" transform="rotate(-90 84 84)"></circle></svg>
+        <div role="img" aria-label="{{ w.ringAria }}" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><span ref="{{ refs.pct }}" style="font-size:30px;font-weight:700;font-variant-numeric:tabular-nums">{{ w.pct }}</span><span style="font-size:12px;color:#6E5D63">đã thanh toán</span></div>
+      </div>
+      <div style="flex:1;min-width:0;width:100%;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;color:#6E5D63">Còn lại</span><span ref="{{ refs.remain }}" style="font-size:32px;line-height:40px;font-weight:700;color:#7A1F3D;font-variant-numeric:tabular-nums">{{ w.remain }}</span></div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px 16px;font-size:14px;font-variant-numeric:tabular-nums">
+          <sc-for list="{{ w.rows }}" as="r" hint-placeholder-count="4"><span style="color:#6E5D63;display:flex;flex-direction:column">{{ r.k }}<sc-if value="{{ r.sub }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px">{{ r.sub }}</span></sc-if></span><strong style="text-align:right;color:{{ r.c }}">{{ r.v }}</strong></sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Thanh toán tiếp theo" style="border-radius:16px;background:{{ act.bg }};border:{{ act.border }};padding:24px;display:flex;flex-direction:column;gap:12px">
+      <span style="font-size:13px;font-weight:600;color:{{ act.kfg }}">{{ act.kicker }}</span>
+      <strong style="font-size:22px;line-height:30px;color:{{ act.tfg }};font-variant-numeric:tabular-nums">{{ act.title }}</strong>
+      <span style="font-size:14px;line-height:22px;color:{{ act.bfg }}">{{ act.body }}</span>
+      <sc-if value="{{ act.blocked }}" hint-placeholder-val="{{ false }}"><div role="note" style="border-radius:12px;background:#FFFFFF;border:1px solid #EADFD6;padding:12px;display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:21px"><i style="color:{{ act.ric }};font-size:20px">{{ act.ricon }}</i><span style="flex:1">{{ act.reason }}</span></div></sc-if>
+      <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+        <button onClick="{{ act.click }}" disabled="{{ act.disabled }}" aria-disabled="{{ act.ariaDis }}" style="height:52px;border:none;border-radius:12px;background:{{ act.btnBg }};color:{{ act.btnFg }};font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:{{ act.cursor }};transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-active="transform:scale(0.97)"><i style="font-size:20px">{{ act.icon }}</i>{{ act.btn }}</button>
+        <sc-if value="{{ act.hasFix }}" hint-placeholder-val="{{ false }}"><button onClick="{{ act.fix }}" style="height:44px;border:1px solid #7A1F3D;border-radius:12px;background:#FFFFFF;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px" style-hover="background:#F4E7E3">{{ act.fixLabel }}<i style="font-size:18px">arrow_forward</i></button></sc-if>
+      </div>
+    </section>
+  </div>
+
+  <section aria-label="Lịch sử giao dịch" style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;overflow:hidden">
+    <div style="padding:16px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #EADFD6"><strong style="font-size:17px;flex:1">Lịch sử giao dịch</strong><span style="font-size:13px;color:#6E5D63">Giao dịch VNPay tự cập nhật; khoản thu tại nhà hàng do quản lý tiệc ghi nhận.</span></div>
+    <sc-if value="{{ txEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:32px 20px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center"><i style="font-size:28px;color:#9A877F">receipt</i><strong style="font-size:15px">Chưa có giao dịch</strong><span style="font-size:14px;color:#6E5D63">Giao dịch đặt cọc sẽ xuất hiện ở đây.</span></div></sc-if>
+    <div data-stagger="1" style="display:flex;flex-direction:column">
+      <sc-for list="{{ txs }}" as="t" hint-placeholder-count="3">
+        <div style="min-height:68px;display:grid;grid-template-columns:{{ L.txCols }};gap:4px 14px;align-items:center;padding:12px 20px;border-top:1px solid #EADFD6">
+          <span style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:{{ t.ibg }};color:{{ t.ifg }};grid-row:span 2"><i>{{ t.icon }}</i></span>
+          <span style="min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">{{ t.title }}</span><span style="font-size:13px;color:#6E5D63">{{ t.meta }}</span></span>
+          <span style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><strong style="font-size:15px;font-variant-numeric:tabular-nums;color:{{ t.afg }}">{{ t.amount }}</strong><span style="height:22px;padding:0 8px 0 5px;border-radius:11px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:3px;background:{{ t.cbg }};color:{{ t.cfg }}"><i style="font-size:14px">{{ t.cicon }}</i>{{ t.chip }}</span></span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+</sc-if>
+
+<sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
+  <div style="border:1px dashed #C9A46A;border-radius:12px;padding:6px 10px;display:flex;align-items:center;gap:8px;background:#FFFCF6;flex-wrap:wrap">
+    <span style="font-size:12px;font-weight:600;color:#6B4E1F;display:flex;align-items:center;gap:4px"><i style="font-size:16px">science</i>Kết quả VNPay trả về</span>
+    <div role="radiogroup" style="display:flex;gap:4px;flex-wrap:wrap"><sc-for list="{{ simOpts }}" as="o" hint-placeholder-count="3"><button role="radio" aria-checked="{{ o.aria }}" onClick="{{ o.click }}" style="height:32px;padding:0 10px;border-radius:10px;border:{{ o.border }};background:{{ o.bg }};color:{{ o.fg }};font-size:12px;font-weight:600">{{ o.label }}</button></sc-for></div>
+    <button onClick="{{ rerun }}" style="margin-left:auto;height:32px;padding:0 10px;border:none;border-radius:10px;background:transparent;color:#7A1F3D;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px"><i style="font-size:16px">replay</i>Quay lại từ VNPay lần nữa</button>
+  </div>
+  <section ref="{{ refs.result }}" role="status" aria-live="polite" style="max-width:600px;width:100%;margin:0 auto;border:1px solid #EADFD6;border-radius:20px;background:#FFFFFF;padding:{{ L.resPad }};display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px">
+    <sc-if value="{{ r.confirming }}" hint-placeholder-val="{{ true }}"><span style="width:72px;height:72px;border-radius:50%;border:5px solid #F5E4E9;border-top-color:#7A1F3D;animation:{{ spin }}"></span></sc-if>
+    <sc-if value="{{ r.success }}" hint-placeholder-val="{{ false }}"><span ref="{{ refs.tickC }}" style="width:72px;height:72px;border-radius:50%;background:#2F6B4F;display:flex;align-items:center;justify-content:center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path ref="{{ refs.tickP }}" d="M6 12.5l4 4L18 8.5" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="24" stroke-dashoffset="0"></path></svg></span></sc-if>
+    <sc-if value="{{ r.iconOnly }}" hint-placeholder-val="{{ false }}"><span style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:{{ r.ibg }};color:{{ r.ifg }}"><i style="font-size:36px">{{ r.icon }}</i></span></sc-if>
+    <h1 style="margin:0;font-size:26px;line-height:34px;font-weight:700">{{ r.title }}</h1>
+    <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;text-wrap:pretty;max-width:460px">{{ r.body }}</p>
+    <sc-if value="{{ r.showBox }}" hint-placeholder-val="{{ true }}"><div style="width:100%;border:1px solid #EADFD6;border-radius:14px;text-align:left;display:flex;flex-direction:column">
+      <sc-for list="{{ r.rows }}" as="x" hint-placeholder-count="4"><div style="min-height:46px;display:flex;align-items:center;gap:12px;padding:8px 14px;border-top:1px solid #EADFD6;font-size:14px"><span style="color:#6E5D63;flex:1">{{ x.k }}</span><strong style="font-variant-numeric:tabular-nums;text-align:right;color:{{ x.c }}">{{ x.v }}</strong></div></sc-for>
+    </div></sc-if>
+    <sc-if value="{{ r.unknown }}" hint-placeholder-val="{{ false }}"><div style="width:100%;border-radius:14px;background:#FCEFD6;padding:14px;display:flex;gap:10px;text-align:left;font-size:14px;line-height:21px"><i style="color:#8A5300">do_not_disturb_on</i><span><strong>Không thanh toán lần nữa.</strong> Nếu ngân hàng đã trừ tiền, giao dịch sẽ được ghi nhận sau đối soát. Nếu không thành công, tiền (nếu bị trừ) được hoàn tự động trong 1–3 ngày làm việc.</span></div></sc-if>
+    <sc-if value="{{ r.unlocked }}" hint-placeholder-val="{{ false }}"><div style="width:100%;border-radius:14px;background:#E7F1EA;padding:14px;display:flex;gap:10px;text-align:left;font-size:14px;line-height:21px;color:#1F4D38"><i>lock_open</i><span><strong>Đã mở mục Chuẩn bị:</strong> khách mời &amp; sơ đồ bàn, thiệp &amp; in, phụ lục.</span></div></sc-if>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:100%">
+      <sc-for list="{{ r.btns }}" as="b" hint-placeholder-count="2"><button onClick="{{ b.click }}" disabled="{{ b.off }}" style="height:48px;padding:0 20px;border-radius:12px;border:{{ b.border }};background:{{ b.bg }};color:{{ b.fg }};font-size:15px;font-weight:600;flex:{{ L.btnFlex }}" style-hover="opacity:0.9">{{ b.label }}</button></sc-for>
+    </div>
+  </section>
+</sc-if>
+
+<div style="position:fixed;inset:0;z-index:55;pointer-events:{{ sh.pe }}">
+  <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(43,29,34,0.4);opacity:{{ sh.o }};transition:opacity 250ms linear"></div>
+  <sc-if value="{{ sh.open }}" hint-placeholder-val="{{ false }}">
+    <div ref="{{ refs.sheet }}" role="dialog" aria-modal="true" aria-label="Xác nhận thanh toán" style="position:absolute;left:{{ L.shL }};right:{{ L.shR }};bottom:{{ L.shB }};top:{{ L.shT }};width:{{ L.shW }};transform:{{ L.shTf }};background:#FFFFFF;border-radius:{{ L.shRad }};padding:{{ L.shPad }};display:flex;flex-direction:column;gap:16px">
+      <sc-if value="{{ m }}" hint-placeholder-val="{{ false }}"><span style="align-self:center;width:32px;height:4px;border-radius:2px;background:#C9BFBC"></span></sc-if>
+      <strong style="font-size:20px">Xác nhận thanh toán</strong>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0"><span style="font-size:14px;color:#6E5D63">{{ pay.kindLabel }}</span><span style="font-size:34px;line-height:42px;font-weight:700;color:#7A1F3D;font-variant-numeric:tabular-nums">{{ pay.amountText }}</span></div>
+      <div style="border:1px solid #EADFD6;border-radius:12px;display:flex;flex-direction:column;font-size:14px">
+        <sc-for list="{{ pay.rows }}" as="x" hint-placeholder-count="3"><div style="min-height:44px;display:flex;align-items:center;gap:12px;padding:8px 14px;border-top:1px solid #EADFD6"><span style="color:#6E5D63;flex:1">{{ x.k }}</span><strong style="text-align:right">{{ x.v }}</strong></div></sc-for>
+      </div>
+      <span style="font-size:13px;line-height:20px;color:#6E5D63;display:flex;gap:8px"><i style="font-size:18px;color:#3F5B6B">open_in_new</i>Bạn sẽ được chuyển sang VNPay (thẻ ATM, QR ngân hàng, thẻ quốc tế). Sau khi thanh toán, VNPay tự đưa bạn quay lại đây.</span>
+      <div style="display:flex;gap:8px;justify-content:flex-end"><button onClick="{{ closeSheet }}" style="height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Huỷ</button><button onClick="{{ toVnpay }}" style="height:48px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px" style-hover="background:#87334F"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ vnpayLabel }}</button></div>
+    </div>
+  </sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { sheet: false, busy: false, sim: 'success', status: 'confirming', pending: null, paidFull: false, extra: [], lastKind: 'deposit' };
+  el = {}; _rf = {};
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  get ctx() { return this.props.ctx || {}; }
+  get M() { return window.HYMotion; }
+  vnd(v) { return v.toLocaleString('vi-VN') + ' ₫'; }
+  componentDidMount() { this.enter(); }
+  componentDidUpdate(pp, ps) {
+    if (pp.screen !== this.props.screen || (pp.phase !== this.props.phase && this.props.screen === 'payment')) this.enter();
+    if (this.state.sheet && !ps.sheet && this.M && this.el.sheet) { const m = this.ctx.mobile; this.M.play(this.el.sheet, m ? [{ transform: 'translateY(100%)' }, { transform: 'none' }] : [{ opacity: 0, transform: 'translate(-50%,-50%) scale(0.92)' }, { opacity: 1, transform: 'translate(-50%,-50%)' }], m ? 300 : 250, this.M.E.DEC); }
+  }
+  componentWillUnmount() { clearTimeout(this.t); }
+  wallet() {
+    const ph = this.props.phase || 'pre', s = this.state;
+    if (s.paidFull) return { total: 221300000, paid: 221300000, totalSub: 'Hoá đơn cuối · gồm phụ lục 1 và phát sinh' };
+    return { pre: { total: 201600000, paid: 0, totalSub: 'Hợp đồng phiên bản 2' }, post: { total: 214600000, paid: 60480000, totalSub: 'Hợp đồng 201.600.000 ₫ + phụ lục 1' }, after: { total: 221300000, paid: 60480000, totalSub: 'Hoá đơn cuối · gồm phụ lục 1 và phát sinh' }, cancelled: { total: 201600000, paid: 60480000, totalSub: 'Tiệc đã huỷ 05/10/2026' }, none: { total: 0, paid: 0, totalSub: '' } }[ph];
+  }
+  enter() {
+    const M = this.M, scr = this.props.screen;
+    if (scr === 'payment' && M) setTimeout(() => { const w = this.wallet(), pct = w.total ? Math.round(w.paid / w.total * 100) : 0; M.countUp(this.el.remain, w.total, w.total - w.paid, 800); this.countPct(pct); if (this.el.ring) M.play(this.el.ring, [{ strokeDashoffset: 452.4 }, { strokeDashoffset: 452.4 * (1 - pct / 100) }], 800, M.E.EMP); }, 100);
+    if (scr === 'payResult') this.resolve();
+  }
+  countPct(to) { const el = this.el.pct; if (!el) return; if (this.M.reduce) { el.textContent = to + '%'; return; } const t0 = performance.now(); const f = n => { const k = Math.min(1, (n - t0) / 800), e = 1 - Math.pow(1 - k, 4); el.textContent = Math.round(to * e) + '%'; if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); }
+  resolve() {
+    clearTimeout(this.t);
+    this.setState({ status: 'confirming' });
+    this.t = setTimeout(() => {
+      const st = this.state.sim, kind = this.state.lastKind, c = this.ctx, amt = kind === 'deposit' ? 60480000 : 160820000;
+      this.setState({ status: st, pending: st === 'unknown' ? { kind, amt } : null }, () => {
+        const M = this.M; if (M && this.el.result) M.play(this.el.result, [{ opacity: 0 }, { opacity: 1 }], 210, M.E.DEC);
+        if (st === 'success') {
+          if (M) { M.tick(this.el.tickC, this.el.tickP); M.celebrate(); }
+          try { navigator.vibrate && navigator.vibrate([20, 40, 30]); } catch (e) {}
+          this.setState(s => ({ extra: [{ kind, amt, date: '16/10/2026 10:42' }].concat(s.extra.filter(x => x.kind !== kind)) }));
+          if (kind === 'deposit' && this.props.onPhase) this.props.onPhase('post');
+          if (kind === 'balance') this.setState({ paidFull: true });
+        }
+      });
+    }, 1600);
+  }
+  open = () => this.setState({ sheet: true });
+  toVnpay = () => { if (this.state.busy) return; const kind = (this.props.phase || 'pre') === 'pre' ? 'deposit' : 'balance'; this.setState({ busy: true, lastKind: kind }); this.t = setTimeout(() => { this.setState({ busy: false, sheet: false }); this.ctx.go('payResult'); }, 900); };
+  renderVals() {
+    const c = this.ctx, m = !!c.mobile, s = this.state, ph = this.props.phase || 'pre', scr = this.props.screen || 'payment', go = c.go || (() => {}), vnd = v => this.vnd(v);
+    const w0 = this.wallet(), pct = w0.total ? Math.round(w0.paid / w0.total * 100) : 0, remain = w0.total - w0.paid;
+    const due = s.paidFull ? '—' : { pre: 'Cọc trước 21/10/2026', post: 'Số dư sau ngày cưới', after: 'Số dư trước 27/12/2026', cancelled: '—' }[ph] || '—';
+    const w = { pct: pct + '%', dash: 452.4 * (1 - pct / 100), ringC: s.paidFull ? '#2F6B4F' : '#7A1F3D', ringAria: `Đã thanh toán ${pct}%, ${vnd(w0.paid)} trên ${vnd(w0.total)}`, remain: vnd(remain),
+      rows: [{ k: 'Tổng', sub: w0.totalSub, v: vnd(w0.total), c: '#2B1D22' }, { k: 'Đã trả', v: vnd(w0.paid), c: '#2F6B4F' }, { k: 'Hạn', v: due, c: ph === 'pre' || ph === 'after' ? '#C62828' : '#2B1D22' }] };
+    const pend = s.pending, off = !!c.offline;
+    let act;
+    const base = { bg: '#FFFFFF', border: '1px solid #EADFD6', kfg: '#7A1F3D', tfg: '#2B1D22', bfg: '#6E5D63', btnBg: '#7A1F3D', btnFg: '#FFFFFF', icon: 'account_balance_wallet', disabled: false, cursor: 'pointer', blocked: false, hasFix: false, ric: '#8A5300', ricon: 'info', click: this.open };
+    if (s.paidFull) act = { ...base, bg: '#E7F1EA', border: '1px solid #CFE3D7', kfg: '#2F6B4F', kicker: 'Hoàn tất', title: 'Đã thanh toán đủ', body: 'Cảm ơn hai bạn. Hoá đơn cuối 221.300.000 ₫ đã được thanh toán đủ.', btn: 'Đã thanh toán đủ', icon: 'check_circle', btnBg: '#2F6B4F', disabled: true, cursor: 'default' };
+    else if (ph === 'cancelled') act = { ...base, kicker: 'Tiệc đã huỷ', title: 'Không có khoản cần thanh toán', body: 'Khoản hoàn tiền cọc đang được nhà hàng xử lý.', btn: 'Không cần thanh toán', btnBg: '#E3D8CF', btnFg: '#6E5D63', disabled: true, cursor: 'default' };
+    else if (ph === 'post') act = { ...base, kicker: 'Tiếp theo', title: 'Thanh toán số dư', body: 'Số dư được tính trên hoá đơn cuối, gồm hợp đồng, phụ lục và chi phí phát sinh.', blocked: true, reason: 'Chưa đến lúc thanh toán: nhà hàng chốt hoá đơn cuối sau ngày cưới 20/12/2026.', ricon: 'event', btn: 'Thanh toán số dư', btnBg: '#E3D8CF', btnFg: '#6E5D63', disabled: true, cursor: 'default', hasFix: true, fixLabel: 'Xem phụ lục đang chờ duyệt', fix: () => go('prepAddendum') };
+    else if (ph === 'after') act = { ...base, kicker: 'Đến hạn 27/12/2026', title: `Thanh toán số dư ${vnd(160820000)}`, body: 'Hoá đơn cuối 221.300.000 ₫ trừ tiền cọc 60.480.000 ₫ đã trả.', btn: `Thanh toán số dư ${vnd(160820000)}`, hasFix: true, fixLabel: 'Xem hoá đơn cuối', fix: () => go('settle') };
+    else act = { ...base, kicker: 'Đặt cọc 30% · hạn 21/10/2026', title: `Đặt cọc ${vnd(60480000)}`, body: '30% tổng hợp đồng 201.600.000 ₫, làm tròn lên. Cọc xong sẽ mở mục Chuẩn bị.', btn: `Đặt cọc ${vnd(60480000)}`, ...(this.props.ctOk ? {} : { blocked: true, reason: 'Chưa đủ điều kiện: hợp đồng phiên bản 2 cần cả nhà hàng và hai bạn duyệt.', btnBg: '#E3D8CF', btnFg: '#6E5D63', disabled: true, cursor: 'default', hasFix: true, fixLabel: 'Mở hợp đồng để duyệt', fix: () => go('contract') }) };
+    if (!s.paidFull && pend) act = { ...act, blocked: true, ricon: 'hourglass_top', reason: `Giao dịch ${vnd(pend.amt)} đang đối soát. Không thanh toán lần nữa cho đến khi có kết quả.`, btnBg: '#E3D8CF', btnFg: '#6E5D63', disabled: true, cursor: 'default', hasFix: true, fixLabel: 'Xem trạng thái giao dịch', fix: () => go('payResult') };
+    else if (off && !act.disabled) act = { ...act, blocked: true, ricon: 'cloud_off', ric: '#3F5B6B', reason: 'Không có kết nối. Nút thanh toán sẽ bật lại khi có mạng.', btnBg: '#E3D8CF', btnFg: '#6E5D63', disabled: true, cursor: 'default' };
+    act.ariaDis = act.disabled ? 'true' : 'false';
+    const T = (icon, title, meta, amount, chip, kind, sign) => { const C = { ok: ['Thành công', 'check_circle', '#E7F1EA', '#2F6B4F'], fail: ['Thất bại', 'cancel', '#FDECEA', '#C62828'], wait: ['Đang đối soát', 'hourglass_top', '#FCEFD6', '#8A5300'], proc: ['Đang xử lý', 'schedule', '#E6EEF2', '#3F5B6B'] }[chip]; return { icon, title, meta, amount: (sign || '') + vnd(amount), chip: C[0], cicon: C[1], cbg: C[2], cfg: C[3], ibg: kind === 'refund' ? '#E6EEF2' : kind === 'manual' ? '#F1E4CC' : '#F5E4E9', ifg: kind === 'refund' ? '#3F5B6B' : kind === 'manual' ? '#6B4E1F' : '#5C1430', afg: chip === 'fail' ? '#6E5D63' : '#2B1D22' }; };
+    let txs = [];
+    const exDep = s.extra.some(x => x.kind === 'deposit');
+    if (ph !== 'pre' && ph !== 'none' && !exDep) txs = [T('payments', 'Đặt cọc 30%', '15/10/2026 09:12 · VNPay · Mã VNP 14583921', 60480000, 'ok', 'pay'), T('payments', 'Đặt cọc 30%', '14/10/2026 21:40 · VNPay · Ngân hàng từ chối', 60480000, 'fail', 'pay')];
+    if (ph === 'cancelled') txs = [T('undo', 'Hoàn tiền cọc (50% theo điều 7)', '06/10/2026 · Ghi nhận thủ công · Chuyển khoản · Phạm Ngọc Lan', 30240000, 'proc', 'refund', '−')].concat(txs);
+    if (ph === 'after' || s.paidFull) txs = [T('edit_note', 'Thu tiền đồ uống phát sinh', '20/12/2026 · Ghi nhận thủ công · Tiền mặt tại tiệc · đã trừ vào hoá đơn cuối', 2400000, 'ok', 'manual')].concat(txs);
+    s.extra.forEach(x => { txs = [T('payments', x.kind === 'deposit' ? 'Đặt cọc 30%' : 'Thanh toán số dư', `${x.date} · VNPay · Mã VNP 15020437`, x.amt, 'ok', 'pay')].concat(txs); });
+    if (pend) txs = [T('payments', pend.kind === 'deposit' ? 'Đặt cọc 30%' : 'Thanh toán số dư', '16/10/2026 10:42 · VNPay · đang đối soát', pend.amt, 'wait', 'pay')].concat(txs);
+    const kind = s.lastKind, amt = kind === 'deposit' ? 60480000 : 160820000, kindLabel = kind === 'deposit' ? 'Đặt cọc 30%' : 'Thanh toán số dư';
+    const payKind = ph === 'pre' ? 'deposit' : 'balance', payAmt = payKind === 'deposit' ? 60480000 : 160820000;
+    const pay = { kindLabel: payKind === 'deposit' ? 'Đặt cọc 30% hợp đồng' : 'Thanh toán số dư hoá đơn cuối', amountText: vnd(payAmt), rows: [['Tiệc', 'Thu Hà & Minh Quân · 20/12/2026'], ['Mã booking', 'HY-2612-020'], ['Phương thức', 'VNPay']].map(([k, v]) => ({ k, v })) };
+    const R = {
+      confirming: { title: 'Đang xác nhận giao dịch…', body: 'Đang nhận kết quả từ VNPay. Vui lòng không đóng trang.', showBox: false, btns: [] },
+      success: { title: 'Thanh toán thành công', body: kind === 'deposit' ? 'Tiền cọc đã được ghi nhận. Tiệc của hai bạn đã được giữ.' : 'Số dư đã được ghi nhận. Hai bạn đã thanh toán đủ.', showBox: true, rows: [[kindLabel, vnd(amt), '#2F6B4F'], ['Mã giao dịch VNPay', '15020437', '#2B1D22'], ['Thời gian', '16/10/2026 10:42', '#2B1D22'], ['Ngân hàng', 'Vietcombank', '#2B1D22']], btns: [['Về Tổng quan', () => go('overview'), true], ['Xem ví tiệc', () => go('payment'), false]] },
+      fail: { title: 'Thanh toán không thành công', body: 'VNPay báo giao dịch bị huỷ hoặc ngân hàng từ chối. Bạn chưa bị trừ tiền.', iconOnly: true, icon: 'close', ibg: '#FDECEA', ifg: '#C62828', showBox: true, rows: [[kindLabel, vnd(amt), '#2B1D22'], ['Lý do', 'Giao dịch bị huỷ tại VNPay', '#C62828'], ['Thời gian', '16/10/2026 10:42', '#2B1D22']], btns: [['Thử lại', () => { go('payment'); setTimeout(() => this.setState({ sheet: true }), 350); }, true], ['Về ví tiệc', () => go('payment'), false]] },
+      unknown: { title: 'Chưa rõ kết quả – hệ thống đang kiểm tra', body: 'VNPay chưa trả kết quả cuối cùng. Hệ thống đang đối soát và sẽ thông báo cho bạn trong tối đa 15 phút.', iconOnly: true, icon: 'hourglass_top', ibg: '#FCEFD6', ifg: '#8A5300', showBox: true, rows: [[kindLabel, vnd(amt), '#2B1D22'], ['Trạng thái', 'Đang đối soát', '#8A5300'], ['Bắt đầu', '16/10/2026 10:42', '#2B1D22']], btns: [['Về Tổng quan', () => go('overview'), true], ['Về ví tiệc', () => go('payment'), false]] },
+    }[s.status];
+    const r = { ...R, confirming: s.status === 'confirming', success: s.status === 'success', unknown: s.status === 'unknown', iconOnly: !!R.iconOnly, unlocked: s.status === 'success' && kind === 'deposit',
+      rows: (R.rows || []).map(([k, v, cc]) => ({ k, v, c: cc })), btns: R.btns.map(([label, click, primary]) => ({ label, click, off: false, bg: primary ? '#7A1F3D' : '#FFFFFF', fg: primary ? '#FFFFFF' : '#7A1F3D', border: primary ? 'none' : '1px solid #7A1F3D' })) };
+    const open = s.sheet;
+    return {
+      refs: new Proxy({}, { get: (_, n) => typeof n === 'string' ? this.rf(n) : undefined }), m,
+      isWallet: scr === 'payment', isResult: scr === 'payResult', w, act, txs, txEmpty: txs.length === 0, r, pay, busy: s.busy,
+      spin: c.reduce ? 'none' : 'hy-spin 900ms linear infinite',
+      simOpts: [['success', 'Thành công'], ['fail', 'Thất bại'], ['unknown', 'Chưa rõ']].map(([v, label]) => { const on = s.sim === v; return { label, aria: on ? 'true' : 'false', bg: on ? '#7A1F3D' : '#FFFFFF', fg: on ? '#FFFFFF' : '#2B1D22', border: on ? '1px solid #7A1F3D' : '1px solid #D9C8BC', click: () => this.setState({ sim: v }) }; }),
+      rerun: () => this.resolve(),
+      sh: { pe: open ? 'auto' : 'none', o: open ? 1 : 0, open }, closeSheet: () => this.setState({ sheet: false, busy: false }), toVnpay: this.toVnpay, vnpayLabel: s.busy ? 'Đang chuyển tới VNPay…' : 'Tiếp tục tới VNPay',
+      L: m ? { top: 'minmax(0,1fr)', walletDir: 'column', txCols: '40px minmax(0,1fr) auto', resPad: '28px 20px', btnFlex: '1 1 140px', shL: '0', shR: '0', shB: '0', shT: 'auto', shW: 'auto', shTf: 'none', shRad: '28px 28px 0 0', shPad: '12px 20px 24px' }
+        : { top: 'minmax(0,1.3fr) minmax(0,1fr)', walletDir: 'row', txCols: '40px minmax(0,1fr) auto', resPad: '40px', btnFlex: '0 0 auto', shL: '50%', shR: 'auto', shB: 'auto', shT: '50%', shW: '460px', shTf: 'translate(-50%,-50%)', shRad: '24px', shPad: '24px' },
+    };
+  }
+}
+</script>
+</body>
+</html>

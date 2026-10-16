@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<sc-if value="{{ isAuth }}" hint-placeholder-val="{{ true }}">
+<div style="min-height:100%;display:grid;grid-template-columns:{{ L.cols }}">
+  <sc-if value="{{ d }}" hint-placeholder-val="{{ true }}">
+    <div style="position:relative;background:#2B1D22;display:flex;flex-direction:column;justify-content:space-between;padding:40px;overflow:hidden">
+      <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,#4A333B 0 14px,#3D2A31 14px 28px)"></div>
+      <button onClick="{{ goHome }}" style="position:relative;align-self:flex-start;display:flex;align-items:center;gap:10px;border:none;background:transparent;padding:0;height:48px;color:#FFF8F1"><span style="width:40px;height:40px;border-radius:50%;border:1.5px solid #C9A46A;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:#F4B9A7;background:#2B1D22">HY</span><span style="font-size:20px;font-weight:700">Hỷ Yến</span></button>
+      <span style="position:relative;font-family:'JetBrains Mono',monospace;font-size:12px;color:#BBA9AF">ảnh cặp đôi trong Sảnh Ngọc Trai</span>
+      <div style="position:relative;border-radius:16px;background:rgba(43,29,34,0.88);color:#FFF8F1;padding:24px;display:flex;flex-direction:column;gap:10px;max-width:460px">
+        <strong style="font-size:24px;line-height:32px;font-weight:700">Không gian cưới</strong>
+        <span style="font-size:15px;line-height:24px;color:#E3D6CC">Hai bạn và nhà hàng cùng duyệt kịch bản, hợp đồng, theo dõi thanh toán và chuẩn bị cho ngày cưới.</span>
+      </div>
+    </div>
+  </sc-if>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:{{ L.justify }};padding:{{ L.pad }}">
+    <sc-if value="{{ m }}" hint-placeholder-val="{{ false }}"><button onClick="{{ goHome }}" style="align-self:flex-start;display:flex;align-items:center;gap:10px;border:none;background:transparent;padding:0;height:48px;margin-bottom:20px;color:#2B1D22"><span style="width:36px;height:36px;border-radius:50%;border:1.5px solid #C9A46A;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px;font-weight:600;color:#7A1F3D">HY</span><span style="font-size:18px;font-weight:700">Hỷ Yến</span></button></sc-if>
+    <div ref="{{ refs.panel }}" style="width:100%;max-width:420px;display:flex;flex-direction:column;gap:20px">
+
+      <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+        <form onSubmit="{{ submitLogin }}" noValidate="{{ true }}" style="display:flex;flex-direction:column;gap:18px">
+          <div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-size:30px;line-height:38px;font-weight:700">Đăng nhập</h1><p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63">Vào Không gian cưới bằng email nhận lời mời từ Hỷ Yến.</p></div>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ fe.email.lc }}">Email</span><input value="{{ f.email }}" onChange="{{ on.email }}" type="email" autoComplete="email" aria-invalid="{{ fe.email.inv }}" style="height:48px;border:1px solid {{ fe.email.bc }};border-radius:12px;padding:0 16px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><sc-if value="{{ fe.email.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828;display:flex;gap:4px;align-items:center"><i style="font-size:16px">error</i>{{ fe.email.msg }}</span></sc-if></label>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;display:flex;align-items:center;color:{{ fe.pass.lc }}">Mật khẩu<button type="button" onClick="{{ goForgot }}" style="margin-left:auto;height:32px;border:none;background:transparent;padding:0 4px;color:#7A1F3D;font-size:14px;font-weight:600;border-radius:8px" style-hover="background:#F4E7E3">Quên mật khẩu?</button></span><div style="position:relative"><input value="{{ f.pass }}" onChange="{{ on.pass }}" type="{{ passType }}" autoComplete="current-password" aria-invalid="{{ fe.pass.inv }}" style="width:100%;height:48px;border:1px solid {{ fe.pass.bc }};border-radius:12px;padding:0 52px 0 16px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><button type="button" aria-label="{{ eye.label }}" onClick="{{ eye.toggle }}" style="position:absolute;right:0;top:0;width:48px;height:48px;border:none;background:transparent;color:#6E5D63;display:flex;align-items:center;justify-content:center;border-radius:12px"><i>{{ eye.icon }}</i></button></div><sc-if value="{{ fe.pass.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828;display:flex;gap:4px;align-items:center"><i style="font-size:16px">error</i>{{ fe.pass.msg }}</span></sc-if></label>
+          <button type="submit" aria-busy="{{ busyStr }}" style="height:48px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 150ms cubic-bezier(0.2,0,0,1)" style-hover="background:#87334F" style-active="transform:scale(0.97)" style-focus="outline:none;box-shadow:0 0 0 2px #FFF8F1,0 0 0 4px #7A1F3D"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ loginLabel }}</button>
+          <div style="border-radius:12px;background:#F7EDE4;padding:14px;display:flex;gap:10px;font-size:14px;line-height:22px"><i style="color:#7A1F3D;font-size:20px">mail</i><span>Tài khoản do nhà hàng tạo và gửi lời mời qua email sau khi có booking. Bạn không cần tự đăng ký.</span></div>
+          <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:14px;color:#6E5D63">Chưa có booking?<button type="button" onClick="{{ goConsult }}" style="height:40px;padding:0 8px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600" style-hover="background:#F4E7E3">Nhận tư vấn</button></div>
+        </form>
+      </sc-if>
+
+      <sc-if value="{{ isForgot }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <button type="button" onClick="{{ fgBack }}" style="align-self:flex-start;height:40px;padding:0 10px 0 4px;margin-left:-4px;border:none;border-radius:12px;background:transparent;color:#7A1F3D;font-size:14px;font-weight:600;display:flex;align-items:center;gap:4px" style-hover="background:#F4E7E3"><i style="font-size:18px">arrow_back</i>{{ fgBackLabel }}</button>
+          <ol aria-label="Các bước đặt lại mật khẩu" style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+            <sc-for list="{{ fgSteps }}" as="s" hint-placeholder-count="3"><li aria-current="{{ s.cur }}" style="display:flex;flex-direction:column;gap:6px"><span style="height:4px;border-radius:2px;background:{{ s.bar }};transition:background 250ms cubic-bezier(0.2,0,0,1)"></span><span style="font-size:12px;font-weight:600;color:{{ s.fg }};display:flex;align-items:center;gap:4px"><sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><i style="font-size:14px">check</i></sc-if>{{ s.label }}</span></li></sc-for>
+          </ol>
+          <div ref="{{ refs.step }}" style="display:flex;flex-direction:column;gap:18px">
+            <sc-if value="{{ fg.email }}" hint-placeholder-val="{{ true }}">
+              <form onSubmit="{{ fgSend }}" noValidate="{{ true }}" style="display:flex;flex-direction:column;gap:18px">
+                <div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-size:28px;line-height:36px;font-weight:700">{{ fgTitle }}</h1><p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63">Nhập email đăng nhập. Chúng tôi gửi mã OTP 6 số, có hiệu lực 10 phút.</p></div>
+                <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ fe.email.lc }}">Email</span><input value="{{ f.email }}" onChange="{{ on.email }}" readOnly="{{ fromProfile }}" type="email" autoComplete="email" aria-invalid="{{ fe.email.inv }}" style="height:48px;border:1px solid {{ fe.email.bc }};border-radius:12px;padding:0 16px;font-size:16px;color:#2B1D22;outline:none;background:{{ emailBg }}" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><sc-if value="{{ fe.email.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828;display:flex;gap:4px;align-items:center"><i style="font-size:16px">error</i>{{ fe.email.msg }}</span></sc-if></label>
+                <button type="submit" style="height:48px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#87334F"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ sendLabel }}</button>
+              </form>
+            </sc-if>
+            <sc-if value="{{ fg.otp }}" hint-placeholder-val="{{ false }}">
+              <form onSubmit="{{ fgVerify }}" noValidate="{{ true }}" style="display:flex;flex-direction:column;gap:18px">
+                <div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-size:28px;line-height:36px;font-weight:700">Nhập mã OTP</h1><p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63">Mã 6 số đã gửi tới <strong style="color:#2B1D22">{{ f.email }}</strong>. Có thể dán cả mã vào ô đầu tiên.</p></div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div role="group" aria-label="Mã OTP 6 số" style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px">
+                    <sc-for list="{{ otpCells }}" as="o" hint-placeholder-count="6"><input ref="{{ o.ref }}" value="{{ o.v }}" onChange="{{ o.change }}" onKeyDown="{{ o.key }}" onPaste="{{ o.paste }}" inputMode="numeric" autoComplete="one-time-code" maxLength="6" aria-label="{{ o.aria }}" aria-invalid="{{ fe.otp.inv }}" style="height:56px;width:100%;min-width:0;text-align:center;border:1px solid {{ o.bc }};border-radius:12px;background:#FFFFFF;font-size:22px;font-weight:600;color:#2B1D22;outline:none;font-variant-numeric:tabular-nums" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"></sc-for>
+                  </div>
+                  <sc-if value="{{ fe.otp.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828;display:flex;gap:4px;align-items:center"><i style="font-size:16px">error</i>{{ fe.otp.msg }}</span></sc-if>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;font-size:14px;color:#6E5D63;flex-wrap:wrap">Không nhận được mã?<button type="button" disabled="{{ resend.off }}" onClick="{{ resend.click }}" style="height:40px;padding:0 8px;border:none;border-radius:12px;background:transparent;color:{{ resend.fg }};font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;cursor:{{ resend.cursor }}">{{ resend.label }}</button></div>
+                <button type="submit" style="height:48px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#87334F"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ verifyLabel }}</button>
+                <span style="font-size:12px;color:#6E5D63">Thử mã sai: 000000.</span>
+              </form>
+            </sc-if>
+            <sc-if value="{{ fg.pass }}" hint-placeholder-val="{{ false }}">
+              <form onSubmit="{{ fgSave }}" noValidate="{{ true }}" style="display:flex;flex-direction:column;gap:18px">
+                <div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-size:28px;line-height:36px;font-weight:700">Mật khẩu mới</h1><p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63">Tối thiểu 8 ký tự, có chữ và số.</p></div>
+                <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ fe.np.lc }}">Mật khẩu mới</span><div style="position:relative"><input value="{{ f.np }}" onChange="{{ on.np }}" type="{{ passType }}" autoComplete="new-password" aria-invalid="{{ fe.np.inv }}" aria-describedby="pw-strength" style="width:100%;height:48px;border:1px solid {{ fe.np.bc }};border-radius:12px;padding:0 52px 0 16px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><button type="button" aria-label="{{ eye.label }}" onClick="{{ eye.toggle }}" style="position:absolute;right:0;top:0;width:48px;height:48px;border:none;background:transparent;color:#6E5D63;display:flex;align-items:center;justify-content:center;border-radius:12px"><i>{{ eye.icon }}</i></button></div>
+                  <div id="pw-strength" style="display:flex;flex-direction:column;gap:6px"><div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px"><sc-for list="{{ str.bars }}" as="b" hint-placeholder-count="4"><span style="height:4px;border-radius:2px;background:{{ b.c }};transition:background 150ms linear"></span></sc-for></div><span style="font-size:12px;color:{{ str.fg }}">{{ str.label }}</span></div>
+                  <sc-if value="{{ fe.np.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828;display:flex;gap:4px;align-items:center"><i style="font-size:16px">error</i>{{ fe.np.msg }}</span></sc-if></label>
+                <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ fe.np2.lc }}">Nhập lại mật khẩu</span><input value="{{ f.np2 }}" onChange="{{ on.np2 }}" type="{{ passType }}" autoComplete="new-password" aria-invalid="{{ fe.np2.inv }}" style="height:48px;border:1px solid {{ fe.np2.bc }};border-radius:12px;padding:0 16px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><sc-if value="{{ fe.np2.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828;display:flex;gap:4px;align-items:center"><i style="font-size:16px">error</i>{{ fe.np2.msg }}</span></sc-if></label>
+                <button type="submit" style="height:48px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#87334F"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ saveLabel }}</button>
+              </form>
+            </sc-if>
+            <sc-if value="{{ fg.done }}" hint-placeholder-val="{{ false }}">
+              <div role="status" style="display:flex;flex-direction:column;align-items:flex-start;gap:16px">
+                <span ref="{{ refs.tickC }}" style="width:64px;height:64px;border-radius:50%;background:#2F6B4F;display:flex;align-items:center;justify-content:center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path ref="{{ refs.tickP }}" d="M6 12.5l4 4L18 8.5" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="24" stroke-dashoffset="0"></path></svg></span>
+                <h1 style="margin:0;font-size:28px;line-height:36px;font-weight:700">Đã đổi mật khẩu</h1>
+                <p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63">{{ doneText }}</p>
+                <button onClick="{{ fgFinish }}" style="height:48px;padding:0 24px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">{{ finishLabel }}</button>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isInvite }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div style="border-radius:20px;background:#7A1F3D;color:#FFF8F1;padding:24px;display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:13px;font-weight:600;color:#F4B9A7">Lời mời vào Không gian cưới</span>
+            <strong style="font-size:24px;line-height:32px;font-weight:700">Thu Hà &amp; Minh Quân</strong>
+            <span style="font-size:15px;line-height:22px;color:#F3E9E1">Chủ nhật 20/12/2026 · Ca trưa 10:30 – 14:00 · Sảnh Ngọc Trai</span>
+            <span style="font-size:13px;color:#F3E9E1;border-top:1px solid rgba(255,248,241,0.25);padding-top:10px;margin-top:4px">Gửi bởi Phạm Ngọc Lan · Quản lý tiệc</span>
+          </div>
+          <form onSubmit="{{ submitInvite }}" noValidate="{{ true }}" style="display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-size:26px;line-height:34px;font-weight:700">Đặt mật khẩu lần đầu</h1><p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63">Sau khi đặt mật khẩu, bạn vào thẳng trang Tổng quan.</p></div>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:#6E5D63">Email đăng nhập</span><input value="thuha.tran@gmail.com" readOnly="{{ true }}" style="height:48px;border:1px solid #E3D8CF;border-radius:12px;background:#F7F1EC;padding:0 16px;font-size:16px;color:#6E5D63;outline:none"></label>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ fe.np.lc }}">Mật khẩu</span><div style="position:relative"><input value="{{ f.np }}" onChange="{{ on.np }}" type="{{ passType }}" autoComplete="new-password" aria-invalid="{{ fe.np.inv }}" style="width:100%;height:48px;border:1px solid {{ fe.np.bc }};border-radius:12px;padding:0 52px 0 16px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><button type="button" aria-label="{{ eye.label }}" onClick="{{ eye.toggle }}" style="position:absolute;right:0;top:0;width:48px;height:48px;border:none;background:transparent;color:#6E5D63;display:flex;align-items:center;justify-content:center;border-radius:12px"><i>{{ eye.icon }}</i></button></div>
+              <div style="display:flex;flex-direction:column;gap:6px"><div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px"><sc-for list="{{ str.bars }}" as="b" hint-placeholder-count="4"><span style="height:4px;border-radius:2px;background:{{ b.c }};transition:background 150ms linear"></span></sc-for></div><span style="font-size:12px;color:{{ str.fg }}">{{ str.label }}</span></div>
+              <sc-if value="{{ fe.np.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828;display:flex;gap:4px;align-items:center"><i style="font-size:16px">error</i>{{ fe.np.msg }}</span></sc-if></label>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ fe.np2.lc }}">Nhập lại mật khẩu</span><input value="{{ f.np2 }}" onChange="{{ on.np2 }}" type="{{ passType }}" autoComplete="new-password" aria-invalid="{{ fe.np2.inv }}" style="height:48px;border:1px solid {{ fe.np2.bc }};border-radius:12px;padding:0 16px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><sc-if value="{{ fe.np2.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828;display:flex;gap:4px;align-items:center"><i style="font-size:16px">error</i>{{ fe.np2.msg }}</span></sc-if></label>
+            <button type="submit" style="height:48px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#87334F"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ inviteLabel }}</button>
+          </form>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isInviteBad }}" hint-placeholder-val="{{ false }}">
+        <div role="alert" style="display:flex;flex-direction:column;gap:18px">
+          <span style="width:64px;height:64px;border-radius:50%;background:{{ bad.bg }};color:{{ bad.fg }};display:flex;align-items:center;justify-content:center"><i style="font-size:30px">{{ bad.icon }}</i></span>
+          <div style="display:flex;flex-direction:column;gap:8px"><h1 style="margin:0;font-size:28px;line-height:36px;font-weight:700">{{ bad.title }}</h1><p style="margin:0;font-size:15px;line-height:24px;color:#6E5D63;text-wrap:pretty">{{ bad.body }}</p></div>
+          <div style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:16px;display:flex;flex-direction:column;gap:10px">
+            <strong style="font-size:15px">Liên hệ quản lý tiệc</strong>
+            <span style="font-size:14px;line-height:22px">Phạm Ngọc Lan · Hỷ Yến</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><a href="tel:0903118226" style="height:44px;padding:0 14px;border-radius:12px;border:1px solid #D9C8BC;background:#FFFFFF;color:#2B1D22;text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600"><i style="font-size:18px;color:#7A1F3D">call</i>0903 118 226</a><a href="mailto:ngoclan@hyyen.vn" style="height:44px;padding:0 14px;border-radius:12px;border:1px solid #D9C8BC;background:#FFFFFF;color:#2B1D22;text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600"><i style="font-size:18px;color:#7A1F3D">mail</i>ngoclan@hyyen.vn</a></div>
+          </div>
+          <button onClick="{{ bad.action }}" style="height:48px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600" style-hover="background:#87334F">{{ bad.cta }}</button>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+<div style="min-height:100%;display:flex;flex-direction:column">
+  <header style="position:sticky;top:0;z-index:10;height:64px;display:flex;align-items:center;gap:8px;padding:0 {{ L.px }};background:rgba(255,248,241,0.94);border-bottom:1px solid #EADFD6">
+    <button onClick="{{ goOverview }}" aria-label="Về Tổng quan" style="width:44px;height:44px;border:none;border-radius:50%;background:transparent;color:#2B1D22;display:flex;align-items:center;justify-content:center" style-hover="background:#F4E7E3"><i>arrow_back</i></button>
+    <strong style="font-size:18px">Hồ sơ</strong>
+  </header>
+  <div data-stagger="1" style="width:100%;max-width:1040px;margin:0 auto;padding:{{ L.profPad }};display:grid;grid-template-columns:{{ L.profCols }};gap:20px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <section style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:16px"><span style="width:56px;height:56px;border-radius:50%;background:#FBE9E3;color:#7A1F3D;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700">TH</span><span style="display:flex;flex-direction:column;gap:2px"><strong style="font-size:18px">{{ p.name }}</strong><span style="font-size:14px;color:#6E5D63">Cô dâu · Thu Hà &amp; Minh Quân</span></span></div>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ pe.name.lc }}">Họ và tên</span><input value="{{ p.name }}" onChange="{{ onP.name }}" aria-invalid="{{ pe.name.inv }}" style="height:48px;border:1px solid {{ pe.name.bc }};border-radius:12px;padding:0 16px;font-size:16px;color:#2B1D22;outline:none" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><sc-if value="{{ pe.name.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828">{{ pe.name.msg }}</span></sc-if></label>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:{{ pe.phone.lc }}">Số điện thoại</span><input value="{{ p.phone }}" onChange="{{ onP.phone }}" type="tel" aria-invalid="{{ pe.phone.inv }}" style="height:48px;border:1px solid {{ pe.phone.bc }};border-radius:12px;padding:0 16px;font-size:16px;color:#2B1D22;outline:none;font-variant-numeric:tabular-nums" style-focus="border-color:#7A1F3D;box-shadow:0 0 0 1px #7A1F3D"><sc-if value="{{ pe.phone.msg }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:#C62828">{{ pe.phone.msg }}</span></sc-if></label>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:500;color:#6E5D63">Email đăng nhập</span><input value="thuha.tran@gmail.com" readOnly="{{ true }}" style="height:48px;border:1px solid #E3D8CF;border-radius:12px;background:#F7F1EC;padding:0 16px;font-size:16px;color:#6E5D63;outline:none"><span style="font-size:12px;color:#6E5D63">Email do nhà hàng gắn với booking. Liên hệ quản lý tiệc để đổi.</span></label>
+        <button onClick="{{ saveProfile }}" style="align-self:flex-start;height:48px;min-width:150px;padding:0 20px;border:none;border-radius:12px;background:#7A1F3D;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#87334F"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#FFFFFF;animation:hy-spin 800ms linear infinite"></span></sc-if>{{ profSaveLabel }}</button>
+      </section>
+      <section style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:24px;display:flex;flex-direction:column;gap:12px">
+        <strong style="font-size:16px">Mật khẩu</strong>
+        <span style="font-size:14px;line-height:22px;color:#6E5D63">Đổi lần cuối 10/10/2026. Để đổi mật khẩu, chúng tôi gửi mã OTP tới thuha.tran@gmail.com.</span>
+        <button onClick="{{ changePass }}" style="align-self:flex-start;height:48px;padding:0 20px;border:1px solid #7A1F3D;border-radius:12px;background:transparent;color:#7A1F3D;font-size:15px;font-weight:600" style-hover="background:#F4E7E3">Đổi mật khẩu bằng OTP</button>
+      </section>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <section style="border:1px solid #EADFD6;border-radius:16px;background:#FFFFFF;padding:8px 0;display:flex;flex-direction:column">
+        <div style="padding:16px 20px 8px;display:flex;align-items:center;gap:8px"><strong style="font-size:16px;flex:1">Phiên đăng nhập</strong><sc-if value="{{ hasOthers }}" hint-placeholder-val="{{ true }}"><button onClick="{{ logoutOthers }}" style="height:40px;padding:0 10px;border:none;border-radius:12px;background:transparent;color:#C62828;font-size:14px;font-weight:600" style-hover="background:#FDECEA">Đăng xuất phiên khác</button></sc-if></div>
+        <sc-for list="{{ sessions }}" as="x" hint-placeholder-count="3">
+          <div style="min-height:68px;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 20px;border-top:1px solid #EADFD6">
+            <span style="width:40px;height:40px;border-radius:12px;background:#F7EDE4;color:#6E5D63;display:flex;align-items:center;justify-content:center;flex:none"><i>{{ x.icon }}</i></span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap">{{ x.device }}<sc-if value="{{ x.current }}" hint-placeholder-val="{{ false }}"><span style="height:20px;padding:0 6px;border-radius:10px;background:#E7F1EA;color:#2F6B4F;font-size:11px;font-weight:600;display:inline-flex;align-items:center">Phiên này</span></sc-if></span><span style="font-size:13px;color:#6E5D63">{{ x.meta }}</span></span>
+            <sc-if value="{{ x.other }}" hint-placeholder-val="{{ true }}"><button onClick="{{ x.out }}" aria-label="{{ x.aria }}" style="height:40px;padding:0 10px;border:none;border-radius:12px;background:transparent;color:#2B1D22;font-size:14px;font-weight:600" style-hover="background:#F4E7E3">Đăng xuất</button></sc-if>
+          </div>
+        </sc-for>
+      </section>
+      <button onClick="{{ logout }}" style="align-self:flex-start;height:48px;padding:0 16px;border:none;border-radius:12px;background:transparent;color:#C62828;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px" style-hover="background:#FDECEA"><i>logout</i>Đăng xuất</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { busy: false, eye: false, errs: {}, step: 0, otp: ['', '', '', '', '', ''], resendIn: 60,
+    f: { email: 'thuha.tran@gmail.com', pass: 'matkhau2026', np: '', np2: '' }, p: { name: 'Trần Thu Hà', phone: '0912 345 678' }, perr: {},
+    sessions: [{ id: 1, icon: 'laptop_mac', device: 'Chrome · macOS', meta: 'TP. Hồ Chí Minh · Đang hoạt động', current: true }, { id: 2, icon: 'smartphone', device: 'Ứng dụng Hỷ Yến · Android', meta: 'TP. Hồ Chí Minh · 2 giờ trước' }, { id: 3, icon: 'tablet', device: 'Safari · iPad', meta: 'Hà Nội · 12/10/2026' }] };
+  el = {}; _rf = {};
+  rf(n) { return this._rf[n] || (this._rf[n] = e => { this.el[n] = e; }); }
+  get ctx() { return this.props.ctx || {}; }
+  get M() { return window.HYMotion; }
+  componentDidMount() { this.enter(); }
+  componentDidUpdate(pp) { if (pp.screen !== this.props.screen || pp.params !== this.props.params) this.enter(); }
+  componentWillUnmount() { clearInterval(this.iv); clearTimeout(this.t); }
+  enter() {
+    clearInterval(this.iv);
+    const p = this.props.params || {};
+    this.setState({ busy: false, errs: {}, step: p.step || 0, otp: ['', '', '', '', '', ''], f: { email: 'thuha.tran@gmail.com', pass: 'matkhau2026', np: '', np2: '' } }, () => { if (this.state.step === 1) this.startTimer(); });
+  }
+  startTimer() { clearInterval(this.iv); this.setState({ resendIn: 60 }); this.iv = setInterval(() => this.setState(s => { if (s.resendIn <= 1) clearInterval(this.iv); return { resendIn: Math.max(0, s.resendIn - 1) }; }), 1000); setTimeout(() => this.el.otp0 && this.el.otp0.focus(), 60); }
+  toStep(n) {
+    const back = n < this.state.step, M = this.M;
+    this.setState({ step: n, errs: {}, busy: false }, () => {
+      if (M && this.el.step) M.play(this.el.step, [{ opacity: 0, transform: `translateX(${back ? -30 : 30}px)` }, { opacity: 1, transform: 'none' }], 300, M.E.DEC);
+      if (n === 1) this.startTimer();
+      if (n === 3 && M) M.tick(this.el.tickC, this.el.tickP);
+    });
+  }
+  work(fn, ms = 900) { this.setState({ busy: true }); clearTimeout(this.t); this.t = setTimeout(() => { this.setState({ busy: false }); fn(); }, ms); }
+  validPw(errs) { const f = this.state.f; if (f.np.length < 8 || !/\d/.test(f.np) || !/[a-zA-ZÀ-ỹ]/.test(f.np)) errs.np = 'Cần tối thiểu 8 ký tự, có chữ và số'; if (!f.np2) errs.np2 = 'Nhập lại mật khẩu'; else if (f.np !== f.np2) errs.np2 = 'Hai mật khẩu chưa khớp'; }
+  submitLogin = e => { e.preventDefault(); if (this.state.busy) return; const f = this.state.f, errs = {}; if (!/^\S+@\S+\.\S+$/.test(f.email)) errs.email = 'Email chưa đúng định dạng'; if (!f.pass) errs.pass = 'Nhập mật khẩu'; else if (f.pass === 'sai') errs.pass = 'Email hoặc mật khẩu không đúng'; this.setState({ errs }); if (Object.keys(errs).length) return; this.work(() => this.ctx.go('overview')); };
+  fgSend = e => { e.preventDefault(); if (this.state.busy) return; if (!/^\S+@\S+\.\S+$/.test(this.state.f.email)) return this.setState({ errs: { email: 'Email chưa đúng định dạng' } }); this.work(() => this.toStep(1)); };
+  fgVerify = e => { e.preventDefault(); if (this.state.busy) return; const code = this.state.otp.join(''); if (code.length < 6) return this.setState({ errs: { otp: 'Nhập đủ 6 số trong email' } }); if (code === '000000') { this.setState({ errs: { otp: 'Mã không đúng hoặc đã hết hạn' }, otp: ['', '', '', '', '', ''] }); setTimeout(() => this.el.otp0 && this.el.otp0.focus(), 30); return; } this.work(() => this.toStep(2)); };
+  fgSave = e => { e.preventDefault(); if (this.state.busy) return; const errs = {}; this.validPw(errs); this.setState({ errs }); if (Object.keys(errs).length) return; this.work(() => this.toStep(3)); };
+  submitInvite = e => { e.preventDefault(); if (this.state.busy) return; const errs = {}; this.validPw(errs); this.setState({ errs }); if (Object.keys(errs).length) return; this.work(() => this.ctx.go('overview')); };
+  fillOtp(i, digits) { const otp = this.state.otp.slice(); let j = i; for (const d of digits) { if (j > 5) break; otp[j++] = d; } this.setState({ otp, errs: {} }); const nx = this.el['otp' + Math.min(5, j)]; nx && nx.focus(); }
+  strength(pw) { let n = 0; if (pw.length >= 8) n++; if (/\d/.test(pw) && /[a-zA-Z]/.test(pw)) n++; if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) n++; if (/[^a-zA-Z0-9]/.test(pw) || pw.length >= 12) n++; return pw ? Math.max(1, n) : 0; }
+  renderVals() {
+    const c = this.ctx, m = !!c.mobile, s = this.state, scr = this.props.screen || 'login', p = this.props.params || {}, go = c.go || (() => {});
+    const fromProfile = !!p.fromProfile;
+    const fe = {}; ['email', 'pass', 'otp', 'np', 'np2'].forEach(k => { const msg = s.errs[k] || ''; fe[k] = { msg, inv: msg ? 'true' : 'false', bc: msg ? '#C62828' : '#9A877F', lc: msg ? '#C62828' : '#2B1D22' }; });
+    const pe = {}; ['name', 'phone'].forEach(k => { const msg = s.perr[k] || ''; pe[k] = { msg, inv: msg ? 'true' : 'false', bc: msg ? '#C62828' : '#9A877F', lc: msg ? '#C62828' : '#2B1D22' }; });
+    const on = {}; Object.keys(s.f).forEach(k => { on[k] = e => { const v = e.target.value; this.setState(st => ({ f: { ...st.f, [k]: v }, errs: { ...st.errs, [k]: '' } })); }; });
+    const onP = {}; Object.keys(s.p).forEach(k => { onP[k] = e => { const v = e.target.value; this.setState(st => ({ p: { ...st.p, [k]: v }, perr: { ...st.perr, [k]: '' } })); }; });
+    const sc = this.strength(s.f.np), SC = [['', '#EADFD6', '#6E5D63'], ['Yếu', '#C62828', '#C62828'], ['Trung bình', '#B26A00', '#8A5300'], ['Khá', '#7A8F3A', '#4E6420'], ['Mạnh', '#2F6B4F', '#2F6B4F']][sc];
+    const str = { bars: [0, 1, 2, 3].map(i => ({ c: i < sc ? SC[1] : '#EADFD6' })), label: sc ? `Độ mạnh: ${SC[0]}` : 'Độ mạnh mật khẩu', fg: SC[2] };
+    const step = s.step;
+    const BAD = {
+      inviteExpired: { icon: 'schedule', bg: '#FCEFD6', fg: '#8A5300', title: 'Lời mời đã hết hạn', body: 'Lời mời gửi ngày 02/10/2026 có hiệu lực 7 ngày. Liên hệ quản lý tiệc để nhận lời mời mới qua email.', cta: 'Về trang chủ', action: () => go('home', {}, { back: true }) },
+      inviteUsed: { icon: 'how_to_reg', bg: '#E6EEF2', fg: '#3F5B6B', title: 'Lời mời đã được sử dụng', body: 'Tài khoản thuha.tran@gmail.com đã được kích hoạt. Hãy đăng nhập; nếu quên mật khẩu, đặt lại bằng mã OTP.', cta: 'Đăng nhập', action: () => go('login') },
+    };
+    return {
+      refs: new Proxy({}, { get: (_, n) => typeof n === 'string' ? this.rf(n) : undefined }), m, d: !m,
+      isAuth: scr !== 'profile', isProfile: scr === 'profile', isLogin: scr === 'login', isForgot: scr === 'forgot', isInvite: scr === 'invite', isInviteBad: !!BAD[scr], bad: BAD[scr] || {},
+      f: s.f, on, fe, str, fromProfile, emailBg: fromProfile ? '#F7F1EC' : '#FFFFFF',
+      busy: s.busy, busyStr: s.busy ? 'true' : 'false', loginLabel: s.busy ? 'Đang đăng nhập…' : 'Đăng nhập',
+      sendLabel: s.busy ? 'Đang gửi mã…' : 'Gửi mã OTP', verifyLabel: s.busy ? 'Đang kiểm tra…' : 'Xác nhận mã', saveLabel: s.busy ? 'Đang lưu…' : 'Lưu mật khẩu mới', inviteLabel: s.busy ? 'Đang kích hoạt…' : 'Đặt mật khẩu và vào Không gian cưới',
+      passType: s.eye ? 'text' : 'password', eye: { icon: s.eye ? 'visibility_off' : 'visibility', label: s.eye ? 'Ẩn mật khẩu' : 'Hiện mật khẩu', toggle: () => this.setState({ eye: !s.eye }) },
+      fg: { email: step === 0, otp: step === 1, pass: step === 2, done: step === 3 },
+      fgTitle: fromProfile ? 'Đổi mật khẩu' : 'Quên mật khẩu',
+      fgSteps: ['Email', 'Mã OTP', 'Mật khẩu mới'].map((label, i) => ({ label, done: i < step, cur: i === step ? 'step' : 'false', bar: i <= step ? '#7A1F3D' : '#EADFD6', fg: i <= step ? '#7A1F3D' : '#6E5D63' })),
+      fgBackLabel: step === 0 ? (fromProfile ? 'Hồ sơ' : 'Đăng nhập') : 'Quay lại',
+      fgBack: () => step === 0 || step === 3 ? go(fromProfile ? 'profile' : 'login', {}, { back: true }) : this.toStep(step - 1),
+      fgSend: this.fgSend, fgVerify: this.fgVerify, fgSave: this.fgSave,
+      doneText: fromProfile ? 'Các phiên đăng nhập khác đã được đăng xuất. Phiên này vẫn giữ nguyên.' : 'Đăng nhập bằng mật khẩu mới để vào Không gian cưới.',
+      finishLabel: fromProfile ? 'Về hồ sơ' : 'Đăng nhập',
+      fgFinish: () => { if (fromProfile) { this.setState(st => ({ sessions: st.sessions.filter(x => x.current) })); go('profile', {}, { back: true }); c.toast('Đã đổi mật khẩu'); } else go('login', {}, { back: true }); },
+      otpCells: s.otp.map((v, i) => ({ v, ref: this.rf('otp' + i), aria: `Số thứ ${i + 1}`, bc: s.errs.otp ? '#C62828' : v ? '#7A1F3D' : '#9A877F',
+        change: e => { const d = e.target.value.replace(/\D/g, ''); if (d.length > 1) return this.fillOtp(i, d); const otp = s.otp.slice(); otp[i] = d; this.setState({ otp, errs: {} }); if (d && i < 5) this.el['otp' + (i + 1)] && this.el['otp' + (i + 1)].focus(); },
+        key: e => { if (e.key === 'Backspace' && !s.otp[i] && i > 0) this.el['otp' + (i - 1)] && this.el['otp' + (i - 1)].focus(); },
+        paste: e => { const d = (e.clipboardData && e.clipboardData.getData('text') || '').replace(/\D/g, ''); if (d) { e.preventDefault(); this.fillOtp(i, d); } } })),
+      resend: { off: s.resendIn > 0, fg: s.resendIn > 0 ? '#6E5D63' : '#7A1F3D', cursor: s.resendIn > 0 ? 'default' : 'pointer', label: s.resendIn > 0 ? `Gửi lại sau ${s.resendIn} giây` : 'Gửi lại mã', click: () => { this.startTimer(); c.toast(`Đã gửi mã mới tới ${s.f.email}`); } },
+      submitLogin: this.submitLogin, submitInvite: this.submitInvite,
+      p: s.p, onP, pe, profSaveLabel: s.busy ? 'Đang lưu…' : 'Lưu thay đổi',
+      saveProfile: () => { const errs = {}; if (!s.p.name.trim()) errs.name = 'Nhập họ và tên'; if (s.p.phone.replace(/\D/g, '').length !== 10) errs.phone = 'Số điện thoại cần đủ 10 chữ số'; this.setState({ perr: errs }); if (Object.keys(errs).length) return; this.work(() => c.toast('Đã lưu hồ sơ')); },
+      sessions: s.sessions.map(x => ({ ...x, other: !x.current, aria: `Đăng xuất ${x.device}`, out: () => { this.setState(st => ({ sessions: st.sessions.filter(y => y.id !== x.id) })); c.toast(`Đã đăng xuất ${x.device}`); } })),
+      hasOthers: s.sessions.length > 1, logoutOthers: () => { this.setState(st => ({ sessions: st.sessions.filter(x => x.current) })); c.toast('Đã đăng xuất các phiên khác'); },
+      changePass: () => go('forgot', { fromProfile: true }), logout: () => { go('login', {}, { back: true }); c.toast('Đã đăng xuất'); },
+      goHome: () => go('home', {}, { back: true }), goForgot: () => go('forgot'), goConsult: () => go('consult'), goOverview: () => go('overview', {}, { back: true }),
+      L: m ? { cols: 'minmax(0,1fr)', pad: '16px 20px 40px', justify: 'flex-start', px: '8px', profPad: '16px 16px 40px', profCols: 'minmax(0,1fr)' } : { cols: 'minmax(0,1fr) minmax(0,1fr)', pad: '48px', justify: 'center', px: '24px', profPad: '32px 32px 64px', profCols: 'minmax(0,1.2fr) minmax(0,1fr)' },
+    };
+  }
+}
+</script>
+</body>
+</html>
