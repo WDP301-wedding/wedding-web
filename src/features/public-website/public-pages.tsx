@@ -180,6 +180,12 @@ export function PublicWebsite({
             <h1>{halls[0].name}</h1>
             <div className="public-detail-grid">
               <div>
+                {halls[0].media.length === 0 ? (
+                  <div className="public-image-placeholder public-detail-placeholder">
+                    <BrandMark />
+                    <p>Ảnh sảnh đang được cập nhật</p>
+                  </div>
+                ) : null}
                 {halls[0].media.map((media) => (
                   <img
                     key={media.id}
@@ -189,7 +195,7 @@ export function PublicWebsite({
                   />
                 ))}
               </div>
-              <div>
+              <div className="public-detail-copy">
                 <p>{halls[0].description}</p>
                 <p className="public-capacity">
                   Sức chứa tối đa <strong>{halls[0].maxGuests} khách</strong>

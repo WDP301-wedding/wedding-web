@@ -342,9 +342,11 @@ body {
 .v0-workspace .content {
   background: var(--hy-cream);
 }
-/* Nội dung trang vào bằng fade + trượt nhẹ (thay cho shared-axis của prototype). */
+/* Nội dung trang vào bằng fade + trượt nhẹ (thay cho shared-axis của prototype).
+ * Dùng fill-mode "backwards" chứ không phải "both": nếu giữ transform sau khi chạy xong,
+ * phần tử trở thành khối chứa cho position: fixed và làm lộ skip-link/dialog bên trong. */
 .v0-workspace .content-inner {
-  animation: hy-enter var(--hy-dur-medium2) var(--hy-ease-decelerate) both;
+  animation: hy-enter var(--hy-dur-medium2) var(--hy-ease-decelerate) backwards;
 }
 /* Trang billing/kịch bản cũ có header riêng – trong khung đã có sidebar nên ẩn để khỏi trùng. */
 .v0-workspace .billing-header,
@@ -445,7 +447,7 @@ body {
   border-radius: var(--hy-radius-sm);
   background: var(--hy-success-bg);
   color: var(--hy-success);
-  animation: hy-enter var(--hy-dur-medium) var(--hy-ease-decelerate) both;
+  animation: hy-enter var(--hy-dur-medium) var(--hy-ease-decelerate) backwards;
 }
 .v0-workspace .cw-note {
   border-radius: var(--hy-radius-sm);
@@ -705,7 +707,7 @@ body {
 .v0-workspace .cw-table tbody tr,
 .public-hall-grid > *,
 .public-menu-list article {
-  animation: hy-enter var(--hy-dur-medium) var(--hy-ease-decelerate) both;
+  animation: hy-enter var(--hy-dur-medium) var(--hy-ease-decelerate) backwards;
 }
 .v0-workspace .cw-list > li:nth-child(2),
 .v0-workspace .cw-table tbody tr:nth-child(2),
@@ -732,10 +734,10 @@ body {
   animation-delay: 200ms;
 }
 .public-hero-copy {
-  animation: hy-enter var(--hy-dur-long) var(--hy-ease-decelerate) both;
+  animation: hy-enter var(--hy-dur-long) var(--hy-ease-decelerate) backwards;
 }
 .public-hero-image {
-  animation: hy-enter var(--hy-dur-long) var(--hy-ease-decelerate) 80ms both;
+  animation: hy-enter var(--hy-dur-long) var(--hy-ease-decelerate) 80ms backwards;
 }
 
 /* ---------- Responsive ---------- */
@@ -865,7 +867,7 @@ body {
   text-align: center;
   background:
     radial-gradient(circle at 50% 0%, rgb(244 185 167 / 22%), transparent 60%), var(--hy-surface);
-  animation: hy-enter 600ms var(--hy-ease-decelerate) both;
+  animation: hy-enter 600ms var(--hy-ease-decelerate) backwards;
 }
 .hy-invite-head {
   display: grid;
@@ -1082,4 +1084,404 @@ body {
 .public-footer .estate-brand,
 .public-header .estate-brand {
   text-decoration: none;
+}
+
+/* ---------- Skeleton (shimmer 1,2s) ---------- */
+.hy-skeleton {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-width: 1120px;
+  padding: 8px 0;
+}
+.hy-skel {
+  display: block;
+  border-radius: var(--hy-radius-sm);
+  background: linear-gradient(90deg, #f3e8df 0%, #fbf4ee 40%, #f3e8df 80%) 0 0 / 200% 100%;
+  animation: hy-shimmer 1200ms linear infinite;
+}
+.hy-skel-title {
+  width: 42%;
+  height: 34px;
+}
+.hy-skel-line {
+  width: 64%;
+  height: 14px;
+}
+.hy-skel-card {
+  height: 150px;
+  border-radius: var(--hy-radius-md);
+}
+.hy-skel-row {
+  height: 52px;
+}
+.hy-skeleton-card .hy-skel-title {
+  width: 30%;
+  height: 20px;
+}
+@keyframes hy-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------- Banner mất mạng ---------- */
+.hy-offline {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 10px 16px;
+  background: var(--hy-warning-bg);
+  color: var(--hy-warning);
+  border-bottom: 1px solid #f0d9a8;
+  font-size: 14px;
+  text-align: center;
+  animation: hy-enter var(--hy-dur-medium) var(--hy-ease-decelerate) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hy-skel {
+    animation: none;
+  }
+}
+
+/* ---------- Sơ đồ bàn: thu phóng ---------- */
+.v0-workspace .hy-zoom-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.v0-workspace .hy-zoom-bar .button {
+  min-width: 44px;
+  padding: 0 12px;
+  font-size: 18px;
+}
+.v0-workspace .hy-zoom-bar span {
+  min-width: 48px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.v0-workspace .hy-zoom-bar small {
+  color: var(--hy-ink-muted);
+}
+.v0-workspace .cw-seating.hy-pannable {
+  /* Chỉ chặn cuộn trang khi đang phóng to, để kéo sơ đồ trên điện thoại. */
+  touch-action: none;
+  cursor: grab;
+}
+.v0-workspace .cw-seating.hy-pannable:active {
+  cursor: grabbing;
+}
+.v0-workspace .cw-seating g ellipse,
+.v0-workspace .cw-seating g rect {
+  transition: fill var(--hy-dur-medium) var(--hy-ease-emphasized);
+}
+.v0-workspace .cw-seating g:focus-visible {
+  outline: none;
+}
+.v0-workspace .cw-seating g:focus-visible ellipse,
+.v0-workspace .cw-seating g:focus-visible rect {
+  stroke: var(--hy-wine);
+  stroke-width: 4;
+}
+
+/* ---------- Đề xuất & kịch bản (C2 – trang cộng tác cũ) ---------- */
+.v0-workspace .collab-shell,
+.v0-workspace .collab-access-state {
+  min-height: 0;
+  background: transparent;
+}
+.v0-workspace .collab-intro {
+  justify-items: start;
+  max-width: none;
+  padding: 0 0 24px;
+  text-align: left;
+}
+.v0-workspace .collab-intro h1 {
+  max-width: none;
+  color: var(--hy-ink);
+  font-size: clamp(28px, 3vw, 34px);
+  font-weight: 700;
+}
+.v0-workspace .collab-intro > .script-heading {
+  margin: 0 0 6px;
+  color: var(--hy-wine);
+  font-size: 13px;
+  font-weight: 600;
+}
+.v0-workspace .collab-proposal {
+  margin: 0 0 20px;
+  border-radius: var(--hy-radius-md);
+  background:
+    radial-gradient(circle at 100% 0%, rgb(244 185 167 / 26%), transparent 55%), var(--hy-wine);
+  box-shadow: var(--hy-shadow-2);
+}
+.v0-workspace .collab-proposal h2 {
+  font-weight: 700;
+}
+.v0-workspace .collab-columns {
+  gap: 20px;
+  background: transparent;
+  border: 0;
+}
+.v0-workspace .collab-columns > * {
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+  box-shadow: var(--hy-shadow-1);
+}
+.v0-workspace .collab-columns h2 {
+  color: var(--hy-ink);
+  font-size: 22px;
+  font-weight: 700;
+}
+.v0-workspace .collab-columns label,
+.v0-workspace .collab-kicker {
+  color: var(--hy-ink);
+}
+.v0-workspace .collab-columns input,
+.v0-workspace .collab-columns textarea,
+.v0-workspace .collab-lookup input,
+.v0-workspace .collab-lookup select {
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+}
+.v0-workspace .collab-columns button,
+.v0-workspace .collab-lookup button {
+  border-radius: var(--hy-radius-sm);
+  font-weight: 600;
+  transition:
+    background-color var(--hy-dur-fast) var(--hy-ease-emphasized),
+    transform var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .collab-columns button:active {
+  transform: scale(0.97);
+}
+.v0-workspace .collab-columns button:disabled {
+  background: #f3e8df;
+  border-color: var(--hy-outline);
+  color: #9a877f;
+  opacity: 1;
+}
+.v0-workspace .collab-timeline time {
+  color: var(--hy-wine);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Thanh toán (C3) ---------- */
+.v0-workspace .billing-shell {
+  min-height: 0;
+  background: transparent;
+}
+.v0-workspace .billing-intro {
+  text-align: left;
+  padding: 0 0 20px;
+}
+.v0-workspace .billing-intro h1 {
+  color: var(--hy-ink);
+  font-weight: 700;
+}
+.v0-workspace .billing-lookup,
+.v0-workspace .billing-deposit,
+.v0-workspace .billing-confirm,
+.v0-workspace .billing-panel,
+.v0-workspace .billing-booking-select-wrapper {
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+  box-shadow: var(--hy-shadow-1);
+}
+.v0-workspace .billing-shell input,
+.v0-workspace .billing-shell select {
+  min-height: 44px;
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface);
+}
+.v0-workspace .billing-shell button,
+.v0-workspace .billing-primary-link {
+  border-radius: var(--hy-radius-sm);
+}
+.v0-workspace .billing-secondary {
+  color: var(--hy-wine);
+  font-weight: 600;
+}
+
+/* ---------- Studio thiệp (C6) ---------- */
+.v0-workspace .invitation-live > nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px;
+  margin-bottom: 20px;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+}
+.v0-workspace .invitation-live > nav button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--hy-radius-sm);
+  background: transparent;
+  color: var(--hy-ink-muted);
+  font-weight: 600;
+  transition:
+    background-color var(--hy-dur-fast) var(--hy-ease-emphasized),
+    color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .invitation-live > nav button:hover {
+  background: var(--hy-surface-warm);
+  color: var(--hy-ink);
+}
+.v0-workspace .invitation-live > nav button[aria-pressed='true'] {
+  background: var(--hy-wine-soft);
+  color: var(--hy-wine);
+}
+.v0-workspace .invitation-live .page-heading h1 {
+  color: var(--hy-ink);
+}
+.v0-workspace .invitation-preview {
+  background: var(--hy-surface-warm);
+}
+.v0-workspace .invite-paper {
+  border-radius: var(--hy-radius-sm);
+  box-shadow: var(--hy-shadow-2);
+}
+.v0-workspace .invite-paper h2 {
+  color: var(--hy-wine);
+}
+.v0-workspace .template-card {
+  border-radius: var(--hy-radius-sm);
+  transition: border-color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .template-card.selected {
+  border-color: var(--hy-wine);
+  box-shadow: 0 0 0 3px var(--hy-wine-soft);
+}
+.v0-workspace .ai-box {
+  border: 1px dashed var(--hy-champagne);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface-warm);
+}
+.v0-workspace .invitation-page > div {
+  max-width: 480px;
+  padding: 28px;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+  box-shadow: var(--hy-shadow-1);
+}
+.v0-workspace .invitation-page > div a {
+  display: inline-flex;
+  margin-top: 12px;
+  min-height: 44px;
+  align-items: center;
+  padding: 0 18px;
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-wine);
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+}
+.v0-workspace .invitation-live [role='alert'] {
+  border-radius: var(--hy-radius-sm);
+}
+
+/* ---------- Chi tiết sảnh (P2) ---------- */
+.public-detail-grid {
+  gap: clamp(24px, 4vw, 48px);
+  align-items: start;
+}
+.public-detail-placeholder {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  min-height: 360px;
+  border-radius: var(--hy-radius-lg);
+  text-align: center;
+}
+.public-detail-copy {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+  box-shadow: var(--hy-shadow-1);
+}
+.public-detail-copy p {
+  margin: 0;
+}
+.public-capacity {
+  padding: 14px 16px;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface-warm);
+}
+.public-capacity strong {
+  color: var(--hy-wine);
+}
+.public-menu-list article {
+  padding: 24px;
+}
+
+/* ---------- Parallax ảnh hero (chỉ trang công khai) ----------
+ * Dùng scroll-driven animation của CSS: trình duyệt tự tính theo vị trí cuộn, không cần JS lắng nghe
+ * sự kiện scroll (rẻ hơn, không giật). Trình duyệt chưa hỗ trợ thì ảnh đứng yên – vẫn dùng bình thường. */
+@supports (animation-timeline: scroll()) {
+  .public-hero-image > img,
+  .public-hero-image > .public-image-placeholder {
+    animation: hy-parallax linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 600px;
+  }
+}
+@keyframes hy-parallax {
+  to {
+    transform: translateY(60px) scale(1.04);
+  }
+}
+
+/* ---------- Header công khai trên điện thoại ---------- */
+@media (max-width: 640px) {
+  .public-header {
+    gap: 10px;
+    padding: 10px 16px;
+  }
+  .public-header nav {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 16px;
+    scrollbar-width: none;
+  }
+  .public-header nav a {
+    flex: none;
+    white-space: nowrap;
+  }
+  /* Nút "Nhận tư vấn" dính ở mép phải khi hàng menu cuộn ngang – luôn thấy CTA chính. */
+  .public-nav-actions {
+    position: sticky;
+    right: 0;
+    margin-left: auto;
+    padding-left: 12px;
+    background: linear-gradient(90deg, rgb(255 248 241 / 0%), var(--hy-cream) 12px);
+  }
+  .public-nav-actions .public-button {
+    min-height: 38px;
+    padding: 6px 14px;
+    width: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-hero-image > img,
+  .public-hero-image > .public-image-placeholder {
+    animation: none;
+  }
 }

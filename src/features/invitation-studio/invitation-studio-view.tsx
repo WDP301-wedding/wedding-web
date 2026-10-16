@@ -792,6 +792,7 @@ export function InvitationStudioView({
         <button
           type="button"
           onClick={() => selectTab('design')}
+          aria-pressed={activeTab === 'design'}
           className={`min-h-[44px] px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'design'
               ? 'border-[#1E3A2F] text-[#1E3A2F]'
@@ -803,6 +804,7 @@ export function InvitationStudioView({
         <button
           type="button"
           onClick={() => selectTab('media')}
+          aria-pressed={activeTab === 'media'}
           className={`min-h-[44px] px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'media'
               ? 'border-[#1E3A2F] text-[#1E3A2F]'
@@ -814,6 +816,7 @@ export function InvitationStudioView({
         <button
           type="button"
           onClick={() => selectTab('publish')}
+          aria-pressed={activeTab === 'publish'}
           className={`min-h-[44px] px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'publish'
               ? 'border-[#1E3A2F] text-[#1E3A2F]'
@@ -825,6 +828,7 @@ export function InvitationStudioView({
         <button
           type="button"
           onClick={() => selectTab('print')}
+          aria-pressed={activeTab === 'print'}
           className={`min-h-[44px] px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'print'
               ? 'border-[#1E3A2F] text-[#1E3A2F]'

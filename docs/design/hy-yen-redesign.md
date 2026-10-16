@@ -47,6 +47,13 @@ nên CSS v0 cũ tự đổi tông. Khi viết CSS mới, dùng thẳng biến `-
 
 - `BrandMark` – logo Hỷ Yến (monogram HY + tên). `JourneyStepper` + `journeyIndex(phase, eventDate)` – hành trình 6 bước.
 - `Celebrate` – cánh hoa chúc mừng (trang trí, aria-hidden, sessionStorage để không lặp khi tải lại).
+- `Skeleton` – khung chờ shimmer; vẫn giữ câu "Đang tải…" trong `role="status"` cho trình đọc màn hình.
+- `OfflineBanner` – banner mất mạng toàn web (gắn trong `app/layout.tsx`).
+- Sơ đồ bàn: thu phóng 100–400% bằng `viewBox` (`zoomedViewBox` trong `seating-api.ts`), kéo để di chuyển.
+- Ảnh hero trang chủ: parallax bằng CSS scroll-driven animation (trình duyệt không hỗ trợ thì ảnh đứng yên).
+
+Lưu ý khi viết animation: dùng `animation-fill-mode: backwards`, không dùng `both` cho keyframe có
+`transform` – phần tử giữ transform sẽ thành khối chứa của `position: fixed` (từng làm lộ skip-link).
 
 ## Ánh xạ màn prototype → route
 
