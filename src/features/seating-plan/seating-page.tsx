@@ -171,7 +171,7 @@ function SeatingWorkspace({
                                 : 'Đã tạo sơ đồ nháp.',
                               {
                                 SEATING_PLAN_EXISTS:
-                                  'Tiệc đã có sơ đồ được tạo từ thiết bị khác. Hãy mở sơ đồ bằng mã bên dưới (hỏi nhà hàng nếu cần).',
+                                  'Tiệc đã có sơ đồ được tạo từ thiết bị khác. Mở trên thiết bị đó, hoặc nhập mã sơ đồ bên dưới (hỏi nhà hàng nếu cần).',
                               },
                             )
                             .then(accept)
@@ -190,7 +190,12 @@ function SeatingWorkspace({
             </table>
           </div>
         )}
-        {!plan ? (
+        {/*
+          Backend chưa có API liệt kê sơ đồ của tiệc: mã sơ đồ được nhớ trong trình duyệt đã tạo nó.
+          Chỉ khi tạo sơ đồ bị báo "đã có sơ đồ" (tạo từ thiết bị khác) mới hiện ô nhập mã dự phòng;
+          luồng bình thường không bao giờ hỏi mã.
+        */}
+        {!plan && command.error?.code === 'SEATING_PLAN_EXISTS' ? (
           <form
             className="cw-form"
             onSubmit={(event) => {
@@ -200,8 +205,8 @@ function SeatingWorkspace({
               void command.run((token) => seatingApi.plan(token, bookingId, id)).then(accept);
             }}
           >
-            <details>
-              <summary>Đã có sơ đồ? Mở bằng mã sơ đồ</summary>
+            <details open>
+              <summary>Mở sơ đồ đã tạo trên thiết bị khác</summary>
               <div className="cw-form-row">
                 <label>
                   Mã sơ đồ

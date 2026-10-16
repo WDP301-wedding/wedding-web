@@ -75,28 +75,28 @@ export function notificationHref(item: InboxItem): string | null {
   switch (item.purpose) {
     case 'CONTRACT':
     case 'DEPOSIT_ELIGIBLE':
-      return '/contract' + q;
+      return '/khong-gian/thoa-thuan/hop-dong' + q;
     case 'APPENDIX':
-      return '/appendices' + q;
+      return '/khong-gian/chuan-bi/phu-luc' + q;
     case 'PAYMENT':
     case 'REFUND':
-      return '/billing' + q;
+      return '/khong-gian/thanh-toan' + q;
     case 'FINAL_INVOICE':
     case 'COMPLETION_NOTICE':
-      return '/invoices' + q;
+      return '/khong-gian/quyet-toan' + q;
     case 'PRINT':
-      return '/invitations' + q + '&tab=print';
+      return '/khong-gian/chuan-bi/thiep' + q + '&tab=print';
     case 'PUBLICATION_CHANGED':
     case 'MEDIA_CUTOFF':
-      return '/invitations' + q;
+      return '/khong-gian/chuan-bi/thiep' + q;
     case 'GUEST_PLAN':
     case 'GUEST_INVITATION':
-      return '/guests' + q;
+      return '/khong-gian/chuan-bi/khach' + q;
     case 'TIMELINE_REVIEW':
     case 'TIMELINE_CHANGED':
     case 'CANCELLATION_NOTICE':
-      return '/workspace' + q;
+      return '/khong-gian/thoa-thuan/kich-ban' + q;
     default:
-      return '/overview' + q;
+      return '/khong-gian' + q;
   }
 }

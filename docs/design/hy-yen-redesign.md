@@ -55,7 +55,32 @@ nên CSS v0 cũ tự đổi tông. Khi viết CSS mới, dùng thẳng biến `-
 Lưu ý khi viết animation: dùng `animation-fill-mode: backwards`, không dùng `both` cho keyframe có
 `transform` – phần tử giữ transform sẽ thành khối chứa của `position: fixed` (từng làm lộ skip-link).
 
-## Ánh xạ màn prototype → route
+## Web v2 (P2 + C1) – prototype trong `docs/design/hy-yen/web-v2/`
+
+Bảng route nằm ở `src/routes.ts` (dùng `routes.x` thay vì gõ chuỗi). Route cũ chuyển hướng 308 (`legacyRedirects`).
+
+| Mã    | Màn                                      | Route                                                                 | Cách render                                        |
+| ----- | ---------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------- |
+| A2    | Trang chủ + Ước tính                     | `/`                                                                   | Server Component + ISR 300s, ước tính chạy client  |
+| A3    | Sảnh / chi tiết sảnh                     | `/sanh?khach=`, `/sanh/[id]`                                          | SC + ISR; lọc số khách ở client                    |
+| A4    | Thực đơn                                 | `/thuc-don`                                                           | SC + ISR                                           |
+| A2/A5 | Tư vấn / đã gửi                          | `/tu-van?sanh=&thuc-don=&ngay=&khach=&ca=`, `/tu-van/da-gui`          | SC + form client                                   |
+| T1–T4 | Đăng nhập, quên mật khẩu, lời mời, hồ sơ | `/dang-nhap`, `/quen-mat-khau`, `/loi-moi#invitationToken=`, `/ho-so` | Client                                             |
+| B1    | Tổng quan                                | `/khong-gian`                                                         | Layout giữ `SpaceProvider` (cache) + `SpaceShell`  |
+| B2    | Kịch bản / Tên / Hợp đồng                | `/khong-gian/thoa-thuan/{kich-ban,ten,hop-dong}`                      | Client                                             |
+| B3    | Ví tiệc / kết quả VNPay                  | `/khong-gian/thanh-toan`, `/khong-gian/thanh-toan/ket-qua`            | Client (không tin `vnp_*`)                         |
+| B4    | Khách & sơ đồ / Thiệp / Phụ lục          | `/khong-gian/chuan-bi/{khach[?xem=so-do],thiep,phu-luc}`              | Client, sơ đồ + Studio tách chunk (`next/dynamic`) |
+| B5/B6 | Quyết toán / Thông báo                   | `/khong-gian/quyet-toan`, `/khong-gian/thong-bao`                     | Client                                             |
+| C1    | Thiệp khách                              | `/t/[slug]`, `/t/ca-nhan#credential=wgc_…`                            | SC + ISR / client                                  |
+
+Khác prototype có chủ đích: thiệp cá nhân giữ mã trong `#fragment` (không dùng `?k=`), lời mời dùng
+`/loi-moi#…` (không đưa mã vào path), sảnh dùng UUID (API chưa có slug), mục Ưu đãi ẩn khi
+`src/content/public-content.ts` chưa có ưu đãi thật, thẻ "quản lý tiệc phụ trách" thay bằng liên hệ nhà hàng.
+
+Font: tự host qua `next/font/local` (`app/fonts.ts`, file woff2 đã subset Latin + tiếng Việt trong
+`app/fonts/`, giấy phép OFL kèm theo). `app/fonts.css` đặt font next/font lên đầu token chữ.
+
+## Ánh xạ màn prototype v1 → route (đã thay bằng bảng web v2 ở trên)
 
 | Mã      | Prototype            | Route                                                                     |
 | ------- | -------------------- | ------------------------------------------------------------------------- |

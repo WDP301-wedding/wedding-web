@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap&subset=vietnamese');
-
 :root {
   /* Hỷ Yến design system – docs/design/hy-yen-redesign.md. Tên biến cũ giữ nguyên để CSS hiện có tự đổi tông. */
   --navy: #7a1f3d;

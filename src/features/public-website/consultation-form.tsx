@@ -16,11 +16,40 @@ function subscribeToDateChange(onChange: () => void) {
 
 const serverMinimumDate = () => '';
 
+/** Lựa chọn mang sang từ công cụ ước tính / trang sảnh (query ?sanh=&thuc-don=&ngay=&khach=&ca=). */
+export type ConsultationPrefill = Readonly<{
+  date?: string | undefined;
+  guests?: number | undefined;
+  shift?: 'LUNCH' | 'DINNER' | undefined;
+  hallName?: string | undefined;
+  menuName?: string | undefined;
+}>;
+
+/**
+ * Backend chưa có trường sảnh/thực đơn/ca trong yêu cầu tư vấn → ghép thành vài dòng đầu của
+ * lời nhắn để quản lý tiệc đọc được ngay, không mất lựa chọn của khách.
+ */
+export function choiceLines(prefill: ConsultationPrefill, shift: 'LUNCH' | 'DINNER' | ''): string {
+  return [
+    prefill.hallName ? `Sảnh quan tâm: ${prefill.hallName}` : '',
+    prefill.menuName ? `Thực đơn quan tâm: ${prefill.menuName}` : '',
+    shift ? `Ca mong muốn: ${shift === 'LUNCH' ? 'Ca trưa' : 'Ca tối'}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
 export function ConsultationForm({
   submit = createPublicGateway().submit,
+  prefill = {},
+  onSent,
 }: {
   submit?: (request: ConsultationRequest) => Promise<void>;
+  prefill?: ConsultationPrefill;
+  /** Gửi thành công → trang chuyển sang /tu-van/da-gui; không truyền thì hiện lời cảm ơn tại chỗ. */
+  onSent?: () => void;
 }) {
+  const [shift, setShift] = useState<'LUNCH' | 'DINNER' | ''>(prefill.shift ?? '');
   const [state, setState] = useState<'idle' | 'pending' | 'success'>('idle');
   const [error, setError] = useState<string | null>(null);
   const minimumDate = useSyncExternalStore(
@@ -43,7 +72,7 @@ export function ConsultationForm({
       phone: field('phone'),
       preferredDate: field('preferredDate') || null,
       expectedGuests: field('expectedGuests') ? Number(field('expectedGuests')) : null,
-      message: field('message'),
+      message: [choiceLines(prefill, shift), field('message')].filter(Boolean).join('\n\n'),
     };
     if (fields.preferredDate !== null && fields.preferredDate < minimumPreferredDate()) {
       setError('Ngày tổ chức dự kiến phải từ ngày mốt trở đi (theo giờ Việt Nam).');
@@ -56,6 +85,7 @@ export function ConsultationForm({
     try {
       await submit({ ...fields, submissionId: intent.current.id });
       setState('success');
+      onSent?.();
     } catch (caught) {
       setState('idle');
       setError(
@@ -74,13 +104,21 @@ export function ConsultationForm({
           Nhà hàng sẽ xem lại mong muốn của bạn và liên hệ qua thông tin đã cung cấp. Khi hồ sơ tư
           vấn được mở, bạn sẽ nhận lời mời vào không gian riêng.
         </p>
-        <Link className="public-button" href="/halls">
+        <Link className="public-button" href="/sanh">
           Khám phá không gian tiệc
         </Link>
       </section>
     );
   return (
     <form className="consultation-form" onSubmit={(event) => void send(event)}>
+      {prefill.hallName || prefill.menuName ? (
+        <p className="hy-choice-summary">
+          <span>Lựa chọn của bạn:</span>
+          {prefill.hallName ? <span className="hy-chip">{prefill.hallName}</span> : null}
+          {prefill.menuName ? <span className="hy-chip">{prefill.menuName}</span> : null}
+          <Link href="/#uoc-tinh">Đổi lựa chọn</Link>
+        </p>
+      ) : null}
       <div className="public-form-grid">
         <label>
           Họ và tên
@@ -106,15 +144,39 @@ export function ConsultationForm({
             name="preferredDate"
             type="date"
             min={minimumDate}
+            defaultValue={prefill.date}
             aria-describedby="preferred-date-help"
           />
           <span id="preferred-date-help">Chọn ngày mốt hoặc muộn hơn (theo giờ Việt Nam).</span>
         </label>
         <label>
           Số khách dự kiến <span>(không bắt buộc)</span>
-          <input name="expectedGuests" type="number" min={1} max={10000} />
+          <input
+            name="expectedGuests"
+            type="number"
+            min={1}
+            max={10000}
+            defaultValue={prefill.guests}
+          />
         </label>
       </div>
+      <fieldset className="hy-shift-picker">
+        <legend>
+          Ca mong muốn <span>(không bắt buộc)</span>
+        </legend>
+        {(['LUNCH', 'DINNER'] as const).map((code) => (
+          <label key={code} className={shift === code ? 'is-selected' : undefined}>
+            <input
+              type="radio"
+              name="shift"
+              value={code}
+              checked={shift === code}
+              onChange={() => setShift(code)}
+            />
+            <strong>{code === 'LUNCH' ? 'Ca trưa' : 'Ca tối'}</strong>
+          </label>
+        ))}
+      </fieldset>
       <label>
         Điều bạn mong muốn <span>(không bắt buộc)</span>
         <textarea

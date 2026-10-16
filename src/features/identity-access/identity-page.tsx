@@ -31,11 +31,31 @@ type IdentityView = 'invitation' | 'login' | 'reset-request' | 'restoring';
 type IdentityExperienceProps = Readonly<{
   session: WebIdentitySession;
   initialCredential: BootstrapCredential | null;
+  /** Màn mở đầu khi chưa đăng nhập: `/dang-nhap` → login, `/quen-mat-khau` → reset. */
+  startView?: 'login' | 'reset-request';
+  /**
+   * Gọi khi đã đăng nhập (sẵn phiên hoặc vừa đăng nhập xong). Trang `/dang-nhap` dùng để
+   * chuyển thẳng vào /khong-gian thay vì hiện trang hồ sơ. Để trống → hiện hồ sơ như cũ.
+   */
+  onAuthenticated?: (() => void) | undefined;
 }>;
 
-export function PublicIdentityPage() {
+export function PublicIdentityPage({
+  startView = 'login',
+  onAuthenticated,
+}: Readonly<{
+  startView?: 'login' | 'reset-request';
+  onAuthenticated?: (() => void) | undefined;
+}> = {}) {
   useLayoutEffect(removeCredentialFragmentAfterHydration, []);
-  return <IdentityExperience session={browserSession} initialCredential={browserCredential} />;
+  return (
+    <IdentityExperience
+      session={browserSession}
+      initialCredential={browserCredential}
+      startView={startView}
+      onAuthenticated={onAuthenticated}
+    />
+  );
 }
 
 function removeCredentialFragmentAfterHydration() {
@@ -44,7 +64,12 @@ function removeCredentialFragmentAfterHydration() {
   window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
 }
 
-export function IdentityExperience({ session, initialCredential }: IdentityExperienceProps) {
+export function IdentityExperience({
+  session,
+  initialCredential,
+  startView = 'login',
+  onAuthenticated,
+}: IdentityExperienceProps) {
   const [snapshot, setSnapshot] = useState<WebSessionSnapshot>(() => session.snapshot());
   const [view, setView] = useState<IdentityView>('restoring');
   const [pending, setPending] = useState(false);
@@ -68,12 +93,29 @@ export function IdentityExperience({ session, initialCredential }: IdentityExper
     void session.restore().then((nextSnapshot) => {
       if (!active) return;
       setSnapshot(nextSnapshot);
-      setView('login');
+      setView(startView);
     });
     return () => {
       active = false;
     };
-  }, [initialCredential, session]);
+  }, [initialCredential, session, startView]);
+
+  const authenticated = snapshot.status === 'authenticated';
+  useEffect(() => {
+    if (authenticated) onAuthenticated?.();
+  }, [authenticated, onAuthenticated]);
+
+  if (snapshot.status === 'authenticated' && onAuthenticated) {
+    return (
+      <PublicShell session={session}>
+        <div className="auth-panel">
+          <div className="auth-state" role="status" aria-busy="true">
+            <h1>Đang mở không gian cưới…</h1>
+          </div>
+        </div>
+      </PublicShell>
+    );
+  }
 
   if (snapshot.status === 'authenticated') {
     return (
@@ -347,7 +389,7 @@ function AuthenticatedWorkspace({
               ? 'Tài khoản của bạn đã có quyền truy cập đầy đủ vào kế hoạch cưới.'
               : 'Bạn đang có quyền truy cập giới hạn để xem đề xuất và cùng cập nhật mốc tư vấn.'}
           </p>
-          <Link className="primary-action workspace-entry" href="/overview">
+          <Link className="primary-action workspace-entry" href="/khong-gian">
             Mở kế hoạch của chúng tôi
           </Link>
         </section>

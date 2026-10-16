@@ -7,6 +7,9 @@ import './public.css';
 import './v0-workspace.css';
 import './couple.css';
 import './hy-yen.css';
+import './hy-v2.css';
+import './fonts.css';
+import { beVietnamPro, playfairWordmark } from './fonts';
 
 export const metadata: Metadata = {
   title: 'Hỷ Yến | Cùng chuẩn bị ngày chung đôi',
@@ -20,7 +23,11 @@ type RootLayoutProps = Readonly<{
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="vi" data-scroll-behavior="smooth">
+    <html
+      lang="vi"
+      data-scroll-behavior="smooth"
+      className={`${beVietnamPro.variable} ${playfairWordmark.variable}`}
+    >
       <body>
         <OfflineBanner />
         {children}

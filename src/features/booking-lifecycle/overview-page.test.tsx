@@ -73,7 +73,7 @@ describe('Couple overview', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Đang mở');
     expect(await screen.findByRole('link', { name: 'Đăng nhập →' })).toHaveAttribute(
       'href',
-      '/account',
+      '/dang-nhap',
     );
     expect(mocks.overview).not.toHaveBeenCalled();
   });
@@ -90,7 +90,7 @@ describe('Couple overview', () => {
     expect(screen.getByText('Hồ sơ đang được chuẩn bị')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Liên hệ nhà hàng →' })).toHaveAttribute(
       'href',
-      '/consultation',
+      '/tu-van',
     );
   });
 
@@ -142,7 +142,7 @@ describe('Couple overview', () => {
     expect(screen.getAllByText('Đã duyệt phiên bản hiện tại')).toHaveLength(2);
     expect(screen.getAllByRole('link', { name: 'Mở đề xuất & kịch bản →' })[1]).toHaveAttribute(
       'href',
-      '/workspace?bookingId=review',
+      '/khong-gian/thoa-thuan/kich-ban?bookingId=review',
     );
   });
 

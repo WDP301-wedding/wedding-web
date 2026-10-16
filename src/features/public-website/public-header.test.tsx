@@ -34,19 +34,19 @@ describe('public navbar authentication', () => {
   it('replaces the account label after login and places logout next to the consultation action', async () => {
     const { session, api } = fixture();
     render(<PublicHeader session={session} restoreSession={false} />);
-    expect(screen.getByRole('link', { name: 'Tài khoản' })).toHaveAttribute('href', '/account');
+    expect(screen.getByRole('link', { name: 'Đăng nhập' })).toHaveAttribute('href', '/dang-nhap');
     expect(screen.queryByRole('button', { name: 'Đăng xuất' })).not.toBeInTheDocument();
     await act(() => session.login('couple@example.com', 'test-password'));
     expect(screen.getByRole('link', { name: 'couple@example.com' })).toHaveAttribute(
       'href',
-      '/account',
+      '/ho-so',
     );
     const actions = screen.getByRole('button', { name: 'Đăng xuất' }).parentElement!;
     expect(within(actions).getByRole('link', { name: /Nhận tư vấn/ })).toBeVisible();
     fireEvent.click(screen.getByRole('button', { name: 'Đăng xuất' }));
     await waitFor(() => expect(api.logout).toHaveBeenCalledWith('test-access'));
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/account'));
-    expect(screen.getByRole('link', { name: 'Tài khoản' })).toBeVisible();
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/dang-nhap'));
+    expect(screen.getByRole('link', { name: 'Đăng nhập' })).toBeVisible();
     expect(screen.queryByText('couple@example.com')).not.toBeInTheDocument();
   });
   it('restores the cookie session on public pages and clears navbar identity on session expiry', async () => {
@@ -69,7 +69,7 @@ describe('public navbar authentication', () => {
         ),
       ).rejects.toMatchObject({ status: 401 });
     });
-    expect(screen.getByRole('link', { name: 'Tài khoản' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Đăng nhập' })).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Đăng xuất' })).not.toBeInTheDocument();
   });
   it('shows a logout connection failure without an unhandled rejection or success redirect', async () => {

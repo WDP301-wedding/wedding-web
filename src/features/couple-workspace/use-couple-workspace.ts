@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { createApiClient, type ApiClient } from '../../lib/api/client';
@@ -43,20 +43,61 @@ export function unwrap<T>(response: { readonly data?: unknown }): T {
 }
 
 /**
+ * Chọn tiệc mặc định khi URL chưa có `bookingId`: ưu tiên tiệc còn hiệu lực có ngày gần nhất
+ * (chưa huỷ/chưa hoàn tất), nếu không có thì lấy tiệc đầu tiên. Không bắt người dùng nhập mã.
+ */
+export function pickDefaultBooking(
+  bookings: readonly BookingSummary[],
+): BookingSummary | undefined {
+  const active = bookings
+    .filter((booking) => booking.phase !== 'CANCELLED' && booking.phase !== 'COMPLETED')
+    .toSorted((left, right) => left.eventDate.localeCompare(right.eventDate));
+  return active[0] ?? bookings[0];
+}
+
+export type CoupleWorkspace = Readonly<{
+  state: WorkspaceState;
+  reload: () => void;
+  bookingId: string | null;
+  /** Danh sách tiệc của cặp đôi (rỗng khi chưa tải hoặc chưa đăng nhập). */
+  bookings: readonly BookingSummary[];
+}>;
+
+/**
+ * Context của "lớp cache dùng chung" cho /khong-gian.
+ *
+ * Vì sao cần: trước đây mỗi trang Couple tự gọi lại restore phiên + danh sách tiệc + proposal.
+ * Layout `/khong-gian` được Next.js GIỮ NGUYÊN khi chuyển giữa các trang con, nên đặt Provider ở
+ * layout thì dữ liệu chỉ tải một lần và các trang con đọc lại từ context (không gọi API lặp lại).
+ * Ngoài /khong-gian (test, trang cũ) context là null → hook tự tải như trước.
+ */
+export const CoupleWorkspaceContext = createContext<CoupleWorkspace | null>(null);
+
+/**
  * Hook nạp ngữ cảnh tiệc cho mọi trang Couple.
  *
- * Luồng: khôi phục phiên (cookie refresh) → đọc `bookingId` trên URL → gọi
- * `GET /bookings/{id}/proposal` để biết `phase`, quyền `RESTRICTED/FULL` và `revision` hiện tại.
- * Nếu URL chưa có bookingId thì liệt kê tiệc của Couple; có đúng 1 tiệc thì tự chọn.
- * Quyền luôn lấy từ backend, UI không tự suy đoán.
+ * Luồng: khôi phục phiên (cookie refresh) → lấy danh sách tiệc → chọn `bookingId` (URL hoặc
+ * tiệc mặc định) → gọi `GET /bookings/{id}/proposal` để biết `phase`, quyền `RESTRICTED/FULL`
+ * và `revision` hiện tại. Quyền luôn lấy từ backend, UI không tự suy đoán.
  */
-export function useCoupleWorkspace() {
+export function useCoupleWorkspace(): CoupleWorkspace {
+  const shared = useContext(CoupleWorkspaceContext);
+  // Hook phải được gọi ở mọi lần render (quy tắc của React), nên luôn gọi loader
+  // nhưng tắt việc tải khi đã có dữ liệu dùng chung từ Provider.
+  const own = useWorkspaceLoader(shared === null);
+  return shared ?? own;
+}
+
+/** Bộ tải dữ liệu thật; Provider và hook (khi không có Provider) đều dùng hàm này. */
+export function useWorkspaceLoader(enabled = true): CoupleWorkspace {
   const searchParams = useSearchParams();
   const urlBookingId = searchParams.get('bookingId');
   const [state, setState] = useState<WorkspaceState>({ status: 'loading' });
+  const [bookings, setBookings] = useState<readonly BookingSummary[]>([]);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    if (!enabled) return;
     let active = true;
     const load = async () => {
       const snapshot = await browserSession.restore();
@@ -65,25 +106,27 @@ export function useCoupleWorkspace() {
         setState({ status: 'anonymous' });
         return;
       }
+      const list = await browserSession.authorize((token) =>
+        coupleApi()
+          .GET('/couple/bookings', {
+            headers: bearer(token),
+            params: { query: { client: 'WEB', limit: 50 } },
+          })
+          .then((response) => unwrap<readonly BookingSummary[]>(response)),
+      );
+      if (!active) return;
+      setBookings(list);
       let bookingId = urlBookingId;
       if (!bookingId) {
-        const bookings = await browserSession.authorize((token) =>
-          coupleApi()
-            .GET('/couple/bookings', {
-              headers: bearer(token),
-              params: { query: { client: 'WEB', limit: 50 } },
-            })
-            .then((response) => unwrap<readonly BookingSummary[]>(response)),
-        );
-        if (!active) return;
-        if (bookings.length !== 1) {
-          setState({ status: 'choose-booking', bookings });
+        const fallback = pickDefaultBooking(list);
+        if (!fallback) {
+          setState({ status: 'choose-booking', bookings: list });
           return;
         }
-        bookingId = bookings[0]!.bookingId;
+        bookingId = fallback.bookingId;
         const url = new URL(window.location.href);
         url.searchParams.set('bookingId', bookingId);
-        window.history.replaceState({}, '', url.toString());
+        window.history.replaceState(window.history.state, '', url.toString());
       }
       const id = bookingId;
       const proposal = await browserSession.authorize((token) =>
@@ -105,12 +148,13 @@ export function useCoupleWorkspace() {
     return () => {
       active = false;
     };
-  }, [urlBookingId, reloadKey]);
+  }, [enabled, urlBookingId, reloadKey]);
 
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
   return {
     state,
     reload,
+    bookings,
     bookingId: state.status === 'ready' ? state.proposal.bookingId : urlBookingId,
   };
 }

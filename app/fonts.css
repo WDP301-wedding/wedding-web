@@ -1,0 +1,11 @@
+/*
+ * Nối font tự host (next/font, xem app/fonts.ts) vào token chữ.
+ * `--font-vn` / `--font-wordmark-face` được next/font gắn lên thẻ <html> qua className.
+ * Phần sau giữ nguyên chuỗi dự phòng sans-serif của globals.css (AGENTS.md).
+ */
+:root {
+  --font-display: var(--font-vn), 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-body: var(--font-vn), 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-script: var(--font-vn), 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-wordmark: var(--font-wordmark-face), 'Playfair Display', Georgia, serif;
+}

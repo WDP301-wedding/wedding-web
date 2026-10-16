@@ -15,6 +15,39 @@ import {
   type Preferences,
 } from './notification-api';
 import { Skeleton } from '../../design-system/skeleton';
+import { useSpaceExtras } from '../couple-workspace/space-provider';
+
+const vnDay = (iso: string) =>
+  new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+/**
+ * Nhóm thông báo theo ngày (giờ Việt Nam): "Hôm nay", "Hôm qua", rồi dd/mm/yyyy (prototype B6).
+ * Danh sách từ backend đã xếp mới → cũ nên chỉ cần gom các phần tử liền kề cùng ngày.
+ */
+export function groupByDay(
+  items: readonly InboxItem[],
+  now = new Date(),
+): { label: string; items: InboxItem[] }[] {
+  const today = vnDay(now.toISOString());
+  const yesterday = vnDay(new Date(now.getTime() - 86_400_000).toISOString());
+  const groups: { key: string; label: string; items: InboxItem[] }[] = [];
+  for (const item of items) {
+    const key = vnDay(item.createdAt);
+    let group = groups.at(-1);
+    if (group?.key !== key) {
+      const label =
+        key === today
+          ? 'Hôm nay'
+          : key === yesterday
+            ? 'Hôm qua'
+            : key.split('-').reverse().join('/');
+      group = { key, label, items: [] };
+      groups.push(group);
+    }
+    group.items.push(item);
+  }
+  return groups.map(({ label, items: list }) => ({ label, items: list }));
+}
 
 export function NotificationsPage() {
   const [state, setState] = useState<'loading' | 'anonymous' | 'ready'>('loading');
@@ -24,7 +57,12 @@ export function NotificationsPage() {
   const [loadError, setLoadError] = useState<FriendlyError | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const command = useCommand();
-  const reload = useCallback(() => setReloadKey((value) => value + 1), []);
+  const { refreshUnread } = useSpaceExtras();
+  // Sau khi đánh dấu đã đọc: tải lại hộp thư VÀ số trên chuông/sidebar (lớp cache dùng chung).
+  const reload = useCallback(() => {
+    setReloadKey((value) => value + 1);
+    refreshUnread();
+  }, [refreshUnread]);
 
   useEffect(() => {
     let active = true;
@@ -65,7 +103,7 @@ export function NotificationsPage() {
         {state === 'loading' && !loadError ? <Skeleton label="Đang tải thông báo…" /> : null}
         {state === 'anonymous' ? (
           <EmptyPanel title="Cần đăng nhập">
-            <Link className="button" href="/account">
+            <Link className="button" href="/dang-nhap">
               Đăng nhập
             </Link>
           </EmptyPanel>
@@ -96,56 +134,71 @@ export function NotificationsPage() {
               {items.length === 0 ? (
                 <p className="cw-note">Chưa có thông báo nào.</p>
               ) : (
-                <ul className="cw-list">
-                  {items.map((item) => {
-                    const href = notificationHref(item);
-                    return (
-                      <li
-                        key={item.id}
-                        style={{
-                          borderLeft: item.readAt ? undefined : '3px solid var(--champagne)',
-                          paddingLeft: 8,
-                        }}
-                      >
-                        <strong>{item.title}</strong>
-                        <p style={{ margin: '4px 0' }}>{item.message}</p>
-                        <small className="muted">{formatDateTime(item.createdAt)}</small>
-                        <div className="cw-actions">
-                          {href ? (
-                            <Link
-                              className="cw-text-button"
-                              href={href}
-                              onClick={() => {
-                                if (item.readAt === null)
-                                  void command.run((token, key) =>
-                                    notificationApi.markRead(token, key, item.id, item.revision),
-                                  );
-                              }}
-                            >
-                              Mở
-                            </Link>
-                          ) : null}
-                          {item.readAt === null ? (
-                            <button
-                              className="cw-text-button"
-                              type="button"
-                              disabled={command.pending}
-                              onClick={() =>
-                                void command
-                                  .run((token, key) =>
-                                    notificationApi.markRead(token, key, item.id, item.revision),
-                                  )
-                                  .then((result) => result && reload())
-                              }
-                            >
-                              Đánh dấu đã đọc
-                            </button>
-                          ) : null}
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
+                groupByDay(items).map((group) => (
+                  <div key={group.label} className="hy-notif-group">
+                    <h3>{group.label}</h3>
+                    <ul className="cw-list">
+                      {group.items.map((item) => {
+                        const href = notificationHref(item);
+                        return (
+                          <li
+                            key={item.id}
+                            style={{
+                              borderLeft: item.readAt ? undefined : '3px solid var(--champagne)',
+                              paddingLeft: 8,
+                            }}
+                          >
+                            <strong>{item.title}</strong>
+                            <p style={{ margin: '4px 0' }}>{item.message}</p>
+                            <small className="muted">{formatDateTime(item.createdAt)}</small>
+                            <div className="cw-actions">
+                              {href ? (
+                                <Link
+                                  className="cw-text-button"
+                                  href={href}
+                                  onClick={() => {
+                                    if (item.readAt === null)
+                                      void command.run((token, key) =>
+                                        notificationApi.markRead(
+                                          token,
+                                          key,
+                                          item.id,
+                                          item.revision,
+                                        ),
+                                      );
+                                  }}
+                                >
+                                  Mở
+                                </Link>
+                              ) : null}
+                              {item.readAt === null ? (
+                                <button
+                                  className="cw-text-button"
+                                  type="button"
+                                  disabled={command.pending}
+                                  onClick={() =>
+                                    void command
+                                      .run((token, key) =>
+                                        notificationApi.markRead(
+                                          token,
+                                          key,
+                                          item.id,
+                                          item.revision,
+                                        ),
+                                      )
+                                      .then((result) => result && reload())
+                                  }
+                                >
+                                  Đánh dấu đã đọc
+                                </button>
+                              ) : null}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))
               )}
               {cursor ? (
                 <button

@@ -62,7 +62,7 @@ export function CollaborationPage({
     return (
       <AccessState title="Cần đăng nhập">
         <p role="alert">Hãy đăng nhập hoặc chấp nhận lời mời trước khi xem đề xuất.</p>
-        <Link href="/account">Về trang đăng nhập</Link>
+        <Link href="/dang-nhap">Về trang đăng nhập</Link>
       </AccessState>
     );
   return (
@@ -184,7 +184,7 @@ export function CollaborationWorkspace({
   };
 
   return (
-    <main className="collab-shell">
+    <div className="collab-shell">
       <a className="skip-link" href="#proposal-content">
         Đi đến đề xuất
       </a>
@@ -230,7 +230,7 @@ export function CollaborationWorkspace({
             title="Chưa có hồ sơ tiệc cưới"
             body="Nhà hàng sẽ mở đề xuất sau buổi tư vấn và gửi lời mời vào không gian cưới qua email."
           >
-            <Link className="button" href="/consultation">
+            <Link className="button" href="/tu-van">
               Liên hệ tư vấn
             </Link>
           </EmptyState>
@@ -249,7 +249,7 @@ export function CollaborationWorkspace({
           />
         )}
       </section>
-    </main>
+    </div>
   );
 }
 
@@ -267,7 +267,7 @@ function ProposalWorkspace({
   command: (operation: (token: string) => Promise<void>, success: string) => Promise<void>;
 }>) {
   const timeline = proposal.timeline;
-  const billingHref = `/billing?bookingId=${proposal.bookingId}`;
+  const billingHref = `/khong-gian/thanh-toan?bookingId=${proposal.bookingId}`;
   const bothApproved = Boolean(timeline?.managerApprovedAt && timeline?.coupleApprovedAt);
   const confirmed = proposal.phase === 'CONFIRMED';
   // Bước tiếp theo theo giai đoạn: giữ đúng câu chữ cũ để người dùng (và test) nhận ra.
@@ -571,11 +571,11 @@ function NextStep({
 }
 function AccessState({ children, title }: Readonly<{ children?: React.ReactNode; title: string }>) {
   return (
-    <main className="collab-access-state">
+    <div className="collab-access-state">
       <p className="collab-kicker">Hỷ Yến</p>
       <h1>{title}</h1>
       {children}
-    </main>
+    </div>
   );
 }
 function field(data: FormData, name: string): string {

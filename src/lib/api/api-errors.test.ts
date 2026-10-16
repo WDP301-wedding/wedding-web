@@ -58,10 +58,12 @@ describe('notificationHref', () => {
     ({ purpose, resource: { bookingId, owner: 'booking', data: {} } }) as unknown as InboxItem;
 
   it('routes each purpose to the matching couple screen', () => {
-    expect(notificationHref(item('CONTRACT'))).toBe('/contract?bookingId=b1');
-    expect(notificationHref(item('APPENDIX'))).toBe('/appendices?bookingId=b1');
-    expect(notificationHref(item('FINAL_INVOICE'))).toBe('/invoices?bookingId=b1');
-    expect(notificationHref(item('PRINT'))).toBe('/invitations?bookingId=b1&tab=print');
+    expect(notificationHref(item('CONTRACT'))).toBe('/khong-gian/thoa-thuan/hop-dong?bookingId=b1');
+    expect(notificationHref(item('APPENDIX'))).toBe('/khong-gian/chuan-bi/phu-luc?bookingId=b1');
+    expect(notificationHref(item('FINAL_INVOICE'))).toBe('/khong-gian/quyet-toan?bookingId=b1');
+    expect(notificationHref(item('PRINT'))).toBe(
+      '/khong-gian/chuan-bi/thiep?bookingId=b1&tab=print',
+    );
     expect(notificationHref(item('PAYMENT', null))).toBeNull();
   });
 });

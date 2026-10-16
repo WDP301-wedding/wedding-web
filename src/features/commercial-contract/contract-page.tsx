@@ -26,6 +26,7 @@ import { ContractLinesTable } from './contract-lines';
 import { LineSelector } from './contract-lines';
 import { Celebrate } from '../../design-system/celebrate';
 import { Skeleton } from '../../design-system/skeleton';
+import { routes, withBooking } from '../../routes';
 
 const stateLabels: Record<ContractRevision['state'], string> = {
   DRAFT: 'Bản nháp',
@@ -34,15 +35,36 @@ const stateLabels: Record<ContractRevision['state'], string> = {
   SUPERSEDED: 'Đã được thay thế',
 };
 
-export function ContractPage() {
+/** `names` / `contract`: web v2 tách "Tên cô dâu chú rể" và "Hợp đồng" thành 2 bước của Thoả thuận. */
+export type ContractSection = 'all' | 'names' | 'contract';
+
+const sectionCopy: Record<ContractSection, { title: string; description: string }> = {
+  all: {
+    title: 'Hợp đồng tiệc cưới',
+    description:
+      'Chọn thực đơn, dịch vụ và thiệp in; hai bên cùng duyệt một phiên bản trước khi đặt cọc.',
+  },
+  names: {
+    title: 'Tên cô dâu & chú rể',
+    description: 'Tên được in trên hợp đồng và thiệp cưới. Cần có trước khi gửi duyệt hợp đồng.',
+  },
+  contract: {
+    title: 'Hợp đồng tiệc cưới',
+    description: 'Hai bên cùng duyệt một phiên bản hợp đồng trước khi đặt cọc.',
+  },
+};
+
+export function ContractPage({ section = 'all' }: Readonly<{ section?: ContractSection }> = {}) {
   return (
     <CouplePage
       active="contract"
       eyebrow="Thống nhất"
-      title="Hợp đồng tiệc cưới"
-      description="Chọn thực đơn, dịch vụ và thiệp in; hai bên cùng duyệt một phiên bản trước khi đặt cọc."
+      title={sectionCopy[section].title}
+      description={sectionCopy[section].description}
     >
-      {(proposal, reload) => <ContractWorkspace proposal={proposal} reloadBooking={reload} />}
+      {(proposal, reload) => (
+        <ContractWorkspace proposal={proposal} reloadBooking={reload} section={section} />
+      )}
     </CouplePage>
   );
 }
@@ -50,7 +72,8 @@ export function ContractPage() {
 function ContractWorkspace({
   proposal,
   reloadBooking,
-}: Readonly<{ proposal: Proposal; reloadBooking: () => void }>) {
+  section,
+}: Readonly<{ proposal: Proposal; reloadBooking: () => void; section: ContractSection }>) {
   const [contracts, setContracts] = useState<ContractList | null>(null);
   const [profile, setProfile] = useState<CoupleProfile | null>(null);
   const [loadError, setLoadError] = useState<FriendlyError | null>(null);
@@ -80,25 +103,46 @@ function ContractWorkspace({
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
   if (!contracts || !profile) return <Skeleton label="Đang tải hợp đồng…" />;
 
+  const showNames = section !== 'contract';
+  const showContract = section !== 'names';
+  const namesMissing = !profile.brideName || !profile.groomName;
   return (
     <>
-      <CoupleNamesCard
-        profile={profile}
-        onSaved={(next) => {
-          setProfile(next);
-        }}
-      />
-      <ContractCard
-        proposal={proposal}
-        contracts={contracts}
-        profile={profile}
-        onChanged={() => {
-          // Mỗi lệnh hợp đồng làm tăng revision của Booking → nạp lại cả booking lẫn hợp đồng.
-          reload();
-          reloadBooking();
-        }}
-      />
-      <HistoryCard contracts={contracts} bookingId={proposal.bookingId} />
+      {showNames ? (
+        <CoupleNamesCard
+          profile={profile}
+          onSaved={(next) => {
+            setProfile(next);
+          }}
+        />
+      ) : null}
+      {section === 'names' ? (
+        <p className="cw-next-step">
+          {namesMissing ? 'Lưu đủ tên hai bạn rồi ' : 'Tên đã sẵn sàng. '}
+          <Link href={withBooking(routes.contract, proposal.bookingId)}>
+            tiếp tục tới Hợp đồng →
+          </Link>
+        </p>
+      ) : null}
+      {section === 'contract' && namesMissing ? (
+        <p className="cw-next-step" role="note">
+          Hợp đồng cần tên cô dâu và chú rể.{' '}
+          <Link href={withBooking(routes.names, proposal.bookingId)}>Nhập tên →</Link>
+        </p>
+      ) : null}
+      {showContract ? (
+        <ContractCard
+          proposal={proposal}
+          contracts={contracts}
+          profile={profile}
+          onChanged={() => {
+            // Mỗi lệnh hợp đồng làm tăng revision của Booking → nạp lại cả booking lẫn hợp đồng.
+            reload();
+            reloadBooking();
+          }}
+        />
+      ) : null}
+      {showContract ? <HistoryCard contracts={contracts} bookingId={proposal.bookingId} /> : null}
     </>
   );
 }
@@ -244,8 +288,11 @@ function ContractCard({
       {!timelineApproved && !isPostDeposit ? (
         <p className="cw-note">
           Kịch bản tiệc chưa được cả hai bên duyệt. Hợp đồng gắn với đúng phiên bản kịch bản, nên
-          hãy <Link href={`/workspace?bookingId=${bookingId}`}>hoàn tất duyệt kịch bản</Link> trước
-          khi đặt cọc.
+          hãy{' '}
+          <Link href={`/khong-gian/thoa-thuan/kich-ban?bookingId=${bookingId}`}>
+            hoàn tất duyệt kịch bản
+          </Link>{' '}
+          trước khi đặt cọc.
         </p>
       ) : null}
 
@@ -355,7 +402,7 @@ function ContractCard({
               <Celebrate onceKey={'contract-' + current.revisionId} />
             ) : null}
             {current.state === 'APPROVED' && contracts.eligibleForDeposit ? (
-              <Link className="button" href={`/billing?bookingId=${bookingId}`}>
+              <Link className="button" href={`/khong-gian/thanh-toan?bookingId=${bookingId}`}>
                 Đặt cọc {formatVnd(current.document.depositAmountVnd)}
               </Link>
             ) : null}
@@ -373,7 +420,10 @@ function ContractCard({
             ) : null}
 
             {isPostDeposit ? (
-              <Link className="button button-secondary" href={`/appendices?bookingId=${bookingId}`}>
+              <Link
+                className="button button-secondary"
+                href={`/khong-gian/chuan-bi/phu-luc?bookingId=${bookingId}`}
+              >
                 Thay đổi sau cọc → Phụ lục
               </Link>
             ) : null}

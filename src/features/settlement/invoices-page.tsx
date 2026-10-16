@@ -132,7 +132,7 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
           </div>
         </dl>
         <div className="cw-actions">
-          <Link className="button" href={`/billing?bookingId=${bookingId}`}>
+          <Link className="button" href={`/khong-gian/thanh-toan?bookingId=${bookingId}`}>
             {totals.outstandingVnd > 0 ? 'Thanh toán phần còn lại' : 'Xem lịch sử thanh toán'}
           </Link>
         </div>

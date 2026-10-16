@@ -130,14 +130,18 @@ describe('Booking collaboration workspace', () => {
   });
   it('opens a valid booking link through the authenticated gateway', async () => {
     const id = '20000000-0000-4000-8000-000000000011';
-    window.history.replaceState({}, '', `/workspace?bookingId=${id}`);
+    window.history.replaceState({}, '', `/khong-gian/thoa-thuan/kich-ban?bookingId=${id}`);
     const gateway = fakeGateway();
     render(<CollaborationWorkspace access="full" authorize={authorize} gateway={gateway} />);
     await waitFor(() => expect(gateway.load).toHaveBeenCalledWith('couple-token', id));
     expect(await screen.findByText('Sảnh Ánh Dương')).toBeVisible();
   });
   it('ignores a malformed booking link and opens nothing when the couple has no booking', async () => {
-    window.history.replaceState({}, '', '/workspace?bookingId=from-invitation');
+    window.history.replaceState(
+      {},
+      '',
+      '/khong-gian/thoa-thuan/kich-ban?bookingId=from-invitation',
+    );
     const gateway = fakeGateway();
     render(
       <CollaborationWorkspace
@@ -388,7 +392,10 @@ describe('Booking collaboration workspace', () => {
     expect((await screen.findAllByText('Đã thống nhất kịch bản')).length).toBeGreaterThan(0);
     expect(screen.getByText(/Kịch bản đã được cả hai bên phê duyệt/)).toBeVisible();
     const depositLink = screen.getByRole('link', { name: 'Chuyển sang đặt cọc →' });
-    expect(depositLink).toHaveAttribute('href', `/billing?bookingId=${proposal.bookingId}`);
+    expect(depositLink).toHaveAttribute(
+      'href',
+      `/khong-gian/thanh-toan?bookingId=${proposal.bookingId}`,
+    );
   });
 
   it('displays confirmed booking guidance and balance link instead of deposit invite when phase is CONFIRMED', async () => {
@@ -415,7 +422,10 @@ describe('Booking collaboration workspace', () => {
     expect(screen.queryByText('Đã thống nhất kịch bản')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Chuyển sang đặt cọc →' })).not.toBeInTheDocument();
     const balanceLink = screen.getByRole('link', { name: 'Xem công nợ & thanh toán số dư →' });
-    expect(balanceLink).toHaveAttribute('href', `/billing?bookingId=${proposal.bookingId}`);
+    expect(balanceLink).toHaveAttribute(
+      'href',
+      `/khong-gian/thanh-toan?bookingId=${proposal.bookingId}`,
+    );
   });
 
   it('displays completed booking guidance and settlement link when phase is COMPLETED', async () => {
@@ -442,7 +452,10 @@ describe('Booking collaboration workspace', () => {
     expect(screen.queryByText('Đã thống nhất kịch bản')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Chuyển sang đặt cọc →' })).not.toBeInTheDocument();
     const settlementLink = screen.getByRole('link', { name: 'Xem quyết toán công nợ →' });
-    expect(settlementLink).toHaveAttribute('href', `/billing?bookingId=${proposal.bookingId}`);
+    expect(settlementLink).toHaveAttribute(
+      'href',
+      `/khong-gian/thanh-toan?bookingId=${proposal.bookingId}`,
+    );
   });
 
   it('switches booking context from A to B cleanly, syncing URL and notifying onBookingChange', async () => {

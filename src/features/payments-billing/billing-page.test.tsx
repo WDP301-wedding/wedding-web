@@ -214,7 +214,7 @@ describe('Couple billing experience', () => {
     window.history.replaceState(
       {},
       '',
-      '/billing?bookingId=booking&attemptId=attempt&vnp_ResponseCode=00',
+      '/khong-gian/thanh-toan?bookingId=booking&attemptId=attempt&vnp_ResponseCode=00',
     );
     vi.mocked(api.loadContext).mockResolvedValue({
       ...context,
@@ -259,7 +259,7 @@ describe('Couple billing experience', () => {
       if (role === 'anonymous')
         expect(screen.getByRole('link', { name: 'Về trang đăng nhập' })).toHaveAttribute(
           'href',
-          '/account',
+          '/dang-nhap',
         );
       expect(api.load).not.toHaveBeenCalled();
     },
@@ -522,7 +522,7 @@ describe('Couple billing experience', () => {
         checkoutUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
         expiresAt: '2026-10-09T10:00:00Z',
       });
-    window.history.replaceState({}, '', '/billing?vnp_ResponseCode=00');
+    window.history.replaceState({}, '', '/khong-gian/thanh-toan?vnp_ResponseCode=00');
     render(
       <CoupleBillingWorkspace
         accountId="actor"
@@ -603,5 +603,25 @@ describe('Couple billing experience', () => {
     await waitFor(() => expect(api.loadContext).toHaveBeenCalledWith('token', 'booking-b'));
     expect(window.location.search).toContain('bookingId=booking-b');
     expect(onBookingChange).toHaveBeenCalledWith('booking-b');
+  });
+});
+
+describe('Couple billing inside Không gian cưới (embedded)', () => {
+  it('opens the booking from the URL without any booking-code input', async () => {
+    window.history.replaceState({}, '', '/khong-gian/thanh-toan?bookingId=booking');
+    const api = gateway();
+    render(
+      <CoupleBillingWorkspace
+        accountId="account"
+        authorize={authorize}
+        gateway={api}
+        intents={intents as unknown as ReturnType<typeof createBillingIntents>}
+        embedded
+      />,
+    );
+    expect(await screen.findByText('Khoản cọc theo đề xuất')).toBeInTheDocument();
+    expect(api.loadContext).toHaveBeenCalledWith('token', 'booking');
+    expect(screen.queryByLabelText('Mã hồ sơ đặt tiệc')).not.toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 });

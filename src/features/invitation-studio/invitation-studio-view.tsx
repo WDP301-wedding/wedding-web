@@ -1289,12 +1289,12 @@ export function InvitationStudioView({
                   <p className="text-sm text-neutral-600">
                     Đường dẫn công khai:{' '}
                     <a
-                      href={`/invitation/${publishedSlug}`}
+                      href={`/t/${publishedSlug}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[#274C3D] underline font-medium"
                     >
-                      /invitation/{publishedSlug}
+                      /t/{publishedSlug}
                     </a>
                   </p>
                   <p className="text-xs text-neutral-500">

@@ -1,5 +1,7 @@
 import type { NextConfig } from 'next';
 
+import { legacyRedirects } from './src/routes';
+
 /**
  * Chuyển tiếp (proxy) mọi request `/api/v1/*` của trình duyệt sang backend.
  *
@@ -15,6 +17,19 @@ const backendOrigin = process.env.BACKEND_ORIGIN?.replace(/\/+$/, '');
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Route cũ → route v2 (308). Danh sách nằm trong src/routes.ts để dùng chung với test.
+  redirects() {
+    return Promise.resolve(legacyRedirects.map((rule) => ({ ...rule, permanent: true })));
+  },
+  images: {
+    // Ảnh catalog là signed URL của Supabase Storage (hết hạn sau 15 phút). Chỉ cho phép đúng
+    // đường dẫn object của Storage để next/image không trở thành proxy ảnh mở cho mọi domain.
+    remotePatterns: [
+      { protocol: 'https', hostname: '*.supabase.co', pathname: '/storage/v1/object/**' },
+    ],
+    // Ảnh tối ưu được cache theo URL; URL đã ký đổi mỗi lần ISR làm mới nên giữ ngắn.
+    minimumCacheTTL: 600,
+  },
   rewrites() {
     if (!backendOrigin) return Promise.resolve([]);
     return Promise.resolve([

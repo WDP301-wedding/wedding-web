@@ -280,7 +280,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     });
 
     expect(await screen.findByText('Thiệp cưới đã được xuất bản trực tuyến!')).toBeInTheDocument();
-    expect(screen.getByText('/invitation/cuoi-lan-tung')).toBeInTheDocument();
+    expect(screen.getByText('/t/cuoi-lan-tung')).toBeInTheDocument();
 
     // Unpublish
     fireEvent.click(screen.getByText('Hủy Xuất Bản'));
@@ -314,7 +314,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
 
     fireEvent.click(screen.getByText('Xuất Bản & Mã QR'));
     expect(await screen.findByText('Hủy Xuất Bản')).toBeInTheDocument();
-    expect(screen.getByText('/invitation/cuoi-lan-tung')).toBeInTheDocument();
+    expect(screen.getByText('/t/cuoi-lan-tung')).toBeInTheDocument();
 
     unmount();
     localStorage.removeItem(storageKey);

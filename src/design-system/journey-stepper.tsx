@@ -8,7 +8,7 @@ export type BookingPhase = 'DRAFT' | 'AWAITING_DEPOSIT' | 'CONFIRMED' | 'COMPLET
 
 export const journeySteps = [
   'Tư vấn',
-  'Hợp đồng',
+  'Thoả thuận',
   'Đặt cọc',
   'Chuẩn bị',
   'Ngày cưới',

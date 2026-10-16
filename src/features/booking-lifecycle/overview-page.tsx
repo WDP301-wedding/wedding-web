@@ -81,14 +81,14 @@ export function CoupleOverview() {
             <span className="public-kicker">Hành trình của hai bạn</span>
             <h1>Tổng quan</h1>
           </div>
-          <Link href="/account">Hồ sơ & bảo mật →</Link>
+          <Link href="/ho-so">Hồ sơ & bảo mật →</Link>
         </div>
         {session === null && !error ? <Skeleton label="Đang mở không gian riêng…" /> : null}
         {session?.status === 'anonymous' ? (
           <div className="overview-empty">
             <h2>Tiếp tục hành trình của bạn</h2>
             <p>Đăng nhập bằng tài khoản đã được nhà hàng mời để mở hồ sơ tư vấn.</p>
-            <Link className="public-button" href="/account">
+            <Link className="public-button" href="/dang-nhap">
               Đăng nhập →
             </Link>
           </div>
@@ -106,7 +106,7 @@ export function CoupleOverview() {
           <div className="overview-empty">
             <h2>Hồ sơ đang được chuẩn bị</h2>
             <p>Nhà hàng sẽ mở đề xuất sau khi thống nhất các lựa chọn trong buổi tư vấn.</p>
-            <Link href="/consultation">Liên hệ nhà hàng →</Link>
+            <Link href="/tu-van">Liên hệ nhà hàng →</Link>
           </div>
         ) : null}
         {page?.data.map((booking) => {
@@ -139,13 +139,13 @@ export function CoupleOverview() {
                 <nav className="hy-overview-links" aria-label="Lối tắt của tiệc">
                   <Link
                     className="public-button"
-                    href={`/workspace?bookingId=${booking.bookingId}`}
+                    href={`/khong-gian/thoa-thuan/kich-ban?bookingId=${booking.bookingId}`}
                   >
                     Mở đề xuất & kịch bản →
                   </Link>
                   <Link
                     className="button button-secondary"
-                    href={`/contract?bookingId=${booking.bookingId}`}
+                    href={`/khong-gian/thoa-thuan/hop-dong?bookingId=${booking.bookingId}`}
                   >
                     Hợp đồng
                   </Link>
@@ -153,13 +153,13 @@ export function CoupleOverview() {
                     <>
                       <Link
                         className="button button-secondary"
-                        href={`/guests?bookingId=${booking.bookingId}`}
+                        href={`/khong-gian/chuan-bi/khach?bookingId=${booking.bookingId}`}
                       >
                         Khách mời
                       </Link>
                       <Link
                         className="button button-secondary"
-                        href={`/invitations?bookingId=${booking.bookingId}`}
+                        href={`/khong-gian/chuan-bi/thiep?bookingId=${booking.bookingId}`}
                       >
                         Thiệp cưới
                       </Link>
@@ -167,7 +167,7 @@ export function CoupleOverview() {
                   ) : null}
                   <Link
                     className="button button-secondary"
-                    href={`/billing?bookingId=${booking.bookingId}`}
+                    href={`/khong-gian/thanh-toan?bookingId=${booking.bookingId}`}
                   >
                     Công nợ
                   </Link>

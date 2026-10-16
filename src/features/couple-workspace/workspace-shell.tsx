@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { BrandMark } from '../../design-system/brand-mark';
 import { browserSession } from '../identity-access/browser-session';
 import { notificationApi } from '../notifications/notification-api';
+import { useInSpace } from './space-provider';
 export type Section =
   | 'overview'
   | 'timeline'
@@ -21,25 +22,43 @@ export type Section =
   | 'account';
 // Thứ tự menu đi theo luồng nghiệp vụ: trước cọc → sau cọc → thiệp → quyết toán.
 const nav: readonly { id: Section; label: string; href: string; group?: string; icon: number }[] = [
-  { id: 'overview', label: 'Tổng quan', href: '/overview', icon: 0 },
-  { id: 'timeline', label: 'Đề xuất & kịch bản', href: '/workspace', group: 'Thống nhất', icon: 1 },
-  { id: 'contract', label: 'Hợp đồng', href: '/contract', icon: 5 },
-  { id: 'billing', label: 'Thanh toán & công nợ', href: '/billing', icon: 8 },
-  { id: 'guests', label: 'Khách mời', href: '/guests', group: 'Sau đặt cọc', icon: 6 },
-  { id: 'seating', label: 'Sơ đồ bàn', href: '/seating', icon: 7 },
-  { id: 'appendices', label: 'Phụ lục hợp đồng', href: '/appendices', icon: 5 },
+  { id: 'overview', label: 'Tổng quan', href: '/khong-gian', icon: 0 },
+  {
+    id: 'timeline',
+    label: 'Đề xuất & kịch bản',
+    href: '/khong-gian/thoa-thuan/kich-ban',
+    group: 'Thống nhất',
+    icon: 1,
+  },
+  { id: 'contract', label: 'Hợp đồng', href: '/khong-gian/thoa-thuan/hop-dong', icon: 5 },
+  { id: 'billing', label: 'Thanh toán & công nợ', href: '/khong-gian/thanh-toan', icon: 8 },
+  {
+    id: 'guests',
+    label: 'Khách mời',
+    href: '/khong-gian/chuan-bi/khach',
+    group: 'Sau đặt cọc',
+    icon: 6,
+  },
+  { id: 'seating', label: 'Sơ đồ bàn', href: '/khong-gian/chuan-bi/khach?xem=so-do', icon: 7 },
+  { id: 'appendices', label: 'Phụ lục hợp đồng', href: '/khong-gian/chuan-bi/phu-luc', icon: 5 },
   {
     id: 'media',
     label: 'Thư viện ảnh',
-    href: '/invitations?tab=media',
+    href: '/khong-gian/chuan-bi/thiep?tab=media',
     group: 'Thiệp cưới',
     icon: 2,
   },
-  { id: 'design', label: 'Mẫu & biên tập', href: '/invitations?tab=design', icon: 3 },
-  { id: 'publish', label: 'Xuất bản', href: '/invitations?tab=publish', icon: 4 },
-  { id: 'print', label: 'Đặt in', href: '/invitations?tab=print', icon: 5 },
-  { id: 'invoices', label: 'Phát sinh & hoá đơn', href: '/invoices', group: 'Quyết toán', icon: 8 },
-  { id: 'notifications', label: 'Thông báo', href: '/notifications', icon: 4 },
+  { id: 'design', label: 'Mẫu & biên tập', href: '/khong-gian/chuan-bi/thiep?tab=design', icon: 3 },
+  { id: 'publish', label: 'Xuất bản', href: '/khong-gian/chuan-bi/thiep?tab=publish', icon: 4 },
+  { id: 'print', label: 'Đặt in', href: '/khong-gian/chuan-bi/thiep?tab=print', icon: 5 },
+  {
+    id: 'invoices',
+    label: 'Phát sinh & hoá đơn',
+    href: '/khong-gian/quyet-toan',
+    group: 'Quyết toán',
+    icon: 8,
+  },
+  { id: 'notifications', label: 'Thông báo', href: '/khong-gian/thong-bao', icon: 4 },
 ];
 function Icon({ index = 0 }: { index?: number }) {
   const shapes = [
@@ -94,7 +113,10 @@ function UnreadBell() {
     };
   }, []);
   return (
-    <Link href="/notifications" aria-label={count ? `${count} thông báo chưa đọc` : 'Thông báo'}>
+    <Link
+      href="/khong-gian/thong-bao"
+      aria-label={count ? `${count} thông báo chưa đọc` : 'Thông báo'}
+    >
       <span aria-hidden="true">🔔</span>
       {count ? <span className="cw-badge">{count > 99 ? '99+' : count}</span> : null}
     </Link>
@@ -116,12 +138,15 @@ export function WorkspaceShell({
     const id = new URLSearchParams(window.location.search).get('bookingId');
     if (id) queueMicrotask(() => setQuery(id));
   }, []);
+  // Trong /khong-gian, khung v2 (SpaceShell) đã có sidebar → bỏ khung cũ, chỉ render nội dung.
+  const inSpace = useInSpace();
   const selected = bookingId ?? query;
   const href = (path: string) =>
     path +
     (selected
       ? (path.includes('?') ? '&' : '?') + 'bookingId=' + encodeURIComponent(selected)
       : '');
+  if (inSpace) return <div className="hy-space-page">{children}</div>;
   return (
     <div className="v0-workspace">
       <div className="app-shell">
@@ -139,7 +164,7 @@ export function WorkspaceShell({
           >
             {menu ? '×' : '☰'}
           </button>
-          <Link className="brand" href="/overview" aria-label="Hỷ Yến — Tổng quan">
+          <Link className="brand" href="/khong-gian" aria-label="Hỷ Yến — Tổng quan">
             <BrandMark compact />
           </Link>
           <div className="booking-context">
@@ -155,7 +180,7 @@ export function WorkspaceShell({
           </div>
           <div className="top-actions">
             <UnreadBell />
-            <Link href="/account" aria-label="Hồ sơ và bảo mật">
+            <Link href="/ho-so" aria-label="Hồ sơ và bảo mật">
               <span className="avatar">T</span>
             </Link>
           </div>
@@ -180,7 +205,7 @@ export function WorkspaceShell({
               ))}
             </nav>
             <div className="sidebar-bottom">
-              <Link className="help-link" href="/consultation">
+              <Link className="help-link" href="/tu-van">
                 Cần hỗ trợ?
               </Link>
             </div>

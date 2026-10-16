@@ -12,6 +12,7 @@ import {
   type Proposal,
 } from './use-couple-workspace';
 import { Skeleton } from '../../design-system/skeleton';
+import { useInSpace } from './space-provider';
 
 const phaseLabels: Record<Proposal['phase'], string> = {
   DRAFT: 'Đang trao đổi',
@@ -44,6 +45,8 @@ export function CouplePage({
   children,
 }: CouplePageProps) {
   const { state, reload, bookingId } = useCoupleWorkspace();
+  // Trong /khong-gian thanh trên đã hiện sảnh, ngày, ca → không lặp lại dải thông tin tiệc.
+  const inSpace = useInSpace();
 
   return (
     <WorkspaceShell active={active} bookingId={bookingId ?? undefined}>
@@ -52,13 +55,13 @@ export function CouplePage({
           <p className="eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
           {description ? <p className="lead">{description}</p> : null}
-          {state.status === 'ready' ? <BookingStrip proposal={state.proposal} /> : null}
+          {state.status === 'ready' && !inSpace ? <BookingStrip proposal={state.proposal} /> : null}
         </header>
         {state.status === 'loading' ? <Skeleton label="Đang tải dữ liệu tiệc cưới…" /> : null}
         {state.status === 'anonymous' ? (
           <EmptyPanel title="Cần đăng nhập">
             <p>Đăng nhập bằng tài khoản đã được nhà hàng mời để tiếp tục.</p>
-            <Link className="button" href="/account">
+            <Link className="button" href="/dang-nhap">
               Đăng nhập
             </Link>
           </EmptyPanel>
@@ -68,7 +71,7 @@ export function CouplePage({
           state.bookings.length === 0 ? (
             <EmptyPanel title="Chưa có tiệc cưới">
               <p>Nhà hàng sẽ mở hồ sơ sau buổi tư vấn. Bạn có thể gửi yêu cầu tư vấn mới.</p>
-              <Link className="button button-secondary" href="/consultation">
+              <Link className="button button-secondary" href="/tu-van">
                 Gửi yêu cầu tư vấn
               </Link>
             </EmptyPanel>
@@ -96,12 +99,15 @@ export function CouplePage({
                 nhận, không gian của hai bạn sẽ tự mở đầy đủ.
               </p>
               <div className="cw-actions">
-                <Link className="button" href={`/contract?bookingId=${state.proposal.bookingId}`}>
+                <Link
+                  className="button"
+                  href={`/khong-gian/thoa-thuan/hop-dong?bookingId=${state.proposal.bookingId}`}
+                >
                   Xem hợp đồng
                 </Link>
                 <Link
                   className="button button-secondary"
-                  href={`/billing?bookingId=${state.proposal.bookingId}`}
+                  href={`/khong-gian/thanh-toan?bookingId=${state.proposal.bookingId}`}
                 >
                   Thanh toán cọc
                 </Link>

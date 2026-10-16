@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { type WebIdentitySession, type WebSessionSnapshot } from '../identity-access/session';
 import { browserSession } from '../identity-access/browser-session';
 import { createExperienceGateway } from '../identity-access/experience-api';
@@ -37,7 +37,7 @@ type CheckoutIntent =
 const identity = browserSession;
 const billing = createCoupleBillingGateway();
 /**
- * Ghi nhớ giao dịch vừa tạo để trang `/payment-return` (VNPay chuyển về, thường ở tab mới)
+ * Ghi nhớ giao dịch vừa tạo để trang `/khong-gian/thanh-toan/ket-qua` (VNPay chuyển về, thường ở tab mới)
  * biết phải kiểm tra giao dịch nào. Chỉ lưu mã booking và mã giao dịch, không lưu dữ liệu nhạy cảm.
  */
 export const lastCheckoutKey = 'wedding.lastCheckout';
@@ -55,10 +55,16 @@ export function CoupleBillingPage({
   session = identity,
   gateway = billing,
   onBookingChange,
+  embedded = false,
 }: Readonly<{
   session?: WebIdentitySession;
   gateway?: CoupleBillingGateway;
   onBookingChange?: ((bookingId: string) => void) | undefined;
+  /**
+   * true trong Không gian cưới v2: tiệc đã được chọn sẵn (`?bookingId` do lớp cache ghi) nên
+   * tự mở ngay, KHÔNG hiện ô nhập mã hồ sơ / ô chọn tiệc (đổi tiệc ở thanh trên của khung).
+   */
+  embedded?: boolean;
 }>) {
   const [snapshot, setSnapshot] = useState<WebSessionSnapshot | null>(null);
   useEffect(() => {
@@ -72,18 +78,18 @@ export function CoupleBillingPage({
   }, [session]);
   if (snapshot === null)
     return (
-      <main className="billing-shell">
+      <div className="billing-shell">
         <h1>Đang mở thanh toán…</h1>
         <p role="status">Đang kiểm tra phiên đăng nhập.</p>
-      </main>
+      </div>
     );
   if (snapshot.status === 'anonymous')
     return (
-      <main className="billing-shell">
+      <div className="billing-shell">
         <h1>Cần đăng nhập</h1>
         <p role="alert">Đăng nhập bằng tài khoản được cấp quyền trên hồ sơ đặt tiệc.</p>
-        <Link href="/account">Về trang đăng nhập</Link>
-      </main>
+        <Link href="/dang-nhap">Về trang đăng nhập</Link>
+      </div>
     );
   return (
     <CoupleBillingWorkspace
@@ -92,6 +98,7 @@ export function CoupleBillingPage({
       authorize={(operation) => session.authorize(operation)}
       gateway={gateway}
       onBookingChange={onBookingChange}
+      embedded={embedded}
     />
   );
 }
@@ -101,12 +108,14 @@ export function CoupleBillingWorkspace({
   gateway,
   intents: provided,
   onBookingChange,
+  embedded = false,
 }: Readonly<{
   accountId: string;
   authorize: Authorize;
   gateway: CoupleBillingGateway;
   intents?: ReturnType<typeof createBillingIntents>;
   onBookingChange?: ((bookingId: string) => void) | undefined;
+  embedded?: boolean;
 }>) {
   const [intents] = useState(() => provided ?? createBillingIntents(accountId));
   const [bookingId, setBookingId] = useState('');
@@ -128,6 +137,8 @@ export function CoupleBillingWorkspace({
   >([]);
 
   useEffect(() => {
+    // Trong khung v2 không cần danh sách tiệc (không còn ô chọn tiệc ở trang này).
+    if (embedded) return;
     let active = true;
     const expGateway = createExperienceGateway();
     void authorize((token) => expGateway.overview(token))
@@ -145,7 +156,7 @@ export function CoupleBillingWorkspace({
     return () => {
       active = false;
     };
-  }, [authorize]);
+  }, [authorize, embedded]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -293,7 +304,7 @@ export function CoupleBillingWorkspace({
         bookingId: context.bookingId,
         attemptId: value.paymentAttemptId,
       });
-      window.history.replaceState({}, '', `/billing?${query.toString()}`);
+      window.history.replaceState({}, '', `/khong-gian/thanh-toan?${query.toString()}`);
     } catch (caught) {
       fail(caught);
       const unknown = unresolved(caught);
@@ -304,26 +315,42 @@ export function CoupleBillingWorkspace({
       setPending(false);
     }
   };
+  /*
+   * Tự mở thanh toán trong khung v2. `useEffectEvent` (React 19.2): hàm bên trong luôn đọc
+   * state mới nhất (bookingId, attemptId từ URL) nhưng KHÔNG phải khai báo làm dependency,
+   * nên effect chỉ chạy khi bookingId thay đổi chứ không chạy lại mỗi lần render.
+   */
+  const autoOpened = useRef(false);
+  const openFromUrl = useEffectEvent((id: string) => {
+    void run(() => load(id));
+  });
+  useEffect(() => {
+    if (!embedded || autoOpened.current || bookingId === '') return;
+    autoOpened.current = true;
+    openFromUrl(bookingId);
+  }, [embedded, bookingId]);
   const inFlight = attempt !== null && !completed(attempt);
   const blocked = pending || intent !== null || checkout !== null || inFlight || needsAttemptStatus;
   return (
-    <main className="billing-shell billing-couple">
-      <header className="billing-header">
-        <Link className="billing-wordmark" href="/" aria-label="Hỷ Yến — Trang chủ">
-          <BrandMark compact />
-        </Link>
-        <nav aria-label="Không gian cặp đôi">
-          <Link href="/workspace">Đề xuất và kịch bản</Link>
-          <Link href="/billing" aria-current="page">
-            Thanh toán
+    <div className="billing-shell billing-couple">
+      {embedded ? null : (
+        <header className="billing-header">
+          <Link className="billing-wordmark" href="/" aria-label="Hỷ Yến — Trang chủ">
+            <BrandMark compact />
           </Link>
-        </nav>
-      </header>
+          <nav aria-label="Không gian cặp đôi">
+            <Link href="/khong-gian/thoa-thuan/kich-ban">Đề xuất và kịch bản</Link>
+            <Link href="/khong-gian/thanh-toan" aria-current="page">
+              Thanh toán
+            </Link>
+          </nav>
+        </header>
+      )}
       <section className="billing-intro">
         <h1>Thanh toán cho ngày trọng đại</h1>
         <p>Xem khoản cọc, số dư và trạng thái đã được nhà hàng xác minh.</p>
 
-        {availableBookings.length > 0 && (
+        {!embedded && availableBookings.length > 0 && (
           <div className="billing-booking-select-wrapper mb-3 text-left">
             <label htmlFor="billing-booking-select" className="block text-sm font-medium mb-1">
               Chọn hồ sơ tiệc cưới của bạn:
@@ -360,40 +387,42 @@ export function CoupleBillingWorkspace({
           </div>
         )}
       </section>
-      <form
-        className="billing-lookup"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setContext(null);
-          setView(null);
-          setAttempt(null);
-          setCheckout(null);
-          void run(() => load(bookingId.trim()));
-        }}
-      >
-        <label>
-          Mã hồ sơ đặt tiệc
-          <input
-            required
-            value={bookingId}
-            disabled={blocked}
-            onChange={(event) => {
-              if (blocked) return;
-              identifierEdited.current = true;
-              setBookingId(event.target.value);
-              setContext(null);
-              setView(null);
-              setAttempt(null);
-              setAttemptId('');
-              setCheckout(null);
-              setNeedsAttemptStatus(false);
-              setRetry(false);
-              setError(null);
-            }}
-          />
-        </label>
-        <button disabled={blocked}>Mở thanh toán</button>
-      </form>
+      {embedded ? null : (
+        <form
+          className="billing-lookup"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setContext(null);
+            setView(null);
+            setAttempt(null);
+            setCheckout(null);
+            void run(() => load(bookingId.trim()));
+          }}
+        >
+          <label>
+            Mã hồ sơ đặt tiệc
+            <input
+              required
+              value={bookingId}
+              disabled={blocked}
+              onChange={(event) => {
+                if (blocked) return;
+                identifierEdited.current = true;
+                setBookingId(event.target.value);
+                setContext(null);
+                setView(null);
+                setAttempt(null);
+                setAttemptId('');
+                setCheckout(null);
+                setNeedsAttemptStatus(false);
+                setRetry(false);
+                setError(null);
+              }}
+            />
+          </label>
+          <button disabled={blocked}>Mở thanh toán</button>
+        </form>
+      )}
       <div aria-live="polite" className="billing-live">
         {pending && <p role="status">Đang kiểm tra với máy chủ…</p>}
         {error !== null && <p role="alert">{error}</p>}
@@ -467,7 +496,9 @@ export function CoupleBillingWorkspace({
             {context.contractRequired && (
               <p>
                 Cần hợp đồng được cả hai bên duyệt trước khi đặt cọc.{' '}
-                <Link href={`/contract?bookingId=${context.bookingId}`}>Mở hợp đồng →</Link>
+                <Link href={`/khong-gian/thoa-thuan/hop-dong?bookingId=${context.bookingId}`}>
+                  Mở hợp đồng →
+                </Link>
               </p>
             )}
           </section>
@@ -573,52 +604,62 @@ export function CoupleBillingWorkspace({
               </p>
             </section>
           )}
-          <section className="billing-panel">
-            <h2>Trạng thái thanh toán</h2>
-            <form
-              className="billing-lookup"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void run(async () => {
-                  const value = await authorize((token) =>
-                    gateway.loadAttempt(token, context.bookingId, attemptId.trim()),
-                  );
-                  if (value.paymentAttemptId !== attemptId.trim())
-                    throw new Error('Attempt mismatch');
-                  setAttempt(value);
-                  setNeedsAttemptStatus(false);
-                  if (value.status === 'FAILED' || value.status === 'SUCCEEDED') {
-                    setCheckout(null);
-                    setIntent(null);
-                    setRetry(false);
-                    if (completed(value))
-                      await intents.completeCheckout(
-                        `checkout:${context.bookingId}`,
-                        value.paymentAttemptId,
-                      );
-                  }
-                });
-              }}
-            >
-              <label>
-                Mã giao dịch thanh toán
-                <input
-                  required
-                  value={attemptId}
-                  disabled={pending || intent !== null}
-                  readOnly={checkout !== null || (intent !== null && attemptId !== '')}
-                  onChange={(event) => setAttemptId(event.target.value)}
-                />
-              </label>
-              <button disabled={pending || intent !== null}>Kiểm tra trạng thái</button>
-            </form>
-            {attempt !== null && <AttemptStatus attempt={attempt} />}
-            {attempt?.status === 'SUCCEEDED' && attempt.applicationStatus === 'SUCCEEDED' ? (
-              <Celebrate onceKey={'payment-' + attempt.paymentAttemptId} />
-            ) : null}
-          </section>
+          {/* Trong khung v2: chỉ hiện khi đã có giao dịch (tự nhớ từ URL / lần thanh toán trước),
+              không bao giờ yêu cầu người dùng gõ mã giao dịch. */}
+          {embedded && attemptId === '' ? null : (
+            <section className="billing-panel">
+              <h2>Trạng thái thanh toán</h2>
+              <form
+                className="billing-lookup"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void run(async () => {
+                    const value = await authorize((token) =>
+                      gateway.loadAttempt(token, context.bookingId, attemptId.trim()),
+                    );
+                    if (value.paymentAttemptId !== attemptId.trim())
+                      throw new Error('Attempt mismatch');
+                    setAttempt(value);
+                    setNeedsAttemptStatus(false);
+                    if (value.status === 'FAILED' || value.status === 'SUCCEEDED') {
+                      setCheckout(null);
+                      setIntent(null);
+                      setRetry(false);
+                      if (completed(value))
+                        await intents.completeCheckout(
+                          `checkout:${context.bookingId}`,
+                          value.paymentAttemptId,
+                        );
+                    }
+                  });
+                }}
+              >
+                {embedded ? (
+                  <p className="billing-attempt-note">
+                    Giao dịch gần nhất của hai bạn. Bấm để hỏi lại trạng thái mới nhất từ nhà hàng.
+                  </p>
+                ) : (
+                  <label>
+                    Mã giao dịch thanh toán
+                    <input
+                      required
+                      value={attemptId}
+                      disabled={pending || intent !== null}
+                      readOnly={checkout !== null || (intent !== null && attemptId !== '')}
+                      onChange={(event) => setAttemptId(event.target.value)}
+                    />
+                  </label>
+                )}
+                <button disabled={pending || intent !== null}>Kiểm tra trạng thái</button>
+              </form>
+              {attempt !== null && <AttemptStatus attempt={attempt} />}
+              {attempt?.status === 'SUCCEEDED' && attempt.applicationStatus === 'SUCCEEDED' ? (
+                <Celebrate onceKey={'payment-' + attempt.paymentAttemptId} />
+              ) : null}
+            </section>
+          )}
         </>
       )}
-    </main>
+    </div>
   );
 }
