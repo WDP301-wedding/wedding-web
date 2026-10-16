@@ -110,3 +110,24 @@ export function viewBoxOf(tables: readonly SeatingTable[]): string {
   const maxY = Math.max(...boxes.map((box) => box.cy + box.radius)) + margin;
   return `${minX} ${minY} ${maxX - minX} ${maxY - minY}`;
 }
+
+export const minZoom = 1;
+export const maxZoom = 4;
+
+/**
+ * Thu phóng/kéo sơ đồ bằng cách đổi `viewBox` thay vì CSS transform: SVG vẽ lại nét chữ, viền bàn
+ * sắc nét ở mọi mức zoom, và toạ độ bấm chuột vẫn khớp bàn.
+ * `panX/panY` tính theo đơn vị toạ độ của sơ đồ (không phải pixel màn hình).
+ */
+export function zoomedViewBox(base: string, zoom: number, panX: number, panY: number): string {
+  const [x = 0, y = 0, width = 100, height = 100] = base.split(' ').map(Number);
+  const level = Math.min(maxZoom, Math.max(minZoom, zoom));
+  const viewWidth = width / level;
+  const viewHeight = height / level;
+  // Không cho kéo tâm ra ngoài khung sơ đồ gốc.
+  const limitX = (width - viewWidth) / 2;
+  const limitY = (height - viewHeight) / 2;
+  const centerX = x + width / 2 + Math.min(limitX, Math.max(-limitX, panX));
+  const centerY = y + height / 2 + Math.min(limitY, Math.max(-limitY, panY));
+  return `${centerX - viewWidth / 2} ${centerY - viewHeight / 2} ${viewWidth} ${viewHeight}`;
+}

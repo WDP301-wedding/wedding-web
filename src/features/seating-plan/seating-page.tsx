@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { CommandFeedback, CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
@@ -16,10 +16,14 @@ import {
   rememberPlanId,
   seatingApi,
   viewBoxOf,
+  zoomedViewBox,
+  maxZoom,
+  minZoom,
   type LayoutOptions,
   type SeatingPlan,
   type SeatingTable,
 } from './seating-api';
+import { Skeleton } from '../../design-system/skeleton';
 
 const statusLabels: Record<SeatingPlan['status'], string> = {
   DRAFT: 'Bản nháp',
@@ -94,7 +98,7 @@ function SeatingWorkspace({
   };
 
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
-  if (!options) return <p role="status">Đang tải sơ đồ…</p>;
+  if (!options) return <Skeleton label="Đang tải sơ đồ…" />;
 
   return (
     <>
@@ -245,6 +249,12 @@ function PlanEditor({
     Object.fromEntries(plan.labels.map((label) => [label.layoutTableId, label.guestGroupId])),
   );
   const [selected, setSelected] = useState<string | null>(null);
+  const [view, setView] = useState({ zoom: 1, x: 0, y: 0 });
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const panned = useRef(false);
+  const drag = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(
+    null,
+  );
   const groupById = useMemo(
     () => new Map(groups.map((group) => [group.guestGroupId, group])),
     [groups],
@@ -253,6 +263,32 @@ function PlanEditor({
     JSON.stringify(Object.entries(labels).sort()) !==
     JSON.stringify(plan.labels.map((label) => [label.layoutTableId, label.guestGroupId]).sort());
   const selectedTable = plan.renderSnapshot.find((table) => table.layoutTableId === selected);
+
+  /**
+   * Kéo để di chuyển: chỉ coi là "kéo" khi chuột/ngón tay đi quá 4px, để một cú bấm bình thường
+   * vào bàn vẫn chọn được bàn. Đổi pixel sang đơn vị sơ đồ bằng tỉ lệ viewBox / kích thước thật.
+   */
+  const startPan = (event: React.PointerEvent<SVGSVGElement>) => {
+    if (view.zoom <= 1) return;
+    drag.current = { x: event.clientX, y: event.clientY, panX: view.x, panY: view.y, moved: false };
+  };
+  const movePan = (event: React.PointerEvent<SVGSVGElement>) => {
+    const start = drag.current;
+    const svg = svgRef.current;
+    if (!start || !svg) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    if (!start.moved && Math.hypot(dx, dy) < 4) return;
+    start.moved = true;
+    const box = svg.viewBox.baseVal;
+    const scale = box.width / svg.getBoundingClientRect().width || 1;
+    setView((v) => ({ ...v, x: start.panX - dx * scale, y: start.panY - dy * scale }));
+  };
+  const endPan = () => {
+    // Nhớ lại vừa kéo hay chưa để cú "click" sinh ra khi thả chuột không chọn nhầm bàn.
+    panned.current = drag.current?.moved ?? false;
+    drag.current = null;
+  };
 
   const colorOf = (table: SeatingTable) => {
     const groupId = labels[table.layoutTableId];
@@ -299,9 +335,43 @@ function PlanEditor({
         </p>
       ) : null}
 
+      <div className="hy-zoom-bar" role="group" aria-label="Thu phóng sơ đồ">
+        <button
+          type="button"
+          className="button button-secondary"
+          aria-label="Thu nhỏ"
+          disabled={view.zoom <= minZoom}
+          onClick={() => setView((v) => ({ ...v, zoom: Math.max(minZoom, v.zoom / 1.5) }))}
+        >
+          −
+        </button>
+        <span aria-live="polite">{Math.round(view.zoom * 100)}%</span>
+        <button
+          type="button"
+          className="button button-secondary"
+          aria-label="Phóng to"
+          disabled={view.zoom >= maxZoom}
+          onClick={() => setView((v) => ({ ...v, zoom: Math.min(maxZoom, v.zoom * 1.5) }))}
+        >
+          +
+        </button>
+        <button
+          type="button"
+          className="cw-text-button"
+          onClick={() => setView({ zoom: 1, x: 0, y: 0 })}
+        >
+          Vừa khung
+        </button>
+        <small>Kéo để di chuyển khi đã phóng to.</small>
+      </div>
       <svg
-        className="cw-seating"
-        viewBox={viewBoxOf(plan.renderSnapshot)}
+        ref={svgRef}
+        className={'cw-seating' + (view.zoom > 1 ? ' hy-pannable' : '')}
+        viewBox={zoomedViewBox(viewBoxOf(plan.renderSnapshot), view.zoom, view.x, view.y)}
+        onPointerDown={startPan}
+        onPointerMove={movePan}
+        onPointerUp={endPan}
+        onPointerCancel={endPan}
         role="img"
         aria-label={`Sơ đồ ${plan.renderSnapshot.length} bàn. Chọn một bàn để gắn nhóm.`}
       >
@@ -317,7 +387,13 @@ function PlanEditor({
               role="button"
               aria-label={`Bàn ${table.tableLabel}`}
               style={{ cursor: 'pointer' }}
-              onClick={() => setSelected(table.layoutTableId)}
+              onClick={() => {
+                if (panned.current) {
+                  panned.current = false;
+                  return;
+                }
+                setSelected(table.layoutTableId);
+              }}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') setSelected(table.layoutTableId);
               }}
@@ -327,7 +403,7 @@ function PlanEditor({
                   rx={table.width / 2}
                   ry={table.height / 2}
                   fill={colorOf(table)}
-                  stroke={isSelected ? '#C5A880' : '#342a29'}
+                  stroke={isSelected ? '#7A1F3D' : '#6E5D63'}
                   strokeWidth={isSelected ? 4 : 1.5}
                 />
               ) : (
@@ -337,7 +413,7 @@ function PlanEditor({
                   width={table.width}
                   height={table.height}
                   fill={colorOf(table)}
-                  stroke={isSelected ? '#C5A880' : '#342a29'}
+                  stroke={isSelected ? '#7A1F3D' : '#6E5D63'}
                   strokeWidth={isSelected ? 4 : 1.5}
                 />
               )}
@@ -346,7 +422,7 @@ function PlanEditor({
                 textAnchor="middle"
                 dominantBaseline="central"
                 fontSize={Math.max(10, Math.min(table.width, table.height) / 5)}
-                fill="#232321"
+                fill="#2B1D22"
                 stroke="#ffffff"
                 strokeWidth={3}
                 paintOrder="stroke"
