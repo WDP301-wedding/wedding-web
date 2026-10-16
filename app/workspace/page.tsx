@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CollaborationPage } from '../../src/features/booking-lifecycle/collaboration-page';
 import { WorkspaceShell } from '../../src/features/couple-workspace/workspace-shell';
+import { Skeleton } from '../../src/design-system/skeleton';
 
 function WorkspaceView() {
   const searchParams = useSearchParams();
@@ -27,7 +28,7 @@ function WorkspaceView() {
 
 export default function WorkspacePage() {
   return (
-    <Suspense fallback={<p role="status">Đang mở không gian làm việc…</p>}>
+    <Suspense fallback={<Skeleton label="Đang mở không gian làm việc…" />}>
       <WorkspaceView />
     </Suspense>
   );

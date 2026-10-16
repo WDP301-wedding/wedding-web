@@ -14,6 +14,7 @@ import {
   type InboxItem,
   type Preferences,
 } from './notification-api';
+import { Skeleton } from '../../design-system/skeleton';
 
 export function NotificationsPage() {
   const [state, setState] = useState<'loading' | 'anonymous' | 'ready'>('loading');
@@ -61,7 +62,7 @@ export function NotificationsPage() {
           <p className="eyebrow">Cập nhật</p>
           <h1>Thông báo</h1>
         </header>
-        {state === 'loading' && !loadError ? <p role="status">Đang tải thông báo…</p> : null}
+        {state === 'loading' && !loadError ? <Skeleton label="Đang tải thông báo…" /> : null}
         {state === 'anonymous' ? (
           <EmptyPanel title="Cần đăng nhập">
             <Link className="button" href="/account">

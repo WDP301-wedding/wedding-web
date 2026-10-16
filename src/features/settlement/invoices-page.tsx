@@ -16,6 +16,7 @@ import {
   type Proposal,
 } from '../couple-workspace/use-couple-workspace';
 import { ContractLinesTable } from '../commercial-contract/contract-lines';
+import { Skeleton } from '../../design-system/skeleton';
 
 type Expenses = ApiData<'/bookings/{bookingId}/incidental-expenses', 'get'>;
 type InvoiceList = ApiData<'/bookings/{bookingId}/final-invoices', 'get'>;
@@ -101,7 +102,7 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   }, [bookingId, reloadKey]);
 
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
-  if (!data) return <p role="status">Đang tải quyết toán…</p>;
+  if (!data) return <Skeleton label="Đang tải quyết toán…" />;
 
   const current =
     data.invoices.revisions.find(

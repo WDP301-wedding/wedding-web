@@ -4,6 +4,7 @@ import type { OtpChallenge } from './password-otp-api';
 import { ApiClientError } from '../../lib/api/client';
 import { createExperienceGateway, type Profile } from './experience-api';
 import type { WebIdentitySession } from './session';
+import { Skeleton } from '../../design-system/skeleton';
 
 const gateway = createExperienceGateway();
 function waitLabel(seconds: number) {
@@ -164,7 +165,7 @@ export function AccountSettings({
       </div>
       {error ? <p role="alert">{error}</p> : null}
       {notice ? <p role="status">{notice}</p> : null}
-      {!profile && !error ? <p role="status">Đang tải hồ sơ…</p> : null}
+      {!profile && !error ? <Skeleton label="Đang tải hồ sơ…" /> : null}
       {profile ? (
         <div className="account-settings-grid">
           <form onSubmit={(event) => void save(event)}>

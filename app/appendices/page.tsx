@@ -1,10 +1,11 @@
 import { Suspense } from 'react';
 
 import { AppendicesPage } from '../../src/features/commercial-contract/appendices-page';
+import { Skeleton } from '../../src/design-system/skeleton';
 
 export default function Page() {
   return (
-    <Suspense fallback={<p role="status">Đang mở phụ lục…</p>}>
+    <Suspense fallback={<Skeleton label="Đang mở phụ lục…" />}>
       <AppendicesPage />
     </Suspense>
   );

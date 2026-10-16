@@ -11,6 +11,7 @@ import {
   useCoupleWorkspace,
   type Proposal,
 } from './use-couple-workspace';
+import { Skeleton } from '../../design-system/skeleton';
 
 const phaseLabels: Record<Proposal['phase'], string> = {
   DRAFT: 'Đang trao đổi',
@@ -53,7 +54,7 @@ export function CouplePage({
           {description ? <p className="lead">{description}</p> : null}
           {state.status === 'ready' ? <BookingStrip proposal={state.proposal} /> : null}
         </header>
-        {state.status === 'loading' ? <p role="status">Đang tải dữ liệu tiệc cưới…</p> : null}
+        {state.status === 'loading' ? <Skeleton label="Đang tải dữ liệu tiệc cưới…" /> : null}
         {state.status === 'anonymous' ? (
           <EmptyPanel title="Cần đăng nhập">
             <p>Đăng nhập bằng tài khoản đã được nhà hàng mời để tiếp tục.</p>

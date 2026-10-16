@@ -25,6 +25,7 @@ import {
   type ImportPreview,
   type PersonalLink,
 } from './guest-api';
+import { Skeleton } from '../../design-system/skeleton';
 
 export function GuestsPage() {
   return (
@@ -95,7 +96,7 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   }, [bookingId, status, reloadKey]);
 
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
-  if (!data) return <p role="status">Đang tải khách mời…</p>;
+  if (!data) return <Skeleton label="Đang tải khách mời…" />;
 
   return (
     <>

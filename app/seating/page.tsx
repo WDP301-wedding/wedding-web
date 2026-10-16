@@ -1,10 +1,11 @@
 import { Suspense } from 'react';
 
 import { SeatingPage } from '../../src/features/seating-plan/seating-page';
+import { Skeleton } from '../../src/design-system/skeleton';
 
 export default function Page() {
   return (
-    <Suspense fallback={<p role="status">Đang mở sơ đồ bàn…</p>}>
+    <Suspense fallback={<Skeleton label="Đang mở sơ đồ bàn…" />}>
       <SeatingPage />
     </Suspense>
   );

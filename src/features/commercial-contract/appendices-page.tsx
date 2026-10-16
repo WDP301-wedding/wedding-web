@@ -18,6 +18,7 @@ import {
 } from '../couple-workspace/use-couple-workspace';
 import { contractApi, type Catalog, type ContractLine, type ContractList } from './contract-api';
 import { ContractLinesTable, LineSelector } from './contract-lines';
+import { Skeleton } from '../../design-system/skeleton';
 
 type AppendixList = ApiData<'/bookings/{bookingId}/contract-appendices', 'get'>;
 type Appendix = AppendixList['revisions'][number];
@@ -156,7 +157,7 @@ function AppendicesWorkspace({
   }, [bookingId, reloadKey]);
 
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
-  if (!data) return <p role="status">Đang tải phụ lục…</p>;
+  if (!data) return <Skeleton label="Đang tải phụ lục…" />;
 
   const { appendices } = data;
   const lines = effectiveLines(appendices, data.contracts);
@@ -243,7 +244,7 @@ function AppendicesWorkspace({
               }
             />
           ) : (
-            <p role="status">Đang tải danh mục…</p>
+            <Skeleton label="Đang tải danh mục…" variant="card" />
           )
         ) : null}
         <CommandFeedback error={command.error} notice={command.notice} />

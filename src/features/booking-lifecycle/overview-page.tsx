@@ -7,6 +7,7 @@ import { browserSession } from '../identity-access/identity-page';
 import { createExperienceGateway, type Overview } from '../identity-access/experience-api';
 import type { WebSessionSnapshot } from '../identity-access/session';
 import { ApiClientError } from '../../lib/api/client';
+import { Skeleton } from '../../design-system/skeleton';
 
 const gateway = createExperienceGateway();
 
@@ -82,7 +83,7 @@ export function CoupleOverview() {
           </div>
           <Link href="/account">Hồ sơ & bảo mật →</Link>
         </div>
-        {session === null && !error ? <p role="status">Đang mở không gian riêng…</p> : null}
+        {session === null && !error ? <Skeleton label="Đang mở không gian riêng…" /> : null}
         {session?.status === 'anonymous' ? (
           <div className="overview-empty">
             <h2>Tiếp tục hành trình của bạn</h2>
@@ -99,7 +100,7 @@ export function CoupleOverview() {
           </div>
         ) : null}
         {session?.status === 'authenticated' && !page && !error ? (
-          <p role="status">Đang tải hồ sơ của bạn…</p>
+          <Skeleton label="Đang tải hồ sơ của bạn…" />
         ) : null}
         {page?.data.length === 0 ? (
           <div className="overview-empty">

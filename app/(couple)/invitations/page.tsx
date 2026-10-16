@@ -12,6 +12,7 @@ import {
   type PrintOrderView,
 } from '../../../src/features/invitation-studio/invitation-api';
 import { InvitationStudioView } from '../../../src/features/invitation-studio/invitation-studio-view';
+import { Skeleton } from '../../../src/design-system/skeleton';
 
 const gateway = createInvitationGateway();
 
@@ -205,7 +206,7 @@ function CoupleInvitationsPage() {
 
 export default function Page() {
   return (
-    <Suspense fallback={<p role="status">Đang mở Studio…</p>}>
+    <Suspense fallback={<Skeleton label="Đang mở Studio…" />}>
       <CoupleInvitationsPage />
     </Suspense>
   );

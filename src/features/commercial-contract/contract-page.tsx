@@ -25,6 +25,7 @@ import {
 import { ContractLinesTable } from './contract-lines';
 import { LineSelector } from './contract-lines';
 import { Celebrate } from '../../design-system/celebrate';
+import { Skeleton } from '../../design-system/skeleton';
 
 const stateLabels: Record<ContractRevision['state'], string> = {
   DRAFT: 'Bản nháp',
@@ -77,7 +78,7 @@ function ContractWorkspace({
   }, [proposal.bookingId, proposal.consultationId, reloadKey]);
 
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
-  if (!contracts || !profile) return <p role="status">Đang tải hợp đồng…</p>;
+  if (!contracts || !profile) return <Skeleton label="Đang tải hợp đồng…" />;
 
   return (
     <>
@@ -431,7 +432,7 @@ function ContractCard({
         catalogError ? (
           <ErrorPanel error={catalogError} />
         ) : !catalog ? (
-          <p role="status">Đang tải danh mục…</p>
+          <Skeleton label="Đang tải danh mục…" variant="card" />
         ) : !timeline ? (
           <p className="cw-note">Cần có kịch bản tiệc trước khi lập hợp đồng.</p>
         ) : (
