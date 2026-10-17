@@ -58,7 +58,7 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
       </div>
       <Unavailable show={catalog.unavailable} />
 
-      <section className="hy-section" aria-labelledby="home-halls">
+      <section className="hy-section hy-band" aria-labelledby="home-halls">
         <header className="hy-section-head">
           <div>
             <p className="hy-kicker">Sảnh tiệc</p>
@@ -83,7 +83,7 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
         )}
       </section>
 
-      <section className="hy-section" aria-labelledby="home-menus">
+      <section className="hy-section hy-band hy-band-light" aria-labelledby="home-menus">
         <header className="hy-section-head">
           <div>
             <p className="hy-kicker">Thực đơn nổi bật</p>
@@ -102,7 +102,7 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
         )}
       </section>
 
-      <section className="hy-section" aria-labelledby="home-steps">
+      <section className="hy-section hy-band hy-band-champagne" aria-labelledby="home-steps">
         <p className="hy-kicker">Quy trình</p>
         <h2 id="home-steps">{weddingSteps.length} bước đến ngày cưới</h2>
         <ol className="hy-steps-grid">
@@ -119,7 +119,7 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
       </section>
 
       {offers.length > 0 ? (
-        <section className="hy-section" id="uu-dai" aria-labelledby="home-offers">
+        <section className="hy-section hy-band" id="uu-dai" aria-labelledby="home-offers">
           <p className="hy-kicker">Ưu đãi</p>
           <h2 id="home-offers">Đang áp dụng</h2>
           <div className="hy-offer-grid">
@@ -135,7 +135,7 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
         </section>
       ) : null}
 
-      <section className="hy-section hy-faq" id="hoi-dap" aria-labelledby="home-faq">
+      <section className="hy-section hy-band hy-faq" id="hoi-dap" aria-labelledby="home-faq">
         <p className="hy-kicker">Câu hỏi thường gặp</p>
         <h2 id="home-faq">Trước khi gửi tư vấn</h2>
         {/* <details> có sẵn hành vi mở/đóng và hỗ trợ bàn phím, không cần JavaScript. */}
@@ -149,7 +149,11 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
         </div>
       </section>
 
-      <section className="hy-section hy-consult" id="tu-van" aria-labelledby="home-consult">
+      <section
+        className="hy-section hy-band hy-band-blush hy-consult"
+        id="tu-van"
+        aria-labelledby="home-consult"
+      >
         <div>
           <p className="hy-kicker">Nhận tư vấn</p>
           <h2 id="home-consult">Để lại thông tin, chúng tôi gọi lại</h2>
@@ -315,7 +319,9 @@ export function MenusPage({ catalog }: Readonly<{ catalog: Catalog }>) {
                     </li>
                   ))}
                 </ol>
-                <Link href={consultationHref({ menuId: menu.id })}>Tư vấn thực đơn này →</Link>
+                <Link className="button" href={consultationHref({ menuId: menu.id })}>
+                  Tư vấn thực đơn này
+                </Link>
               </article>
             ))}
           </div>

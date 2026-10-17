@@ -199,6 +199,12 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
                 <span>Hồ sơ</span>
               </Link>
             </li>
+            <li>
+              <Link className="hy-space-link" href={routes.home}>
+                <Icon name="back" />
+                <span>Trang chủ</span>
+              </Link>
+            </li>
           </ul>
         </nav>
         <SupportCard phone={phone} />
@@ -301,6 +307,9 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
             <Link href={routes.profile} onClick={() => setMoreOpen(false)}>
               <Icon name="person" /> Hồ sơ
             </Link>
+            <Link href={routes.home} onClick={() => setMoreOpen(false)}>
+              <Icon name="back" /> Trang chủ
+            </Link>
             <SupportCard phone={phone} />
           </div>
         </div>
@@ -335,6 +344,7 @@ type IconName =
   | 'person'
   | 'lock'
   | 'call'
+  | 'back'
   | 'more';
 
 const iconPaths: Record<IconName, string> = {
@@ -347,6 +357,7 @@ const iconPaths: Record<IconName, string> = {
   person: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9a7 7 0 0 1 14 0',
   lock: 'M6 11h12v10H6ZM8 11V8a4 4 0 1 1 8 0v3',
   call: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z',
+  back: 'M10 6 4 12l6 6M4 12h16',
   more: 'M5 12h.01M12 12h.01M19 12h.01',
 };
 

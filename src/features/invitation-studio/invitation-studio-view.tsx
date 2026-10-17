@@ -82,13 +82,13 @@ export interface InvitationStudioViewProps {
 }
 
 const orderStatusMap: Record<string, { label: string; className: string }> = {
-  REQUESTED: { label: 'Chờ báo giá', className: 'bg-amber-100 text-amber-800' },
-  QUOTED: { label: 'Đã có báo giá', className: 'bg-blue-100 text-blue-800' },
-  APPROVED: { label: 'Đã duyệt in', className: 'bg-emerald-100 text-emerald-800' },
-  IN_PRODUCTION: { label: 'Đang in ấn', className: 'bg-purple-100 text-purple-800' },
-  READY_FOR_HANDOVER: { label: 'Sẵn sàng bàn giao', className: 'bg-teal-100 text-teal-800' },
-  HANDED_OVER: { label: 'Đã bàn giao', className: 'bg-green-100 text-green-800' },
-  CANCELLED: { label: 'Đã hủy', className: 'bg-neutral-100 text-neutral-600' },
+  REQUESTED: { label: 'Chờ báo giá', className: 'is-warning' },
+  QUOTED: { label: 'Đã có báo giá', className: 'is-info' },
+  APPROVED: { label: 'Đã duyệt in', className: 'is-success' },
+  IN_PRODUCTION: { label: 'Đang in ấn', className: 'is-info' },
+  READY_FOR_HANDOVER: { label: 'Sẵn sàng bàn giao', className: 'is-success' },
+  HANDED_OVER: { label: 'Đã bàn giao', className: 'is-success' },
+  CANCELLED: { label: 'Đã hủy', className: '' },
 };
 
 export function InvitationStudioView({
@@ -761,10 +761,8 @@ export function InvitationStudioView({
     <div className="invitation-live">
       {/* Header */}
       <header className="page-heading">
-        <h1 className="text-2xl md:text-3xl font-semibold text-[#1E3A2F] ">
-          Studio Thiệp Cưới & In Ấn
-        </h1>
-        <p className="text-neutral-600 mt-1">
+        <h1>Studio Thiệp Cưới & In Ấn</h1>
+        <p className="studio-lead">
           Thiết kế thiệp cưới sang trọng, tạo ảnh AI độc bản, chia sẻ mã QR và đặt in thiệp giấy
           truyền thống.
         </p>
@@ -774,30 +772,19 @@ export function InvitationStudioView({
       {notice && (
         <div
           role="alert"
-          className={`mb-6 p-4 rounded-md text-sm font-medium ${
-            notice.type === 'success'
-              ? 'bg-[#D8F3DC] text-[#1E3A2F] border border-[#74C69D]'
-              : 'bg-red-50 text-red-800 border border-red-200'
-          }`}
+          className={`studio-notice ${notice.type === 'success' ? 'is-success' : 'is-error'}`}
         >
           {notice.text}
         </div>
       )}
 
       {/* Navigation Tabs */}
-      <nav
-        aria-label="Studio Tabs"
-        className="flex border-b border-neutral-200 mb-6 gap-2 overflow-x-auto"
-      >
+      <nav aria-label="Studio Tabs" className="studio-tabs">
         <button
           type="button"
           onClick={() => selectTab('design')}
           aria-pressed={activeTab === 'design'}
-          className={`min-h-[44px] px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === 'design'
-              ? 'border-[#1E3A2F] text-[#1E3A2F]'
-              : 'border-transparent text-neutral-500 hover:text-neutral-800'
-          }`}
+          className="studio-tab"
         >
           Thiết Kế & AI
         </button>
@@ -805,11 +792,7 @@ export function InvitationStudioView({
           type="button"
           onClick={() => selectTab('media')}
           aria-pressed={activeTab === 'media'}
-          className={`min-h-[44px] px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === 'media'
-              ? 'border-[#1E3A2F] text-[#1E3A2F]'
-              : 'border-transparent text-neutral-500 hover:text-neutral-800'
-          }`}
+          className="studio-tab"
         >
           Bộ Sưu Tập Ảnh
         </button>
@@ -817,11 +800,7 @@ export function InvitationStudioView({
           type="button"
           onClick={() => selectTab('publish')}
           aria-pressed={activeTab === 'publish'}
-          className={`min-h-[44px] px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === 'publish'
-              ? 'border-[#1E3A2F] text-[#1E3A2F]'
-              : 'border-transparent text-neutral-500 hover:text-neutral-800'
-          }`}
+          className="studio-tab"
         >
           Xuất Bản & Mã QR
         </button>
@@ -829,11 +808,7 @@ export function InvitationStudioView({
           type="button"
           onClick={() => selectTab('print')}
           aria-pressed={activeTab === 'print'}
-          className={`min-h-[44px] px-4 py-2 font-medium border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === 'print'
-              ? 'border-[#1E3A2F] text-[#1E3A2F]'
-              : 'border-transparent text-neutral-500 hover:text-neutral-800'
-          }`}
+          className="studio-tab"
         >
           Đặt In Thiệp Giấy ({orders.length})
         </button>
@@ -884,20 +859,17 @@ export function InvitationStudioView({
             </div>
           </section>
           <div className="inspector">
-            <h2 id="design-heading" className="text-xl font-semibold text-[#1E3A2F] mb-4">
+            <h2 id="design-heading" className="studio-title">
               Cấu Trúc Nội Dung Thiệp Cưới
             </h2>
             <form
               onSubmit={(e) => {
                 void handleSaveDesign(e);
               }}
-              className="space-y-4"
+              className="studio-form"
             >
               <div>
-                <label
-                  htmlFor="invitation-title"
-                  className="block text-sm font-medium text-neutral-700 mb-1"
-                >
+                <label htmlFor="invitation-title" className="studio-label">
                   Tiêu Đề Thiệp Cưới
                 </label>
                 <input
@@ -907,16 +879,13 @@ export function InvitationStudioView({
                   onChange={(e) => setTitle(e.target.value)}
                   required
                   maxLength={120}
-                  className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883]"
+                  className="studio-input"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="studio-field-row">
                 <div>
-                  <label
-                    htmlFor="groom-name"
-                    className="block text-sm font-medium text-neutral-700 mb-1"
-                  >
+                  <label htmlFor="groom-name" className="studio-label">
                     Tên Chú Rể
                   </label>
                   <input
@@ -924,14 +893,11 @@ export function InvitationStudioView({
                     type="text"
                     value={groomName}
                     onChange={(e) => setGroomName(e.target.value)}
-                    className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883]"
+                    className="studio-input"
                   />
                 </div>
                 <div>
-                  <label
-                    htmlFor="bride-name"
-                    className="block text-sm font-medium text-neutral-700 mb-1"
-                  >
+                  <label htmlFor="bride-name" className="studio-label">
                     Tên Cô Dâu
                   </label>
                   <input
@@ -939,16 +905,13 @@ export function InvitationStudioView({
                     type="text"
                     value={brideName}
                     onChange={(e) => setBrideName(e.target.value)}
-                    className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883]"
+                    className="studio-input"
                   />
                 </div>
               </div>
 
               <div>
-                <label
-                  htmlFor="invitation-greeting"
-                  className="block text-sm font-medium text-neutral-700 mb-1"
-                >
+                <label htmlFor="invitation-greeting" className="studio-label">
                   Lời Mời Đầu Thiệp
                 </label>
                 <input
@@ -956,15 +919,12 @@ export function InvitationStudioView({
                   type="text"
                   value={greeting}
                   onChange={(e) => setGreeting(e.target.value)}
-                  className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883]"
+                  className="studio-input"
                 />
               </div>
 
               <div>
-                <label
-                  htmlFor="invitation-message"
-                  className="block text-sm font-medium text-neutral-700 mb-1"
-                >
+                <label htmlFor="invitation-message" className="studio-label">
                   Thông Điệp / Lời Nhắn
                 </label>
                 <textarea
@@ -972,26 +932,23 @@ export function InvitationStudioView({
                   rows={3}
                   value={message}
                   onChange={(e) => setMessageText(e.target.value)}
-                  className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883]"
+                  className="studio-input"
                 />
               </div>
 
               {derivedAssetIds.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-neutral-200">
-                  <h4 className="text-sm font-semibold text-neutral-800">
+                <div className="studio-assets">
+                  <h4 className="studio-subtitle-sm">
                     Hình ảnh đang dùng trong thiệp ({derivedAssetIds.length})
                   </h4>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="studio-asset-list">
                     {derivedAssetIds.map((id) => (
-                      <div
-                        key={id}
-                        className="flex items-center gap-2 p-2 bg-neutral-100 rounded text-xs border border-neutral-200"
-                      >
-                        <span className="font-mono text-neutral-600">Mã: {id.slice(0, 8)}...</span>
+                      <div key={id} className="studio-asset-chip">
+                        <span className="studio-mono">Mã: {id.slice(0, 8)}...</span>
                         <button
                           type="button"
                           onClick={() => handleRemoveImageFromDesign(id)}
-                          className="text-red-600 hover:underline font-medium"
+                          className="studio-link-danger"
                         >
                           Bỏ khỏi thiệp
                         </button>
@@ -1001,12 +958,8 @@ export function InvitationStudioView({
                 </div>
               )}
 
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={saving || isGeneratingAi}
-                  className="min-h-[44px] px-6 py-2 bg-[#1E3A2F] hover:bg-[#274C3D] text-white font-medium rounded-md transition-colors"
-                >
+              <div className="studio-actions">
+                <button type="submit" disabled={saving || isGeneratingAi} className="studio-btn">
                   Lưu Bản Thiết Kế
                 </button>
               </div>
@@ -1015,14 +968,12 @@ export function InvitationStudioView({
 
           {/* AI Generation Box */}
           <div className="ai-box">
-            <h3 className="text-lg font-semibold text-[#1E3A2F] mb-2">
-              Tạo Hoạ Tiết Thiệp Bằng Trí Tuệ Nhân Tạo (AI)
-            </h3>
-            <p className="text-sm text-neutral-600 mb-4">
+            <h3 className="studio-subtitle">Tạo Hoạ Tiết Thiệp Bằng Trí Tuệ Nhân Tạo (AI)</h3>
+            <p className="studio-hint">
               Nhập mô tả phong cách hoa văn hoặc khung cảnh tiệc cưới (ví dụ: hoa cẩm tú cầu pastel,
               phong cách hoàng gia).
             </p>
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="studio-inline">
               <input
                 type="text"
                 placeholder="Nhập mô tả hình ảnh..."
@@ -1033,7 +984,7 @@ export function InvitationStudioView({
                 }}
                 aria-label="Mô tả ảnh AI"
                 maxLength={2000}
-                className="flex-1 min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883]"
+                className="studio-input"
               />
               <button
                 type="button"
@@ -1041,7 +992,7 @@ export function InvitationStudioView({
                   void handleAiGenerate();
                 }}
                 disabled={isGeneratingAi || !aiPrompt.trim()}
-                className="min-h-[44px] px-5 py-2 bg-[#D4AF37] hover:bg-[#B8972E] disabled:opacity-50 text-white font-medium rounded-md transition-colors whitespace-nowrap"
+                className="studio-btn"
               >
                 {isGeneratingAi ? 'Đang tạo ảnh...' : 'Tạo Ảnh AI'}
               </button>
@@ -1051,17 +1002,24 @@ export function InvitationStudioView({
       )}
 
       {previewUrl && (
-        <Image src={previewUrl} alt="Ảnh nền thiệp vừa tạo" width={600} height={600} unoptimized />
+        <Image
+          className="studio-generated"
+          src={previewUrl}
+          alt="Ảnh nền thiệp vừa tạo"
+          width={600}
+          height={600}
+          unoptimized
+        />
       )}
 
       {/* Tab: Media Gallery */}
       {activeTab === 'media' && (
-        <section aria-labelledby="media-heading" className="space-y-6">
-          <div className="bg-white rounded-lg border border-neutral-200 p-6 shadow-sm">
-            <h2 id="media-heading" className="text-xl font-semibold text-[#1E3A2F] mb-2">
+        <section aria-labelledby="media-heading" className="studio-stack">
+          <div className="studio-card">
+            <h2 id="media-heading" className="studio-title">
               Bộ Sưu Tập Hình Ảnh Cưới
             </h2>
-            <p className="text-sm text-neutral-600 mb-4">
+            <p className="studio-hint">
               Hạn ngạch: Tối đa 100 ảnh hoặc 1 GiB mỗi tiệc cưới. Hạn chót tải ảnh: 72 giờ trước giờ
               khai tiệc. Định dạng hỗ trợ: JPEG, PNG, WebP (&le; 25MB).
             </p>
@@ -1070,13 +1028,10 @@ export function InvitationStudioView({
               onSubmit={(e) => {
                 void handleUploadMedia(e);
               }}
-              className="space-y-4 max-w-lg mb-6 p-4 border rounded-md bg-neutral-50"
+              className="studio-form studio-upload"
             >
               <div>
-                <label
-                  htmlFor="media-file-input"
-                  className="block text-sm font-medium text-neutral-700 mb-1"
-                >
+                <label htmlFor="media-file-input" className="studio-label">
                   Chọn Tệp Hình Ảnh
                 </label>
                 <input
@@ -1085,15 +1040,12 @@ export function InvitationStudioView({
                   accept="image/jpeg,image/png,image/webp"
                   onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
                   required
-                  className="w-full text-sm text-neutral-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-[#1E3A2F] file:text-white hover:file:bg-[#274C3D]"
+                  className="studio-file"
                 />
               </div>
 
               <div>
-                <label
-                  htmlFor="media-alt-input"
-                  className="block text-sm font-medium text-neutral-700 mb-1"
-                >
+                <label htmlFor="media-alt-input" className="studio-label">
                   Mô Tả Hình Ảnh (Alt Text, 1-250 ký tự)
                 </label>
                 <input
@@ -1104,72 +1056,58 @@ export function InvitationStudioView({
                   value={mediaAltText}
                   onChange={(e) => setMediaAltText(e.target.value)}
                   required
-                  className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883]"
+                  className="studio-input"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isUploadingMedia || !selectedFile || !mediaAltText.trim()}
-                className="min-h-[44px] px-6 py-2 bg-[#1E3A2F] hover:bg-[#274C3D] disabled:opacity-50 text-white font-medium rounded-md transition-colors"
+                className="studio-btn"
               >
                 {isUploadingMedia ? 'Đang tải lên...' : 'Tải Lên Hình Ảnh'}
               </button>
             </form>
 
-            <h3 className="text-lg font-semibold text-[#1E3A2F] mb-3">
-              Hình Ảnh Đã Tải Lên Trong Phiên
-            </h3>
+            <h3 className="studio-subtitle">Hình Ảnh Đã Tải Lên Trong Phiên</h3>
             {uploadedMediaList.length === 0 ? (
-              <p className="text-sm text-neutral-500 italic">
-                Chưa có ảnh nào được tải lên trong phiên làm việc này.
-              </p>
+              <p className="studio-empty">Chưa có ảnh nào được tải lên trong phiên làm việc này.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="studio-media-grid">
                 {uploadedMediaList.map((item) => (
-                  <div
-                    key={item.mediaAssetId}
-                    className="border rounded-md p-3 space-y-2 bg-neutral-50 flex flex-col justify-between"
-                  >
+                  <div key={item.mediaAssetId} className="studio-media-item">
                     {item.signedUrl ? (
-                      <div className="w-full h-36 bg-neutral-200 rounded overflow-hidden relative">
+                      <div className="studio-media-thumb">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={item.signedUrl}
                           alt={item.altText}
-                          className="w-full h-full object-cover"
+
                           loading="lazy"
                         />
                       </div>
                     ) : (
-                      <div className="w-full h-36 bg-neutral-100 rounded flex items-center justify-center text-xs text-neutral-400">
-                        Chưa có xem trước
-                      </div>
+                      <div className="studio-media-thumb is-empty">Chưa có xem trước</div>
                     )}
                     <div>
-                      <p
-                        className="text-xs font-semibold text-neutral-700 truncate"
-                        title={item.altText}
-                      >
+                      <p className="studio-media-name" title={item.altText}>
                         {item.altText}
                       </p>
-                      <p className="text-xs text-neutral-500">
+                      <p className="studio-meta">
                         Mã: {item.mediaAssetId.slice(0, 8)}... (rev {item.revision})
                       </p>
                     </div>
 
                     {/* Derive Status & Actions */}
-                    <div className="space-y-1.5 pt-1">
+                    <div className="studio-media-status">
                       {item.deriveStatus === 'ready' && item.derivedAssetId ? (
-                        <div className="flex flex-col gap-1">
-                          <span className="inline-block px-2 py-0.5 text-xs rounded bg-green-100 text-green-800 font-medium">
-                            ✓ Đã chuẩn bị cho thiệp
-                          </span>
+                        <div className="studio-media-state">
+                          <span className="hy-chip is-success">✓ Đã chuẩn bị cho thiệp</span>
                           {derivedAssetIds.includes(item.derivedAssetId) ? (
                             <button
                               type="button"
                               onClick={() => handleRemoveImageFromDesign(item.derivedAssetId!)}
-                              className="text-xs px-2.5 py-1 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 rounded font-medium text-left"
+                              className="studio-btn is-small is-ghost"
                             >
                               ✕ Bỏ ảnh khỏi thiệp
                             </button>
@@ -1177,25 +1115,23 @@ export function InvitationStudioView({
                             <button
                               type="button"
                               onClick={() => handleInsertImageIntoDesign(item.derivedAssetId!)}
-                              className="text-xs px-2.5 py-1 bg-[#1E3A2F] hover:bg-[#274C3D] text-white rounded font-medium text-left"
+                              className="studio-btn is-small"
                             >
                               + Chèn vào thiệp cưới
                             </button>
                           )}
                         </div>
                       ) : (
-                        <div className="space-y-1">
-                          <span className="inline-block px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800 font-medium">
-                            ⚠ Chưa sẵn sàng cho thiệp
-                          </span>
+                        <div className="studio-media-state">
+                          <span className="hy-chip is-warning">⚠ Chưa sẵn sàng cho thiệp</span>
                           {item.deriveError && (
-                            <p className="text-xs text-amber-700">{item.deriveError}</p>
+                            <p className="studio-meta is-warning">{item.deriveError}</p>
                           )}
                           <button
                             type="button"
                             disabled={derivingAssetId === item.mediaAssetId}
                             onClick={() => void handleRetryDerive(item)}
-                            className="text-xs px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded font-medium"
+                            className="studio-btn is-small is-ghost"
                           >
                             {derivingAssetId === item.mediaAssetId
                               ? 'Đang chuẩn bị...'
@@ -1204,7 +1140,7 @@ export function InvitationStudioView({
                         </div>
                       )}
 
-                      <div className="pt-1 border-t border-neutral-200">
+                      <div className="studio-media-foot">
                         <button
                           type="button"
                           disabled={detachingAssetId === item.mediaAssetId || isUploadingMedia}
@@ -1215,7 +1151,7 @@ export function InvitationStudioView({
                               item.derivedAssetId,
                             )
                           }
-                          className="text-xs text-red-600 hover:underline font-medium"
+                          className="studio-link-danger"
                         >
                           {detachingAssetId === item.mediaAssetId
                             ? 'Đang gỡ...'
@@ -1233,24 +1169,24 @@ export function InvitationStudioView({
 
       {/* Tab: Publishing & QR */}
       {activeTab === 'publish' && (
-        <section aria-labelledby="publish-heading" className="space-y-6">
-          <div className="bg-white rounded-lg border border-neutral-200 p-6 shadow-sm">
-            <h2 id="publish-heading" className="text-xl font-semibold text-[#1E3A2F] mb-2">
+        <section aria-labelledby="publish-heading" className="studio-stack">
+          <div className="studio-card">
+            <h2 id="publish-heading" className="studio-title">
               Xuất Bản Trực Tuyến & Mã QR Chung
             </h2>
-            <p className="text-sm text-neutral-600 mb-6">
+            <p className="studio-hint">
               Xuất bản phiên bản thiệp cưới để khách mời có thể xem trang web trực tuyến và quét mã
               QR.
             </p>
 
-            <div className="flex flex-wrap gap-4 items-center mb-6">
+            <div className="studio-actions">
               <button
                 type="button"
                 onClick={() => {
                   void handlePublish();
                 }}
                 disabled={isPublishing || saving || !currentDesign}
-                className="min-h-[44px] px-6 py-2 bg-[#1E3A2F] hover:bg-[#274C3D] text-white font-medium rounded-md transition-colors"
+                className="studio-btn"
               >
                 {isPublishing ? 'Đang xử lý...' : 'Xuất Bản Thiệp Ngay'}
               </button>
@@ -1261,7 +1197,7 @@ export function InvitationStudioView({
                     void handleUnpublish();
                   }}
                   disabled={isPublishing}
-                  className="min-h-[44px] px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition-colors"
+                  className="studio-btn is-danger-outline"
                 >
                   Hủy Xuất Bản
                 </button>
@@ -1269,8 +1205,8 @@ export function InvitationStudioView({
             </div>
 
             {publishedSlug ? (
-              <div className="p-4 border border-[#879883] bg-[#D8F3DC]/30 rounded-lg flex flex-col md:flex-row items-center gap-6">
-                <div className="w-32 h-32 bg-white p-2 border rounded-md shadow-inner flex items-center justify-center text-xs text-neutral-400">
+              <div className="studio-published">
+                <div className="studio-qr">
                   <Image
                     src={(() => {
                       const base = getApiBaseUrl().replace(/\/+$/, '');
@@ -1284,55 +1220,55 @@ export function InvitationStudioView({
                     unoptimized
                   />
                 </div>
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-[#1E3A2F]">Thiệp Cưới Đã Xuất Bản</h4>
-                  <p className="text-sm text-neutral-600">
+                <div className="studio-published-copy">
+                  <h4 className="studio-subtitle-sm">Thiệp Cưới Đã Xuất Bản</h4>
+                  <p className="studio-hint">
                     Đường dẫn công khai:{' '}
                     <a
                       href={`/t/${publishedSlug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#274C3D] underline font-medium"
+                      className="studio-link"
                     >
                       /t/{publishedSlug}
                     </a>
                   </p>
-                  <p className="text-xs text-neutral-500">
+                  <p className="studio-meta">
                     Mã QR an toàn, không chứa thông tin cá nhân khách mời.
                   </p>
                 </div>
               </div>
             ) : publicationState === 'stale_conflict' ? (
-              <div className="p-4 border border-amber-300 bg-amber-50 rounded-lg text-sm text-amber-900 space-y-1">
-                <p className="font-semibold">
+              <div className="studio-callout is-warning">
+                <p className="studio-callout-title">
                   Xung Đột Phiên Bản Xuất Bản (INVITATION_PUBLICATION_STALE)
                 </p>
                 <p>
                   Máy chủ thông báo số hiệu bản xuất bản (publication revision) không khớp với phiên
                   bản hiện tại trên server.
                 </p>
-                <p className="text-xs text-amber-700">
+                <p className="studio-meta is-warning">
                   Ranh giới hệ thống: Backend hiện tại chưa có API đọc trạng thái xuất bản nội bộ
                   (authoritative publication reader) nên giao diện không thể tự động đồng bộ
                   revision mới nhất nếu bản lưu cục bộ bị thiếu hoặc lệch.
                 </p>
               </div>
             ) : publicationState === 'unpublished' ? (
-              <div className="p-4 border border-neutral-300 bg-neutral-50 rounded-lg text-sm text-neutral-700 space-y-1">
-                <p className="font-semibold text-[#1E3A2F]">Trạng Thái: Đã Hủy Xuất Bản</p>
+              <div className="studio-callout">
+                <p className="studio-callout-title">Trạng Thái: Đã Hủy Xuất Bản</p>
                 <p>
                   Thiệp cưới hiện đang ở trạng thái riêng tư. Khách mời không thể truy cập liên kết
                   công khai cũ.
                 </p>
                 {publicationRevision !== null && (
-                  <p className="text-xs text-neutral-500">
+                  <p className="studio-meta">
                     Phiên bản xuất bản tiếp theo sẵn sàng: #{publicationRevision}. Nhấn &quot;Xuất
                     Bản Thiệp Ngay&quot; để phát hành phiên bản mới.
                   </p>
                 )}
               </div>
             ) : (
-              <div className="p-4 border border-neutral-200 bg-neutral-50 rounded-lg text-sm text-neutral-600">
+              <div className="studio-callout">
                 <p>
                   Thiệp cưới chưa được phát hành công khai. Nhấn &quot;Xuất Bản Thiệp Ngay&quot; để
                   nhận liên kết trang web và mã QR cho khách mời.
@@ -1345,23 +1281,20 @@ export function InvitationStudioView({
 
       {/* Tab: Print Orders */}
       {activeTab === 'print' && (
-        <section aria-labelledby="print-heading" className="space-y-6">
-          <div className="bg-white rounded-lg border border-neutral-200 p-6 shadow-sm">
-            <h2 id="print-heading" className="text-xl font-semibold text-[#1E3A2F] mb-4">
+        <section aria-labelledby="print-heading" className="studio-stack">
+          <div className="studio-card">
+            <h2 id="print-heading" className="studio-title">
               Đặt In Thiệp Giấy Truyền Thống
             </h2>
             <form
               onSubmit={(e) => {
                 void handleRequestPrint(e);
               }}
-              className="space-y-4 max-w-md"
+              className="studio-form studio-narrow"
             >
               {printSources.length > 0 ? (
                 <div>
-                  <label
-                    htmlFor="print-source"
-                    className="block text-sm font-medium text-neutral-700 mb-1"
-                  >
+                  <label htmlFor="print-source" className="studio-label">
                     Mẫu in theo hợp đồng
                   </label>
                   <select
@@ -1372,7 +1305,7 @@ export function InvitationStudioView({
                       setPrintSourceIndex(index);
                       setPrintQuantity(printSources[index]?.quantity ?? printQuantity);
                     }}
-                    className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md"
+                    className="studio-input"
                   >
                     {printSources.map((source, index) => (
                       <option key={source.offeringId} value={index}>
@@ -1380,17 +1313,14 @@ export function InvitationStudioView({
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-neutral-500 mt-1">
+                  <p className="studio-meta">
                     Số bản trong hợp đồng đã được tính tiền, nhà hàng không thu lại. Muốn in thêm
                     hoặc đổi mẫu, hãy tạo phụ lục hợp đồng.
                   </p>
                 </div>
               ) : null}
               <div>
-                <label
-                  htmlFor="print-quantity"
-                  className="block text-sm font-medium text-neutral-700 mb-1"
-                >
+                <label htmlFor="print-quantity" className="studio-label">
                   Số Lượng Bản In (1 - 10.000 bản)
                 </label>
                 <input
@@ -1401,56 +1331,43 @@ export function InvitationStudioView({
                   value={printQuantity}
                   onChange={(e) => setPrintQuantity(Number(e.target.value))}
                   required
-                  className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883]"
+                  className="studio-input"
                 />
               </div>
-              <button
-                type="submit"
-                disabled={isOrdering}
-                className="min-h-[44px] px-6 py-2 bg-[#D4AF37] hover:bg-[#B8972E] text-white font-medium rounded-md transition-colors"
-              >
+              <button type="submit" disabled={isOrdering} className="studio-btn">
                 {isOrdering ? 'Đang gửi...' : 'Gửi Yêu Cầu Báo Giá In'}
               </button>
             </form>
           </div>
 
           {/* Orders List */}
-          <div className="bg-white rounded-lg border border-neutral-200 p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-[#1E3A2F] mb-4">
-              Lịch Sử & Trạng Thái Đơn In
-            </h3>
+          <div className="studio-card">
+            <h3 className="studio-subtitle">Lịch Sử & Trạng Thái Đơn In</h3>
             {orders.length === 0 ? (
-              <p className="text-sm text-neutral-500 italic">Chưa có đơn in thiệp nào.</p>
+              <p className="studio-empty">Chưa có đơn in thiệp nào.</p>
             ) : (
-              <div className="space-y-4">
+              <div className="studio-orders">
                 {orders.map((order) => (
-                  <div key={order.orderId} className="border rounded-md p-4 space-y-2">
-                    <div className="flex flex-wrap justify-between items-center gap-2">
-                      <span className="font-medium text-sm">
-                        Đơn hàng #{order.orderId.slice(0, 8)}
-                      </span>
-                      <span
-                        className={`px-2.5 py-1 text-xs rounded-full font-semibold ${
-                          orderStatusMap[order.status]?.className ??
-                          'bg-neutral-100 text-neutral-700'
-                        }`}
-                      >
+                  <div key={order.orderId} className="studio-order">
+                    <div className="studio-order-head">
+                      <span className="studio-order-id">Đơn hàng #{order.orderId.slice(0, 8)}</span>
+                      <span className={`hy-chip ${orderStatusMap[order.status]?.className ?? ''}`}>
                         {orderStatusMap[order.status]?.label ?? order.status}
                       </span>
                     </div>
 
                     {order.currentCommercialRevision && (
-                      <div className="text-sm bg-neutral-50 p-3 rounded border border-neutral-200 space-y-1">
+                      <div className="studio-order-summary">
                         <p>
                           Tổng tiền:{' '}
-                          <strong className="text-[#1E3A2F]">
+                          <strong>
                             {Number(order.currentCommercialRevision.orderTotalVnd).toLocaleString(
                               'vi-VN',
                             )}{' '}
                             VND
                           </strong>
                         </p>
-                        <p className="text-xs text-neutral-500">
+                        <p className="studio-meta">
                           Hạn báo giá:{' '}
                           {new Date(order.currentCommercialRevision.expiresAt).toLocaleDateString(
                             'vi-VN',
@@ -1459,7 +1376,7 @@ export function InvitationStudioView({
                       </div>
                     )}
 
-                    <div className="flex gap-2 pt-2">
+                    <div className="studio-actions">
                       {order.status === 'QUOTED' && order.currentCommercialRevision && (
                         <button
                           type="button"
@@ -1470,7 +1387,7 @@ export function InvitationStudioView({
                           onClick={() => {
                             void handleApproveQuote(order);
                           }}
-                          className="min-h-[44px] px-4 py-1.5 bg-[#1E3A2F] hover:bg-[#274C3D] disabled:opacity-50 text-white text-sm font-medium rounded-md"
+                          className="studio-btn"
                         >
                           {approvingOrderId === order.orderId ? 'Đang duyệt...' : 'Duyệt Báo Giá'}
                         </button>
@@ -1485,7 +1402,7 @@ export function InvitationStudioView({
                           onClick={() => {
                             void handleCancelOrder(order);
                           }}
-                          className="min-h-[44px] px-4 py-1.5 border border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 text-sm font-medium rounded-md"
+                          className="studio-btn is-danger-outline"
                         >
                           {cancellingOrderId === order.orderId ? 'Đang hủy...' : 'Hủy Đơn'}
                         </button>

@@ -117,12 +117,12 @@ function ContractWorkspace({
         />
       ) : null}
       {section === 'names' ? (
-        <p className="cw-next-step">
-          {namesMissing ? 'Lưu đủ tên hai bạn rồi ' : 'Tên đã sẵn sàng. '}
-          <Link href={withBooking(routes.contract, proposal.bookingId)}>
-            tiếp tục tới Hợp đồng →
+        <div className="cw-next-step cw-next-step-stack">
+          <p>{namesMissing ? 'Lưu đủ tên hai bạn để tiếp tục.' : 'Tên đã sẵn sàng.'}</p>
+          <Link className="button" href={withBooking(routes.contract, proposal.bookingId)}>
+            Tiếp tục tới Hợp đồng
           </Link>
-        </p>
+        </div>
       ) : null}
       {section === 'contract' && namesMissing ? (
         <p className="cw-next-step" role="note">
