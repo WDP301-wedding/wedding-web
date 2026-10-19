@@ -3,3 +3,17 @@
 @import './styles/hy-v2/hy-v2-consultation-footer.css';
 @import './styles/hy-v2/hy-v2-workspace-journey.css';
 @import './styles/hy-v2/hy-v2-overview-responsive.css';
+
+/* Nhiều thực đơn trong một đề xuất (BE PR #65) */
+.hy-menu-lines {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hy-menu-lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}

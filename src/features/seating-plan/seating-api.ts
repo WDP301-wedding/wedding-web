@@ -17,6 +17,21 @@ export const seatingApi = {
       }),
     );
   },
+  /**
+   * Sơ đồ hiện tại của tiệc (BE mới): không cần biết planId, trả `null` khi chưa chọn mẫu.
+   * Thay cho cách cũ nhớ planId trong localStorage (mất khi đổi máy/trình duyệt).
+   */
+  async current(token: string, bookingId: string) {
+    const response = await coupleApi().GET('/bookings/{bookingId}/seating-plans/current', {
+      headers: bearer(token),
+      params: { path: { bookingId } },
+      cache: 'no-store',
+    });
+    const body = response.data as { readonly data?: SeatingPlan | null } | undefined;
+    if (body === undefined || body.data === undefined)
+      throw new Error('Máy chủ không trả dữ liệu.');
+    return body.data;
+  },
   async plan(token: string, bookingId: string, planId: string) {
     return unwrap<SeatingPlan>(
       await coupleApi().GET('/bookings/{bookingId}/seating-plans/{planId}', {
@@ -74,23 +89,6 @@ export const seatingApi = {
     );
   },
 };
-
-/** Backend chưa có API liệt kê sơ đồ theo tiệc → lưu ID sơ đồ ở trình duyệt sau khi tạo. */
-const planKey = (bookingId: string) => `wedding.seatingPlan.${bookingId}`;
-export function readPlanId(bookingId: string): string | null {
-  try {
-    return localStorage.getItem(planKey(bookingId));
-  } catch {
-    return null;
-  }
-}
-export function rememberPlanId(bookingId: string, planId: string): void {
-  try {
-    localStorage.setItem(planKey(bookingId), planId);
-  } catch {
-    // Không lưu được: người dùng có thể dán lại mã sơ đồ.
-  }
-}
 
 /**
  * Tính khung nhìn SVG bao trọn mọi bàn. Quy ước toạ độ giống file in của backend:

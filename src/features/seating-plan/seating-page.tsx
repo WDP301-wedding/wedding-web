@@ -6,14 +6,11 @@ import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { CommandFeedback, CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
 import {
   authorizedRead,
-  formText,
   useCommand,
   type Proposal,
 } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestGroup } from '../guest-management/guest-api';
 import {
-  readPlanId,
-  rememberPlanId,
   seatingApi,
   viewBoxOf,
   zoomedViewBox,
@@ -63,15 +60,12 @@ function SeatingWorkspace({
 
   useEffect(() => {
     let active = true;
-    const storedPlanId = readPlanId(bookingId);
     authorizedRead(async (token) => {
-      const [layoutOptions, guestGroups] = await Promise.all([
+      const [layoutOptions, guestGroups, current] = await Promise.all([
         seatingApi.options(token, bookingId),
         guestApi.groups(token, bookingId),
+        seatingApi.current(token, bookingId),
       ]);
-      const current = storedPlanId
-        ? await seatingApi.plan(token, bookingId, storedPlanId).catch(() => null)
-        : null;
       return { layoutOptions, guestGroups, current };
     })
       .then(({ layoutOptions, guestGroups, current }) => {
@@ -92,7 +86,6 @@ function SeatingWorkspace({
 
   const accept = (next: SeatingPlan | undefined) => {
     if (!next) return;
-    rememberPlanId(bookingId, next.seatingPlanId);
     setPlanId(next.seatingPlanId);
     setPlan(next);
   };
@@ -171,10 +164,12 @@ function SeatingWorkspace({
                                 : 'Đã tạo sơ đồ nháp.',
                               {
                                 SEATING_PLAN_EXISTS:
-                                  'Tiệc đã có sơ đồ được tạo từ thiết bị khác. Mở trên thiết bị đó, hoặc nhập mã sơ đồ bên dưới (hỏi nhà hàng nếu cần).',
+                                  'Tiệc đã có sơ đồ (có thể tạo từ thiết bị khác). Đang tải lại sơ đồ hiện tại.',
                               },
                             )
-                            .then(accept)
+                            // Thất bại (vd. sơ đồ đã được tạo ở thiết bị khác) → tải lại sơ đồ
+                            // hiện tại từ backend thay vì bắt người dùng nhập mã sơ đồ.
+                            .then((next) => (next ? accept(next) : reload()))
                         }
                       >
                         {plan?.layoutTemplateVersionId === option.layoutTemplateVersionId
@@ -190,35 +185,6 @@ function SeatingWorkspace({
             </table>
           </div>
         )}
-        {/*
-          Backend chưa có API liệt kê sơ đồ của tiệc: mã sơ đồ được nhớ trong trình duyệt đã tạo nó.
-          Chỉ khi tạo sơ đồ bị báo "đã có sơ đồ" (tạo từ thiết bị khác) mới hiện ô nhập mã dự phòng;
-          luồng bình thường không bao giờ hỏi mã.
-        */}
-        {!plan && command.error?.code === 'SEATING_PLAN_EXISTS' ? (
-          <form
-            className="cw-form"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const id = formText(new FormData(event.currentTarget), 'planId');
-              if (!id) return;
-              void command.run((token) => seatingApi.plan(token, bookingId, id)).then(accept);
-            }}
-          >
-            <details open>
-              <summary>Mở sơ đồ đã tạo trên thiết bị khác</summary>
-              <div className="cw-form-row">
-                <label>
-                  Mã sơ đồ
-                  <input name="planId" placeholder="xxxxxxxx-xxxx-…" />
-                </label>
-              </div>
-              <button className="button button-secondary" type="submit" disabled={command.pending}>
-                Mở sơ đồ
-              </button>
-            </details>
-          </form>
-        ) : null}
         <CommandFeedback error={command.error} notice={command.notice} />
       </section>
 
