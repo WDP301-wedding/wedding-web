@@ -1,0 +1,351 @@
+/*
+ * Dải nội dung trang chủ: mỗi phần một nền tràn hai mép (kem → trắng → champagne nhạt → kem → hồng nhạt)
+ * để khách phân biệt từng khối. Nền tràn mép bằng box-shadow + clip-path nên nội dung vẫn
+ * giữ khung 1180px và không sinh thanh cuộn ngang.
+ */
+.hy-band {
+  --hy-band-bg: var(--hy-cream);
+
+  padding: 72px 0;
+  background: var(--hy-band-bg);
+  box-shadow: 0 0 0 100vmax var(--hy-band-bg);
+  clip-path: inset(0 -100vmax);
+}
+.hy-band + .hy-band {
+  margin-top: 0;
+}
+.hy-band .hy-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hy-band .hy-kicker::before {
+  width: 28px;
+  height: 1px;
+  background: var(--hy-champagne);
+  content: '';
+}
+.hy-band-light {
+  --hy-band-bg: var(--hy-surface);
+}
+.hy-band-light .hy-menu-card,
+.hy-band-light .hy-hall-card {
+  background: var(--hy-surface-warm);
+}
+.hy-band-blush {
+  --hy-band-bg: var(--hy-wine-soft);
+}
+.hy-band-blush .consultation-form {
+  border-color: transparent;
+  box-shadow: var(--hy-shadow-2);
+}
+.hy-band-champagne {
+  --hy-band-bg: color-mix(in srgb, var(--hy-champagne) 20%, var(--hy-cream));
+}
+.hy-band-champagne .hy-steps-grid li {
+  border-color: rgb(201 164 106 / 35%);
+  background: var(--hy-surface);
+  box-shadow: 0 6px 20px rgb(122 31 61 / 6%);
+}
+.hy-band-champagne .hy-step-number {
+  background: var(--hy-wine);
+  color: #ffffff;
+}
+/* Phần tư vấn là dải cuối – footer nối liền ngay sau, không chừa khoảng kem. */
+.hy-band:last-of-type {
+  margin-bottom: 0;
+}
+main:has(> .hy-band:last-child) + .hy-footer {
+  margin-top: 0;
+}
+@media (max-width: 640px) {
+  .hy-band {
+    padding: 48px 0;
+  }
+}
+.hy-choice-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  font-size: 14px;
+}
+.hy-choice-summary a {
+  color: var(--hy-wine);
+  font-weight: 600;
+}
+.hy-contact {
+  display: grid;
+  gap: 4px;
+  margin-top: 20px;
+  font-style: normal;
+}
+.hy-contact a {
+  color: var(--hy-wine);
+  font-weight: 600;
+}
+.hy-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.hy-filter p {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--hy-ink-muted);
+}
+
+/* Chi tiết sảnh */
+.hy-breadcrumb a {
+  color: var(--hy-wine);
+  font-weight: 600;
+}
+.hy-hall-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+  gap: 32px;
+  margin-top: 16px;
+}
+.hy-gallery {
+  display: grid;
+  gap: 12px;
+}
+.hy-gallery-thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.hy-hall-detail-copy h1 {
+  margin: 0 0 12px;
+  font-size: clamp(28px, 4vw, 38px);
+  line-height: 1.25;
+}
+.hy-hall-detail-copy h2 {
+  margin: 24px 0 12px;
+  font-size: 20px;
+}
+.hy-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 0 0 16px;
+}
+.hy-stats div {
+  padding: 12px 16px;
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface-warm);
+}
+.hy-stats dt {
+  color: var(--hy-ink-muted);
+  font-size: 13px;
+}
+.hy-stats dd {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+.hy-detail-menus {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hy-detail-menus li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hy-outline);
+}
+.hy-sticky-cta {
+  position: sticky;
+  bottom: 16px;
+  margin-top: 24px;
+}
+.hy-sticky-cta .button {
+  width: 100%;
+}
+
+/* Thực đơn chi tiết */
+.hy-menu-list {
+  display: grid;
+  gap: 20px;
+}
+.hy-menu-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 16px 32px;
+  padding: 24px;
+}
+.hy-menu-detail header h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+.hy-menu-detail .hy-money {
+  font-size: 22px;
+}
+.hy-menu-detail ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hy-menu-detail li {
+  display: grid;
+}
+.hy-menu-detail li p {
+  margin: 0;
+  color: var(--hy-ink-muted);
+  font-size: 14px;
+}
+
+/* Gửi thành công */
+.hy-sent {
+  max-width: 640px;
+  padding-bottom: 24px;
+  text-align: center;
+}
+.hy-sent h1 {
+  margin: 16px 0 12px;
+  font-size: clamp(26px, 3.4vw, 34px);
+  line-height: 1.25;
+}
+.hy-sent-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--hy-success-bg);
+  color: var(--hy-success);
+  font-size: 28px;
+  font-weight: 700;
+  animation: hy-enter var(--hy-dur-long) var(--hy-ease-decelerate) backwards;
+}
+.hy-sent-next {
+  display: grid;
+  gap: 8px;
+  margin: 24px 0;
+  padding: 16px 24px;
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+  text-align: left;
+}
+.hy-sent .hy-actions {
+  justify-content: center;
+}
+
+/* Footer: nền kem ấm, viền champagne mảnh, logo ảnh (đỏ rượu nên không đặt trên nền tối). */
+.hy-footer {
+  position: relative;
+  margin-top: 72px;
+  padding: 56px max(16px, calc((100% - 1180px) / 2)) 24px;
+  border-top: 1px solid var(--hy-outline);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(244 185 167 / 16%), transparent 60%),
+    var(--hy-surface-warm);
+  color: var(--hy-ink-muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.hy-footer::before {
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  width: min(240px, 40%);
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--hy-champagne), transparent);
+  content: '';
+  transform: translateX(-50%);
+}
+.hy-footer-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 40px 56px;
+}
+.hy-footer-brand {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 16px;
+}
+.hy-footer .estate-brand {
+  display: block;
+  line-height: 0;
+}
+.hy-footer-logo {
+  display: block;
+  width: auto;
+  height: 96px;
+}
+.hy-footer-brand p {
+  max-width: 34ch;
+}
+.hy-footer h2 {
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--hy-outline);
+  color: var(--hy-wine);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.hy-footer nav,
+.hy-footer-contact {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+.hy-footer p {
+  margin: 0;
+}
+.hy-footer a {
+  color: var(--hy-ink);
+  text-decoration: none;
+  transition: color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.hy-footer a:hover {
+  color: var(--hy-wine);
+}
+.hy-footer a:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--hy-wine);
+  outline-offset: 3px;
+}
+.hy-footer-contact strong {
+  color: var(--hy-wine);
+  font-weight: 600;
+}
+.hy-footer-bottom {
+  margin-top: 40px !important;
+  padding-top: 18px;
+  border-top: 1px solid var(--hy-outline);
+  font-size: 13px;
+  text-align: center;
+}
+@media (max-width: 860px) {
+  .hy-footer-inner {
+    grid-template-columns: 1fr 1fr;
+  }
+  .hy-footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 560px) {
+  .hy-footer {
+    padding-top: 40px;
+  }
+  .hy-footer-inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .hy-footer-logo {
+    height: 80px;
+  }
+}

@@ -107,6 +107,8 @@
 }
 .v0-workspace .cw-table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
 }
 .v0-workspace .cw-table {
   width: 100%;
@@ -220,9 +222,9 @@
   font-weight: 700;
 }
 .v0-workspace .cw-seating {
+  display: block;
   width: 100%;
-  height: auto;
-  max-height: 560px;
+  height: clamp(380px, 58vh, 680px);
   background: var(--canvas);
   border: 1px solid var(--rule);
 }

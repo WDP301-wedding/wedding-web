@@ -1,0 +1,377 @@
+/* ---------- Đề xuất & kịch bản (C2 – trang cộng tác cũ) ---------- */
+.v0-workspace .collab-shell,
+.v0-workspace .collab-access-state {
+  min-height: 0;
+  background: transparent;
+}
+.v0-workspace .collab-intro {
+  justify-items: start;
+  max-width: none;
+  padding: 0 0 24px;
+  text-align: left;
+}
+.v0-workspace .collab-intro h1 {
+  max-width: none;
+  color: var(--hy-ink);
+  font-size: clamp(28px, 3vw, 34px);
+  font-weight: 700;
+}
+.v0-workspace .collab-intro > .script-heading {
+  margin: 0 0 6px;
+  color: var(--hy-wine);
+  font-size: 13px;
+  font-weight: 600;
+}
+.v0-workspace .collab-proposal {
+  margin: 0 0 20px;
+  border-radius: var(--hy-radius-md);
+  background:
+    radial-gradient(circle at 100% 0%, rgb(244 185 167 / 26%), transparent 55%), var(--hy-wine);
+  box-shadow: var(--hy-shadow-2);
+}
+.v0-workspace .collab-proposal h2 {
+  font-weight: 700;
+}
+.v0-workspace .collab-columns {
+  gap: 20px;
+  background: transparent;
+  border: 0;
+}
+.v0-workspace .collab-columns > * {
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+  box-shadow: var(--hy-shadow-1);
+}
+.v0-workspace .collab-columns h2 {
+  color: var(--hy-ink);
+  font-size: 22px;
+  font-weight: 700;
+}
+.v0-workspace .collab-columns label,
+.v0-workspace .collab-kicker {
+  color: var(--hy-ink);
+}
+.v0-workspace .collab-columns input,
+.v0-workspace .collab-columns textarea,
+.v0-workspace .collab-lookup input,
+.v0-workspace .collab-lookup select {
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+}
+.v0-workspace .collab-columns button,
+.v0-workspace .collab-lookup button {
+  border-radius: var(--hy-radius-sm);
+  font-weight: 600;
+  transition:
+    background-color var(--hy-dur-fast) var(--hy-ease-emphasized),
+    transform var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .collab-columns button:active {
+  transform: scale(0.97);
+}
+.v0-workspace .collab-columns button:disabled {
+  background: #f3e8df;
+  border-color: var(--hy-outline);
+  color: #9a877f;
+  opacity: 1;
+}
+.v0-workspace .collab-timeline time {
+  color: var(--hy-wine);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Thanh toán (C3) ---------- */
+.v0-workspace .billing-shell {
+  min-height: 0;
+  background: transparent;
+}
+.v0-workspace .billing-intro {
+  text-align: left;
+  padding: 0 0 20px;
+}
+.v0-workspace .billing-intro h1 {
+  color: var(--hy-ink);
+  font-weight: 700;
+}
+.v0-workspace .billing-lookup,
+.v0-workspace .billing-deposit,
+.v0-workspace .billing-confirm,
+.v0-workspace .billing-panel,
+.v0-workspace .billing-booking-select-wrapper {
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+  box-shadow: var(--hy-shadow-1);
+}
+.v0-workspace .billing-shell input,
+.v0-workspace .billing-shell select {
+  min-height: 44px;
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface);
+}
+.v0-workspace .billing-shell button,
+.v0-workspace .billing-primary-link {
+  border-radius: var(--hy-radius-sm);
+}
+.v0-workspace .billing-secondary {
+  color: var(--hy-wine);
+  font-weight: 600;
+}
+
+/* ---------- Studio thiệp (C6) ---------- */
+/*
+ * Studio từng viết bằng class Tailwind nhưng repo không cài Tailwind → các class đó không có tác dụng.
+ * Nay dùng class `studio-*` riêng. `.invitation-page` (globals.css) là lưới 2 cột của thiệp công khai,
+ * trong Không gian cưới phải về khối thường, và chỉ thẻ trạng thái (không phải Studio) mới bị bó 480px.
+ */
+.v0-workspace .invitation-page {
+  display: block;
+  min-height: 0;
+}
+.v0-workspace .invitation-page > div:not(.invitation-live) {
+  max-width: 480px;
+  padding: 28px;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+  box-shadow: var(--hy-shadow-1);
+}
+.v0-workspace .invitation-page > div:not(.invitation-live) a {
+  display: inline-flex;
+  margin-top: 12px;
+  min-height: 44px;
+  align-items: center;
+  padding: 0 18px;
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-wine);
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+}
+.v0-workspace .invitation-live {
+  display: grid;
+  gap: 20px;
+  width: 100%;
+  max-width: 1180px;
+  color: var(--hy-ink);
+}
+.v0-workspace .invitation-live .page-heading {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+.v0-workspace .invitation-live .page-heading h1 {
+  margin: 0;
+  color: var(--hy-ink);
+  font-size: clamp(26px, 3vw, 32px);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.v0-workspace .invitation-live .studio-lead {
+  max-width: 720px;
+  margin: 0;
+  color: var(--hy-ink-muted);
+}
+
+/* Tab: thanh phân đoạn, mục đang chọn nền hồng rượu */
+.v0-workspace .invitation-live .studio-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 4px;
+  overflow-x: auto;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+  scrollbar-width: none;
+}
+.v0-workspace .invitation-live .studio-tab {
+  flex: 1 0 auto;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--hy-radius-sm);
+  background: transparent;
+  color: var(--hy-ink-muted);
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background-color var(--hy-dur-fast) var(--hy-ease-emphasized),
+    color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .invitation-live .studio-tab:hover {
+  background: var(--hy-surface-warm);
+  color: var(--hy-ink);
+}
+.v0-workspace .invitation-live .studio-tab[aria-pressed='true'] {
+  background: var(--hy-wine-soft);
+  color: var(--hy-wine);
+}
+
+/* Thông báo */
+.v0-workspace .invitation-live .studio-notice {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid transparent;
+  border-left-width: 4px;
+  border-radius: var(--hy-radius-sm);
+  font-weight: 500;
+}
+.v0-workspace .invitation-live .studio-notice.is-success {
+  border-color: var(--hy-success);
+  background: var(--hy-success-bg);
+  color: var(--hy-success);
+}
+.v0-workspace .invitation-live .studio-notice.is-error {
+  border-color: var(--hy-error);
+  background: var(--hy-error-bg);
+  color: var(--hy-error);
+}
+
+/* Khối, tiêu đề, chữ phụ */
+.v0-workspace .invitation-live .studio-stack {
+  display: grid;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.v0-workspace .invitation-live .studio-card,
+.v0-workspace .invitation-live .live-editor .inspector,
+.v0-workspace .invitation-live .live-editor .template-rail {
+  padding: clamp(18px, 2.4vw, 28px);
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+  box-shadow: var(--hy-shadow-1);
+}
+.v0-workspace .invitation-live .studio-title {
+  margin: 0 0 8px;
+  color: var(--hy-ink);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.v0-workspace .invitation-live .studio-subtitle {
+  margin: 24px 0 12px;
+  color: var(--hy-ink);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.v0-workspace .invitation-live .studio-card > .studio-subtitle:first-child,
+.v0-workspace .invitation-live .ai-box .studio-subtitle {
+  margin-top: 0;
+}
+.v0-workspace .invitation-live .studio-subtitle-sm {
+  margin: 0;
+  color: var(--hy-ink);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.v0-workspace .invitation-live .studio-hint {
+  margin: 0 0 16px;
+  color: var(--hy-ink-muted);
+  font-size: 14px;
+}
+.v0-workspace .invitation-live .studio-meta {
+  margin: 0;
+  color: var(--hy-ink-muted);
+  font-size: 13px;
+}
+.v0-workspace .invitation-live .studio-meta.is-warning {
+  color: var(--hy-warning);
+}
+.v0-workspace .invitation-live .studio-empty {
+  margin: 0;
+  padding: 24px;
+  border: 1px dashed var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  color: var(--hy-ink-muted);
+  text-align: center;
+}
+.v0-workspace .invitation-live .studio-mono {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+/* Form */
+.v0-workspace .invitation-live .studio-form {
+  display: grid;
+  gap: 16px;
+}
+.v0-workspace .invitation-live .studio-form > .studio-btn {
+  justify-self: start;
+}
+.v0-workspace .invitation-live .studio-title + .studio-form {
+  margin-top: 16px;
+}
+.v0-workspace .invitation-live .studio-narrow {
+  max-width: 460px;
+}
+.v0-workspace .invitation-live .studio-upload {
+  max-width: 560px;
+  margin-bottom: 8px;
+  padding: 20px;
+  border: 1px dashed var(--hy-champagne);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface-warm);
+}
+.v0-workspace .invitation-live .studio-field-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+.v0-workspace .invitation-live .studio-label {
+  display: block;
+  margin: 0 0 6px;
+  color: var(--hy-ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+.v0-workspace .invitation-live .studio-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface);
+  color: var(--hy-ink);
+  font: inherit;
+}
+.v0-workspace .invitation-live textarea.studio-input {
+  min-height: 96px;
+  resize: vertical;
+}
+.v0-workspace .invitation-live .studio-input:focus-visible {
+  border-color: var(--hy-wine);
+  outline: 3px solid rgb(122 31 61 / 16%);
+  outline-offset: 0;
+}
+.v0-workspace .invitation-live .studio-file {
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  color: var(--hy-ink-muted);
+  font-size: 14px;
+}
+.v0-workspace .invitation-live .studio-file::file-selector-button {
+  min-height: 40px;
+  margin-right: 12px;
+  padding: 0 16px;
+  border: 1px solid var(--hy-wine);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface);
+  color: var(--hy-wine);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}

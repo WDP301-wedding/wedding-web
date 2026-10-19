@@ -1,0 +1,277 @@
+.v0-workspace .brand span {
+  font-family: var(--font-display);
+  line-height: 1.35;
+}
+.v0-workspace .nav-item {
+  text-decoration: none;
+}
+.v0-workspace .nav-item[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.v0-workspace .brand {
+  text-decoration: none;
+}
+.v0-workspace .overview-section,
+.v0-workspace .collab-shell,
+.v0-workspace .billing-shell {
+  padding: 0;
+  max-width: none;
+  margin: 0;
+  background: transparent;
+  min-height: auto;
+}
+.v0-workspace .collab-header,
+.v0-workspace .billing-header {
+  border: 0;
+  padding: 0 0 20px;
+}
+.v0-workspace .overview-booking {
+  display: grid;
+  grid-template-columns: 1.17fr 1fr;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  margin-bottom: 32px;
+  padding: 0;
+  gap: 0;
+}
+.v0-workspace .overview-image {
+  width: 100%;
+  height: 345px;
+  object-fit: cover;
+  display: block;
+}
+.v0-workspace .overview-event {
+  padding: 30px;
+}
+.v0-workspace .overview-next {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--rule);
+  padding: 24px 30px;
+}
+.v0-workspace .public-section-heading {
+  padding-bottom: 20px;
+}
+.v0-workspace .overview-empty {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 30px;
+}
+.v0-workspace .public-button {
+  background: var(--primary);
+  color: white;
+  min-height: 44px;
+  padding: 12px 16px;
+  display: inline-flex;
+}
+.v0-workspace .live-editor {
+  display: grid;
+  grid-template-columns: 170px minmax(260px, 1fr) 290px;
+  gap: 18px;
+  margin-block: 28px;
+  align-items: stretch;
+}
+.v0-workspace .live-editor .inspector {
+  padding: 20px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+}
+.v0-workspace .live-editor .invite-paper {
+  min-height: 480px;
+}
+.v0-workspace .live-editor .invite-paper h2 {
+  font-family: var(--font-display);
+  line-height: 1.35;
+}
+.v0-workspace .live-editor .invite-paper img {
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+}
+.v0-workspace .invitation-live section {
+  margin: 20px 0;
+  padding: 24px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+}
+.v0-workspace .invitation-live .live-editor section {
+  margin: 0;
+}
+.v0-workspace .invitation-live input,
+.v0-workspace .invitation-live textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--hy-radius-sm);
+  font-family: inherit;
+}
+.v0-workspace .invitation-live label {
+  display: block;
+  margin-bottom: 6px;
+}
+.v0-workspace .invitation-live form {
+  display: grid;
+  gap: 16px;
+}
+.v0-workspace .invitation-live button {
+  min-height: 44px;
+  padding: 10px 16px;
+  background: var(--primary);
+  color: white;
+  border: 1px solid var(--primary);
+  border-radius: var(--hy-radius-sm);
+  font-family: inherit;
+}
+.v0-workspace .invitation-live button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.v0-workspace .invitation-live > nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+.v0-workspace .invitation-live [role='alert'] {
+  padding: 16px;
+  background: var(--surface-muted);
+  border-left: 3px solid var(--champagne);
+}
+.v0-workspace .public-invitation-layout {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+.v0-workspace .public-invitation-layout > article {
+  padding: 36px;
+}
+.v0-workspace .public-invitation-photo {
+  width: 100%;
+  height: 100%;
+  max-height: 700px;
+  object-fit: cover;
+}
+@media (max-width: 1050px) {
+  .v0-workspace .live-editor {
+    grid-template-columns: 150px 1fr;
+  }
+  .v0-workspace .live-editor .inspector {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 600px) {
+  .v0-workspace .overview-booking,
+  .v0-workspace .live-editor,
+  .v0-workspace .public-invitation-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .v0-workspace .overview-image {
+    height: 205px;
+  }
+  .v0-workspace .booking-context {
+    display: none;
+  }
+  .v0-workspace .content-inner {
+    overflow-wrap: anywhere;
+  }
+  .v0-workspace .live-editor .template-rail {
+    display: none;
+  }
+}
+
+.v0-workspace .live-editor .ai-box {
+  grid-column: 1 / -1;
+}
+@media (max-width: 600px) {
+  .v0-workspace .sidebar {
+    visibility: hidden;
+  }
+  .v0-workspace .menu-open .sidebar {
+    visibility: visible;
+  }
+}
+
+.v0-workspace .overview-booking {
+  display: block;
+  background: transparent;
+  border: 0;
+}
+.v0-workspace .overview-event {
+  background: var(--surface);
+  color: var(--primary);
+}
+.v0-workspace .overview-event h2 {
+  color: var(--primary);
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+.v0-workspace .overview-event p,
+.v0-workspace .overview-event > span {
+  color: var(--text-muted);
+}
+.v0-workspace .overview-next {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.v0-workspace .public-section-heading h1 {
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+.v0-workspace .public-section-heading {
+  margin-bottom: 30px;
+  padding-bottom: 0;
+}
+.v0-workspace .invitation-page {
+  width: 100%;
+  margin: 0;
+}
+.v0-workspace .invitation-live .page-heading {
+  display: block;
+}
+.v0-workspace .invitation-live .live-editor {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.v0-workspace .invitation-live .invitation-preview {
+  padding: 13px;
+  background: #eadfd6;
+}
+
+.v0-workspace .invitation-page {
+  display: block;
+}
+.v0-workspace .invitation-live {
+  width: 100%;
+}
+.v0-workspace .page-heading h1 {
+  max-width: none;
+}
+.v0-workspace .live-editor .ai-box {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+.v0-workspace .live-editor .ai-box > div {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+}
+.v0-workspace .live-editor .ai-box input {
+  flex: 1;
+  min-width: 0;
+}
+.v0-workspace .live-editor .ai-box button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .v0-workspace .live-editor .ai-box > div {
+    flex-direction: column;
+  }
+}

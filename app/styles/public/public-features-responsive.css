@@ -1,0 +1,335 @@
+.public-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  margin-top: 40px;
+  line-height: 1.9;
+}
+.public-detail-image {
+  width: 100%;
+  height: auto;
+  margin-bottom: 24px;
+}
+.public-capacity {
+  padding: 24px 0;
+  border-block: 1px solid #eadfd6;
+}
+.public-capacity strong {
+  display: block;
+  font-size: 28px;
+  font-weight: 500;
+}
+.public-menu-list {
+  margin-top: 48px;
+}
+.public-menu-list article {
+  padding: 40px 0;
+  border-top: 1px solid var(--gold);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 64px;
+}
+.public-menu-list article > a {
+  grid-column: 1/-1;
+}
+.public-menu-list ol {
+  margin: 0;
+  padding-left: 24px;
+}
+.public-menu-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid #eadfd6;
+  line-height: 1.7;
+}
+.public-menu-list li p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.public-menu-price {
+  display: block;
+  font-weight: 500;
+  font-size: 24px;
+  margin-top: 24px;
+  color: var(--navy);
+}
+.public-menu-price small {
+  font-size: 14px;
+  color: var(--muted);
+}
+.public-consultation-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 64px;
+}
+.public-consultation-layout > div > p {
+  line-height: 1.9;
+  color: var(--muted);
+}
+.public-consultation-layout .public-contact {
+  margin-top: 40px;
+}
+.consultation-form {
+  padding: 32px;
+  background: #fff;
+  border: 1px solid #eadfd6;
+}
+.public-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.consultation-form label,
+.account-settings label {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.consultation-form label span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+.consultation-form input,
+.consultation-form textarea,
+.account-settings input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 12px;
+  border: 1px solid #9a877f;
+  border-radius: var(--hy-radius-sm);
+  background: var(--paper);
+  color: var(--ink);
+}
+.consultation-form textarea {
+  resize: vertical;
+}
+.consultation-success {
+  border: 1px solid var(--gold);
+  padding: 40px;
+  line-height: 1.9;
+}
+.public-data-error {
+  border-left: 3px solid var(--burgundy);
+  padding: 16px;
+  margin-top: 24px;
+  color: var(--ink);
+  background: var(--powder);
+}
+.public-data-error button,
+.account-settings button:not(.public-button),
+.overview-section > button {
+  min-height: 44px;
+  border: 1px solid var(--navy);
+  background: transparent;
+  color: var(--navy);
+  border-radius: var(--hy-radius-sm);
+  padding: 10px 16px;
+  cursor: pointer;
+}
+.account-settings {
+  max-width: 1120px;
+  margin: 48px auto;
+  padding: 32px;
+  border-top: 1px solid var(--gold);
+}
+.account-settings h2 {
+  font-size: 28px;
+  font-weight: 500;
+}
+.account-settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+}
+.overview-booking {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  border-block: 1px solid var(--gold);
+  margin: 40px 0;
+  padding: 32px 0;
+}
+.overview-event {
+  padding: 32px;
+  background: var(--navy);
+  color: var(--paper);
+}
+.overview-event h2 {
+  color: var(--paper);
+  font-size: 28px;
+  margin-top: 24px;
+}
+.overview-event .public-button {
+  color: var(--navy);
+  background: var(--paper);
+  margin-top: 24px;
+}
+.overview-next h3 {
+  margin: 0 0 24px;
+  font-weight: 500;
+  font-size: 22px;
+}
+.overview-next ul {
+  list-style: none;
+  padding: 0;
+}
+.overview-next li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0;
+  border-bottom: 1px solid #eadfd6;
+}
+.overview-next li span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.overview-empty {
+  padding: 48px;
+  border: 1px solid #eadfd6;
+  line-height: 1.9;
+}
+:where(.public-header, .public-footer, #public-content, .account-settings)
+  :where(a, button, input, textarea):focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 4px;
+}
+@media (max-width: 1050px) {
+  .public-header,
+  .public-footer,
+  .public-section,
+  .public-story,
+  .public-invitation {
+    padding-inline: 32px;
+  }
+  .public-header {
+    flex-wrap: wrap;
+  }
+  .public-hero {
+    padding-inline: 32px;
+    gap: 32px;
+  }
+  .public-hero h1 {
+    font-size: 40px;
+  }
+  .public-consultation-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .public-form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+@media (max-width: 700px) {
+  .public-header,
+  .public-footer,
+  .public-section,
+  .public-story,
+  .public-invitation {
+    padding-inline: 24px;
+  }
+  .public-header nav {
+    gap: 16px;
+    font-size: 12px;
+    width: 100%;
+  }
+  .public-header nav .public-button {
+    width: 100%;
+  }
+  .public-nav-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .public-header nav .public-nav-actions .public-button {
+    flex: 1 1 auto;
+    width: auto;
+    padding-inline: 12px;
+    gap: 12px;
+  }
+  .public-hero {
+    grid-template-columns: 1fr;
+    padding: 32px 24px 48px;
+    gap: 32px;
+  }
+  .public-hero-image {
+    order: -1;
+  }
+  .public-hero-image > img,
+  .public-hero-image > .public-image-placeholder {
+    height: 260px;
+  }
+  .public-hero h1 {
+    font-size: 36px;
+  }
+  .public-story,
+  .public-hall-grid,
+  .public-invitation,
+  .public-detail-grid,
+  .public-consultation-layout,
+  .public-menu-list article,
+  .account-settings-grid,
+  .overview-booking {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .public-story {
+    padding-block: 48px;
+  }
+  .public-story .public-kicker,
+  .public-steps {
+    grid-column: auto;
+  }
+  .public-steps {
+    display: block;
+  }
+  .public-section-heading {
+    display: block;
+  }
+  .public-section-heading > a {
+    display: inline-block;
+    margin-top: 24px;
+  }
+  .public-image-caption {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .public-hall-picture img,
+  .public-hall-picture .public-image-placeholder {
+    height: 240px;
+  }
+  .public-footer {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .public-footer nav {
+    grid-column: 1;
+    grid-row: auto;
+    justify-content: flex-start;
+  }
+  .consultation-form {
+    padding: 24px;
+  }
+  .account-settings {
+    padding: 24px;
+  }
+  .overview-empty {
+    padding: 24px;
+  }
+  .public-contact {
+    padding-left: 24px;
+  }
+  .public-section {
+    padding-block: 48px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

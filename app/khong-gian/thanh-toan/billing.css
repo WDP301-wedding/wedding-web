@@ -142,7 +142,7 @@
 }
 .billing-summary dl {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   margin: 0;
   border: 1px solid var(--line);
 }
@@ -155,7 +155,7 @@
 }
 .billing-summary dd {
   margin: 8px 0 0;
-  font-size: clamp(18px, 2vw, 24px);
+  font-size: clamp(16px, 1.8vw, 22px);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -169,7 +169,7 @@
 }
 .billing-forms {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 24px;
 }
 .billing-shell fieldset {
@@ -200,6 +200,8 @@
 }
 .billing-table-scroll {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
 }
 .billing-shell table {
   width: 100%;
