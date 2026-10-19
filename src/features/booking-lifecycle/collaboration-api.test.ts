@@ -29,9 +29,12 @@ afterEach(() => {
 });
 
 describe('collaboration HTTP adapter', () => {
+  // `proposal.menus` là mảng bắt buộc từ BE PR #65; adapter copy nó thành mảng thật.
+  const proposal = { menus: [{ name: 'Mùa Thu', tableCount: 20 }] };
   it.each([
-    { timeline: null, effectiveTimeline: null },
+    { proposal, timeline: null, effectiveTimeline: null },
     {
+      proposal,
       timeline: { items: [{ title: 'Draft' }] },
       effectiveTimeline: { items: [{ title: 'Effective' }] },
       cancellationRequests: [{ requestId: 'request' }],
@@ -52,7 +55,9 @@ describe('collaboration HTTP adapter', () => {
   });
   it('creates and reuses the default client lazily', async () => {
     vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'http://localhost:4000/api/v1');
-    const fetch = vi.fn(() => response({ timeline: null, effectiveTimeline: null }));
+    const fetch = vi.fn(() =>
+      response({ proposal: { menus: [] }, timeline: null, effectiveTimeline: null }),
+    );
     vi.stubGlobal('fetch', fetch);
     const gateway = createCollaborationGateway();
     await gateway.load(token, bookingId);

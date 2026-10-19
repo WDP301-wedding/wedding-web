@@ -74,6 +74,8 @@ export function createCollaborationGateway(client?: ApiClient): CollaborationGat
       const { cancellationRequests, ...proposalValue } = value;
       return {
         ...proposalValue,
+        // Mảng trong response bị openapi-fetch bọc kiểu Readable → copy thành mảng thật.
+        proposal: { ...value.proposal, menus: Array.from(value.proposal.menus) },
         ...(cancellationRequests === undefined
           ? {}
           : { cancellationRequests: Array.from(cancellationRequests) }),
