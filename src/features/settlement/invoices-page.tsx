@@ -6,6 +6,8 @@ import { useCallback, useEffect, useState } from 'react';
 import type { ApiData } from '../../lib/api/types';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
+import { balanceGate } from '../payments-billing/balance-eligibility';
+import { readEligibility } from '../payments-billing/billing-api';
 import {
   authorizedRead,
   bearer,
@@ -109,6 +111,12 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
       (revision) => revision.invoiceRevisionId === data.invoices.currentRevisionId,
     ) ?? null;
   const totals = data.billing.totals;
+  const balance = balanceGate(
+    readEligibility(
+      (data.billing as { balancePaymentEligibility?: unknown }).balancePaymentEligibility,
+    ),
+    data.billing.billingRevision,
+  );
 
   return (
     <>
@@ -132,10 +140,25 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
           </div>
         </dl>
         <div className="cw-actions">
-          <Link className="button" href={`/khong-gian/thanh-toan?bookingId=${bookingId}`}>
-            {totals.outstandingVnd > 0 ? 'Thanh toán phần còn lại' : 'Xem lịch sử thanh toán'}
-          </Link>
+          {/* Chỉ mời thanh toán khi backend cho phép (PR #76), không suy ra từ số còn nợ. */}
+          {balance.allowed ? (
+            <Link className="button" href={`/khong-gian/thanh-toan?bookingId=${bookingId}`}>
+              Thanh toán phần còn lại
+            </Link>
+          ) : (
+            <Link
+              className="button button-secondary"
+              href={`/khong-gian/thanh-toan?bookingId=${bookingId}`}
+            >
+              Xem lịch sử thanh toán
+            </Link>
+          )}
         </div>
+        {!balance.allowed && totals.outstandingVnd > 0 ? (
+          <p className="cw-note" role="status">
+            {balance.message}
+          </p>
+        ) : null}
         {totals.creditVnd > 0 ? (
           <p className="cw-note">
             Hai bạn đã thanh toán thừa. Nhà hàng sẽ duyệt và hoàn tiền thủ công kèm chứng từ (không

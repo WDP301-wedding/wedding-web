@@ -16,6 +16,8 @@ import {
   type BalanceBody,
 } from './billing-api';
 import { createBillingIntents } from './billing-intents';
+import { balanceGate } from './balance-eligibility';
+import { useSpaceExtras } from '../couple-workspace/space-provider';
 import {
   AttemptStatus,
   BillingHistory,
@@ -310,6 +312,10 @@ export function CoupleBillingWorkspace({
       const unknown = unresolved(caught);
       setRetry(unknown);
       if (!unknown) setIntent(null);
+      // Backend từ chối hẳn (vd. 409: chưa chốt hoá đơn, đang có giao dịch, công nợ đổi):
+      // tải lại billing MỘT lần để nút và lời nhắc hiện đúng điều kiện mới. Không tự thử lại POST.
+      if (intent.kind === 'balance' && !unknown && !denied(caught))
+        void load(context.bookingId).catch(() => undefined);
     } finally {
       busy.current = false;
       setPending(false);
@@ -329,6 +335,24 @@ export function CoupleBillingWorkspace({
     autoOpened.current = true;
     openFromUrl(bookingId);
   }, [embedded, bookingId]);
+  /*
+   * Điều kiện thanh toán phần còn lại do backend quyết định (PR #76). Khi backend báo dữ liệu cũ
+   * (STALE_BILLING_REVISION) hoặc chưa có trường điều kiện, tự tải lại ĐÚNG MỘT LẦN cho mỗi
+   * revision — `autoRefreshedFor` chặn vòng lặp tải lại vô hạn nếu backend vẫn trả cùng kết quả.
+   */
+  const gate =
+    view === null ? null : balanceGate(view.balancePaymentEligibility, view.billingRevision);
+  const autoRefreshedFor = useRef<number | null>(null);
+  const refreshBilling = useEffectEvent(() => {
+    if (context !== null) void run(() => load(context.bookingId));
+  });
+  const needsRefresh = gate !== null && !gate.allowed && gate.action === 'refresh';
+  useEffect(() => {
+    if (!needsRefresh || view === null || autoRefreshedFor.current === view.billingRevision) return;
+    autoRefreshedFor.current = view.billingRevision;
+    refreshBilling();
+  }, [needsRefresh, view]);
+  const { restaurant } = useSpaceExtras();
   const inFlight = attempt !== null && !completed(attempt);
   const blocked = pending || intent !== null || checkout !== null || inFlight || needsAttemptStatus;
   return (
@@ -505,18 +529,51 @@ export function CoupleBillingWorkspace({
           {view !== null && (
             <>
               <BillingSummary view={view} />
-              <button
-                disabled={blocked || view.billingRevision === 0 || view.totals.outstandingVnd === 0}
-                onClick={() =>
-                  setIntent({
-                    kind: 'balance',
-                    body: { expectedBillingRevision: view.billingRevision },
-                    amountVnd: view.totals.outstandingVnd,
-                  })
-                }
-              >
-                Thanh toán còn lại
-              </button>
+              <div className="billing-balance-action">
+                <button
+                  disabled={blocked || gate === null || !gate.allowed}
+                  onClick={() => {
+                    // Chặn lần nữa ở đây: nút có thể còn hiện trong lúc trạng thái vừa đổi.
+                    if (gate === null || !gate.allowed) return;
+                    setIntent({
+                      kind: 'balance',
+                      // Lấy revision của trang billing hiện tại (hand-off mục 4).
+                      body: { expectedBillingRevision: view.billingRevision },
+                      amountVnd: view.totals.outstandingVnd,
+                    });
+                  }}
+                >
+                  Thanh toán còn lại
+                </button>
+                {gate !== null && !gate.allowed ? (
+                  <div className="billing-gate" role="status">
+                    <p>{gate.message}</p>
+                    {gate.action === 'refresh' ? (
+                      <button
+                        type="button"
+                        className="billing-secondary"
+                        disabled={pending}
+                        onClick={() => void run(() => load(context.bookingId))}
+                      >
+                        Tải lại công nợ
+                      </button>
+                    ) : null}
+                    {gate.action === 'check-payment' && attemptId !== '' ? (
+                      <a className="billing-secondary" href="#billing-attempt-status">
+                        Kiểm tra giao dịch đang xử lý
+                      </a>
+                    ) : null}
+                    {gate.action === 'contact' && restaurant?.publicPhone ? (
+                      <a
+                        className="billing-secondary"
+                        href={`tel:${restaurant.publicPhone.replace(/[^+\d]/gu, '')}`}
+                      >
+                        Gọi nhà hàng {restaurant.publicPhone}
+                      </a>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
               <BillingHistory view={view} />
               {view.nextCursor !== null && (
                 <button
@@ -607,7 +664,7 @@ export function CoupleBillingWorkspace({
           {/* Trong khung v2: chỉ hiện khi đã có giao dịch (tự nhớ từ URL / lần thanh toán trước),
               không bao giờ yêu cầu người dùng gõ mã giao dịch. */}
           {embedded && attemptId === '' ? null : (
-            <section className="billing-panel">
+            <section className="billing-panel" id="billing-attempt-status">
               <h2>Trạng thái thanh toán</h2>
               <form
                 className="billing-lookup"

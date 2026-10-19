@@ -32,6 +32,13 @@ function gateway(): CoupleBillingGateway {
         outstandingVnd: 7765433,
         creditVnd: 0,
       },
+      // Backend (PR #76) cho phép thanh toán số dư ở đúng revision của trang.
+      balancePaymentEligibility: {
+        canPay: true,
+        reasonCode: null,
+        nextAction: 'PAY_BALANCE',
+        billingRevision: 4,
+      },
     }),
     loadAttempt: vi.fn().mockResolvedValue({
       paymentAttemptId: 'attempt',
@@ -623,5 +630,80 @@ describe('Couple billing inside Không gian cưới (embedded)', () => {
     expect(api.loadContext).toHaveBeenCalledWith('token', 'booking');
     expect(screen.queryByLabelText('Mã hồ sơ đặt tiệc')).not.toBeInTheDocument();
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  });
+});
+
+describe('Balance payment eligibility (BE PR #76)', () => {
+  const blocked = (
+    reasonCode: string,
+    nextAction: string,
+    billingRevision = 4,
+  ): Partial<Awaited<ReturnType<CoupleBillingGateway['load']>>> =>
+    ({
+      balancePaymentEligibility: { canPay: false, reasonCode, nextAction, billingRevision },
+    }) as never;
+
+  it('locks the button and explains when the final invoice is not finalized', async () => {
+    const api = gateway();
+    const current = await api.load('token', 'booking');
+    vi.mocked(api.load).mockResolvedValue({
+      ...current,
+      ...blocked('INVOICE_FINALIZATION_REQUIRED', 'WAIT_FOR_FINAL_INVOICE'),
+    });
+    await full(api);
+    const button = screen.getByRole('button', { name: 'Thanh toán còn lại' });
+    expect(button).toBeDisabled();
+    expect(screen.getByText(/Nhà hàng chưa chốt hoá đơn cuối/)).toBeInTheDocument();
+    fireEvent.click(button);
+    expect(screen.queryByRole('button', { name: 'Xác nhận mở VNPay' })).not.toBeInTheDocument();
+    expect(api.startBalance).not.toHaveBeenCalled();
+  });
+
+  it('does not offer a new checkout while a payment attempt is active', async () => {
+    const api = gateway();
+    const current = await api.load('token', 'booking');
+    vi.mocked(api.load).mockResolvedValue({
+      ...current,
+      ...blocked('PAYMENT_ATTEMPT_ACTIVE', 'CHECK_EXISTING_PAYMENT'),
+    });
+    await full(api);
+    expect(screen.getByRole('button', { name: 'Thanh toán còn lại' })).toBeDisabled();
+    expect(screen.getByText(/giao dịch thanh toán chưa hoàn tất/)).toBeInTheDocument();
+  });
+
+  it('keeps payment off when the eligibility field is missing and refreshes only once', async () => {
+    const api = gateway();
+    const current = await api.load('token', 'booking');
+    vi.mocked(api.load).mockResolvedValue({ ...current, balancePaymentEligibility: null });
+    const before = vi.mocked(api.load).mock.calls.length;
+    await full(api);
+    await waitFor(() => expect(api.load).toHaveBeenCalledTimes(before + 2));
+    await waitFor(() =>
+      expect(screen.queryByText('Đang kiểm tra với máy chủ…')).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole('button', { name: 'Thanh toán còn lại' })).toBeDisabled();
+    expect(screen.getByText(/Chưa kiểm tra được điều kiện thanh toán/)).toBeInTheDocument();
+    // Không tải lại vô hạn: chỉ 1 lần tự động cho mỗi revision.
+    expect(api.load).toHaveBeenCalledTimes(before + 2);
+  });
+
+  it('refreshes billing once after a definitive 409 and never retries the POST by itself', async () => {
+    const api = gateway();
+    await full(api);
+    const current = await api.load('token', 'booking');
+    const loadsBefore = vi.mocked(api.load).mock.calls.length;
+    vi.mocked(api.startBalance).mockRejectedValue(error('INVOICE_FINALIZATION_REQUIRED'));
+    vi.mocked(api.load).mockResolvedValue({
+      ...current,
+      ...blocked('INVOICE_FINALIZATION_REQUIRED', 'WAIT_FOR_FINAL_INVOICE'),
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Thanh toán còn lại' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('chưa chốt hoá đơn cuối');
+    await waitFor(() => expect(api.load).toHaveBeenCalledTimes(loadsBefore + 1));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Thanh toán còn lại' })).toBeDisabled(),
+    );
+    expect(api.startBalance).toHaveBeenCalledTimes(1);
   });
 });
