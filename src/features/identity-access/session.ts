@@ -68,13 +68,88 @@ export function consumeCredentialFragment(
   return null;
 }
 
+const COUPLE_STORAGE_KEY = 'wedding_couple_token_meta';
+const COUPLE_AUTH_CHANNEL = 'wedding_couple_auth_channel';
+const COUPLE_REFRESH_LOCK = 'wedding_couple_refresh_lock';
+
+interface CachedCoupleToken {
+  token: string;
+  expiresAt: string;
+  savedAt: number;
+}
+
+function readCachedCoupleToken(): CachedCoupleToken | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.sessionStorage.getItem(COUPLE_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as CachedCoupleToken;
+  } catch {
+    return null;
+  }
+}
+
+function saveCachedCoupleToken(token: string, expiresAt: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const record: CachedCoupleToken = { token, expiresAt, savedAt: Date.now() };
+    window.sessionStorage.setItem(COUPLE_STORAGE_KEY, JSON.stringify(record));
+    if (typeof BroadcastChannel !== 'undefined') {
+      const channel = new BroadcastChannel(COUPLE_AUTH_CHANNEL);
+      channel.postMessage({ type: 'COUPLE_TOKEN_REFRESHED', token, expiresAt });
+      channel.close();
+    }
+  } catch {
+    // Storage or BroadcastChannel may be restricted in private browsing mode
+  }
+}
+
+function clearCachedCoupleToken(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.removeItem(COUPLE_STORAGE_KEY);
+  } catch {
+    // Ignore storage clearing error in restricted contexts
+  }
+}
+
+function isCoupleTokenFresh(expiresAtStr: string): boolean {
+  const expiry = new Date(expiresAtStr).getTime();
+  if (isNaN(expiry)) return false;
+  return expiry > Date.now() + 30_000;
+}
+
 export class WebIdentitySession {
   private accessToken: string | null = null;
   private restoreOperation: Promise<WebSessionSnapshot> | null = null;
   private state: WebSessionSnapshot = anonymousSnapshot;
   private readonly listeners = new Set<() => void>();
 
-  constructor(private readonly api: IdentityApi) {}
+  constructor(private readonly api: IdentityApi) {
+    if (typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined') {
+      try {
+        const channel = new BroadcastChannel(COUPLE_AUTH_CHANNEL);
+        channel.onmessage = (event: MessageEvent<unknown>) => {
+          const data = event.data;
+          if (
+            data !== null &&
+            typeof data === 'object' &&
+            'type' in data &&
+            data.type === 'COUPLE_TOKEN_REFRESHED' &&
+            'token' in data &&
+            typeof data.token === 'string' &&
+            'expiresAt' in data &&
+            typeof data.expiresAt === 'string'
+          ) {
+            this.accessToken = data.token;
+            this.scheduleProactiveRefresh(data.expiresAt);
+          }
+        };
+      } catch {
+        // BroadcastChannel might fail in sandboxed iframes
+      }
+    }
+  }
 
   snapshot(): WebSessionSnapshot {
     return this.state;
@@ -153,22 +228,70 @@ export class WebIdentitySession {
   // Nhiều lệnh cùng gặp 401 sẽ dùng chung một lần refresh (cookie refresh bị xoay vòng,
   // gọi song song có thể làm backend thu hồi phiên).
   private renewOperation: Promise<string | null> | null = null;
+  private proactiveTimer: ReturnType<typeof setTimeout> | null = null;
 
-  private renewAccessToken(): Promise<string | null> {
-    this.renewOperation ??= this.api
-      .refreshSession()
-      .then((credential) => {
-        this.accessToken = credential.accessToken;
-        return credential.accessToken;
-      })
-      .catch(() => {
-        this.clear();
-        return null;
-      })
-      .finally(() => {
+  private scheduleProactiveRefresh(expiresAtStr: string): void {
+    if (typeof window === 'undefined') return;
+    if (this.proactiveTimer) {
+      clearTimeout(this.proactiveTimer);
+      this.proactiveTimer = null;
+    }
+    const expiry = new Date(expiresAtStr).getTime();
+    if (isNaN(expiry)) return;
+    const delay = Math.max(15_000, expiry - Date.now() - 60_000);
+    this.proactiveTimer = setTimeout(() => {
+      void this.renewAccessToken();
+    }, delay);
+  }
+
+  private async renewAccessToken(): Promise<string | null> {
+    if (typeof window === 'undefined') return null;
+
+    if (this.renewOperation !== null) {
+      return this.renewOperation;
+    }
+
+    this.renewOperation = (async () => {
+      try {
+        if (typeof navigator !== 'undefined' && 'locks' in navigator) {
+          return await navigator.locks.request(COUPLE_REFRESH_LOCK, async () => {
+            const cached = readCachedCoupleToken();
+            if (cached && isCoupleTokenFresh(cached.expiresAt)) {
+              this.accessToken = cached.token;
+              this.scheduleProactiveRefresh(cached.expiresAt);
+              return cached.token;
+            }
+            return await this.performSingleRefresh();
+          });
+        }
+        const cached = readCachedCoupleToken();
+        if (cached && isCoupleTokenFresh(cached.expiresAt)) {
+          this.accessToken = cached.token;
+          this.scheduleProactiveRefresh(cached.expiresAt);
+          return cached.token;
+        }
+        return await this.performSingleRefresh();
+      } finally {
         this.renewOperation = null;
-      });
+      }
+    })();
+
     return this.renewOperation;
+  }
+
+  private async performSingleRefresh(): Promise<string | null> {
+    try {
+      const credential = await this.api.refreshSession();
+      this.accessToken = credential.accessToken;
+      saveCachedCoupleToken(credential.accessToken, credential.accessExpiresAt);
+      this.scheduleProactiveRefresh(credential.accessExpiresAt);
+      return credential.accessToken;
+    } catch (error) {
+      if (error instanceof ApiClientError && error.status === 401) {
+        this.clear();
+      }
+      return null;
+    }
   }
 
   private handleDenial(error: unknown): void {
@@ -198,6 +321,8 @@ export class WebIdentitySession {
 
   private async finishSignIn(credential: SessionCredential): Promise<WebSessionSnapshot> {
     this.accessToken = credential.accessToken;
+    saveCachedCoupleToken(credential.accessToken, credential.accessExpiresAt);
+    this.scheduleProactiveRefresh(credential.accessExpiresAt);
     try {
       const actor = await this.api.getCurrentUser(credential.accessToken);
       this.updateSnapshot({
@@ -214,7 +339,12 @@ export class WebIdentitySession {
   }
 
   private clear(): void {
+    if (this.proactiveTimer) {
+      clearTimeout(this.proactiveTimer);
+      this.proactiveTimer = null;
+    }
     this.accessToken = null;
+    clearCachedCoupleToken();
     this.updateSnapshot(anonymousSnapshot);
   }
 }
