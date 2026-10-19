@@ -2,3 +2,9 @@
 @import './styles/globals/collab.css';
 @import './styles/globals/invitation-layout.css';
 @import './styles/globals/workspace-responsive.css';
+
+:root {
+  --font-display: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-body: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-script: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+}
