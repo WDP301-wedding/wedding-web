@@ -155,10 +155,10 @@
 }
 .billing-summary dd {
   margin: 8px 0 0;
-  font-size: 24px;
+  font-size: clamp(18px, 2vw, 24px);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 .billing-panel {
   margin: 24px 0;

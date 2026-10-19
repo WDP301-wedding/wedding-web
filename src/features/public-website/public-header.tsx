@@ -1,9 +1,9 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
-import { BrandMark } from '../../design-system/brand-mark';
 import { browserSession } from '../identity-access/browser-session';
 import type { WebIdentitySession, WebSessionSnapshot } from '../identity-access/session';
 
@@ -55,7 +55,14 @@ export function PublicHeader({
   return (
     <header className="public-header">
       <Link className="estate-brand" href="/" aria-label="Hỷ Yến — Trang chủ">
-        <BrandMark />
+        <Image
+          className="public-header-logo"
+          src="/images/hy-yen-logo.png"
+          alt="Hỷ Yến Wedding"
+          width={394}
+          height={414}
+          loading="eager"
+        />
       </Link>
       <nav aria-label="Điều hướng chính">
         <Link href="/sanh">Sảnh tiệc</Link>
