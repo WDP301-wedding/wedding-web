@@ -1,0 +1,315 @@
+/*
+ * Hỷ Yến web v2 – bố cục mới (P2 công khai "lên kế hoạch trước", C1 Không gian cưới theo hành trình).
+ * Nạp sau hy-yen.css. Chỉ dùng token --hy-* (globals.css) và font token (AGENTS.md).
+ * Animation dùng fill-mode `backwards` (xem docs/design/hy-yen-redesign.md).
+ */
+
+/* ---------- Nút dùng chung (ngoài .v0-workspace) ---------- */
+.button,
+.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid var(--hy-wine);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-wine);
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--hy-dur-fast) var(--hy-ease-emphasized),
+    transform var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.button:hover {
+  background: var(--hy-wine-pressed);
+  border-color: var(--hy-wine-pressed);
+}
+.button:active {
+  transform: scale(0.97);
+}
+.button.button-secondary,
+.button-secondary {
+  background: var(--hy-surface);
+  color: var(--hy-wine);
+  border-color: var(--hy-outline-strong);
+}
+.button.button-secondary:hover,
+.button-secondary:hover {
+  background: var(--hy-wine-soft);
+  border-color: var(--hy-wine);
+}
+:where(.button, .button-secondary, a, button, input, select, summary):focus-visible {
+  outline: 2px solid var(--hy-wine);
+  outline-offset: 2px;
+}
+
+/* ---------- Chữ & chip ---------- */
+.hy-kicker {
+  margin: 0 0 8px;
+  color: var(--hy-wine);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.hy-muted {
+  color: var(--hy-ink-muted);
+}
+.hy-small {
+  font-size: 13px;
+}
+.hy-money {
+  color: var(--hy-wine);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.hy-clamp {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.hy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--hy-wine-soft);
+  color: var(--hy-wine);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.hy-chip.is-info {
+  background: var(--hy-info-bg, #e6eef2);
+  color: var(--hy-info, #3f5b6b);
+}
+.hy-chip.is-success {
+  background: var(--hy-success-bg);
+  color: var(--hy-success);
+}
+.hy-chip.is-warning {
+  background: var(--hy-warning-bg);
+  color: var(--hy-warning);
+}
+.hy-notice,
+.hy-banner {
+  margin: 16px auto;
+  max-width: 1180px;
+  padding: 12px 16px;
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-warning-bg);
+  color: var(--hy-warning);
+}
+.hy-banner.is-error {
+  background: var(--hy-error-bg, #fdecea);
+  color: var(--hy-error, #c62828);
+}
+.hy-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ---------- Trang công khai ---------- */
+.hy-section {
+  width: min(1180px, 100% - 32px);
+  margin: 0 auto;
+  padding: 56px 0 0;
+}
+.hy-section h2 {
+  margin: 0 0 20px;
+  font-size: clamp(26px, 3.2vw, 34px);
+  line-height: 1.3;
+}
+/* Liên kết điều hướng trong mục: không gạch chân, gạch chân chỉ hiện khi hover/focus.
+   Liên kết nằm trong đoạn văn vẫn giữ gạch chân để nhận ra là liên kết. */
+.hy-section a:not(.button) {
+  text-decoration: none;
+}
+.hy-section
+  a:not(.button, .hy-hall-card a, .hy-section-head a, .hy-menu-card a):is(:hover, :focus-visible) {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.hy-section p a,
+.hy-faq a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.hy-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.hy-section-head h2 {
+  margin: 0;
+}
+.hy-section-head a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 20px;
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface);
+  color: var(--hy-wine);
+  font-size: 16px;
+  font-weight: 600;
+  transition:
+    background-color var(--hy-dur-fast) var(--hy-ease-emphasized),
+    border-color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.hy-section-head a:is(:hover, :focus-visible) {
+  background: var(--hy-wine-soft);
+  border-color: var(--hy-wine);
+  text-decoration: none;
+}
+.hy-page-head h1 {
+  margin: 0 0 8px;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.25;
+}
+
+/* Hero: ảnh sảnh tiệc + lớp phủ tối bên trái để chữ trắng đủ tương phản, thẻ ước tính bên phải */
+.hy-hero {
+  --hy-hero-image: url('/images/hero-sanh-tiec.webp');
+
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 420px);
+  align-items: center;
+  gap: 40px;
+  min-height: 520px;
+  padding: 72px max(16px, calc((100% - 1180px) / 2));
+  background:
+    linear-gradient(
+      90deg,
+      rgb(43 29 34 / 88%) 0%,
+      rgb(43 29 34 / 72%) 45%,
+      rgb(43 29 34 / 28%) 100%
+    ),
+    var(--hy-hero-image) center / cover no-repeat,
+    var(--hy-ink);
+  color: #ffffff;
+}
+.hy-hero-copy h1 {
+  text-shadow: 0 2px 18px rgb(43 29 34 / 45%);
+}
+.hy-hero-copy .hy-kicker {
+  color: var(--hy-peach);
+}
+.hy-hero-copy h1 {
+  margin: 0 0 16px;
+  font-size: clamp(30px, 4.4vw, 46px);
+  line-height: 1.25;
+}
+.hy-hero-copy p {
+  max-width: 560px;
+  color: rgb(255 255 255 / 82%);
+}
+.hy-estimator {
+  display: grid;
+  gap: 14px;
+  padding: 24px;
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+  color: var(--hy-ink);
+  box-shadow: var(--hy-shadow-2);
+  animation: hy-enter var(--hy-dur-long) var(--hy-ease-decelerate) backwards;
+}
+.hy-estimator h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.3;
+}
+.hy-estimator-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.hy-estimator label,
+.hy-filter label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.hy-estimator input,
+.hy-filter input {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface);
+  color: var(--hy-ink);
+  font: inherit;
+}
+.hy-shift-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.hy-shift-picker legend {
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.hy-shift-picker label {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  cursor: pointer;
+  transition: background-color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.hy-shift-picker label.is-selected {
+  border-color: var(--hy-wine);
+  background: var(--hy-wine-soft);
+}
+.hy-shift-picker input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.hy-shift-picker label:has(input:focus-visible) {
+  outline: 2px solid var(--hy-wine);
+  outline-offset: 2px;
+}
+.hy-shift-picker small {
+  color: var(--hy-ink-muted);
+  font-weight: 400;
+}
+.hy-field-error {
+  margin: 0;
+  color: var(--hy-error, #c62828);
+  font-size: 14px;
+}
+
+/* Kết quả ước tính */
+.hy-estimate {
+  width: min(1180px, 100% - 32px);
+  margin: 32px auto 8px;
+  padding: 28px 32px 32px;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-lg);
+  background: color-mix(in srgb, var(--hy-champagne) 18%, var(--hy-cream));
+  box-shadow: var(--hy-shadow-1);
+  animation: hy-enter var(--hy-dur-medium) var(--hy-ease-decelerate) backwards;
+}
+@media (max-width: 720px) {
+  .hy-estimate {
+    padding: 20px 16px 24px;
+  }
+}

@@ -1,0 +1,334 @@
+/* ---------- Thiệp khách mời (G1) ---------- */
+.v0-workspace .public-invitation-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  border: 0;
+  border-radius: var(--hy-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--hy-shadow-2);
+}
+.hy-invite-card {
+  display: grid;
+  align-content: center;
+  gap: 20px;
+  padding: clamp(28px, 5vw, 56px) !important;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 0%, rgb(244 185 167 / 22%), transparent 60%), var(--hy-surface);
+  animation: hy-enter 600ms var(--hy-ease-decelerate) backwards;
+}
+.hy-invite-head {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+.hy-invite-overline,
+.hy-invite-section-title {
+  margin: 0;
+  color: var(--hy-ink-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.hy-invite-rule {
+  width: 64px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--hy-champagne);
+}
+.hy-invite-head h1 {
+  margin: 0;
+  color: var(--hy-wine);
+  font-size: clamp(26px, 3.2vw, 38px);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.hy-invite-asset {
+  width: 100%;
+  height: auto;
+  border-radius: var(--hy-radius-md);
+}
+.hy-invite-recipient {
+  margin: 0;
+  padding: 10px 16px;
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-wine-soft);
+  color: var(--hy-wine);
+  font-weight: 600;
+}
+.hy-invite-names {
+  display: grid;
+  gap: 12px;
+}
+.hy-invite-greeting,
+.hy-invite-message {
+  margin: 0;
+  color: var(--hy-ink-muted);
+}
+.hy-invite-couple {
+  margin: 0;
+  padding: 16px 0;
+  border-block: 1px solid var(--hy-outline);
+  color: var(--hy-wine);
+  font-size: clamp(26px, 3.4vw, 40px);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.hy-invite-amp {
+  margin: 0 12px;
+  color: var(--hy-champagne);
+}
+.hy-invite-event {
+  padding: 18px 20px;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface-warm);
+  text-align: left;
+}
+.hy-invite-event .hy-invite-section-title {
+  margin-bottom: 10px;
+  text-align: center;
+}
+.hy-invite-event dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+.hy-invite-event dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--hy-outline);
+}
+.hy-invite-event dl > div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.hy-invite-event dt {
+  color: var(--hy-ink-muted);
+}
+.hy-invite-event dd {
+  margin: 0;
+  color: var(--hy-ink);
+  font-weight: 600;
+  text-align: right;
+}
+.hy-invite-timeline {
+  text-align: left;
+}
+.hy-invite-timeline .hy-invite-section-title {
+  margin-bottom: 10px;
+  text-align: center;
+}
+.hy-invite-timeline ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hy-invite-timeline li {
+  display: flex;
+  gap: 14px;
+}
+.hy-invite-timeline time {
+  min-width: 48px;
+  color: var(--hy-wine);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.hy-invite-footer {
+  padding-top: 14px;
+  border-top: 1px solid var(--hy-outline);
+  color: var(--hy-ink-muted);
+  font-size: 13px;
+}
+
+/* ---------- Header & hero trên màn hẹp ---------- */
+@media (max-width: 900px) {
+  .public-header {
+    position: static;
+  }
+  .public-hero-copy {
+    order: -1;
+  }
+  .v0-workspace .public-invitation-layout {
+    grid-template-columns: 1fr;
+  }
+}
+/* CSS module của thiệp tự kẻ khung cho mọi section/article – bỏ đi bên trong thẻ thiệp. */
+.v0-workspace .hy-invite-card,
+.v0-workspace .hy-invite-card section {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+}
+.v0-workspace .hy-invite-card section {
+  padding: 0;
+}
+.v0-workspace .hy-invite-card .hy-invite-event {
+  padding: 18px 20px;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface-warm);
+}
+.v0-workspace .public-invitation-photo {
+  height: 100%;
+  max-height: none;
+  min-height: 320px;
+}
+@media (max-width: 900px) {
+  .v0-workspace .public-invitation-photo {
+    min-height: 0;
+    max-height: 260px;
+  }
+}
+
+/* ---------- Cánh hoa chúc mừng (≤ 1,2 giây, một lần) ---------- */
+.hy-celebrate {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hy-celebrate span {
+  position: absolute;
+  top: -24px;
+  left: calc(6% + var(--i) * 6.5%);
+  width: 12px;
+  height: 18px;
+  border-radius: 12px 0;
+  background: var(--hy-peach);
+  opacity: 0;
+  animation: hy-petal 1200ms var(--hy-ease-decelerate) calc(var(--i) * 30ms) both;
+}
+.hy-celebrate span:nth-child(3n) {
+  background: var(--hy-champagne);
+}
+.hy-celebrate span:nth-child(4n) {
+  background: var(--hy-wine-soft);
+}
+@keyframes hy-petal {
+  0% {
+    opacity: 0;
+    transform: translateY(0) rotate(0deg);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(70vh) rotate(220deg);
+  }
+}
+
+/* Ảnh sảnh: bỏ khung viền đôi của bản v0. */
+.public-hall-picture,
+.public-detail-image {
+  padding: 0;
+}
+.public-footer .estate-brand,
+.public-header .estate-brand {
+  text-decoration: none;
+}
+
+/* ---------- Skeleton (shimmer 1,2s) ---------- */
+.hy-skeleton {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-width: 1120px;
+  padding: 8px 0;
+}
+.hy-skel {
+  display: block;
+  border-radius: var(--hy-radius-sm);
+  background: linear-gradient(90deg, #f3e8df 0%, #fbf4ee 40%, #f3e8df 80%) 0 0 / 200% 100%;
+  animation: hy-shimmer 1200ms linear infinite;
+}
+.hy-skel-title {
+  width: 42%;
+  height: 34px;
+}
+.hy-skel-line {
+  width: 64%;
+  height: 14px;
+}
+.hy-skel-card {
+  height: 150px;
+  border-radius: var(--hy-radius-md);
+}
+.hy-skel-row {
+  height: 52px;
+}
+.hy-skeleton-card .hy-skel-title {
+  width: 30%;
+  height: 20px;
+}
+@keyframes hy-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------- Banner mất mạng ---------- */
+.hy-offline {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 10px 16px;
+  background: var(--hy-warning-bg);
+  color: var(--hy-warning);
+  border-bottom: 1px solid #f0d9a8;
+  font-size: 14px;
+  text-align: center;
+  animation: hy-enter var(--hy-dur-medium) var(--hy-ease-decelerate) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hy-skel {
+    animation: none;
+  }
+}
+
+/* ---------- Sơ đồ bàn: thu phóng ---------- */
+.v0-workspace .hy-zoom-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.v0-workspace .hy-zoom-bar .button {
+  min-width: 44px;
+  padding: 0 12px;
+  font-size: 18px;
+}
+.v0-workspace .hy-zoom-bar span {
+  min-width: 48px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.v0-workspace .hy-zoom-bar small {
+  color: var(--hy-ink-muted);
+}
+.v0-workspace .cw-seating.hy-pannable {
+  /* Chỉ chặn cuộn trang khi đang phóng to, để kéo sơ đồ trên điện thoại. */
+  touch-action: none;
+  cursor: grab;
+}
+.v0-workspace .cw-seating.hy-pannable:active {
+  cursor: grabbing;
+}
+.v0-workspace .cw-seating g ellipse,
+.v0-workspace .cw-seating g rect {
+  transition: fill var(--hy-dur-medium) var(--hy-ease-emphasized);
+}
+.v0-workspace .cw-seating g:focus-visible {
+  outline: none;
+}
+.v0-workspace .cw-seating g:focus-visible ellipse,
+.v0-workspace .cw-seating g:focus-visible rect {
+  stroke: var(--hy-wine);
+  stroke-width: 4;
+}

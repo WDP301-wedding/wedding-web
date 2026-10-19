@@ -1,0 +1,114 @@
+:root {
+  /* Hỷ Yến design system – docs/design/hy-yen-redesign.md. Tên biến cũ giữ nguyên để CSS hiện có tự đổi tông. */
+  --navy: #7a1f3d;
+  --navy-deep: #5c1430;
+  --brown: #2b1d22;
+  --burgundy: #87334f;
+  --gold: #c9a46a;
+  --powder: #f7ede4;
+  --paper: #fff8f1;
+  --ink: #2b1d22;
+  --muted: #6e5d63;
+  /* Bảng màu Hỷ Yến */
+  --hy-wine: #7a1f3d;
+  --hy-wine-pressed: #5c1430;
+  --hy-wine-soft: #f5e4e9;
+  --hy-peach: #f4b9a7;
+  --hy-cream: #fff8f1;
+  --hy-champagne: #c9a46a;
+  --hy-ink: #2b1d22;
+  --hy-ink-muted: #6e5d63;
+  --hy-outline: #eadfd6;
+  --hy-outline-strong: #9a877f;
+  --hy-surface: #ffffff;
+  --hy-surface-warm: #fbf4ee;
+  --hy-success: #2f6b4f;
+  --hy-success-bg: #e7f1ea;
+  --hy-warning: #8a5300;
+  --hy-warning-bg: #fcefd6;
+  --hy-error: #c62828;
+  --hy-error-bg: #fdecea;
+  --hy-info: #3f5b6b;
+  --hy-info-bg: #e6eef2;
+  /* Hình khối */
+  --hy-radius-sm: 12px;
+  --hy-radius-md: 16px;
+  --hy-radius-lg: 24px;
+  --hy-shadow-1: 0 1px 2px rgb(43 29 34 / 6%), 0 2px 8px rgb(43 29 34 / 4%);
+  --hy-shadow-2: 0 8px 24px rgb(43 29 34 / 10%);
+  /* Chuyển động – Material 3 emphasized */
+  --hy-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --hy-ease-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --hy-ease-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --hy-dur-fast: 150ms;
+  --hy-dur-medium: 250ms;
+  --hy-dur-medium2: 300ms;
+  --hy-dur-long: 400ms;
+  --font-display: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-body: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-script: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-wordmark: 'Playfair Display', Georgia, serif;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.timeline-editor fieldset {
+  min-width: 0;
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  border: 0;
+}
+
+.timeline-editor legend {
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.timeline-editor-item {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #eadfd6;
+}
+
+.timeline-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+  background: var(--paper);
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--font-body);
+  font-feature-settings: 'kern', 'liga', 'clig', 'calt';
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.workspace-entry {
+  width: fit-content;
+  margin: 1.5rem auto 0;
+  text-decoration: none;
+}

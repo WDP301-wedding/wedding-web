@@ -1,0 +1,330 @@
+/* ---------- Hành trình cưới ---------- */
+.hy-journey {
+  position: relative;
+}
+.hy-journey-track {
+  height: 6px;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  background: var(--hy-outline);
+  overflow: hidden;
+}
+.hy-journey-track span {
+  display: block;
+  height: 100%;
+  background: var(--hy-wine);
+  transform-origin: left center;
+  transition: transform 450ms var(--hy-ease-emphasized);
+  animation: hy-grow 450ms var(--hy-ease-emphasized) both;
+}
+.hy-journey ol {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hy-step {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.hy-step-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--hy-outline-strong);
+  background: var(--hy-surface);
+  color: var(--hy-ink-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.hy-step-done .hy-step-dot {
+  border-color: var(--hy-wine);
+  background: var(--hy-wine);
+  color: #ffffff;
+}
+.hy-step-current .hy-step-dot {
+  border: 2px solid var(--hy-wine);
+  color: var(--hy-wine);
+  box-shadow: 0 0 0 4px var(--hy-wine-soft);
+}
+.hy-step-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hy-ink-muted);
+}
+.hy-step-done .hy-step-label,
+.hy-step-current .hy-step-label {
+  color: var(--hy-ink);
+  font-weight: 600;
+}
+
+/* ---------- Chuyển động ---------- */
+@keyframes hy-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hy-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+/* Danh sách hiện lần lượt (stagger 50ms, 8 phần tử đầu). */
+.v0-workspace .cw-list > li,
+.v0-workspace .cw-table tbody tr,
+.public-hall-grid > *,
+.public-menu-list article {
+  animation: hy-enter var(--hy-dur-medium) var(--hy-ease-decelerate) backwards;
+}
+.v0-workspace .cw-list > li:nth-child(2),
+.v0-workspace .cw-table tbody tr:nth-child(2),
+.public-hall-grid > *:nth-child(2),
+.public-menu-list article:nth-child(2) {
+  animation-delay: 50ms;
+}
+.v0-workspace .cw-list > li:nth-child(3),
+.v0-workspace .cw-table tbody tr:nth-child(3),
+.public-hall-grid > *:nth-child(3),
+.public-menu-list article:nth-child(3) {
+  animation-delay: 100ms;
+}
+.v0-workspace .cw-list > li:nth-child(4),
+.v0-workspace .cw-table tbody tr:nth-child(4),
+.public-hall-grid > *:nth-child(4),
+.public-menu-list article:nth-child(4) {
+  animation-delay: 150ms;
+}
+.v0-workspace .cw-list > li:nth-child(n + 5),
+.v0-workspace .cw-table tbody tr:nth-child(n + 5),
+.public-hall-grid > *:nth-child(n + 5),
+.public-menu-list article:nth-child(n + 5) {
+  animation-delay: 200ms;
+}
+.public-hero-copy {
+  animation: hy-enter var(--hy-dur-long) var(--hy-ease-decelerate) backwards;
+}
+.public-hero-image {
+  animation: hy-enter var(--hy-dur-long) var(--hy-ease-decelerate) 80ms backwards;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .v0-workspace .hy-overview-top {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .v0-workspace .topbar {
+    height: 60px;
+    padding: 0 12px;
+    gap: 12px;
+  }
+  .v0-workspace .booking-context {
+    display: none;
+  }
+  .v0-workspace .hy-countdown {
+    padding: 20px;
+  }
+  .v0-workspace .hy-countdown-days strong {
+    font-size: 44px;
+  }
+  .hy-journey ol {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 16px;
+  }
+  .hy-brand-text strong {
+    font-size: 19px;
+  }
+}
+
+/* Giảm chuyển động: chỉ còn fade ngắn, không trượt, không phóng to. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 150ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 150ms !important;
+    scroll-behavior: auto !important;
+  }
+  .v0-workspace .content-inner,
+  .public-hero-copy,
+  .public-hero-image,
+  .v0-workspace .cw-list > li,
+  .v0-workspace .cw-table tbody tr {
+    animation-name: hy-fade;
+  }
+  .public-button:active,
+  .v0-workspace .button:active,
+  .public-hall-grid > *:hover .public-hall-picture img {
+    transform: none;
+  }
+}
+@keyframes hy-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- Tài khoản (A1) ---------- */
+.invitation-ribbon {
+  min-height: 48px;
+  padding: 10px 24px;
+  background: var(--hy-wine-soft);
+  color: var(--hy-wine);
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 600;
+}
+.invitation-visual {
+  background-color: var(--hy-wine-soft);
+}
+.visual-caption {
+  right: 32px;
+  bottom: 32px;
+  left: 32px;
+  min-height: 0;
+  padding: 18px 24px;
+  border-radius: var(--hy-radius-md);
+  background: rgb(43 29 34 / 82%);
+}
+.preview-label {
+  color: var(--hy-wine);
+  font-size: 12px;
+}
+.script-heading {
+  color: var(--hy-wine);
+}
+.identity-form input,
+.identity-form select {
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface);
+}
+.identity-form input:focus-visible {
+  border-color: var(--hy-wine);
+  outline: 2px solid rgb(122 31 61 / 18%);
+  outline-offset: 0;
+}
+.primary-action,
+.header-action {
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-wine);
+  transition:
+    background-color var(--hy-dur-fast) var(--hy-ease-emphasized),
+    transform var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.primary-action:active {
+  transform: scale(0.97);
+}
+
+/* Khung đăng nhập: cột form gọn ~440px, canh giữa theo cả hai trục. */
+@media (min-width: 1041px) {
+  .identity-layout {
+    min-height: calc(100vh - 124px);
+    min-height: calc(100svh - 124px);
+  }
+}
+.identity-layout .invitation-content {
+  display: grid;
+  align-content: center;
+}
+.identity-layout .auth-panel {
+  width: min(100%, 440px);
+}
+.identity-form h1 {
+  font-size: clamp(30px, 2.6vw, 38px);
+  font-weight: 600;
+}
+.identity-form .script-heading {
+  margin-top: 18px;
+  font-size: clamp(20px, 1.8vw, 24px);
+}
+.identity-form .invitation-lead {
+  margin-top: 12px;
+}
+.identity-form input {
+  min-height: 48px;
+}
+.identity-form .primary-action {
+  justify-content: center;
+  gap: 12px;
+  min-height: 48px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.identity-form .primary-action span {
+  font-size: 18px;
+  transition: transform var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.identity-form .primary-action:hover span {
+  transform: translateX(3px);
+}
+.identity-form .form-security-note {
+  text-align: center;
+}
+
+/* Chú thích ảnh "Bảo mật · Riêng tư · Đồng hành": chữ mảnh trên lớp phủ chuyển sắc,
+   phân tách bằng hạt champagne thay cho hộp tối nặng. */
+.identity-layout .invitation-visual {
+  background:
+    linear-gradient(180deg, rgb(43 29 34 / 0%) 45%, rgb(43 29 34 / 78%) 100%),
+    url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=85')
+      center / cover;
+}
+.identity-layout .visual-caption {
+  right: auto;
+  bottom: clamp(32px, 5vw, 64px);
+  left: clamp(24px, 5vw, 64px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  padding: 22px 0 0;
+  border-radius: 0;
+  background: none;
+  font-size: clamp(18px, 1.7vw, 24px);
+  font-weight: 400;
+  line-height: 1.4;
+  text-shadow: 0 1px 12px rgb(43 29 34 / 45%);
+}
+.identity-layout .visual-caption::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 56px;
+  height: 1px;
+  background: var(--hy-champagne);
+  content: '';
+}
+.identity-layout .visual-caption > * {
+  text-align: left;
+}
+.identity-layout .visual-caption strong {
+  padding: 0;
+  border: 0;
+  font-size: inherit;
+  font-weight: 400;
+}
+.identity-layout .visual-caption > * + *::before {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 18px;
+  border-radius: 50%;
+  background: var(--hy-champagne);
+  content: '';
+  vertical-align: middle;
+}

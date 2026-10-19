@@ -1,0 +1,286 @@
+/*
+ * Lớp giao diện Hỷ Yến – nạp SAU các file CSS cũ để phủ lên giao diện v0.
+ * Nguồn: docs/design/hy-yen/ (prototype Claude Design) · tóm tắt: docs/design/hy-yen-redesign.md
+ * Quy tắc: chỉ dùng token trong :root (globals.css); chữ tiếng Việt luôn dùng font token sans;
+ * chuyển động chỉ đổi transform/opacity và tắt khi người dùng bật "giảm chuyển động".
+ */
+
+/* ---------- Nền tảng ---------- */
+html,
+body {
+  background: var(--hy-cream);
+  color: var(--hy-ink);
+}
+::selection {
+  background: var(--hy-wine-soft);
+  color: var(--hy-ink);
+}
+:focus-visible {
+  outline: 2px solid var(--hy-wine);
+  outline-offset: 2px;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Logo ---------- */
+.hy-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--hy-ink);
+  text-decoration: none;
+}
+.hy-monogram {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid var(--hy-champagne);
+  border-radius: 50%;
+  background: var(--hy-surface);
+  color: var(--hy-wine);
+  font-size: 15px;
+  font-weight: 600;
+}
+.hy-brand-text {
+  display: grid;
+  line-height: 1.25;
+}
+.hy-brand-text strong {
+  font-style: normal;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--hy-ink);
+}
+.hy-brand-text small {
+  font-size: 12px;
+  color: var(--hy-ink-muted);
+}
+.hy-brand-logo {
+  display: block;
+  flex: none;
+  width: auto;
+  height: 52px;
+}
+.hy-brand-compact .hy-monogram {
+  width: 34px;
+  height: 34px;
+  font-size: 13px;
+}
+.hy-brand-compact .hy-brand-logo {
+  height: 44px;
+}
+.hy-brand-compact .hy-brand-text strong {
+  font-size: 18px;
+}
+
+/* ---------- Nút (dùng chung public + workspace) ---------- */
+.public-button,
+.v0-workspace .button {
+  min-height: 44px;
+  padding: 10px 20px;
+  gap: 8px;
+  border: 1px solid var(--hy-wine);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-wine);
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color var(--hy-dur-fast) var(--hy-ease-emphasized),
+    transform var(--hy-dur-fast) var(--hy-ease-emphasized),
+    box-shadow var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.public-button:hover,
+.v0-workspace .button:hover {
+  background: var(--hy-wine-pressed);
+  border-color: var(--hy-wine-pressed);
+}
+.public-button:active,
+.v0-workspace .button:active,
+.v0-workspace .cw-actions button:active {
+  transform: scale(0.97);
+}
+.public-button:disabled,
+.v0-workspace .button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.public-secondary,
+.v0-workspace .button-secondary {
+  background: var(--hy-surface);
+  color: var(--hy-wine);
+  border: 1px solid var(--hy-outline-strong);
+}
+.public-secondary:hover,
+.v0-workspace .button-secondary:hover {
+  background: var(--hy-wine-soft);
+  border-color: var(--hy-wine);
+  color: var(--hy-wine);
+}
+.public-text-link,
+.v0-workspace .secondary-link,
+.v0-workspace .cw-text-button {
+  color: var(--hy-wine);
+  font-weight: 600;
+}
+
+/* ---------- Header công khai ---------- */
+.public-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  /* public.css cũ giới hạn 1380px → nền và viền dưới bị cắt ở màn rộng; thanh trên phải tràn hai mép. */
+  max-width: none;
+  padding: 10px clamp(16px, 4vw, 56px);
+  background: rgb(255 248 241 / 92%);
+  border-bottom: 1px solid var(--hy-outline);
+}
+.public-header .estate-brand strong {
+  font-size: 22px;
+}
+/* Logo ảnh (monogram + "Hỷ Yến Wedding") – chữ nằm trong ảnh nên không chịu token font. */
+.public-header .estate-brand {
+  display: block;
+  line-height: 0;
+}
+.public-header-logo {
+  display: block;
+  width: auto;
+  height: 56px;
+}
+.public-header nav {
+  gap: 4px 20px;
+}
+.public-header nav a {
+  color: var(--hy-ink);
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: var(--hy-radius-sm);
+  transition: color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.public-header nav a:hover {
+  color: var(--hy-wine);
+}
+.public-header nav .public-button {
+  color: #ffffff;
+}
+.public-account-link {
+  color: var(--hy-wine);
+  max-width: clamp(140px, 16vw, 240px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+@media (min-width: 1800px) {
+  .public-header {
+    padding-inline: calc((100vw - 1600px) / 2);
+  }
+}
+
+/* ---------- Trang công khai ---------- */
+.public-kicker {
+  color: var(--hy-wine);
+  font-weight: 600;
+}
+.public-hero {
+  position: relative;
+}
+.public-hero h1,
+.public-story h2,
+.public-section-heading h1,
+.public-section-heading h2 {
+  color: var(--hy-ink);
+  font-weight: 700;
+  line-height: 1.25;
+}
+.public-hero-image {
+  border-radius: var(--hy-radius-lg);
+  overflow: hidden;
+  border: 0;
+  box-shadow: var(--hy-shadow-2);
+}
+.public-hero-image img {
+  border-radius: 0;
+}
+.public-image-placeholder {
+  background:
+    radial-gradient(circle at 20% 15%, rgb(244 185 167 / 55%), transparent 55%),
+    radial-gradient(circle at 85% 80%, rgb(201 164 106 / 35%), transparent 50%), var(--hy-wine) !important;
+  color: #ffffff;
+  border-radius: inherit;
+}
+.public-image-placeholder .hy-brand-text strong,
+.public-image-placeholder p {
+  color: #ffffff;
+}
+.public-image-caption {
+  background: var(--hy-surface);
+  color: var(--hy-ink);
+}
+.public-steps strong {
+  color: var(--hy-wine);
+}
+.public-hall-picture,
+.public-detail-image {
+  border-radius: var(--hy-radius-md);
+  overflow: hidden;
+  border: 0;
+}
+.public-hall-picture img,
+.public-detail-image img {
+  transition: transform var(--hy-dur-long) var(--hy-ease-emphasized);
+}
+.public-hall-grid > *:hover .public-hall-picture img {
+  transform: scale(1.03);
+}
+.public-hall-copy h3 a {
+  color: var(--hy-ink);
+}
+.public-menu-list article,
+.consultation-form,
+.account-settings,
+.overview-empty,
+.public-invitation {
+  background: var(--hy-surface);
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  box-shadow: var(--hy-shadow-1);
+}
+.public-menu-price {
+  color: var(--hy-wine);
+  font-weight: 700;
+}
+.consultation-form input,
+.consultation-form select,
+.consultation-form textarea,
+.account-settings input,
+.account-settings select {
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface);
+  min-height: 44px;
+  transition: border-color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.consultation-form input:focus-visible,
+.consultation-form textarea:focus-visible,
+.account-settings input:focus-visible {
+  border-color: var(--hy-wine);
+  outline: 2px solid rgb(122 31 61 / 18%);
+  outline-offset: 0;
+}
+.public-footer {
+  background: var(--hy-surface);
+  border-top: 1px solid var(--hy-outline);
+}

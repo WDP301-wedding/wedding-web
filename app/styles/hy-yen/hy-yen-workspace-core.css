@@ -1,0 +1,364 @@
+/* ---------- Khung không gian cưới ---------- */
+.v0-workspace .topbar {
+  height: 68px;
+  padding: 0 24px;
+  gap: 24px;
+  background: var(--hy-surface);
+  color: var(--hy-ink);
+  border-bottom: 1px solid var(--hy-outline);
+}
+.v0-workspace .brand {
+  color: var(--hy-ink);
+  text-decoration: none;
+}
+.v0-workspace .booking-context,
+.v0-workspace .booking-context strong {
+  color: var(--hy-ink-muted);
+}
+.v0-workspace .booking-context i {
+  background: var(--hy-outline);
+}
+.v0-workspace .top-actions a {
+  color: var(--hy-ink);
+  text-decoration: none;
+}
+.v0-workspace .avatar {
+  background: var(--hy-wine-soft);
+  color: var(--hy-wine);
+  border: 0;
+  font-weight: 700;
+}
+.v0-workspace .mobile-menu {
+  color: var(--hy-ink);
+  background: transparent;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-sm);
+}
+.v0-workspace .sidebar {
+  background: var(--hy-surface);
+  border-right: 1px solid var(--hy-outline);
+  padding: 24px 14px;
+}
+.v0-workspace .workspace-label {
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface-warm);
+  color: var(--hy-ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+.v0-workspace .nav-section {
+  padding: 0 14px;
+  color: var(--hy-ink-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.v0-workspace .nav-item {
+  min-height: 44px;
+  margin: 2px 0;
+  padding: 0 14px;
+  border-left: 0;
+  border-radius: var(--hy-radius-sm);
+  color: var(--hy-ink);
+  font-weight: 500;
+  transition:
+    background-color var(--hy-dur-fast) var(--hy-ease-emphasized),
+    color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .nav-item svg {
+  color: var(--hy-ink-muted);
+}
+.v0-workspace .nav-item:hover {
+  background: var(--hy-surface-warm);
+}
+.v0-workspace .nav-item.active {
+  background: var(--hy-wine-soft);
+  color: var(--hy-wine);
+  font-weight: 600;
+}
+.v0-workspace .nav-item.active svg {
+  color: var(--hy-wine);
+}
+.v0-workspace .help-link {
+  color: var(--hy-wine);
+  font-weight: 600;
+}
+.v0-workspace .content {
+  background: var(--hy-cream);
+}
+/* Nội dung trang vào bằng fade + trượt nhẹ (thay cho shared-axis của prototype).
+ * Dùng fill-mode "backwards" chứ không phải "both": nếu giữ transform sau khi chạy xong,
+ * phần tử trở thành khối chứa cho position: fixed và làm lộ skip-link/dialog bên trong. */
+.v0-workspace .content-inner {
+  animation: hy-enter var(--hy-dur-medium2) var(--hy-ease-decelerate) backwards;
+}
+/* Trang billing/kịch bản cũ có header riêng – trong khung đã có sidebar nên ẩn để khỏi trùng. */
+.v0-workspace .billing-header,
+.v0-workspace .collab-header {
+  display: none;
+}
+
+/* ---------- Tiêu đề trang ---------- */
+.v0-workspace .page-heading h1,
+.v0-workspace .cw-heading h1,
+.v0-workspace .public-section-heading h1 {
+  color: var(--hy-ink);
+  font-weight: 700;
+  line-height: 1.25;
+}
+.v0-workspace .lead,
+.v0-workspace .cw-strip {
+  color: var(--hy-ink-muted);
+}
+
+/* ---------- Thẻ ---------- */
+.v0-workspace .cw-card,
+.v0-workspace .hero-card,
+.v0-workspace .side-panel,
+.v0-workspace .panel,
+.v0-workspace .overview-next,
+.v0-workspace .hy-journey-card,
+.v0-workspace .empty-state,
+.v0-workspace .print-panel,
+.v0-workspace .public-card,
+.v0-workspace .invitation-preview,
+.v0-workspace .inspector {
+  background: var(--hy-surface);
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  box-shadow: var(--hy-shadow-1);
+}
+.v0-workspace .cw-card h2,
+.v0-workspace .section-title h2 {
+  color: var(--hy-ink);
+  font-weight: 700;
+}
+.v0-workspace .cw-stats div {
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface-warm);
+}
+.v0-workspace .cw-stats dd {
+  color: var(--hy-wine);
+  font-variant-numeric: tabular-nums;
+}
+.v0-workspace .cw-list a {
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-sm);
+  color: var(--hy-ink);
+  transition:
+    border-color var(--hy-dur-fast) var(--hy-ease-emphasized),
+    background-color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .cw-list a:hover {
+  border-color: var(--hy-wine);
+  background: var(--hy-surface-warm);
+}
+
+/* ---------- Trạng thái / chip ---------- */
+.v0-workspace .status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--hy-warning-bg);
+  color: var(--hy-warning);
+  font-size: 12px;
+  font-weight: 600;
+}
+.v0-workspace .status-champagne {
+  background: var(--hy-warning-bg);
+  color: var(--hy-warning);
+}
+.v0-workspace .status-muted {
+  background: #f7ede4;
+  color: var(--hy-ink-muted);
+}
+.v0-workspace .status-danger {
+  background: var(--hy-error-bg);
+  color: var(--hy-error);
+}
+.v0-workspace .cw-alert {
+  border: 1px solid #efc9c4;
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-error-bg);
+  color: #8e1c1c;
+}
+.v0-workspace .cw-success {
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-success-bg);
+  color: var(--hy-success);
+  animation: hy-enter var(--hy-dur-medium) var(--hy-ease-decelerate) backwards;
+}
+.v0-workspace .cw-note {
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface-warm);
+  color: var(--hy-ink-muted);
+}
+.v0-workspace .cw-badge {
+  background: var(--hy-error);
+}
+
+/* ---------- Bảng ---------- */
+.v0-workspace .cw-table-wrap {
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface);
+}
+.v0-workspace .cw-table th {
+  background: var(--hy-surface-warm);
+  color: var(--hy-ink-muted);
+  font-size: 12px;
+}
+.v0-workspace .cw-table th,
+.v0-workspace .cw-table td {
+  border-bottom: 1px solid var(--hy-outline);
+  padding: 12px 14px;
+}
+.v0-workspace .cw-table tbody tr {
+  transition: background-color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .cw-table tbody tr:hover {
+  background: var(--hy-surface-warm);
+}
+.v0-workspace .cw-table .num,
+.v0-workspace .cw-table tfoot td {
+  font-variant-numeric: tabular-nums;
+}
+.v0-workspace .cw-table tfoot td {
+  color: var(--hy-wine);
+}
+
+/* ---------- Ô nhập ---------- */
+.v0-workspace .cw-form input,
+.v0-workspace .cw-form select,
+.v0-workspace .cw-form textarea,
+.v0-workspace .cw-inline-input,
+.v0-workspace .guest-toolbar input,
+.v0-workspace .inspector input,
+.v0-workspace .inspector textarea {
+  border: 1px solid var(--hy-outline-strong);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface);
+  transition: border-color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .cw-form input:focus-visible,
+.v0-workspace .cw-form select:focus-visible,
+.v0-workspace .cw-form textarea:focus-visible,
+.v0-workspace .cw-inline-input:focus-visible {
+  border-color: var(--hy-wine);
+  outline: 2px solid rgb(122 31 61 / 18%);
+  outline-offset: 0;
+}
+.v0-workspace .cw-seating {
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface-warm);
+  border: 1px solid var(--hy-outline);
+}
+
+/* ---------- Tổng quan (C1) ---------- */
+.v0-workspace .hy-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+.v0-workspace .hy-overview-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 20px;
+}
+.v0-workspace .hy-countdown {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 24px 28px;
+  border-radius: var(--hy-radius-md);
+  background:
+    radial-gradient(circle at 100% 0%, rgb(244 185 167 / 28%), transparent 55%), var(--hy-wine);
+  color: #ffffff;
+  box-shadow: var(--hy-shadow-2);
+}
+.v0-workspace .hy-countdown-phase {
+  justify-self: start;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 16%);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+.v0-workspace .hy-countdown-days {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 0 10px;
+  margin: 10px 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+}
+.v0-workspace .hy-countdown-days small {
+  grid-column: 1 / -1;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgb(255 255 255 / 80%);
+}
+.v0-workspace .hy-countdown-days strong {
+  font-size: 56px;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+.v0-workspace .hy-countdown h2 {
+  margin: 8px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgb(255 255 255 / 22%);
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1.3;
+}
+.v0-workspace .hy-countdown p {
+  margin: 0;
+  color: rgb(255 255 255 / 86%);
+}
+.v0-workspace .hy-overview-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 10px;
+  padding: 20px;
+  background: var(--hy-surface);
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  box-shadow: var(--hy-shadow-1);
+}
+.v0-workspace .hy-overview-links .public-button {
+  grid-column: 1 / -1;
+}
+.v0-workspace .hy-overview-links a {
+  text-align: center;
+}
+.v0-workspace .hy-journey-card {
+  padding: 20px 24px 24px;
+}
+.v0-workspace .hy-journey-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.v0-workspace .hy-journey-head h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+}
+.v0-workspace .hy-journey-head span {
+  color: var(--hy-ink-muted);
+  font-size: 13px;
+}
+.v0-workspace .overview-next {
+  padding: 20px 24px;
+}

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 import { BrandMark } from '../../design-system/brand-mark';
 import { routes, withBooking } from '../../routes';
@@ -118,6 +118,15 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
   const { state, bookings, bookingId } = useCoupleWorkspace();
   const { unread, restaurant } = useSpaceExtras();
   const [moreOpen, setMoreOpen] = useState(false);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMoreOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [moreOpen]);
   const proposal = state.status === 'ready' ? state.proposal : undefined;
   const summary = bookings.find((booking) => booking.bookingId === bookingId);
   const chips = navChips(summary, proposal);
@@ -291,6 +300,7 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
             id="space-more-sheet"
             className="hy-space-sheet"
             role="dialog"
+            aria-modal="true"
             aria-label="Thêm"
             onClick={(event) => event.stopPropagation()}
           >
