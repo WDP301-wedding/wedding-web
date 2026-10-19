@@ -17,6 +17,7 @@ import {
 } from './billing-api';
 import { createBillingIntents } from './billing-intents';
 import { balanceGate } from './balance-eligibility';
+import { CheckoutLinkPanel } from './checkout-link';
 import { useSpaceExtras } from '../couple-workspace/space-provider';
 import {
   AttemptStatus,
@@ -633,33 +634,15 @@ export function CoupleBillingWorkspace({
             </section>
           )}
           {checkout !== null && (
-            <section className="billing-panel">
-              <h2>Đường dẫn thanh toán đã được tạo</h2>
-              <p>
-                Mã giao dịch thanh toán: <code>{checkout.paymentAttemptId}</code>
-              </p>
-              <p>
-                Đường dẫn hết hạn lúc {new Date(checkout.expiresAt).toLocaleString('vi-VN')}. Hết
-                hạn không chứng minh thanh toán thất bại.
-              </p>
-              {(attempt?.status ?? checkout.status) === 'CREATED' ||
-              (attempt?.status ?? checkout.status) === 'PENDING' ? (
-                <a
-                  className="billing-primary-link"
-                  href={checkout.checkoutUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Tiếp tục trên VNPay
-                </a>
-              ) : (
-                <p>Kiểm tra trạng thái đã xác minh trước khi tiếp tục thanh toán.</p>
-              )}
-              <p>
-                Sau khi quay lại, kiểm tra trạng thái bên dưới. Trang trả về từ VNPay không xác nhận
-                đã nhận tiền.
-              </p>
-            </section>
+            <CheckoutLinkPanel
+              checkout={checkout}
+              // Ưu tiên trạng thái vừa kiểm tra (vd. UNKNOWN); chưa kiểm tra thì dùng trạng thái lúc tạo.
+              status={
+                attempt?.paymentAttemptId === checkout.paymentAttemptId
+                  ? attempt.status
+                  : checkout.status
+              }
+            />
           )}
           {/* Trong khung v2: chỉ hiện khi đã có giao dịch (tự nhớ từ URL / lần thanh toán trước),
               không bao giờ yêu cầu người dùng gõ mã giao dịch. */}

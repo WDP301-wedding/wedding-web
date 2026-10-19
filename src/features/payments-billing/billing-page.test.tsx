@@ -46,13 +46,13 @@ function gateway(): CoupleBillingGateway {
       status: 'UNKNOWN',
       amountVnd: 1234567,
       applicationStatus: null,
-      expiresAt: '2026-10-09T10:00:00Z',
+      expiresAt: '2099-10-09T10:00:00Z',
     }),
     startDeposit: vi.fn().mockResolvedValue({
       paymentAttemptId: 'attempt',
       status: 'PENDING',
       checkoutUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
-      expiresAt: '2026-10-09T10:00:00Z',
+      expiresAt: '2099-10-09T10:00:00Z',
     }),
     startBalance: vi.fn(),
   };
@@ -132,7 +132,7 @@ describe('Couple billing experience', () => {
       paymentAttemptId,
       status: 'PENDING',
       checkoutUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
-      expiresAt: '2026-10-09T10:00:00Z',
+      expiresAt: '2099-10-09T10:00:00Z',
     });
     vi.mocked(api.loadAttempt).mockResolvedValue({
       paymentAttemptId,
@@ -140,7 +140,7 @@ describe('Couple billing experience', () => {
       purpose: 'DEPOSIT',
       amountVnd: 1234567,
       applicationStatus: null,
-      expiresAt: '2026-10-09T10:00:00Z',
+      expiresAt: '2099-10-09T10:00:00Z',
     });
     const records = new Map<string, string>();
     const journal = () =>
@@ -197,7 +197,7 @@ describe('Couple billing experience', () => {
       purpose: 'DEPOSIT',
       amountVnd: 1234567,
       applicationStatus: 'PENDING',
-      expiresAt: '2026-10-09T10:00:00Z',
+      expiresAt: '2099-10-09T10:00:00Z',
     });
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra trạng thái' }));
     await screen.findByText('Đã xác minh nhận tiền');
@@ -210,7 +210,7 @@ describe('Couple billing experience', () => {
       purpose: 'DEPOSIT',
       amountVnd: 1234567,
       applicationStatus: 'SUCCEEDED',
-      expiresAt: '2026-10-09T10:00:00Z',
+      expiresAt: '2099-10-09T10:00:00Z',
     });
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra trạng thái' }));
     await screen.findByText('Đã hoàn tất cập nhật hồ sơ.');
@@ -346,7 +346,7 @@ describe('Couple billing experience', () => {
       status: 'UNKNOWN',
       amountVnd: 7765433,
       applicationStatus: null,
-      expiresAt: '2026-10-09T10:00:00Z',
+      expiresAt: '2099-10-09T10:00:00Z',
     });
     fireEvent.change(screen.getByLabelText('Mã giao dịch thanh toán'), {
       target: { value: 'private-balance' },
@@ -399,6 +399,21 @@ describe('Couple billing experience', () => {
       throughBillingRevision: 4,
     });
   });
+  it('keeps the same VNPay link available after a status check returns UNKNOWN (rescan QR)', async () => {
+    const api = gateway();
+    mount(api);
+    await load();
+    fireEvent.click(screen.getByRole('button', { name: 'Đặt cọc qua VNPay' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+    await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
+    fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra trạng thái' }));
+    await screen.findByText('Chưa rõ kết quả · đang kiểm tra');
+    expect(screen.getByRole('link', { name: 'Tiếp tục trên VNPay' })).toHaveAttribute(
+      'href',
+      'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
+    );
+    expect(api.startDeposit).toHaveBeenCalledTimes(1);
+  });
   it.each(['FAILED', 'SUCCEEDED'] as const)(
     'uses verified %s status and refreshes server state before further checkout',
     async (status) => {
@@ -414,7 +429,7 @@ describe('Couple billing experience', () => {
         status,
         amountVnd: 1234567,
         applicationStatus: status === 'SUCCEEDED' ? 'PENDING' : null,
-        expiresAt: '2026-10-09T10:00:00Z',
+        expiresAt: '2099-10-09T10:00:00Z',
       });
       fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra trạng thái' }));
       await screen.findByText(
@@ -489,7 +504,7 @@ describe('Couple billing experience', () => {
       paymentAttemptId: 'attempt',
       status: 'PENDING',
       checkoutUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
-      expiresAt: '2026-10-09T10:00:00Z',
+      expiresAt: '2099-10-09T10:00:00Z',
     });
     render(
       <CoupleBillingWorkspace
@@ -527,7 +542,7 @@ describe('Couple billing experience', () => {
         paymentAttemptId: 'attempt',
         status: 'UNKNOWN',
         checkoutUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
-        expiresAt: '2026-10-09T10:00:00Z',
+        expiresAt: '2099-10-09T10:00:00Z',
       });
     window.history.replaceState({}, '', '/khong-gian/thanh-toan?vnp_ResponseCode=00');
     render(
