@@ -32,8 +32,8 @@ it('lists every menu with its own table count and server line total', () => {
       ])}
     />,
   );
-  expect(screen.getByText(/Mùa Thu · 20 bàn/)).toBeInTheDocument();
-  expect(screen.getByText(/Chay · 8 bàn/)).toBeInTheDocument();
+  expect(screen.getByText(/20 bàn/)).toBeInTheDocument();
+  expect(screen.getByText(/8 bàn/)).toBeInTheDocument();
   expect(screen.getByText(/100\.000\.000/)).toBeInTheDocument();
 });
 

@@ -58,7 +58,10 @@ export function ProposalMenus({ offer }: Readonly<{ offer: Proposal['proposal'] 
       {lines.map((line) => (
         <li key={line.key}>
           <span>
-            {line.name} · {line.tableCount} bàn × {vnd(line.priceVndPerTable)}
+            {line.name}
+            <small>
+              {line.tableCount} bàn × {vnd(line.priceVndPerTable)}
+            </small>
           </span>
           <strong>{vnd(line.lineTotalVnd)}</strong>
         </li>
