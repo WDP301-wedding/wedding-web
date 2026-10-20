@@ -20,6 +20,15 @@ const apiError = (
   });
 
 describe('describeApiError', () => {
+  it('explains physical seating capacity conflicts without suggesting a stale-data reload', () => {
+    expect(describeApiError(apiError('EXCEPTION_EXCEEDS_PHYSICAL_CAPACITY', 409))).toEqual({
+      message:
+        'Số khách dự kiến vượt số ghế của sơ đồ hoặc sức chứa của sảnh. Hãy chọn mẫu đủ chỗ hoặc liên hệ nhà hàng; không thể duyệt ngoại lệ vượt sức chứa thực tế.',
+      requestId: 'req-1',
+      code: 'EXCEPTION_EXCEEDS_PHYSICAL_CAPACITY',
+    });
+  });
+
   it('maps by error.code, not by the server message, and keeps the request id', () => {
     expect(describeApiError(apiError('COUPLE_NAMES_INCOMPLETE', 409))).toEqual({
       message: 'Cần nhập đủ tên cô dâu và chú rể trước khi gửi duyệt hợp đồng.',

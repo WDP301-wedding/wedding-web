@@ -43,6 +43,8 @@ const codeMessages: Record<string, string> = {
     'Liên kết đã được cấp trong yêu cầu trước. Hãy dùng “Cấp lại liên kết” để tạo liên kết mới.',
   SEATING_PLAN_EXISTS: 'Tiệc đã có sơ đồ bàn.',
   SEATING_REVISION_STALE: 'Sơ đồ vừa được cập nhật. Hãy tải lại.',
+  EXCEPTION_EXCEEDS_PHYSICAL_CAPACITY:
+    'Số khách dự kiến vượt số ghế của sơ đồ hoặc sức chứa của sảnh. Hãy chọn mẫu đủ chỗ hoặc liên hệ nhà hàng; không thể duyệt ngoại lệ vượt sức chứa thực tế.',
   HEADCOUNT_OUTSIDE_LAYOUT_RANGE:
     'Số khách dự kiến nằm ngoài khoảng của mẫu sơ đồ. Chọn mẫu khác hoặc nhờ nhà hàng duyệt ngoại lệ.',
   LAYOUT_RETIRED: 'Mẫu sơ đồ đã ngừng sử dụng. Hãy chọn mẫu khác.',
