@@ -31,6 +31,14 @@ const statusLabels: Record<SeatingPlan['status'], string> = {
   REQUIRES_REVIEW: 'Cần xác nhận lại',
 };
 
+const layoutWarnings: Record<string, string> = {
+  EXCEPTION_EXCEEDS_PHYSICAL_CAPACITY:
+    'Số khách dự kiến vượt số ghế của mẫu hoặc sức chứa của sảnh. Hãy chọn mẫu đủ chỗ hoặc liên hệ nhà hàng.',
+  HEADCOUNT_OUTSIDE_LAYOUT_RANGE:
+    'Số khách dự kiến nằm ngoài khoảng của mẫu. Hãy chọn mẫu phù hợp hoặc nhờ nhà hàng duyệt ngoại lệ.',
+  SEATING_REQUIRES_REVIEW: 'Sơ đồ cần được kiểm tra và xác nhận lại theo thông tin tiệc hiện tại.',
+};
+
 export function SeatingPage() {
   return (
     <CouplePage
@@ -133,11 +141,20 @@ function SeatingWorkspace({
                       {option.warning ? (
                         <>
                           <br />
-                          <small className="muted">{option.warning}</small>
+                          <small className="muted">
+                            {layoutWarnings[option.warning] ??
+                              'Mẫu cần được nhà hàng kiểm tra lại.'}
+                          </small>
                         </>
                       ) : null}
                     </td>
-                    <td>{option.compatible ? 'Phù hợp' : 'Ngoài khoảng'}</td>
+                    <td>
+                      {option.compatible
+                        ? 'Phù hợp'
+                        : option.warning === 'EXCEPTION_EXCEEDS_PHYSICAL_CAPACITY'
+                          ? 'Không đủ chỗ'
+                          : 'Ngoài khoảng'}
+                    </td>
                     <td className="num">
                       {option.minGuests}–{option.maxGuests}
                     </td>
@@ -190,6 +207,13 @@ function SeatingWorkspace({
             </table>
           </div>
         )}
+        {options.items.length > 0 && !options.items.some((option) => option.compatible) ? (
+          <p className="cw-note">
+            Sảnh hiện chưa có mẫu phù hợp với {options.planningHeadcount} khách dự kiến. Hãy liên hệ
+            nhà hàng để bổ sung mẫu phù hợp hoặc kiểm tra khoảng khách cho phép của mẫu; ngoại lệ
+            không được vượt sức chứa thực tế.
+          </p>
+        ) : null}
         {/*
           Backend chưa có API liệt kê sơ đồ của tiệc: mã sơ đồ được nhớ trong trình duyệt đã tạo nó.
           Chỉ khi tạo sơ đồ bị báo "đã có sơ đồ" (tạo từ thiết bị khác) mới hiện ô nhập mã dự phòng;
@@ -268,6 +292,18 @@ function PlanEditor({
     JSON.stringify(Object.entries(labels).sort()) !==
     JSON.stringify(plan.labels.map((label) => [label.layoutTableId, label.guestGroupId]).sort());
   const selectedTable = plan.renderSnapshot.find((table) => table.layoutTableId === selected);
+  const approvedRangeException =
+    plan.status === 'CONFIRMED' &&
+    plan.managerException?.approvedBookingRevision === plan.currentBookingRevision &&
+    plan.managerException.approvedHeadcount === plan.currentPlanningHeadcount;
+  const capacityWarning =
+    plan.currentPlanningHeadcount > plan.totalSeatCapacity
+      ? `Tiệc dự kiến ${plan.currentPlanningHeadcount} khách nhưng sơ đồ chỉ có ${plan.totalSeatCapacity} ghế, thiếu ${plan.currentPlanningHeadcount - plan.totalSeatCapacity} chỗ. Hãy chọn mẫu đủ chỗ ở phía trên trước khi xác nhận.`
+      : !approvedRangeException &&
+          (plan.currentPlanningHeadcount < plan.minGuests ||
+            plan.currentPlanningHeadcount > plan.maxGuests)
+        ? `Số khách dự kiến ${plan.currentPlanningHeadcount} nằm ngoài khoảng ${plan.minGuests}–${plan.maxGuests} khách của mẫu. Hãy chọn mẫu phù hợp ở phía trên hoặc nhờ nhà hàng duyệt ngoại lệ.`
+        : null;
 
   /**
    * Kéo để di chuyển: chỉ coi là "kéo" khi chuột/ngón tay đi quá 4px, để một cú bấm bình thường
@@ -322,10 +358,17 @@ function PlanEditor({
           <dd>{plan.totalSeatCapacity}</dd>
         </div>
       </dl>
+      {capacityWarning ? (
+        <p className="cw-alert" role="status" id="seating-capacity-warning">
+          {capacityWarning}
+        </p>
+      ) : null}
       {plan.warnings.length > 0 ? (
         <ul className="cw-alert">
           {plan.warnings.map((warning) => (
-            <li key={warning}>{warning}</li>
+            <li key={warning}>
+              {layoutWarnings[warning] ?? 'Sơ đồ cần được nhà hàng kiểm tra lại.'}
+            </li>
           ))}
         </ul>
       ) : null}
@@ -506,8 +549,9 @@ function PlanEditor({
         <button
           className="button"
           type="button"
-          disabled={command.pending || dirty || plan.status === 'CONFIRMED'}
-          title={dirty ? 'Lưu nhãn trước khi xác nhận' : undefined}
+          disabled={command.pending || dirty || plan.status === 'CONFIRMED' || !!capacityWarning}
+          aria-describedby={capacityWarning ? 'seating-capacity-warning' : undefined}
+          title={dirty ? 'Lưu nhãn trước khi xác nhận' : (capacityWarning ?? undefined)}
           onClick={() =>
             void command
               .run(
