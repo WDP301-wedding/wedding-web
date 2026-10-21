@@ -1,8 +1,9 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { InvitationStudioView } from './invitation-studio-view';
-import type { InvitationGateway, DesignView, PrintOrderView } from './invitation-api';
+import type { InvitationGateway, DesignView, ImageJobView, PrintOrderView } from './invitation-api';
+import { ApiClientError } from '../../lib/api/client';
 
 describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
   const bookingId = '11111111-1111-1111-1111-111111111111';
@@ -60,7 +61,10 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       publicInvitationId: 'pub-1',
       published: false,
     }),
-    generateImage: vi.fn().mockResolvedValue({ mediaAssetId: 'ai-1', previewPath: '/preview' }),
+    enqueueImageJob: vi.fn(),
+    getImageJob: vi.fn(),
+    listImageJobs: vi.fn().mockResolvedValue([]),
+    recoverImageJob: vi.fn(),
     listTemplates: vi.fn().mockResolvedValue([]),
     listPrintOrders: vi.fn().mockResolvedValue([initialOrder]),
     getPrintOrder: vi.fn().mockResolvedValue(initialOrder),
@@ -167,27 +171,84 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     expect(await screen.findByText('Đã lưu bản thiết kế thiệp thành công!')).toBeInTheDocument();
   });
 
-  it('saves the derived AI asset in the design rather than the private original', async () => {
-    const generateImage = vi.fn().mockResolvedValue({
+  const jobBase = {
+    jobId: 'job-1',
+    intentDigest: 'a'.repeat(64),
+    createdAt: '2026-10-21T00:00:00.000Z',
+    updatedAt: '2026-10-21T00:00:00.000Z',
+    statusPath: `/api/v1/bookings/${bookingId}/invitation-image-jobs/job-1`,
+  };
+  const queuedJob: ImageJobView = {
+    ...jobBase,
+    status: 'QUEUED',
+    retryAfterSeconds: 3,
+    result: null,
+    errorCode: null,
+  };
+  const succeededJob = (derivedAssetId = 'derived-png'): ImageJobView => ({
+    ...jobBase,
+    status: 'SUCCEEDED',
+    retryAfterSeconds: null,
+    errorCode: null,
+    result: {
       mediaAssetId: 'private-original',
-      previewPath: '/private',
-      derivedAssetId: 'derived-png',
-      previewUrl: 'https://example.test/preview.png',
-    });
-    const reviseDesign = vi
-      .fn<InvitationGateway['reviseDesign']>()
-      .mockResolvedValue(initialDesign);
+      derivedAssetId,
+      previewPath: `/api/v1/bookings/${bookingId}/media/private-original`,
+    },
+  });
+  const recoveryJob: ImageJobView = {
+    ...jobBase,
+    status: 'RECOVERY_REQUIRED',
+    retryAfterSeconds: null,
+    result: null,
+    errorCode: 'AI_JOB_INTERRUPTED',
+  };
+  const renderStudio = (gateway: Partial<InvitationGateway>) =>
     render(
       <InvitationStudioView
         bookingId={bookingId}
         accessToken={accessToken}
-        gateway={{ ...mockGateway, generateImage, reviseDesign }}
+        gateway={{ ...mockGateway, ...gateway }}
         initialDesigns={[initialDesign]}
       />,
     );
-    fireEvent.change(screen.getByLabelText('Mô tả ảnh AI'), { target: { value: 'Hoa trắng' } });
+  const requestImage = (prompt = 'Hoa trắng') => {
+    fireEvent.change(screen.getByLabelText('Mô tả ảnh AI'), { target: { value: prompt } });
     fireEvent.click(screen.getByText('Tạo Ảnh AI'));
+  };
+
+  it('queues an AI image, polls until it succeeds and saves the derived asset', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const enqueueImageJob = vi.fn().mockResolvedValue(queuedJob);
+    const getImageJob = vi
+      .fn()
+      .mockResolvedValueOnce({ ...queuedJob, status: 'RUNNING' })
+      .mockResolvedValueOnce(succeededJob());
+    const reviseDesign = vi
+      .fn<InvitationGateway['reviseDesign']>()
+      .mockResolvedValue(initialDesign);
+    renderStudio({ enqueueImageJob, getImageJob, reviseDesign });
+
+    requestImage();
+    expect(await screen.findByText('Đang xếp hàng chờ tạo ảnh…')).toBeInTheDocument();
+    expect(enqueueImageJob).toHaveBeenCalledWith(
+      accessToken,
+      bookingId,
+      'Hoa trắng',
+      '1:1',
+      expect.stringMatching(/^image-job:/),
+    );
+    await act(() => vi.advanceTimersByTimeAsync(3000));
+    expect(await screen.findByText('Đang tạo ảnh…')).toBeInTheDocument();
+    await act(() => vi.advanceTimersByTimeAsync(3000));
     await screen.findByText('Ảnh đã sẵn sàng. Lưu thiết kế để sử dụng ảnh trên thiệp.');
+    expect(mockGateway.getMediaPreview).toHaveBeenCalledWith(
+      accessToken,
+      bookingId,
+      'private-original',
+    );
+    vi.useRealTimers();
+
     fireEvent.click(screen.getByText('Lưu Bản Thiết Kế'));
     await waitFor(() => {
       const content = reviseDesign.mock.calls[0]?.[3]?.content;
@@ -196,6 +257,107 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
         { kind: 'HERO', textKey: null, derivedAssetId: 'derived-png' },
       ]);
     });
+  });
+
+  it('retries a failed request with the same key and starts a new key for a new prompt', async () => {
+    const enqueueImageJob = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new ApiClientError({
+          kind: 'network',
+          code: 'NETWORK_ERROR',
+          message: 'offline',
+          requestId: 'request',
+        }),
+      )
+      .mockResolvedValue(succeededJob());
+    renderStudio({ enqueueImageJob });
+
+    requestImage();
+    expect(await screen.findByText(/sẽ không bị tạo trùng/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Tạo Ảnh AI'));
+    await screen.findByText('Ảnh đã sẵn sàng. Lưu thiết kế để sử dụng ảnh trên thiệp.');
+    requestImage('Hoa hồng');
+    await waitFor(() => expect(enqueueImageJob).toHaveBeenCalledTimes(3));
+
+    const keys = enqueueImageJob.mock.calls.map((call) => call[4] as string);
+    expect(keys[1]).toBe(keys[0]);
+    expect(keys[2]).not.toBe(keys[0]);
+  });
+
+  it('explains the booking limit and a disabled provider in Vietnamese', async () => {
+    const enqueueImageJob = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new ApiClientError({
+          kind: 'api',
+          code: 'RATE_LIMIT_EXCEEDED',
+          message: 'Too many',
+          requestId: 'request',
+          status: 429,
+        }),
+      )
+      .mockRejectedValueOnce(
+        new ApiClientError({
+          kind: 'api',
+          code: 'AI_IMAGE_PROVIDER_DISABLED',
+          message: 'Disabled',
+          requestId: 'request',
+          status: 503,
+        }),
+      );
+    renderStudio({ enqueueImageJob });
+
+    requestImage();
+    expect(await screen.findByText(/giới hạn tạo ảnh AI/)).toBeInTheDocument();
+    requestImage('Hoa hồng');
+    expect(await screen.findByText(/đang tạm tắt/)).toBeInTheDocument();
+  });
+
+  it('offers a deliberate recovery for an unknown outcome without creating a new job', async () => {
+    const enqueueImageJob = vi.fn().mockResolvedValue(recoveryJob);
+    const recoverImageJob = vi.fn().mockResolvedValue(succeededJob());
+    renderStudio({ enqueueImageJob, recoverImageJob });
+
+    requestImage();
+    expect(await screen.findByText(/Chưa xác định được kết quả tạo ảnh/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Thử khôi phục' }));
+
+    await screen.findByText('Ảnh đã sẵn sàng. Lưu thiết kế để sử dụng ảnh trên thiệp.');
+    expect(recoverImageJob).toHaveBeenCalledWith(
+      accessToken,
+      bookingId,
+      'job-1',
+      expect.stringMatching(/^image-job-recovery:/),
+    );
+    expect(enqueueImageJob).toHaveBeenCalledTimes(1);
+  });
+
+  it('resumes a running job after reload instead of creating a new one', async () => {
+    const listImageJobs = vi.fn().mockResolvedValue([{ ...queuedJob, status: 'RUNNING' }]);
+    const enqueueImageJob = vi.fn();
+    renderStudio({ listImageJobs, enqueueImageJob });
+
+    expect(await screen.findByText('Đang tạo ảnh…')).toBeInTheDocument();
+    expect(screen.getByText('Đang tạo ảnh...')).toBeDisabled();
+    expect(enqueueImageJob).not.toHaveBeenCalled();
+  });
+
+  it('suggests an earlier finished image that is not in the design yet', async () => {
+    const listImageJobs = vi.fn().mockResolvedValue([succeededJob('derived-earlier')]);
+    const reviseDesign = vi
+      .fn<InvitationGateway['reviseDesign']>()
+      .mockResolvedValue(initialDesign);
+    renderStudio({ listImageJobs, reviseDesign });
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Dùng ảnh này' }));
+    fireEvent.click(screen.getByText('Lưu Bản Thiết Kế'));
+
+    await waitFor(() =>
+      expect(reviseDesign.mock.calls[0]?.[3]?.content?.derivedAssetIds).toEqual([
+        'derived-earlier',
+      ]),
+    );
   });
 
   it('approves print order quotation', async () => {

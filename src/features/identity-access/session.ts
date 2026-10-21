@@ -122,6 +122,8 @@ function isCoupleTokenFresh(expiresAtStr: string): boolean {
 export class WebIdentitySession {
   private accessToken: string | null = null;
   private restoreOperation: Promise<WebSessionSnapshot> | null = null;
+  /** true khi backend đã từ chối cookie refresh (401): `restore()` không thử lại cho đến khi đăng nhập. */
+  private refreshRejected = false;
   private state: WebSessionSnapshot = anonymousSnapshot;
   private readonly listeners = new Set<() => void>();
 
@@ -180,7 +182,19 @@ export class WebIdentitySession {
     return this.finishSignIn(await this.api.acceptInvitation(token, password));
   }
 
+  /**
+   * Khôi phục phiên từ cookie refresh — chỉ gọi mạng khi thật sự cần.
+   *
+   * Nhiều trang/khung cùng gọi `restore()` khi mở; trước đây mỗi lần đều refresh + `auth/me`
+   * dù phiên còn hạn (≈12 refresh / 9 phút). Nay: đã đăng nhập thì trả ngay trạng thái hiện có
+   * (token hết hạn do `authorize` và hẹn giờ làm mới lo); cookie đã bị backend từ chối (401) thì
+   * nhớ là chưa đăng nhập đến khi đăng nhập lại. Lỗi mạng không được nhớ để lần sau thử lại.
+   */
   restore(): Promise<WebSessionSnapshot> {
+    if (this.state.status === 'authenticated' && this.accessToken !== null) {
+      return Promise.resolve(this.state);
+    }
+    if (this.refreshRejected) return Promise.resolve(this.state);
     this.restoreOperation ??= this.restoreFromCookie().finally(() => {
       this.restoreOperation = null;
     });
@@ -193,6 +207,8 @@ export class WebIdentitySession {
       if (token !== null) await this.api.logout(token);
     } finally {
       this.clear();
+      // Đăng xuất đã thu hồi cookie refresh: không cần thử khôi phục lại.
+      this.refreshRejected = true;
     }
   }
 
@@ -289,6 +305,7 @@ export class WebIdentitySession {
     } catch (error) {
       if (error instanceof ApiClientError && error.status === 401) {
         this.clear();
+        this.refreshRejected = true;
       }
       return null;
     }
@@ -310,16 +327,23 @@ export class WebIdentitySession {
   }
 
   private async restoreFromCookie(): Promise<WebSessionSnapshot> {
+    let refreshed: SessionCredential;
     try {
-      const refreshed = await this.api.refreshSession();
+      refreshed = await this.api.refreshSession();
+    } catch (error) {
+      this.clear();
+      if (error instanceof ApiClientError && error.status === 401) this.refreshRejected = true;
+      return this.state;
+    }
+    try {
       return await this.finishSignIn(refreshed);
     } catch {
-      this.clear();
       return this.state;
     }
   }
 
   private async finishSignIn(credential: SessionCredential): Promise<WebSessionSnapshot> {
+    this.refreshRejected = false;
     this.accessToken = credential.accessToken;
     saveCachedCoupleToken(credential.accessToken, credential.accessExpiresAt);
     this.scheduleProactiveRefresh(credential.accessExpiresAt);

@@ -69,6 +69,65 @@ describe('Public identity session', () => {
     expect(JSON.stringify(first)).not.toContain('wia_rotated');
   });
 
+  it('reuses an authenticated session for later restores without refreshing again', async () => {
+    const api = createApi(['COUPLE']);
+    const session = new WebIdentitySession(api);
+
+    await session.restore();
+    const second = await session.restore();
+    await session.restore();
+
+    expect(api.refreshSession).toHaveBeenCalledTimes(1);
+    expect(api.getCurrentUser).toHaveBeenCalledTimes(1);
+    expect(second).toMatchObject({ status: 'authenticated', access: 'full' });
+  });
+
+  it('does not restore after login or retry a refresh cookie the backend rejected', async () => {
+    const api = createApi(['COUPLE']);
+    const session = new WebIdentitySession(api);
+    await session.login('minhanh@example.com', 'a-safe-password');
+    await session.restore();
+    expect(api.refreshSession).not.toHaveBeenCalled();
+
+    const rejected = createApi();
+    vi.mocked(rejected.refreshSession).mockRejectedValue(
+      new ApiClientError({
+        kind: 'api',
+        code: 'UNAUTHENTICATED',
+        message: 'Authentication is required.',
+        requestId: accountId,
+        status: 401,
+      }),
+    );
+    const anonymous = new WebIdentitySession(rejected);
+    expect(await anonymous.restore()).toEqual({ status: 'anonymous', denial: null });
+    expect(await anonymous.restore()).toEqual({ status: 'anonymous', denial: null });
+    expect(rejected.refreshSession).toHaveBeenCalledTimes(1);
+
+    await anonymous.login('minhanh@example.com', 'a-safe-password');
+    expect(anonymous.snapshot()).toMatchObject({ status: 'authenticated' });
+  });
+
+  it('retries restore after a network failure instead of remembering it', async () => {
+    const api = createApi(['COUPLE']);
+    vi.mocked(api.refreshSession).mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    const session = new WebIdentitySession(api);
+
+    expect(await session.restore()).toEqual({ status: 'anonymous', denial: null });
+    expect(await session.restore()).toMatchObject({ status: 'authenticated' });
+    expect(api.refreshSession).toHaveBeenCalledTimes(2);
+  });
+
+  it('restores again after logout only by signing in', async () => {
+    const api = createApi(['COUPLE']);
+    const session = new WebIdentitySession(api);
+    await session.restore();
+    await session.logout();
+
+    expect(await session.restore()).toEqual({ status: 'anonymous', denial: null });
+    expect(api.refreshSession).toHaveBeenCalledTimes(1);
+  });
+
   it('clears memory state after logout', async () => {
     const api = createApi(['COUPLE']);
     const session = new WebIdentitySession(api);

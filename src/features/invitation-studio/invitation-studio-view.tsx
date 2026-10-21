@@ -12,6 +12,8 @@ import type {
   PrintOrderView,
   TemplateItemView,
 } from './invitation-api';
+import { previewAssetId } from './invitation-api';
+import { imageJobStatusText, useImageJob, type SucceededImageJob } from './use-image-job';
 
 function invitationErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiClientError) {
@@ -98,7 +100,7 @@ export function InvitationStudioView({
   initialTab = 'design',
   onTabChange,
   initialDesigns = [],
-  initialOrders = [],
+  initialOrders,
 }: InvitationStudioViewProps) {
   const [activeTab, setActiveTab] = useState<'design' | 'media' | 'publish' | 'print'>(initialTab);
   const prevInitialTab = React.useRef(initialTab);
@@ -113,7 +115,27 @@ export function InvitationStudioView({
     onTabChange?.(tab);
   }
   const [designs, setDesigns] = useState<readonly DesignView[]>(initialDesigns);
-  const [orders, setOrders] = useState<readonly PrintOrderView[]>(initialOrders);
+  // null = chưa tải: đơn in chỉ tải khi mở tab "Đặt in" lần đầu (không truyền initialOrders).
+  const [orders, setOrders] = useState<readonly PrintOrderView[] | null>(initialOrders ?? null);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+  // Đánh dấu bằng state (không dùng ref) để effect tải vẫn chạy đúng khi StrictMode chạy lại effect.
+  const [printVisited, setPrintVisited] = useState(initialTab === 'print');
+  if (activeTab === 'print' && !printVisited) setPrintVisited(true);
+  const loadOrders = initialOrders === undefined;
+  useEffect(() => {
+    if (!printVisited || !loadOrders) return;
+    let active = true;
+    gateway
+      .listPrintOrders(accessToken, bookingId)
+      .then((loaded) => active && setOrders(loaded))
+      .catch(
+        (err: unknown) =>
+          active && setOrdersError(invitationErrorMessage(err, 'Không thể tải danh sách đơn in.')),
+      );
+    return () => {
+      active = false;
+    };
+  }, [printVisited, loadOrders, gateway, accessToken, bookingId]);
 
   // Design form state
   const [title, setTitle] = useState(designs[0]?.title ?? 'Thiệp Cưới Hạnh Phúc');
@@ -129,10 +151,8 @@ export function InvitationStudioView({
     designs[0]?.derivedAssetIds ?? [],
   );
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [generationKey, setGenerationKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
-  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [publicationRevision, setPublicationRevision] = useState<number | null>(null);
@@ -322,29 +342,55 @@ export function InvitationStudioView({
     }
   };
 
-  const handleAiGenerate = async () => {
-    if (!aiPrompt.trim() || isGeneratingAi) return;
-    setIsGeneratingAi(true);
-    setNotice(null);
+  // Ảnh AI đã tạo xong từ lần trước (tìm thấy khi mở lại Studio) nhưng chưa có trong thiệp:
+  // chỉ gợi ý "Dùng ảnh này", không tự gắn — có thể người dùng đã chủ động gỡ ảnh đó.
+  const [restoredAiImage, setRestoredAiImage] = useState<{
+    derivedAssetId: string;
+    previewUrl: string | null;
+  } | null>(null);
+  const showAiPreview = async (job: SucceededImageJob): Promise<string | null> => {
+    const assetId = previewAssetId(job.result.previewPath) ?? job.result.mediaAssetId;
     try {
-      const key = generationKey ?? 'generate-image:' + crypto.randomUUID();
-      setGenerationKey(key);
-      const res = await gateway.generateImage(accessToken, bookingId, aiPrompt, '1:1', key);
-      const assetId = res.derivedAssetId;
-      if (assetId) setDerivedAssetIds((ids) => (ids.includes(assetId) ? ids : [...ids, assetId]));
-      if (res.previewUrl) setPreviewUrl(res.previewUrl);
+      return (await gateway.getMediaPreview(accessToken, bookingId, assetId)).signedUrl;
+    } catch {
+      return null; // Ảnh vẫn dùng được trong thiệp, chỉ thiếu ảnh xem trước.
+    }
+  };
+  const aiJob = useImageJob({
+    gateway,
+    accessToken,
+    bookingId,
+    onSucceeded: (job, restored) => {
+      const { derivedAssetId } = job.result;
+      if (restored) {
+        if (derivedAssetIds.includes(derivedAssetId)) return;
+        void showAiPreview(job).then((url) =>
+          setRestoredAiImage({ derivedAssetId, previewUrl: url }),
+        );
+        return;
+      }
+      setDerivedAssetIds((ids) => (ids.includes(derivedAssetId) ? ids : [...ids, derivedAssetId]));
+      void showAiPreview(job).then((url) => url && setPreviewUrl(url));
       setNotice({
         type: 'success',
         text: 'Ảnh đã sẵn sàng. Lưu thiết kế để sử dụng ảnh trên thiệp.',
       });
-    } catch (err: unknown) {
-      setNotice({
-        type: 'error',
-        text: invitationErrorMessage(err, 'Không thể tạo ảnh với AI.'),
-      });
-    } finally {
-      setIsGeneratingAi(false);
-    }
+    },
+  });
+  const applyRestoredAiImage = () => {
+    if (!restoredAiImage) return;
+    const { derivedAssetId } = restoredAiImage;
+    setDerivedAssetIds((ids) => (ids.includes(derivedAssetId) ? ids : [...ids, derivedAssetId]));
+    if (restoredAiImage.previewUrl) setPreviewUrl(restoredAiImage.previewUrl);
+    setRestoredAiImage(null);
+    setNotice({ type: 'success', text: 'Đã thêm ảnh. Lưu thiết kế để sử dụng ảnh trên thiệp.' });
+  };
+
+  const handleAiGenerate = () => {
+    if (!aiPrompt.trim() || aiJob.busy) return;
+    setNotice(null);
+    setRestoredAiImage(null);
+    void aiJob.start(aiPrompt.trim());
   };
 
   const handlePublish = async () => {
@@ -446,7 +492,7 @@ export function InvitationStudioView({
   const [printSourceIndex, setPrintSourceIndex] = useState(0);
   useEffect(() => {
     let active = true;
-    if (!gateway.contractedPrintSources) return;
+    if (!printVisited || !gateway.contractedPrintSources) return;
     gateway
       .contractedPrintSources(accessToken, bookingId)
       .then((sources) => {
@@ -460,7 +506,7 @@ export function InvitationStudioView({
     return () => {
       active = false;
     };
-  }, [gateway, accessToken, bookingId]);
+  }, [printVisited, gateway, accessToken, bookingId]);
   const selectedPrintSource = printSources[printSourceIndex];
 
   const handleRequestPrint = async (e: React.FormEvent) => {
@@ -494,7 +540,7 @@ export function InvitationStudioView({
         ],
         key,
       );
-      setOrders([newOrder, ...orders]);
+      setOrders([newOrder, ...(orders ?? [])]);
       orderKeyRef.current = null;
       setNotice({ type: 'success', text: 'Đã gửi yêu cầu in thiệp giấy! Quản lý sẽ sớm báo giá.' });
     } catch (err: unknown) {
@@ -519,7 +565,7 @@ export function InvitationStudioView({
         order.revision,
         key,
       );
-      setOrders(orders.map((o) => (o.orderId === order.orderId ? updated : o)));
+      setOrders((orders ?? []).map((o) => (o.orderId === order.orderId ? updated : o)));
       approveKeyRef.current = null;
       setNotice({
         type: 'success',
@@ -810,7 +856,7 @@ export function InvitationStudioView({
           aria-pressed={activeTab === 'print'}
           className="studio-tab"
         >
-          Đặt In Thiệp Giấy ({orders.length})
+          {orders ? `Đặt In Thiệp Giấy (${orders.length})` : 'Đặt In Thiệp Giấy'}
         </button>
       </nav>
 
@@ -959,7 +1005,7 @@ export function InvitationStudioView({
               )}
 
               <div className="studio-actions">
-                <button type="submit" disabled={saving || isGeneratingAi} className="studio-btn">
+                <button type="submit" disabled={saving} className="studio-btn">
                   Lưu Bản Thiết Kế
                 </button>
               </div>
@@ -978,25 +1024,74 @@ export function InvitationStudioView({
                 type="text"
                 placeholder="Nhập mô tả hình ảnh..."
                 value={aiPrompt}
-                onChange={(e) => {
-                  setAiPrompt(e.target.value);
-                  setGenerationKey(null);
-                }}
+                // Idempotency-Key gắn với nội dung mô tả (useImageJob): đổi mô tả = yêu cầu mới.
+                onChange={(e) => setAiPrompt(e.target.value)}
                 aria-label="Mô tả ảnh AI"
                 maxLength={2000}
                 className="studio-input"
               />
               <button
                 type="button"
-                onClick={() => {
-                  void handleAiGenerate();
-                }}
-                disabled={isGeneratingAi || !aiPrompt.trim()}
+                onClick={handleAiGenerate}
+                disabled={aiJob.busy || !aiPrompt.trim()}
                 className="studio-btn"
               >
-                {isGeneratingAi ? 'Đang tạo ảnh...' : 'Tạo Ảnh AI'}
+                {aiJob.busy ? 'Đang tạo ảnh...' : 'Tạo Ảnh AI'}
               </button>
             </div>
+            <div aria-live="polite">
+              {aiJob.job && aiJob.job.status !== 'SUCCEEDED' ? (
+                <p
+                  className="studio-hint"
+                  role={aiJob.job.status === 'FAILED' ? 'alert' : 'status'}
+                >
+                  {imageJobStatusText(aiJob.job)}
+                </p>
+              ) : null}
+              {aiJob.busy && !aiJob.stalled ? (
+                <p className="studio-hint">
+                  Bạn có thể tiếp tục chỉnh thiệp hoặc rời trang; khi quay lại, ảnh vẫn được theo
+                  dõi.
+                </p>
+              ) : null}
+              {aiJob.stalled ? (
+                <p className="studio-hint" role="status">
+                  Ảnh vẫn đang được xử lý lâu hơn thường lệ.{' '}
+                  <button type="button" className="studio-btn" onClick={aiJob.checkAgain}>
+                    Kiểm tra lại
+                  </button>
+                </p>
+              ) : null}
+              {aiJob.job?.status === 'RECOVERY_REQUIRED' ? (
+                <button
+                  type="button"
+                  className="studio-btn"
+                  disabled={aiJob.busy}
+                  onClick={() => void aiJob.recover()}
+                >
+                  Thử khôi phục
+                </button>
+              ) : null}
+              {aiJob.error ? <p role="alert">{aiJob.error}</p> : null}
+              {restoredAiImage ? (
+                <p className="studio-hint" role="status">
+                  Có ảnh AI đã tạo xong trước đó nhưng chưa dùng trong thiệp.{' '}
+                  <button type="button" className="studio-btn" onClick={applyRestoredAiImage}>
+                    Dùng ảnh này
+                  </button>
+                </p>
+              ) : null}
+            </div>
+            {restoredAiImage?.previewUrl ? (
+              <Image
+                className="studio-generated"
+                src={restoredAiImage.previewUrl}
+                alt="Ảnh AI đã tạo trước đó"
+                width={600}
+                height={600}
+                unoptimized
+              />
+            ) : null}
           </div>
         </section>
       )}
@@ -1343,7 +1438,15 @@ export function InvitationStudioView({
           {/* Orders List */}
           <div className="studio-card">
             <h3 className="studio-subtitle">Lịch Sử & Trạng Thái Đơn In</h3>
-            {orders.length === 0 ? (
+            {orders === null ? (
+              ordersError ? (
+                <p role="alert">{ordersError}</p>
+              ) : (
+                <p className="studio-empty" role="status">
+                  Đang tải đơn in…
+                </p>
+              )
+            ) : orders.length === 0 ? (
               <p className="studio-empty">Chưa có đơn in thiệp nào.</p>
             ) : (
               <div className="studio-orders">
