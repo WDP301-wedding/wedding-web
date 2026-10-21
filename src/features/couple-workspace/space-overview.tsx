@@ -12,6 +12,7 @@ import {
   type InboxItem,
 } from '../notifications/notification-api';
 import { SpaceGate } from './space-gate';
+import { menuLines, ProposalMenus } from './proposal-menus';
 import { useSpaceExtras } from './space-provider';
 import {
   formatDateTime,
@@ -215,10 +216,9 @@ function OverviewContent() {
           <p className="hy-money-total">{formatVnd(offer.baseChargeVnd)}</p>
           <dl>
             <div>
-              <dt>Thực đơn</dt>
+              <dt>{menuLines(offer).length > 1 ? 'Thực đơn (nhiều gói)' : 'Thực đơn'}</dt>
               <dd>
-                {offer.menu.name} · {offer.tableCount} bàn ×{' '}
-                {formatVnd(offer.menu.priceVndPerTable)}
+                <ProposalMenus offer={offer} />
               </dd>
             </div>
             <div>

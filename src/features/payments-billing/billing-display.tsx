@@ -1,3 +1,4 @@
+import { blockedBalanceCopy } from './balance-eligibility';
 import { ApiClientError } from '../../lib/api/client';
 import type { AttemptView, BillingView } from './billing-api';
 
@@ -21,6 +22,10 @@ export function billingMessage(error: unknown): string {
   if (!(error instanceof ApiClientError))
     return 'Chưa hoàn tất yêu cầu. Kiểm tra kết nối và giữ nguyên nội dung để thử lại; nếu lịch sử đã thay đổi, hãy tải lại.';
   const messages: Record<string, string> = {
+    // Lý do chặn thanh toán số dư (POST /payments/balance có thể trả 409 dù GET trước đó cho phép).
+    ...Object.fromEntries(
+      Object.entries(blockedBalanceCopy).map(([code, copy]) => [code, copy.message]),
+    ),
     STALE_BILLING_REVISION: 'Số dư đã thay đổi. Hãy làm mới và kiểm tra lại trước khi xác nhận.',
     BILLING_REFUND_LIMIT_EXCEEDED: 'Khoản hoàn vượt hạn mức đã duyệt hoặc số tiền còn được hoàn.',
     BILLING_REFUND_NOT_APPROVED: 'Chưa có quyết định hoàn tiền hợp lệ cho khoản thanh toán này.',

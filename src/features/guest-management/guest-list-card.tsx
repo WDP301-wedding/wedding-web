@@ -25,8 +25,7 @@ export function GuestListCard({
   onStatusChange: (status: GuestStatusFilter) => void;
   onChanged: (guest?: Guest, action?: 'create' | 'update') => void;
 }>) {
-  const { command, link, issueLink, sendLink, clearLink } =
-    usePersonalInvitationLink(bookingId);
+  const { command, link, issueLink, sendLink, clearLink } = usePersonalInvitationLink(bookingId);
   const [groupFilter, setGroupFilter] = useState('');
   const [editing, setEditing] = useState<string | null>(null);
 

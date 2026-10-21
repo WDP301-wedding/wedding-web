@@ -27,16 +27,8 @@ function SeatingWorkspace({
   proposal,
   reloadBooking,
 }: Readonly<{ proposal: Proposal; reloadBooking: () => void }>) {
-  const {
-    bookingId,
-    options,
-    groups,
-    plan,
-    planId,
-    loadError,
-    reload,
-    accept,
-  } = useSeatingWorkspace(proposal);
+  const { bookingId, options, groups, plan, planId, loadError, reload, accept } =
+    useSeatingWorkspace(proposal);
 
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
   if (!options) return <Skeleton label="Đang tải sơ đồ…" />;

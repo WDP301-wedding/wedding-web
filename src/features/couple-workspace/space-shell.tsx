@@ -315,7 +315,11 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
                 <span className={`hy-nav-chip is-${chips.settle.tone}`}>{chips.settle.label}</span>
               ) : null}
             </Link>
-            <Link prefetch={false} href={href(routes.notifications)} onClick={() => setMoreOpen(false)}>
+            <Link
+              prefetch={false}
+              href={href(routes.notifications)}
+              onClick={() => setMoreOpen(false)}
+            >
               <Icon name="bell" /> Thông báo
               {unread ? <span className="hy-nav-count">{unread}</span> : null}
             </Link>

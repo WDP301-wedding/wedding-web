@@ -1,6 +1,13 @@
 'use client';
 
-import { maxZoom, minZoom, viewBoxOf, zoomedViewBox, type SeatingPlan, type SeatingTable } from './seating-api';
+import {
+  maxZoom,
+  minZoom,
+  viewBoxOf,
+  zoomedViewBox,
+  type SeatingPlan,
+  type SeatingTable,
+} from './seating-api';
 import { useSeatingPan } from './use-seating-pan';
 import styles from './seating.module.css';
 
@@ -15,21 +22,16 @@ export function SeatingSvg({
   onSelectTable: (tableId: string) => void;
   colorOf: (table: SeatingTable) => string;
 }>) {
-  const {
-    view,
-    svgRef,
-    panned,
-    startPan,
-    movePan,
-    endPan,
-    zoomIn,
-    zoomOut,
-    resetZoom,
-  } = useSeatingPan();
+  const { view, svgRef, panned, startPan, movePan, endPan, zoomIn, zoomOut, resetZoom } =
+    useSeatingPan();
 
   return (
     <>
-      <div className={`hy-zoom-bar ${styles.zoomToolbar}`} role="group" aria-label="Thu phóng sơ đồ">
+      <div
+        className={`hy-zoom-bar ${styles.zoomToolbar}`}
+        role="group"
+        aria-label="Thu phóng sơ đồ"
+      >
         <button
           type="button"
           className="button button-secondary"
@@ -51,11 +53,7 @@ export function SeatingSvg({
         >
           +
         </button>
-        <button
-          type="button"
-          className="cw-text-button"
-          onClick={resetZoom}
-        >
+        <button type="button" className="cw-text-button" onClick={resetZoom}>
           Vừa khung
         </button>
         <small>Kéo để di chuyển khi đã phóng to.</small>

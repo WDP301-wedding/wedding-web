@@ -1,10 +1,6 @@
 import { CommandFeedback } from '../couple-workspace/couple-page';
 import { formText, useCommand, type Proposal } from '../couple-workspace/use-couple-workspace';
-import {
-  seatingApi,
-  type LayoutOptions,
-  type SeatingPlan,
-} from './seating-api';
+import { seatingApi, type LayoutOptions, type SeatingPlan } from './seating-api';
 import { layoutWarnings } from './use-seating-workspace';
 
 export function LayoutSelector({
@@ -57,8 +53,7 @@ export function LayoutSelector({
                       <>
                         <br />
                         <small className="muted">
-                          {layoutWarnings[option.warning] ??
-                            'Mẫu cần được nhà hàng kiểm tra lại.'}
+                          {layoutWarnings[option.warning] ?? 'Mẫu cần được nhà hàng kiểm tra lại.'}
                         </small>
                       </>
                     ) : null}

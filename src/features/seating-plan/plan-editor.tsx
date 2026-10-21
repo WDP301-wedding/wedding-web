@@ -4,11 +4,7 @@ import { useMemo, useState } from 'react';
 import { CommandFeedback } from '../couple-workspace/couple-page';
 import { useCommand } from '../couple-workspace/use-couple-workspace';
 import type { GuestGroup } from '../guest-management/guest-api';
-import {
-  seatingApi,
-  type SeatingPlan,
-  type SeatingTable,
-} from './seating-api';
+import { seatingApi, type SeatingPlan, type SeatingTable } from './seating-api';
 import { SeatingSvg } from './seating-svg';
 import { layoutWarnings, statusLabels } from './use-seating-workspace';
 import styles from './seating.module.css';
@@ -108,12 +104,7 @@ export function PlanEditor({
         </p>
       ) : null}
 
-      <SeatingSvg
-        plan={plan}
-        selected={selected}
-        onSelectTable={setSelected}
-        colorOf={colorOf}
-      />
+      <SeatingSvg plan={plan} selected={selected} onSelectTable={setSelected} colorOf={colorOf} />
 
       {selectedTable ? (
         <div className="cw-actions">

@@ -5,6 +5,7 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 import { ApiClientError } from '../../lib/api/client';
 import { TimelineEditor } from './timeline-editor';
+import { ProposalMenus } from '../couple-workspace/proposal-menus';
 import { Skeleton } from '../../design-system/skeleton';
 import { type WebSessionSnapshot } from '../identity-access/session';
 import { browserSession } from '../identity-access/browser-session';
@@ -347,7 +348,9 @@ function ProposalWorkspace({
           <dl>
             <div>
               <dt>Thực đơn</dt>
-              <dd>{proposal.proposal.menu.name}</dd>
+              <dd>
+                <ProposalMenus offer={proposal.proposal} />
+              </dd>
             </div>
             <div>
               <dt>Số bàn</dt>

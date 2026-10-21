@@ -1,10 +1,6 @@
 import { CommandFeedback } from '../couple-workspace/couple-page';
 import { useCommand } from '../couple-workspace/use-couple-workspace';
-import {
-  guestApi,
-  type AttendanceSummary,
-  type CheckInSettings,
-} from './guest-api';
+import { guestApi, type AttendanceSummary, type CheckInSettings } from './guest-api';
 import styles from './guests.module.css';
 
 export function CheckInCard({
