@@ -74,7 +74,6 @@ export function createCollaborationGateway(client?: ApiClient): CollaborationGat
       const { cancellationRequests, ...proposalValue } = value;
       return {
         ...proposalValue,
-        proposal: { ...value.proposal, menus: Array.from(value.proposal.menus) },
         ...(cancellationRequests === undefined
           ? {}
           : { cancellationRequests: Array.from(cancellationRequests) }),

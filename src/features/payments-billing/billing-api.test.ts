@@ -77,12 +77,6 @@ describe('generated Couple billing HTTP adapter', () => {
           Response.json({
             data: {
               history: [],
-              balancePaymentEligibility: {
-                billingRevision: 7,
-                canPay: true,
-                nextAction: 'PAY_BALANCE',
-                reasonCode: null,
-              },
               checkoutUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
               paymentAttemptId: 'attempt',
               status: 'PENDING',

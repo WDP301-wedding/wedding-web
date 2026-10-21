@@ -16,29 +16,6 @@ export type MediaPreviewView =
 export type DerivedAssetView =
   operations['deriveWeddingInvitationAsset']['responses'][201]['content']['application/json']['data'];
 
-/** Job tạo ảnh AI chạy nền: QUEUED → RUNNING → SUCCEEDED | FAILED | RECOVERY_REQUIRED. */
-export type ImageJobView =
-  operations['getInvitationImageJob']['responses'][200]['content']['application/json']['data'];
-export type ImageAspectRatio =
-  operations['enqueueInvitationImageJob']['requestBody']['content']['application/json']['aspectRatio'];
-
-/**
- * openapi-fetch bỏ mất các trường chỉ có kiểu `null` (`result`, `errorCode` khi chưa có) → điền lại
- * để giao diện luôn nhận đúng hình dạng job như tài liệu backend mô tả.
- */
-function toImageJob(raw: Readonly<{ status: ImageJobView['status'] }>): ImageJobView {
-  const job = raw as unknown as ImageJobView;
-  if (job.status === 'SUCCEEDED') return { ...job, errorCode: null };
-  if (job.status === 'QUEUED' || job.status === 'RUNNING')
-    return { ...job, result: null, errorCode: null };
-  return { ...job, result: null };
-}
-
-/** `previewPath` = `/api/v1/bookings/{id}/media/{assetId}` → lấy assetId để gọi API xem ảnh hiện có. */
-export function previewAssetId(previewPath: string): string | null {
-  return /\/media\/([a-f0-9-]+)$/u.exec(previewPath)?.[1] ?? null;
-}
-
 export type DesignTextFields = {
   brideName?: string;
   groomName?: string;
@@ -125,35 +102,19 @@ export interface InvitationGateway {
     expectedRevision: number,
     idempotencyKey?: string,
   ): Promise<{ publicationRevision: number; publicInvitationId: string; published: false }>;
-  /** Gửi yêu cầu tạo ảnh AI (202, chạy nền). Cùng key + cùng nội dung → trả lại job cũ, không tạo lượt mới. */
-  enqueueImageJob(
+  generateImage(
     this: void,
     accessToken: string,
     bookingId: string,
     prompt: string,
-    aspectRatio: ImageAspectRatio,
-    idempotencyKey: string,
-  ): Promise<ImageJobView>;
-  getImageJob(
-    this: void,
-    accessToken: string,
-    bookingId: string,
-    jobId: string,
-  ): Promise<ImageJobView>;
-  /** Job mới nhất trước (gồm cả job đã xong) — dùng để theo dõi tiếp sau khi tải lại trang. */
-  listImageJobs(
-    this: void,
-    accessToken: string,
-    bookingId: string,
-  ): Promise<readonly ImageJobView[]>;
-  /** Khôi phục job RECOVERY_REQUIRED: dùng lại kết quả đã có, không mua lượt tạo ảnh mới. */
-  recoverImageJob(
-    this: void,
-    accessToken: string,
-    bookingId: string,
-    jobId: string,
-    idempotencyKey: string,
-  ): Promise<ImageJobView>;
+    aspectRatio?: '1:1' | '2:3' | '3:2' | '3:4' | '4:3' | '4:5' | '5:4' | '9:16' | '16:9' | '21:9',
+    idempotencyKey?: string,
+  ): Promise<{
+    mediaAssetId: string;
+    previewPath: string;
+    derivedAssetId?: string;
+    previewUrl?: string;
+  }>;
   listTemplates(this: void, accessToken: string): Promise<readonly TemplateItemView[]>;
   listPrintOrders(
     this: void,
@@ -352,45 +313,59 @@ export function createInvitationGateway(client?: ApiClient): InvitationGateway {
       return required(data).data;
     },
 
-    // Tạo ảnh AI chạy nền (backend: invitation-image-jobs). Lỗi HTTP được client ném ra dạng
-    // ApiClientError (giữ status/code/retryAfterSeconds) để giao diện xử lý 409/429/503.
-    async enqueueImageJob(accessToken, bookingId, prompt, aspectRatio, idempotencyKey) {
-      const { data } = await api().POST('/bookings/{bookingId}/invitation-image-jobs', {
-        headers: headers(accessToken),
-        params: { path: { bookingId }, header: { 'Idempotency-Key': idempotencyKey } },
-        body: { prompt, aspectRatio },
-      });
-      return toImageJob(required(data).data);
-    },
-
-    async getImageJob(accessToken, bookingId, jobId) {
-      const { data } = await api().GET('/bookings/{bookingId}/invitation-image-jobs/{jobId}', {
-        headers: headers(accessToken),
-        params: { path: { bookingId, jobId } },
-        cache: 'no-store',
-      });
-      return toImageJob(required(data).data);
-    },
-
-    async listImageJobs(accessToken, bookingId) {
-      const { data } = await api().GET('/bookings/{bookingId}/invitation-image-jobs', {
-        headers: headers(accessToken),
-        params: { path: { bookingId }, query: { limit: 20 } },
-        cache: 'no-store',
-      });
-      return Array.from(required(data).data.items, toImageJob);
-    },
-
-    async recoverImageJob(accessToken, bookingId, jobId, idempotencyKey) {
-      const { data } = await api().POST(
-        '/bookings/{bookingId}/invitation-image-jobs/{jobId}/recovery',
+    async generateImage(
+      accessToken,
+      bookingId,
+      prompt,
+      aspectRatio = '1:1',
+      idempotencyKey,
+    ): Promise<{
+      mediaAssetId: string;
+      previewPath: string;
+      derivedAssetId?: string;
+      previewUrl?: string;
+    }> {
+      const { data, error } = await api().POST(
+        '/bookings/{bookingId}/invitation-image-generations',
         {
           headers: headers(accessToken),
-          params: { path: { bookingId, jobId }, header: { 'Idempotency-Key': idempotencyKey } },
-          body: {},
+          params: {
+            path: { bookingId },
+            header: { 'Idempotency-Key': intent('generate-image', idempotencyKey) },
+          },
+          body: { prompt, aspectRatio },
         },
       );
-      return toImageJob(required(data).data);
+      if (error !== undefined) throw new Error('Không thể tạo hình ảnh với AI.', { cause: error });
+      const asset = required(data).data;
+      const { data: derived, error: deriveError } = await api().POST(
+        '/bookings/{bookingId}/invitation-derived-assets',
+        {
+          headers: headers(accessToken),
+          params: {
+            path: { bookingId },
+            header: {
+              'Idempotency-Key': intent(
+                'derive-image',
+                idempotencyKey ? idempotencyKey + ':derive' : undefined,
+              ),
+            },
+          },
+          body: { mediaAssetId: asset.mediaAssetId, expectedRevision: asset.revision },
+        },
+      );
+      if (deriveError !== undefined)
+        throw new Error('Không thể chuẩn bị ảnh cho thiệp.', { cause: deriveError });
+      const { data: preview } = await api().GET('/bookings/{bookingId}/media/{assetId}', {
+        headers: headers(accessToken),
+        params: { path: { bookingId, assetId: asset.mediaAssetId } },
+      });
+      return {
+        mediaAssetId: asset.mediaAssetId,
+        previewPath: asset.previewPath,
+        derivedAssetId: required(derived).data.derivedAssetId,
+        ...(preview ? { previewUrl: preview.data.signedUrl } : {}),
+      };
     },
 
     async listTemplates(accessToken): Promise<readonly TemplateItemView[]> {
