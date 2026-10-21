@@ -5,7 +5,8 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { openBlob } from '../../lib/api/download';
-import { CommandFeedback, CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
+import { CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
+import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import {
   authorizedRead,
   formatDateTime,
@@ -214,7 +215,6 @@ function CoupleNamesCard({
           </button>
         </div>
       </form>
-      <CommandFeedback error={command.error} notice={command.notice} />
     </section>
   );
 }
@@ -231,6 +231,7 @@ function ContractCard({
   onChanged: () => void;
 }>) {
   const command = useCommand();
+  const { confirm, dialog } = useConfirmDialog();
   const [editing, setEditing] = useState(false);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [catalogError, setCatalogError] = useState<FriendlyError | null>(null);
@@ -376,23 +377,30 @@ function ContractCard({
                 className="button"
                 type="button"
                 disabled={command.pending}
-                onClick={() => {
-                  if (!window.confirm('Xác nhận hai bạn đồng ý với toàn bộ nội dung hợp đồng này?'))
-                    return;
-                  void command
-                    .run(
-                      (token, key) =>
-                        contractApi.approve(
-                          token,
-                          key,
-                          bookingId,
-                          current.revisionId,
-                          expectedRevision,
-                        ),
-                      'Đã ghi nhận hai bạn duyệt hợp đồng.',
-                    )
-                    .then(after);
-                }}
+                onClick={() =>
+                  void (async () => {
+                    const agreed = await confirm({
+                      title: 'Duyệt hợp đồng này?',
+                      description:
+                        'Xác nhận hai bạn đã đọc và đồng ý với toàn bộ nội dung hợp đồng. Sau khi cả hai bên duyệt, muốn sửa phải rút duyệt và tạo bản mới.',
+                      confirmLabel: 'Đồng ý & duyệt',
+                    });
+                    if (!agreed) return;
+                    await command
+                      .run(
+                        (token, key) =>
+                          contractApi.approve(
+                            token,
+                            key,
+                            bookingId,
+                            current.revisionId,
+                            expectedRevision,
+                          ),
+                        'Đã ghi nhận hai bạn duyệt hợp đồng.',
+                      )
+                      .then(after);
+                  })()
+                }
               >
                 Duyệt hợp đồng
               </button>
@@ -510,8 +518,7 @@ function ContractCard({
           />
         )
       ) : null}
-
-      <CommandFeedback error={command.error} notice={command.notice} />
+      {dialog}
     </section>
   );
 }
@@ -596,7 +603,6 @@ function HistoryCard({
           </tbody>
         </table>
       </div>
-      <CommandFeedback error={command.error} notice={null} />
     </section>
   );
 }

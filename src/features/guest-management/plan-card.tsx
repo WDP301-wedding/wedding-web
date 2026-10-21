@@ -1,4 +1,3 @@
-import { CommandFeedback } from '../couple-workspace/couple-page';
 import { useCommand } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestPlan } from './guest-api';
 
@@ -52,7 +51,6 @@ export function PlanCard({
           </button>
         </div>
       </form>
-      <CommandFeedback error={command.error} notice={command.notice} />
     </section>
   );
 }

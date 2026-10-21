@@ -17,7 +17,14 @@ export type IssuedPersonalLink = {
   expiresAt: string;
 };
 
-export function usePersonalInvitationLink(bookingId: string) {
+/**
+ * @param askEmail hỏi email người nhận (component truyền vào hộp thoại nhập liệu của mình);
+ *   trả `null` khi người dùng huỷ.
+ */
+export function usePersonalInvitationLink(
+  bookingId: string,
+  askEmail: (guestName: string) => Promise<string | null>,
+) {
   const command = useCommand();
   const [link, setLink] = useState<IssuedPersonalLink | null>(null);
 
@@ -69,8 +76,8 @@ export function usePersonalInvitationLink(bookingId: string) {
           });
       });
 
-  const sendLink = (guest: Guest) => {
-    const email = window.prompt(`Email người nhận thiệp của ${guest.name}`)?.trim();
+  const sendLink = async (guest: Guest) => {
+    const email = (await askEmail(guest.name))?.trim();
     if (!email) return;
     void command.run(
       async (token) => {

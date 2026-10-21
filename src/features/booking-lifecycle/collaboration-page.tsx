@@ -11,6 +11,8 @@ import { type WebSessionSnapshot } from '../identity-access/session';
 import { browserSession } from '../identity-access/browser-session';
 import { createExperienceGateway } from '../identity-access/experience-api';
 import { CoupleWorkspaceContext } from '../couple-workspace/use-couple-workspace';
+import { useToastFeedback } from '../../design-system/toast';
+import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import {
   createCollaborationGateway,
   type CollaborationGateway,
@@ -114,6 +116,9 @@ export function CollaborationWorkspace({
   const [loaded, setLoaded] = useState(embedded);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Thành công → toast. Lỗi giữ inline: gồm cả lỗi tải hồ sơ và lỗi giờ/mốc của kịch bản — cần
+  // nằm cạnh form cho tới khi sửa xong.
+  useToastFeedback(message, null);
   // null = đang tải danh sách tiệc (hoặc không cần tải khi embedded); [] = chưa có tiệc nào.
   const [availableBookings, setAvailableBookings] = useState<readonly BookingChoice[] | null>(null);
   const requestedRef = useRef(embedded);
@@ -242,7 +247,6 @@ export function CollaborationWorkspace({
       </section>
       <div className="collab-live" aria-live="polite">
         {pending ? <p role="status">Đang đồng bộ hồ sơ…</p> : null}
-        {message ? <p role="status">{message}</p> : null}
         {error ? <p role="alert">{error}</p> : null}
       </div>
       <section id="proposal-content">
@@ -289,6 +293,7 @@ function ProposalWorkspace({
   gateway: CollaborationGateway;
   command: (operation: (token: string) => Promise<void>, success: string) => Promise<void>;
 }>) {
+  const { confirm, dialog } = useConfirmDialog();
   const timeline = proposal.timeline;
   const billingHref = `/khong-gian/thanh-toan?bookingId=${proposal.bookingId}`;
   const bothApproved = Boolean(timeline?.managerApprovedAt && timeline?.coupleApprovedAt);
@@ -515,15 +520,26 @@ function ProposalWorkspace({
               onSubmit={(event) => {
                 event.preventDefault();
                 const reason = field(new FormData(event.currentTarget), 'reason');
-                void command(
-                  (token) =>
-                    gateway.requestCancellation(token, {
-                      bookingId: proposal.bookingId,
-                      expectedRevision: proposal.revision,
-                      reason,
-                    }),
-                  'Đã gửi yêu cầu hủy để Quản lý xem xét.',
-                );
+                void (async () => {
+                  const agreed = await confirm({
+                    title: 'Gửi yêu cầu huỷ tiệc?',
+                    description:
+                      'Quản lý nhà hàng sẽ xem xét yêu cầu theo chính sách huỷ trong hợp đồng đã ký (có thể phát sinh phí). Hãy chắc chắn trước khi gửi.',
+                    confirmLabel: 'Gửi yêu cầu huỷ',
+                    cancelLabel: 'Quay lại',
+                    tone: 'danger',
+                  });
+                  if (!agreed) return;
+                  await command(
+                    (token) =>
+                      gateway.requestCancellation(token, {
+                        bookingId: proposal.bookingId,
+                        expectedRevision: proposal.revision,
+                        reason,
+                      }),
+                    'Đã gửi yêu cầu hủy để Quản lý xem xét.',
+                  );
+                })();
               }}
             >
               <h3>Yêu cầu hủy</h3>
@@ -538,6 +554,7 @@ function ProposalWorkspace({
           </details>
         ) : null}
       </aside>
+      {dialog}
     </div>
   );
 }

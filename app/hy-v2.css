@@ -3,6 +3,7 @@
 @import './styles/hy-v2/hy-v2-consultation-footer.css';
 @import './styles/hy-v2/hy-v2-workspace-journey.css';
 @import './styles/hy-v2/hy-v2-overview-responsive.css';
+@import './styles/hy-v2/hy-v2-feedback.css';
 
 /* Nhiều thực đơn trong một đề xuất (BE PR #65): hàng thực đơn chiếm trọn chiều ngang,
  * mỗi gói một dòng (tên + "số bàn × giá" bên dưới, thành tiền canh phải). */

@@ -1,9 +1,19 @@
-import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { InvitationStudioView } from './invitation-studio-view';
 import type { InvitationGateway, DesignView, ImageJobView, PrintOrderView } from './invitation-api';
 import { ApiClientError } from '../../lib/api/client';
+
+/** Thao tác huỷ/gỡ/duyệt phải qua hộp thoại xác nhận: bấm nút xác nhận trong hộp thoại. */
+async function confirmInDialog(confirmLabel: string) {
+  const dialog = await waitFor(() => {
+    const found = document.querySelector<HTMLElement>('[aria-modal="true"]');
+    if (!found) throw new Error('Chưa thấy hộp thoại xác nhận');
+    return found;
+  });
+  fireEvent.click(within(dialog).getByRole('button', { name: confirmLabel }));
+}
 
 describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
   const bookingId = '11111111-1111-1111-1111-111111111111';
@@ -374,6 +384,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     fireEvent.click(screen.getByText('Đặt In Thiệp Giấy (1)'));
     const approveBtn = screen.getByText('Duyệt Báo Giá');
     fireEvent.click(approveBtn);
+    await confirmInDialog('Duyệt báo giá');
 
     await waitFor(() => {
       expect(mockGateway.approvePrintOrder).toHaveBeenCalledWith(
@@ -446,6 +457,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
 
     // Unpublish
     fireEvent.click(screen.getByText('Hủy Xuất Bản'));
+    await confirmInDialog('Huỷ xuất bản');
     await waitFor(() => {
       expect(mockGateway.unpublishDesign).toHaveBeenCalledWith(
         accessToken,
@@ -520,6 +532,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
 
     // Detach image
     fireEvent.click(screen.getByText('Gỡ ảnh gốc khỏi hồ sơ'));
+    await confirmInDialog('Gỡ ảnh');
     await waitFor(() => {
       expect(mockGateway.detachMedia).toHaveBeenCalledWith(
         accessToken,
@@ -580,6 +593,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
 
     // 3. Unpublish: calls unpublish with revision 1, gets next publicationRevision: 2
     fireEvent.click(screen.getByText('Hủy Xuất Bản'));
+    await confirmInDialog('Huỷ xuất bản');
     await waitFor(() => {
       expect(mockGateway.unpublishDesign).toHaveBeenCalledWith(
         accessToken,
@@ -722,6 +736,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     fireEvent.click(screen.getByText('Đặt In Thiệp Giấy (1)'));
     const cancelBtn = screen.getByText('Hủy Đơn');
     fireEvent.click(cancelBtn);
+    await confirmInDialog('Huỷ đơn in');
 
     await waitFor(() => {
       expect(mockGateway.cancelPrintOrder).toHaveBeenCalledWith(

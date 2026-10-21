@@ -16,17 +16,12 @@ export function SeatingPage() {
       description="Chọn mẫu sơ đồ của sảnh và gắn nhóm khách cho từng bàn. Không cần xếp từng người vào ghế."
       requireFull
     >
-      {(proposal, reloadBooking) => (
-        <SeatingWorkspace proposal={proposal} reloadBooking={reloadBooking} />
-      )}
+      {(proposal) => <SeatingWorkspace proposal={proposal} />}
     </CouplePage>
   );
 }
 
-function SeatingWorkspace({
-  proposal,
-  reloadBooking,
-}: Readonly<{ proposal: Proposal; reloadBooking: () => void }>) {
+function SeatingWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   const { bookingId, options, groups, plan, planId, loadError, reload, accept } =
     useSeatingWorkspace(proposal);
 
@@ -37,21 +32,24 @@ function SeatingWorkspace({
     <>
       <LayoutSelector
         bookingId={bookingId}
-        proposal={proposal}
         options={options}
         plan={plan}
         planId={planId}
         onSelect={accept}
+        onStale={reload}
       />
       {plan && planId ? (
+        // key theo revision: khi backend trả bản mới (lưu/xác nhận/tải lại), editor khởi tạo lại
+        // nhãn bàn từ đúng bản đó thay vì giữ state cũ.
         <PlanEditor
+          key={plan.revisionId}
           bookingId={bookingId}
           plan={plan}
           groups={groups}
-          onChanged={(next) => {
-            accept(next);
-            reloadBooking();
-          }}
+          // Không gọi reloadBooking(): sơ đồ không đổi thông tin tiệc/thanh điều hướng, gọi lại
+          // /couple/bookings + /proposal chỉ tốn 2 request thừa.
+          onChanged={accept}
+          onStale={reload}
         />
       ) : null}
     </>

@@ -1,4 +1,4 @@
-import { CommandFeedback } from '../couple-workspace/couple-page';
+import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import { formText, useCommand } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestGroup } from './guest-api';
 import styles from './guests.module.css';
@@ -25,6 +25,7 @@ export function GroupsCard({
   onChanged: (group?: GuestGroup, action?: 'create' | 'update') => void;
 }>) {
   const command = useCommand();
+  const { confirm, prompt, dialog } = useConfirmDialog();
   const done = (result: GuestGroup | undefined, action: 'create' | 'update') => {
     if (result) onChanged(result, action);
   };
@@ -81,20 +82,28 @@ export function GroupsCard({
                     className="cw-text-button"
                     type="button"
                     disabled={command.pending || group.status !== 'ACTIVE'}
-                    onClick={() => {
-                      const name = window.prompt('Tên nhóm mới', group.name)?.trim();
-                      if (!name || name === group.name) return;
-                      void command
-                        .run(
-                          (token, key) =>
-                            guestApi.updateGroup(token, key, bookingId, group.guestGroupId, {
-                              expectedRevision: group.revision,
-                              name,
-                            }),
-                          'Đã đổi tên nhóm.',
-                        )
-                        .then((result) => done(result, 'update'));
-                    }}
+                    onClick={() =>
+                      void (async () => {
+                        const name = await prompt({
+                          title: `Đổi tên nhóm “${group.name}”`,
+                          label: 'Tên nhóm mới',
+                          defaultValue: group.name,
+                          maxLength: 80,
+                          confirmLabel: 'Lưu tên',
+                        });
+                        if (!name || name === group.name) return;
+                        void command
+                          .run(
+                            (token, key) =>
+                              guestApi.updateGroup(token, key, bookingId, group.guestGroupId, {
+                                expectedRevision: group.revision,
+                                name,
+                              }),
+                            'Đã đổi tên nhóm.',
+                          )
+                          .then((result) => done(result, 'update'));
+                      })()
+                    }
                   >
                     Đổi tên
                   </button>
@@ -103,16 +112,29 @@ export function GroupsCard({
                     type="button"
                     disabled={command.pending}
                     onClick={() =>
-                      void command
-                        .run(
+                      void (async () => {
+                        // Lưu trữ = "xoá mềm": nhóm ẩn khỏi lựa chọn và sơ đồ → hỏi lại trước.
+                        if (
+                          group.status === 'ACTIVE' &&
+                          !(await confirm({
+                            title: `Lưu trữ nhóm “${group.name}”?`,
+                            description:
+                              'Nhóm sẽ không còn hiện khi thêm khách hoặc gắn bàn trên sơ đồ. Khách trong nhóm vẫn được giữ lại và bạn có thể khôi phục nhóm bất cứ lúc nào.',
+                            confirmLabel: 'Lưu trữ nhóm',
+                            tone: 'danger',
+                          }))
+                        )
+                          return;
+                        const result = await command.run(
                           (token, key) =>
                             guestApi.updateGroup(token, key, bookingId, group.guestGroupId, {
                               expectedRevision: group.revision,
                               status: group.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE',
                             }),
                           group.status === 'ACTIVE' ? 'Đã lưu trữ nhóm.' : 'Đã khôi phục nhóm.',
-                        )
-                        .then((result) => done(result, 'update'))
+                        );
+                        done(result, 'update');
+                      })()
                     }
                   >
                     {group.status === 'ACTIVE' ? 'Lưu trữ' : 'Khôi phục'}
@@ -167,7 +189,7 @@ export function GroupsCard({
           </button>
         </div>
       </form>
-      <CommandFeedback error={command.error} notice={command.notice} />
+      {dialog}
     </section>
   );
 }

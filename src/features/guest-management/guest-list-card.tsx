@@ -1,12 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CommandFeedback } from '../couple-workspace/couple-page';
 import { formText, formatDateTime } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type Guest, type GuestGroup } from './guest-api';
 import { normalizePhone } from './guest-csv';
 import { GuestFields } from './guest-fields';
 import { usePersonalInvitationLink } from './use-personal-invitation-link';
+import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import type { GuestStatusFilter } from './use-guests-workspace';
 import styles from './guests.module.css';
 
@@ -25,7 +25,18 @@ export function GuestListCard({
   onStatusChange: (status: GuestStatusFilter) => void;
   onChanged: (guest?: Guest, action?: 'create' | 'update') => void;
 }>) {
-  const { command, link, issueLink, sendLink, clearLink } = usePersonalInvitationLink(bookingId);
+  const { confirm, prompt, dialog } = useConfirmDialog();
+  const { command, link, issueLink, sendLink, clearLink } = usePersonalInvitationLink(
+    bookingId,
+    (guestName) =>
+      prompt({
+        title: 'Gửi thiệp riêng qua email',
+        label: `Email người nhận thiệp của ${guestName}`,
+        type: 'email',
+        placeholder: 'ten@vidu.com',
+        confirmLabel: 'Gửi email',
+      }),
+  );
   const [groupFilter, setGroupFilter] = useState('');
   const [editing, setEditing] = useState<string | null>(null);
 
@@ -199,7 +210,7 @@ export function GuestListCard({
                               className="cw-text-button"
                               type="button"
                               disabled={command.pending}
-                              onClick={() => sendLink(guest)}
+                              onClick={() => void sendLink(guest)}
                             >
                               Gửi email
                             </button>
@@ -210,8 +221,19 @@ export function GuestListCard({
                           type="button"
                           disabled={command.pending}
                           onClick={() =>
-                            void command
-                              .run(
+                            void (async () => {
+                              if (
+                                guest.status === 'ACTIVE' &&
+                                !(await confirm({
+                                  title: `Lưu trữ khách “${guest.name}”?`,
+                                  description:
+                                    'Khách sẽ bị ẩn khỏi danh sách đang dùng và liên kết thiệp riêng đã gửi sẽ bị thu hồi. Bạn có thể khôi phục lại sau.',
+                                  confirmLabel: 'Lưu trữ khách',
+                                  tone: 'danger',
+                                }))
+                              )
+                                return;
+                              const result = await command.run(
                                 (token, key) =>
                                   guestApi.updateGuest(token, key, bookingId, guest.guestId, {
                                     expectedRevision: guest.revision,
@@ -220,8 +242,9 @@ export function GuestListCard({
                                 guest.status === 'ACTIVE'
                                   ? 'Đã lưu trữ khách (liên kết riêng bị thu hồi).'
                                   : 'Đã khôi phục khách.',
-                              )
-                              .then((result) => result && onChanged(result, 'update'))
+                              );
+                              if (result) onChanged(result, 'update');
+                            })()
                           }
                         >
                           {guest.status === 'ACTIVE' ? 'Lưu trữ' : 'Khôi phục'}
@@ -277,7 +300,7 @@ export function GuestListCard({
           </form>
         </details>
       ) : null}
-      <CommandFeedback error={command.error} notice={command.notice} />
+      {dialog}
     </section>
   );
 }

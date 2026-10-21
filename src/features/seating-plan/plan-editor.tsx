@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CommandFeedback } from '../couple-workspace/couple-page';
 import { useCommand } from '../couple-workspace/use-couple-workspace';
 import type { GuestGroup } from '../guest-management/guest-api';
 import { seatingApi, type SeatingPlan, type SeatingTable } from './seating-api';
@@ -14,13 +13,25 @@ export function PlanEditor({
   plan,
   groups,
   onChanged,
+  onStale,
 }: Readonly<{
   bookingId: string;
   plan: SeatingPlan;
   groups: GuestGroup[];
   onChanged: (plan: SeatingPlan) => void;
+  /** Backend báo sơ đồ/tiệc đã đổi (409 SEATING_REVISION_STALE) → trang tải lại sơ đồ mới nhất. */
+  onStale: () => void;
 }>) {
   const command = useCommand();
+  // Lỗi "revision cũ": tiệc vừa đổi số khách/thông tin (ở tab khác, máy khác hoặc nhà hàng sửa)
+  // sau khi trang tải sơ đồ. Trước đây chỉ báo "Hãy tải lại" mà không tải → bấm lại vẫn lỗi mãi.
+  const staleMessage = {
+    SEATING_REVISION_STALE:
+      'Thông tin tiệc hoặc sơ đồ vừa thay đổi. Đã tải lại sơ đồ mới nhất — hãy kiểm tra rồi thao tác lại.',
+  };
+  const reloadIfStale = (error: { code: string | null }) => {
+    if (error.code === 'SEATING_REVISION_STALE') onStale();
+  };
   // Nhãn đang chỉnh: bàn → nhóm. Khởi tạo từ snapshot backend trả về.
   const [labels, setLabels] = useState<Record<string, string>>(() =>
     Object.fromEntries(plan.labels.map((label) => [label.layoutTableId, label.guestGroupId])),
@@ -164,6 +175,8 @@ export function PlanEditor({
                     })),
                   }),
                 'Đã lưu nhãn bàn (bản nháp mới, cần xác nhận lại).',
+                staleMessage,
+                reloadIfStale,
               )
               .then((next) => next && onChanged(next))
           }
@@ -189,6 +202,8 @@ export function PlanEditor({
                     plan.currentBookingRevision,
                   ),
                 'Đã xác nhận sơ đồ bàn. Sơ đồ sẽ được dùng cho file in.',
+                staleMessage,
+                reloadIfStale,
               )
               .then((next) => next && onChanged(next))
           }
@@ -199,7 +214,6 @@ export function PlanEditor({
       <p className="muted">
         Mã sơ đồ: <code>{plan.seatingPlanId}</code>
       </p>
-      <CommandFeedback error={command.error} notice={command.notice} />
     </section>
   );
 }

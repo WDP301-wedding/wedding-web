@@ -4,13 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { authorizedRead, type Proposal } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestGroup } from '../guest-management/guest-api';
-import {
-  readPlanId,
-  rememberPlanId,
-  seatingApi,
-  type LayoutOptions,
-  type SeatingPlan,
-} from './seating-api';
+import { seatingApi, type LayoutOptions, type SeatingPlan } from './seating-api';
 
 export const statusLabels: Record<SeatingPlan['status'], string> = {
   DRAFT: 'Bản nháp',
@@ -39,14 +33,11 @@ export function useSeatingWorkspace(proposal: Proposal) {
 
   useEffect(() => {
     let active = true;
-    const storedPlanId = readPlanId(bookingId);
     authorizedRead(async (token) => {
       const [layoutOptions, guestGroups, current] = await Promise.all([
         seatingApi.options(token, bookingId),
         guestApi.groups(token, bookingId),
-        storedPlanId
-          ? seatingApi.plan(token, bookingId, storedPlanId).catch(() => null)
-          : Promise.resolve(null),
+        seatingApi.current(token, bookingId),
       ]);
       return { layoutOptions, guestGroups, current };
     })
@@ -66,15 +57,11 @@ export function useSeatingWorkspace(proposal: Proposal) {
     };
   }, [bookingId, reloadKey]);
 
-  const accept = useCallback(
-    (next: SeatingPlan | undefined) => {
-      if (!next) return;
-      rememberPlanId(bookingId, next.seatingPlanId);
-      setPlanId(next.seatingPlanId);
-      setPlan(next);
-    },
-    [bookingId],
-  );
+  const accept = useCallback((next: SeatingPlan | undefined) => {
+    if (!next) return;
+    setPlanId(next.seatingPlanId);
+    setPlan(next);
+  }, []);
 
   return {
     bookingId,

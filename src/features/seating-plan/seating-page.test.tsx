@@ -16,9 +16,10 @@ vi.mock('../identity-access/browser-session', () => ({
 vi.mock('../couple-workspace/couple-page', async (importOriginal) => ({
   ...(await importOriginal<typeof CouplePageModule>()),
   CouplePage: ({ children }: { children: (proposal: Proposal, reload: () => void) => ReactNode }) =>
-    children({ bookingId: 'booking', revision: 13 } as Proposal, () => {}),
+    children({ bookingId: 'booking', revision: 13 } as Proposal, reloadBooking),
 }));
 
+const reloadBooking = vi.fn();
 const plan: SeatingPlan = {
   seatingPlanId: 'plan',
   bookingId: 'booking',
@@ -45,9 +46,8 @@ const plan: SeatingPlan = {
 beforeEach(() => {
   vi.restoreAllMocks();
   vi.spyOn(browserSession, 'authorize').mockImplementation((operation) => operation('token'));
-  localStorage.setItem('wedding.seatingPlan.booking', 'plan');
   vi.spyOn(guestApi, 'groups').mockResolvedValue([]);
-  vi.spyOn(seatingApi, 'plan').mockResolvedValue(plan);
+  vi.spyOn(seatingApi, 'current').mockResolvedValue(plan);
   vi.spyOn(seatingApi, 'options').mockResolvedValue({
     planningHeadcount: 70,
     bookingRevision: 13,
@@ -84,14 +84,14 @@ describe('seating confirmation capacity', () => {
   });
 
   it('blocks standard confirmation outside the layout range even with enough physical seats', async () => {
-    vi.spyOn(seatingApi, 'plan').mockResolvedValue({ ...plan, totalSeatCapacity: 100 });
+    vi.spyOn(seatingApi, 'current').mockResolvedValue({ ...plan, totalSeatCapacity: 100 });
     render(<SeatingPage />);
     expect(await screen.findByRole('button', { name: 'Xác nhận sơ đồ' })).toBeDisabled();
     expect(screen.getByRole('status')).toHaveTextContent('ngoài khoảng 50–50 khách');
   });
 
   it('keeps a current manager-approved range exception valid within physical capacity', async () => {
-    vi.spyOn(seatingApi, 'plan').mockResolvedValue({
+    vi.spyOn(seatingApi, 'current').mockResolvedValue({
       ...plan,
       status: 'CONFIRMED',
       totalSeatCapacity: 80,
@@ -162,7 +162,7 @@ describe('seating confirmation capacity', () => {
   });
 
   it('allows a compatible layout with no named guests and sends both server revisions', async () => {
-    vi.spyOn(seatingApi, 'plan').mockResolvedValue({
+    vi.spyOn(seatingApi, 'current').mockResolvedValue({
       ...plan,
       minGuests: 50,
       maxGuests: 80,
@@ -189,7 +189,7 @@ describe('seating confirmation capacity', () => {
   });
 
   it('explains a server capacity rejection when the hall constraint changes after loading', async () => {
-    vi.spyOn(seatingApi, 'plan').mockResolvedValue({
+    vi.spyOn(seatingApi, 'current').mockResolvedValue({
       ...plan,
       maxGuests: 80,
       totalSeatCapacity: 80,
@@ -212,5 +212,74 @@ describe('seating confirmation capacity', () => {
     expect(
       screen.queryByText('Dữ liệu vừa thay đổi. Hãy tải lại rồi thử lại.'),
     ).not.toBeInTheDocument();
+  });
+
+  it('reloads the current plan after a stale confirmation instead of failing forever', async () => {
+    const roomy = { ...plan, maxGuests: 80, totalSeatCapacity: 80 };
+    // Lần đầu trang tải sơ đồ với revision tiệc 13; sau đó số khách đổi ở tab khác → revision 14.
+    const current = vi
+      .spyOn(seatingApi, 'current')
+      .mockResolvedValueOnce(roomy)
+      .mockResolvedValue({ ...roomy, revisionId: 'revision-2', currentBookingRevision: 14 });
+    const confirm = vi
+      .spyOn(seatingApi, 'confirm')
+      .mockRejectedValueOnce(
+        new ApiClientError({
+          kind: 'api',
+          code: 'SEATING_REVISION_STALE',
+          status: 409,
+          message: 'stale',
+          requestId: 'stale-id',
+        }),
+      )
+      .mockResolvedValue({ ...roomy, status: 'CONFIRMED', revisionNumber: 5 });
+    render(<SeatingPage />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Xác nhận sơ đồ' }));
+    expect(await screen.findByText(/Đã tải lại sơ đồ mới nhất/)).toBeInTheDocument();
+    await waitFor(() => expect(current).toHaveBeenCalledTimes(2));
+    // Bấm lại: lần này gửi đúng revision tiệc mới (14) nên thành công.
+    fireEvent.click(await screen.findByRole('button', { name: 'Xác nhận sơ đồ' }));
+    await waitFor(() =>
+      expect(confirm).toHaveBeenLastCalledWith(
+        'token',
+        expect.any(String),
+        'booking',
+        'plan',
+        4,
+        14,
+      ),
+    );
+    expect(reloadBooking).not.toHaveBeenCalled();
+  });
+
+  it('creates a plan with the booking revision from fresh layout options, not the cached proposal', async () => {
+    vi.spyOn(seatingApi, 'current').mockResolvedValue(null);
+    vi.spyOn(seatingApi, 'options').mockResolvedValue({
+      planningHeadcount: 70,
+      bookingRevision: 15,
+      items: [
+        {
+          layoutTemplateVersionId: 'layout-80',
+          name: 'Mẫu đủ chỗ',
+          minGuests: 50,
+          maxGuests: 80,
+          totalSeatCapacity: 80,
+          compatible: true,
+          warning: null,
+        },
+      ],
+    });
+    const create = vi.spyOn(seatingApi, 'create').mockResolvedValue({
+      ...plan,
+      layoutName: 'Mẫu đủ chỗ',
+      maxGuests: 80,
+      totalSeatCapacity: 80,
+    });
+    render(<SeatingPage />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Dùng mẫu này' }));
+    await waitFor(() =>
+      expect(create).toHaveBeenCalledWith('token', expect.any(String), 'booking', 'layout-80', 15),
+    );
+    expect(await screen.findByText('Mẫu đang dùng: Mẫu đủ chỗ')).toBeInTheDocument();
   });
 });

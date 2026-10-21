@@ -1,22 +1,22 @@
-import { CommandFeedback } from '../couple-workspace/couple-page';
-import { formText, useCommand, type Proposal } from '../couple-workspace/use-couple-workspace';
+import { formText, useCommand } from '../couple-workspace/use-couple-workspace';
 import { seatingApi, type LayoutOptions, type SeatingPlan } from './seating-api';
 import { layoutWarnings } from './use-seating-workspace';
 
 export function LayoutSelector({
   bookingId,
-  proposal,
   options,
   plan,
   planId,
   onSelect,
+  onStale,
 }: Readonly<{
   bookingId: string;
-  proposal: Proposal;
   options: LayoutOptions;
   plan: SeatingPlan | null;
   planId: string | null;
   onSelect: (next: SeatingPlan | undefined) => void;
+  /** Dữ liệu trên trang đã cũ so với backend → tải lại mẫu + sơ đồ hiện tại. */
+  onStale: () => void;
 }>) {
   const command = useCommand();
 
@@ -91,14 +91,26 @@ export function LayoutSelector({
                                     key,
                                     bookingId,
                                     option.layoutTemplateVersionId,
-                                    proposal.revision,
+                                    // Revision tiệc lấy từ danh sách mẫu vừa tải (luôn mới), KHÔNG
+                                    // dùng proposal.revision trong cache: cache chỉ tải một lần nên
+                                    // sau khi đổi số khách sẽ lệch → 409 SEATING_REVISION_STALE.
+                                    options.bookingRevision,
                                   ),
                             plan
                               ? 'Đã đổi mẫu. Nhãn trên các bàn trùng mã được giữ lại.'
                               : 'Đã tạo sơ đồ nháp.',
                             {
                               SEATING_PLAN_EXISTS:
-                                'Tiệc đã có sơ đồ được tạo từ thiết bị khác. Mở trên thiết bị đó, hoặc nhập mã sơ đồ bên dưới (hỏi nhà hàng nếu cần).',
+                                'Tiệc đã có sơ đồ (có thể vừa tạo ở thiết bị khác). Đã tải lại sơ đồ hiện tại.',
+                              SEATING_REVISION_STALE:
+                                'Thông tin tiệc vừa thay đổi (vd. số khách). Đã tải lại danh sách mẫu — hãy chọn lại.',
+                            },
+                            (error) => {
+                              if (
+                                error.code === 'SEATING_REVISION_STALE' ||
+                                error.code === 'SEATING_PLAN_EXISTS'
+                              )
+                                onStale();
                             },
                           )
                           .then(onSelect)
@@ -153,7 +165,6 @@ export function LayoutSelector({
           </details>
         </form>
       ) : null}
-      <CommandFeedback error={command.error} notice={command.notice} />
     </section>
   );
 }

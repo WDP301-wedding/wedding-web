@@ -102,12 +102,14 @@ describe('account password OTP errors', () => {
       });
     }
     vi.useRealTimers();
+    // Toast "đã gửi" của lần đầu có thể vẫn còn; lần gửi lại thất bại không được thêm toast mới.
+    const sentBefore = screen.queryAllByText(/Mã OTP đã được gửi/).length;
     gateway.requestPasswordChange.mockRejectedValueOnce(apiError('RATE_LIMITED', 429, 3600));
     fireEvent.click(screen.getByRole('button', { name: 'Gửi lại mã OTP' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Hãy chờ 60 phút');
     expect(screen.getByRole('button', { name: /Gửi lại sau/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Xác nhận và cập nhật mật khẩu' })).toBeEnabled();
-    expect(screen.queryByText(/Mã OTP đã được gửi/)).not.toBeInTheDocument();
+    expect(screen.queryAllByText(/Mã OTP đã được gửi/).length).toBeLessThanOrEqual(sentBefore);
   });
   it.each(['EMAIL_NOT_CONFIGURED', 'OTP_EMAIL_DELIVERY_FAILED'])(
     'reports %s as an email service failure without pretending a code was sent',

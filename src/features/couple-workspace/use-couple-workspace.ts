@@ -7,6 +7,7 @@ import { createApiClient, type ApiClient } from '../../lib/api/client';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import type { ApiData } from '../../lib/api/types';
 import { browserSession } from '../identity-access/browser-session';
+import { notify } from '../../design-system/toast';
 
 export type Proposal = ApiData<'/bookings/{bookingId}/proposal', 'get'>;
 export type BookingSummary = ApiData<'/couple/bookings', 'get'>[number];
@@ -165,6 +166,8 @@ export function useWorkspaceLoader(enabled = true): CoupleWorkspace {
  * - Mỗi lần gọi `run` tạo MỘT Idempotency-Key cho đúng ý định đó. Nếu mất mạng, `authorize`
  *   chạy lại cùng closure nên vẫn dùng cùng key → backend trả lại kết quả cũ thay vì tạo trùng.
  * - `busy` (useRef) chặn bấm 2 lần liên tiếp trước khi React kịp render nút disabled.
+ * - Kết quả thành công/lỗi hiện bằng toast (sonner). `notice`/`error` vẫn được trả về cho trang
+ *   nào cần phản ứng theo kết quả (vd. sơ đồ tự tải lại khi gặp lỗi revision cũ).
  */
 export function useCommand() {
   const [pending, setPending] = useState(false);
@@ -177,6 +180,8 @@ export function useCommand() {
       operation: (token: string, idempotencyKey: string) => Promise<T>,
       success?: string,
       overrides?: Record<string, string>,
+      /** Gọi khi lỗi — cho trang phản ứng theo mã lỗi (vd. tự tải lại khi revision đã cũ). */
+      onError?: (error: FriendlyError) => void,
     ): Promise<T | undefined> => {
       if (busy.current) return undefined;
       busy.current = true;
@@ -186,10 +191,17 @@ export function useCommand() {
       const key = crypto.randomUUID();
       try {
         const result = await browserSession.authorize((token) => operation(token, key));
-        if (success) setNotice(success);
+        if (success) {
+          setNotice(success);
+          notify.success(success);
+        }
         return result;
       } catch (caught) {
-        setError(describeApiError(caught, overrides));
+        const friendly = describeApiError(caught, overrides);
+        setError(friendly);
+        // Toast thay cho khối thông báo inline: không đẩy layout, luôn kèm mã hỗ trợ.
+        notify.error(friendly.message, friendly.requestId);
+        onError?.(friendly);
         return undefined;
       } finally {
         busy.current = false;

@@ -168,16 +168,3 @@ export function ErrorPanel({
 }
 
 /** Hiển thị kết quả của lệnh ghi gần nhất (thành công hoặc lỗi). */
-export function CommandFeedback({
-  error,
-  notice,
-}: Readonly<{ error: FriendlyError | null; notice: string | null }>) {
-  if (error) return <ErrorPanel error={error} />;
-  if (notice)
-    return (
-      <p className="cw-success" role="status">
-        {notice}
-      </p>
-    );
-  return null;
-}

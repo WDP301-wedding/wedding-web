@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
-import { CommandFeedback, EmptyPanel, ErrorPanel } from '../couple-workspace/couple-page';
+import { EmptyPanel, ErrorPanel } from '../couple-workspace/couple-page';
 import { formatDateTime, useCommand } from '../couple-workspace/use-couple-workspace';
 import { WorkspaceShell } from '../couple-workspace/workspace-shell';
 import { browserSession } from '../identity-access/browser-session';
@@ -93,6 +93,27 @@ export function NotificationsPage() {
 
   const unread = items.filter((item) => item.readAt === null).length;
 
+  // Cập nhật tại chỗ thay vì tải lại hộp thư + cài đặt thông báo (2 API, cài đặt không liên quan):
+  // backend đã trả đúng trạng thái mới của thông báo; chỉ cần làm mới số trên chuông.
+  const markLocal = (read: Readonly<{ id: string; readAt: string; revision: number }>) => {
+    setItems((current) =>
+      current.map((item) =>
+        item.id === read.id ? { ...item, readAt: read.readAt, revision: read.revision } : item,
+      ),
+    );
+    refreshUnread();
+  };
+  const markAllLocal = (throughCreatedAt: string) => {
+    setItems((current) =>
+      current.map((item) =>
+        item.readAt === null && item.createdAt <= throughCreatedAt
+          ? { ...item, readAt: throughCreatedAt }
+          : item,
+      ),
+    );
+    refreshUnread();
+  };
+
   return (
     <WorkspaceShell active="notifications">
       <div className="cw-page">
@@ -118,15 +139,15 @@ export function NotificationsPage() {
                   className="button button-secondary"
                   type="button"
                   disabled={command.pending || unread === 0}
-                  onClick={() =>
+                  onClick={() => {
+                    const through = new Date().toISOString();
                     void command
                       .run(
-                        (token, key) =>
-                          notificationApi.markAllRead(token, key, new Date().toISOString()),
+                        (token, key) => notificationApi.markAllRead(token, key, through),
                         'Đã đánh dấu tất cả là đã đọc.',
                       )
-                      .then((result) => result && reload())
-                  }
+                      .then((result) => result && markAllLocal(through));
+                  }}
                 >
                   Đánh dấu tất cả đã đọc
                 </button>
@@ -158,14 +179,16 @@ export function NotificationsPage() {
                                   href={href}
                                   onClick={() => {
                                     if (item.readAt === null)
-                                      void command.run((token, key) =>
-                                        notificationApi.markRead(
-                                          token,
-                                          key,
-                                          item.id,
-                                          item.revision,
-                                        ),
-                                      );
+                                      void command
+                                        .run((token, key) =>
+                                          notificationApi.markRead(
+                                            token,
+                                            key,
+                                            item.id,
+                                            item.revision,
+                                          ),
+                                        )
+                                        .then((result) => result && markLocal(result));
                                   }}
                                 >
                                   Mở
@@ -186,7 +209,7 @@ export function NotificationsPage() {
                                           item.revision,
                                         ),
                                       )
-                                      .then((result) => result && reload())
+                                      .then((result) => result && markLocal(result))
                                   }
                                 >
                                   Đánh dấu đã đọc
@@ -245,7 +268,6 @@ export function NotificationsPage() {
                 <p className="cw-note">Thông báo đẩy (push) chỉ có trên ứng dụng Android.</p>
               </section>
             ) : null}
-            <CommandFeedback error={command.error} notice={command.notice} />
           </>
         ) : null}
       </div>

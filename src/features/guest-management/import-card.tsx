@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { CommandFeedback } from '../couple-workspace/couple-page';
 import { formatDateTime, useCommand } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestGroup, type ImportPreview } from './guest-api';
 import { csvTemplate, csvToImportRows, type ImportRow } from './guest-csv';
@@ -132,7 +131,6 @@ export function ImportCard({
           </button>
         </div>
       ) : null}
-      <CommandFeedback error={command.error} notice={command.notice} />
     </section>
   );
 }
