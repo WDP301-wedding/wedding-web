@@ -9,7 +9,9 @@ import { WorkspaceShell } from '../couple-workspace/workspace-shell';
 import { routes } from '../../routes';
 import { Skeleton } from '../../design-system/skeleton';
 import { browserSession as session } from '../identity-access/browser-session';
-import { createInvitationGateway, type DesignView, type PrintOrderView } from './invitation-api';
+import { ApiClientError } from '../../lib/api/client';
+import { describeApiError } from '../../lib/api/api-errors';
+import { createInvitationGateway, type DesignView } from './invitation-api';
 
 /**
  * Studio thiệp (~1.500 dòng: trình biên tập, xuất bản, đặt in) được tách thành chunk riêng bằng
@@ -22,6 +24,16 @@ const InvitationStudioView = dynamic(
 const gateway = createInvitationGateway();
 
 type StudioTab = 'design' | 'media' | 'publish' | 'print';
+
+/**
+ * Câu báo lỗi khi tải thiết kế. Hết giờ chờ tách riêng khỏi mất mạng: mạng vẫn ổn, máy chủ chậm,
+ * nên không bảo người dùng kiểm tra mạng. Lỗi khác dùng câu chung (không in thông điệp tiếng Anh).
+ */
+function loadErrorMessage(error: unknown): string {
+  if (error instanceof ApiClientError && error.kind === 'timeout')
+    return 'Máy chủ đang phản hồi chậm nên chưa tải được thiệp cưới. Vui lòng thử lại.';
+  return describeApiError(error).message;
+}
 
 function parseTab(raw: string | null): StudioTab {
   if (raw === 'media' || raw === 'publish' || raw === 'print' || raw === 'design') {
@@ -62,8 +74,9 @@ export function CoupleInvitationsPage() {
   );
   const [token, setToken] = useState<string | null>(null);
   const [designs, setDesigns] = useState<readonly DesignView[]>([]);
-  const [orders, setOrders] = useState<readonly PrintOrderView[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // Tăng lên khi bấm "Thử lại": chỉ tải lại thiết kế, không tải lại cả trang (đỡ tải cho máy chủ đang chậm).
+  const [reloadKey, setReloadKey] = useState(0);
 
   const [prevBookingId, setPrevBookingId] = useState(rawBookingId);
   if (rawBookingId !== prevBookingId) {
@@ -71,7 +84,6 @@ export function CoupleInvitationsPage() {
     setState(rawBookingId ? 'loading' : 'authenticated');
     setError(null);
     setDesigns([]);
-    setOrders([]);
   }
 
   // Fetch data only when rawBookingId changes or on initial auth restore
@@ -91,18 +103,15 @@ export function CoupleInvitationsPage() {
           try {
             const accessToken = await session.authorize((tok) => Promise.resolve(tok));
             if (!active) return;
-            const [loadedDesigns, loadedOrders] = await Promise.all([
-              gateway.listDesigns(accessToken, rawBookingId),
-              gateway.listPrintOrders(accessToken, rawBookingId),
-            ]);
+            // Đơn in tải sau, khi mở tab "Đặt in" lần đầu (InvitationStudioView tự tải).
+            const loadedDesigns = await gateway.listDesigns(accessToken, rawBookingId);
             if (!active) return;
             setDesigns(loadedDesigns);
-            setOrders(loadedOrders);
             setToken(accessToken);
             setState('authenticated');
           } catch (err: unknown) {
             if (!active) return;
-            setError(err instanceof Error ? err.message : 'Không thể tải thiệp cưới.');
+            setError(loadErrorMessage(err));
             setState('authenticated');
           }
         }
@@ -116,7 +125,13 @@ export function CoupleInvitationsPage() {
     return () => {
       active = false;
     };
-  }, [rawBookingId]);
+  }, [rawBookingId, reloadKey]);
+
+  const retry = () => {
+    setError(null);
+    setState('loading');
+    setReloadKey((value) => value + 1);
+  };
 
   if (state === 'loading') {
     return (
@@ -131,7 +146,7 @@ export function CoupleInvitationsPage() {
       <WorkspaceShell active={tab} bookingId={bookingId ?? undefined}>
         <div className="invitation-page">
           <p role="alert">{error}</p>
-          <button type="button" onClick={() => window.location.reload()}>
+          <button type="button" onClick={retry}>
             Thử lại
           </button>
         </div>
@@ -181,7 +196,6 @@ export function CoupleInvitationsPage() {
           accessToken={token}
           gateway={gateway}
           initialDesigns={designs}
-          initialOrders={orders}
           initialTab={tab}
           onTabChange={handleTabChange}
           key={bookingId}

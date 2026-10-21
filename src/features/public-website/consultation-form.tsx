@@ -1,9 +1,28 @@
 'use client';
-import { useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import { createPublicGateway, type ConsultationRequest } from './public-api';
 import { minimumPreferredDate } from './consultation-date';
 import { ApiClientError } from '../../lib/api/client';
+import { browserSession } from '../identity-access/browser-session';
+import { createExperienceGateway } from '../identity-access/experience-api';
 import Link from 'next/link';
+
+export type ContactPrefill = Readonly<{ displayName: string | null; email: string }>;
+
+/**
+ * Tên + email của couple đang đăng nhập (từ `/auth/profile`) để điền sẵn form.
+ * Tài khoản quản lý/nhân viên có thể đang nhập hộ khách → không điền thông tin của chính họ.
+ * Số điện thoại: API chưa trả về cho tài khoản nên không điền.
+ */
+async function loadSignedInContact(): Promise<ContactPrefill | null> {
+  const snapshot = await browserSession.restore();
+  if (snapshot.status !== 'authenticated') return null;
+  if (snapshot.actor.roles.some((role) => role === 'MANAGER' || role === 'STAFF')) return null;
+  const profile = await browserSession.authorize((token) =>
+    createExperienceGateway().profile(token),
+  );
+  return { displayName: profile.displayName, email: profile.displayEmail };
+}
 
 function subscribeToDateChange(onChange: () => void) {
   const timer = window.setInterval(onChange, 60_000);
@@ -43,12 +62,34 @@ export function ConsultationForm({
   submit = createPublicGateway().submit,
   prefill = {},
   onSent,
+  loadContact = loadSignedInContact,
 }: {
   submit?: (request: ConsultationRequest) => Promise<void>;
   prefill?: ConsultationPrefill;
   /** Gửi thành công → trang chuyển sang /tu-van/da-gui; không truyền thì hiện lời cảm ơn tại chỗ. */
   onSent?: () => void;
+  /** Lấy tên/email để điền sẵn (mặc định: tài khoản couple đang đăng nhập). Tách prop để test. */
+  loadContact?: () => Promise<ContactPrefill | null>;
 }) {
+  const nameInput = useRef<HTMLInputElement>(null);
+  const emailInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    let active = true;
+    loadContact()
+      .then((contact) => {
+        if (!active || contact === null) return;
+        // Profile về sau khi form đã hiện: chỉ điền ô còn trống, không ghi đè chữ người dùng đã gõ.
+        if (nameInput.current?.value === '' && contact.displayName)
+          nameInput.current.value = contact.displayName;
+        if (emailInput.current?.value === '') emailInput.current.value = contact.email;
+      })
+      .catch(() => {
+        // Điền sẵn chỉ là tiện ích: lỗi thì để khách tự nhập.
+      });
+    return () => {
+      active = false;
+    };
+  }, [loadContact]);
   const [shift, setShift] = useState<'LUNCH' | 'DINNER' | ''>(prefill.shift ?? '');
   const [state, setState] = useState<'idle' | 'pending' | 'success'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -122,11 +163,18 @@ export function ConsultationForm({
       <div className="public-form-grid">
         <label>
           Họ và tên
-          <input name="displayName" required maxLength={120} autoComplete="name" />
+          <input ref={nameInput} name="displayName" required maxLength={120} autoComplete="name" />
         </label>
         <label>
           Email
-          <input name="email" required type="email" maxLength={320} autoComplete="email" />
+          <input
+            ref={emailInput}
+            name="email"
+            required
+            type="email"
+            maxLength={320}
+            autoComplete="email"
+          />
         </label>
         <label>
           Số điện thoại <span>(không bắt buộc)</span>

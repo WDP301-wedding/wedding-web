@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createInvitationGateway } from './invitation-api';
+import { createInvitationGateway, previewAssetId } from './invitation-api';
 import type { ApiClient } from '../../lib/api/client';
 
 describe('InvitationGateway (IS-W7 Couple Web)', () => {
@@ -111,37 +111,86 @@ describe('InvitationGateway (IS-W7 Couple Web)', () => {
     );
   });
 
-  it('derives an AI original before offering it for publication', async () => {
+  it('enqueues an AI image job with the caller key and fills the null fields of a queued job', async () => {
+    const queued = {
+      jobId: 'job-1',
+      intentDigest: 'a'.repeat(64),
+      status: 'QUEUED',
+      createdAt: '2026-10-21T00:00:00.000Z',
+      updatedAt: '2026-10-21T00:00:00.000Z',
+      statusPath: '/api/v1/bookings/b/invitation-image-jobs/job-1',
+      retryAfterSeconds: 3,
+    };
     const client = {
-      POST: vi
-        .fn()
-        .mockResolvedValueOnce({
-          data: {
-            data: { mediaAssetId: 'original', revision: 3, previewPath: '/private-preview' },
-          },
-        })
-        .mockResolvedValueOnce({ data: { data: { derivedAssetId: 'derived' } } }),
-      GET: vi
-        .fn()
-        .mockResolvedValue({ data: { data: { signedUrl: 'https://example.test/private.png' } } }),
+      POST: vi.fn().mockResolvedValue({ data: { data: queued } }),
     } as unknown as ApiClient;
-    const result = await createInvitationGateway(client).generateImage(
+
+    const job = await createInvitationGateway(client).enqueueImageJob(
       token,
       bookingId,
       'Hoa trắng',
       '1:1',
-      'same-intent',
+      'image-job:same-intent',
     );
-    expect(client.POST).toHaveBeenNthCalledWith(
-      2,
-      '/bookings/{bookingId}/invitation-derived-assets',
+
+    expect(client.POST).toHaveBeenCalledWith(
+      '/bookings/{bookingId}/invitation-image-jobs',
       expect.objectContaining({
-        body: { mediaAssetId: 'original', expectedRevision: 3 },
-        params: { path: { bookingId }, header: { 'Idempotency-Key': 'same-intent:derive' } },
+        body: { prompt: 'Hoa trắng', aspectRatio: '1:1' },
+        params: { path: { bookingId }, header: { 'Idempotency-Key': 'image-job:same-intent' } },
       }),
     );
-    expect(result.derivedAssetId).toBe('derived');
-    expect(result.previewUrl).toBe('https://example.test/private.png');
+    expect(job).toMatchObject({ status: 'QUEUED', result: null, errorCode: null });
+  });
+
+  it('reads, lists and recovers image jobs without caching status', async () => {
+    const succeeded = {
+      jobId: 'job-1',
+      intentDigest: 'a'.repeat(64),
+      status: 'SUCCEEDED',
+      createdAt: '2026-10-21T00:00:00.000Z',
+      updatedAt: '2026-10-21T00:01:00.000Z',
+      statusPath: '/api/v1/bookings/b/invitation-image-jobs/job-1',
+      retryAfterSeconds: null,
+      result: { mediaAssetId: 'm', derivedAssetId: 'd', previewPath: '/api/v1/bookings/b/media/m' },
+    };
+    const client = {
+      GET: vi
+        .fn()
+        .mockResolvedValueOnce({ data: { data: succeeded } })
+        .mockResolvedValueOnce({ data: { data: { items: [succeeded], nextCursor: null } } }),
+      POST: vi.fn().mockResolvedValue({ data: { data: succeeded } }),
+    } as unknown as ApiClient;
+    const gateway = createInvitationGateway(client);
+
+    expect(await gateway.getImageJob(token, bookingId, 'job-1')).toMatchObject({
+      status: 'SUCCEEDED',
+      errorCode: null,
+    });
+    expect(client.GET).toHaveBeenCalledWith(
+      '/bookings/{bookingId}/invitation-image-jobs/{jobId}',
+      expect.objectContaining({
+        cache: 'no-store',
+        params: { path: { bookingId, jobId: 'job-1' } },
+      }),
+    );
+    expect(await gateway.listImageJobs(token, bookingId)).toHaveLength(1);
+    await gateway.recoverImageJob(token, bookingId, 'job-1', 'image-job-recovery:k');
+    expect(client.POST).toHaveBeenCalledWith(
+      '/bookings/{bookingId}/invitation-image-jobs/{jobId}/recovery',
+      expect.objectContaining({
+        body: {},
+        params: {
+          path: { bookingId, jobId: 'job-1' },
+          header: { 'Idempotency-Key': 'image-job-recovery:k' },
+        },
+      }),
+    );
+  });
+
+  it('reads the media asset id from an authenticated preview path', () => {
+    expect(previewAssetId('/api/v1/bookings/abc-1/media/0f0e-12')).toBe('0f0e-12');
+    expect(previewAssetId('/somewhere/else')).toBeNull();
   });
 
   it('throws clear error when api returns error object', async () => {

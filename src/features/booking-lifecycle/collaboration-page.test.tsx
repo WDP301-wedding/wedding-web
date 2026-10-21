@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiClientError } from '../../lib/api/client';
+import { CoupleWorkspaceContext } from '../couple-workspace/use-couple-workspace';
 import { WebIdentitySession } from '../identity-access/session';
 
 import type { CollaborationGateway, ProposalView } from './collaboration-api';
@@ -24,6 +25,18 @@ const proposal: ProposalView = {
       description: 'Theo mùa',
       priceVndPerTable: 5_000_000,
     },
+    menus: [
+      {
+        versionId: 'menu-version',
+        packageId: 'menu-package',
+        versionNumber: 1,
+        name: 'Thực đơn Mùa Thu',
+        description: 'Theo mùa',
+        priceVndPerTable: 5_000_000,
+        tableCount: 28,
+        lineTotalVnd: 140_000_000,
+      },
+    ],
     tableCount: 28,
     baseChargeVnd: 140_000_000,
     depositAmountVnd: 42_000_000,
@@ -333,6 +346,61 @@ describe('Booking collaboration workspace', () => {
     render(<CollaborationPage />);
     expect(await screen.findByText('Không gian cặp đôi')).toBeVisible();
   });
+
+  it('opens the proposal from the /khong-gian cache inside the workspace provider', async () => {
+    vi.spyOn(WebIdentitySession.prototype, 'restore').mockResolvedValue({
+      status: 'authenticated',
+      access: 'full',
+      denial: null,
+      actor: {
+        accountId: 'couple',
+        displayEmail: 'couple@example.com',
+        roles: ['COUPLE'],
+        sessionId: 'session',
+      },
+    });
+    const authorizeSpy = vi.spyOn(WebIdentitySession.prototype, 'authorize');
+    render(
+      <CoupleWorkspaceContext.Provider
+        value={{
+          state: { status: 'ready', proposal },
+          reload: vi.fn(),
+          bookingId: proposal.bookingId,
+          bookings: [],
+        }}
+      >
+        <CollaborationPage />
+      </CoupleWorkspaceContext.Provider>,
+    );
+
+    expect(await screen.findByText('Sảnh Ánh Dương')).toBeVisible();
+    expect(authorizeSpy).not.toHaveBeenCalled();
+  });
+  it('reuses the cached workspace proposal without loading bookings or the proposal again', async () => {
+    const gateway = fakeGateway();
+    const listBookings = vi.fn(only(proposal.bookingId));
+    const onProposalUpdated = vi.fn();
+    render(
+      <CollaborationWorkspace
+        access="full"
+        authorize={authorize}
+        gateway={gateway}
+        listBookings={listBookings}
+        initialProposal={proposal}
+        onProposalUpdated={onProposalUpdated}
+      />,
+    );
+
+    expect(screen.getByText('Sảnh Ánh Dương')).toBeVisible();
+    expect(screen.queryByLabelText('Đổi tiệc cưới')).not.toBeInTheDocument();
+    expect(listBookings).not.toHaveBeenCalled();
+    expect(gateway.load).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Phê duyệt revision này' }));
+    await waitFor(() => expect(onProposalUpdated).toHaveBeenCalledTimes(1));
+    expect(gateway.load).toHaveBeenCalledTimes(1);
+  });
+
   it('renders a restricted proposal and exact timeline from the server', async () => {
     const gateway = fakeGateway();
     render(

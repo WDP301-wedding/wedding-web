@@ -125,7 +125,15 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
         cache: 'no-store',
       });
       const value = required(data);
-      return { ...value, history: Array.from(value.history) };
+      // openapi-fetch bỏ mất trường chỉ có kiểu `null` (reasonCode khi canPay = true) → điền lại.
+      const eligibility = value.balancePaymentEligibility;
+      return {
+        ...value,
+        history: Array.from(value.history),
+        balancePaymentEligibility: eligibility.canPay
+          ? { ...eligibility, reasonCode: null }
+          : eligibility,
+      };
     },
     async loadAttempt(token, bookingId, attemptId) {
       const { data } = await api().GET('/bookings/{bookingId}/payments/{attemptId}', {

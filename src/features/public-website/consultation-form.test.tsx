@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ConsultationForm } from './consultation-form';
 import { minimumPreferredDate } from './consultation-date';
 import type { ConsultationRequest } from './public-api';
+import * as experienceApi from '../identity-access/experience-api';
+import { WebIdentitySession } from '../identity-access/session';
 
 describe('public consultation submission', () => {
   afterEach(() => vi.useRealTimers());
@@ -82,5 +84,70 @@ describe('public consultation submission', () => {
     expect(submit.mock.calls[0]?.[0].submissionId).not.toEqual(
       submit.mock.calls[1]?.[0].submissionId,
     );
+  });
+});
+
+describe('consultation contact prefill for a signed-in couple', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  const actor = (roles: readonly ('MANAGER' | 'STAFF' | 'COUPLE')[]) => ({
+    status: 'authenticated' as const,
+    access: 'full' as const,
+    denial: null,
+    actor: { accountId: 'account', displayEmail: 'lan@example.com', roles, sessionId: 'session' },
+  });
+
+  it('fills the empty name and email from the signed-in account and leaves the phone empty', async () => {
+    const loadContact = () =>
+      Promise.resolve({ displayName: 'Lan & Minh', email: 'lan@example.com' });
+    render(<ConsultationForm submit={vi.fn()} loadContact={loadContact} />);
+
+    await waitFor(() => expect(screen.getByLabelText('Họ và tên')).toHaveValue('Lan & Minh'));
+    expect(screen.getByLabelText('Email')).toHaveValue('lan@example.com');
+    expect(screen.getByLabelText(/Số điện thoại/)).toHaveValue('');
+  });
+
+  it('keeps what the customer typed before the profile arrived', async () => {
+    let resolve!: (value: { displayName: string | null; email: string }) => void;
+    const loadContact = () =>
+      new Promise<{ displayName: string | null; email: string }>((done) => {
+        resolve = done;
+      });
+    render(<ConsultationForm submit={vi.fn()} loadContact={loadContact} />);
+    fireEvent.change(screen.getByLabelText('Họ và tên'), { target: { value: 'Chị Lan' } });
+
+    resolve({ displayName: null, email: 'lan@example.com' });
+
+    await waitFor(() => expect(screen.getByLabelText('Email')).toHaveValue('lan@example.com'));
+    expect(screen.getByLabelText('Họ và tên')).toHaveValue('Chị Lan');
+  });
+
+  it('uses the couple profile but never fills a manager or staff account', async () => {
+    const profile = vi.fn().mockResolvedValue({
+      accountId: 'account',
+      displayEmail: 'lan@example.com',
+      displayName: 'Lan & Minh',
+      revision: 1,
+    });
+    vi.spyOn(WebIdentitySession.prototype, 'authorize').mockImplementation((operation) =>
+      operation('token'),
+    );
+    vi.spyOn(experienceApi, 'createExperienceGateway').mockReturnValue({
+      profile,
+    } as unknown as ReturnType<typeof experienceApi.createExperienceGateway>);
+
+    const restore = vi
+      .spyOn(WebIdentitySession.prototype, 'restore')
+      .mockResolvedValue(actor(['COUPLE']));
+    const { unmount } = render(<ConsultationForm submit={vi.fn()} />);
+    await waitFor(() => expect(screen.getByLabelText('Họ và tên')).toHaveValue('Lan & Minh'));
+    unmount();
+
+    restore.mockResolvedValue(actor(['MANAGER']));
+    profile.mockClear();
+    render(<ConsultationForm submit={vi.fn()} />);
+    await waitFor(() => expect(restore).toHaveBeenCalledTimes(2));
+    expect(profile).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Email')).toHaveValue('');
   });
 });
