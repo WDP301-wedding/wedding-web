@@ -43,7 +43,12 @@ export type Task = Readonly<{
  * "Việc cần làm ngay" suy ra từ phase + cờ duyệt do backend trả về. Đặt thành hàm thuần
  * (không gọi API, không đọc state) để dễ test và để mọi logic nghiệp vụ nằm một chỗ.
  */
-export function nextTasks(proposal: Proposal, summary: BookingSummary | undefined): Task[] {
+export function nextTasks(
+  proposal: Proposal,
+  summary: BookingSummary | undefined,
+  /** Số ngày tới tiệc (âm = đã qua). Mặc định coi như chưa tới để giữ hành vi cũ. */
+  days = 1,
+): Task[] {
   const id = proposal.bookingId;
   const timeline = proposal.effectiveTimeline;
   switch (proposal.phase) {
@@ -106,6 +111,25 @@ export function nextTasks(proposal: Proposal, summary: BookingSummary | undefine
         },
       ];
     case 'CONFIRMED':
+      // Sau ngày tiệc backend vẫn để CONFIRMED cho tới khi nhà hàng chốt quyết toán → không còn
+      // gì để "chuẩn bị"; hướng hai bạn sang theo dõi quyết toán thay vì nhắc chốt khách/xếp bàn.
+      if (days < 0)
+        return [
+          {
+            title: 'Chờ nhà hàng quyết toán',
+            detail: 'Tiệc đã diễn ra. Nhà hàng sẽ chốt chi phí phát sinh và hoá đơn cuối.',
+            href: withBooking(routes.settle, id),
+            action: 'Xem quyết toán',
+            status: 'wait',
+          },
+          {
+            title: 'Thanh toán phần còn lại',
+            detail: 'Khi hoá đơn cuối được chốt, hai bạn thanh toán phần còn lại tại đây.',
+            href: withBooking(routes.payment, id),
+            action: 'Đi tới Thanh toán',
+            status: 'info',
+          },
+        ];
       return [
         {
           title: 'Số khách & nhóm khách',
@@ -173,7 +197,7 @@ function OverviewContent() {
   const summary = bookings.find((booking) => booking.bookingId === bookingId);
   const step = journeyIndex(proposal.phase, proposal.eventDate);
   const days = daysUntil(proposal.eventDate);
-  const tasks = nextTasks(proposal, summary);
+  const tasks = nextTasks(proposal, summary, days);
   const { proposal: offer } = proposal;
 
   return (

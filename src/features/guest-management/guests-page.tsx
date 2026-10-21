@@ -53,7 +53,13 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
         maxGuests={proposal.proposal.hall.maxGuests}
         onSaved={onPlanSaved}
       />
-      <GroupsCard bookingId={bookingId} groups={data.groups} onChanged={onGroupSaved} />
+      <GroupsCard
+        bookingId={bookingId}
+        groups={data.groups}
+        // Chỉ đếm được khi đang xem khách "Đang mời"; xem "Đã lưu trữ" thì để backend tự kiểm tra.
+        activeGuestCounts={status === 'ACTIVE' ? countByGroup(data.guests) : undefined}
+        onChanged={onGroupSaved}
+      />
       <GuestListCard
         bookingId={bookingId}
         groups={data.groups}
@@ -81,4 +87,11 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
       )}
     </>
   );
+}
+
+function countByGroup(guests: readonly { guestGroupId: string }[]): ReadonlyMap<string, number> {
+  const counts = new Map<string, number>();
+  for (const guest of guests)
+    counts.set(guest.guestGroupId, (counts.get(guest.guestGroupId) ?? 0) + 1);
+  return counts;
 }

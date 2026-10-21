@@ -12,6 +12,8 @@ import { browserSession as session } from '../identity-access/browser-session';
 import { ApiClientError } from '../../lib/api/client';
 import { describeApiError } from '../../lib/api/api-errors';
 import { createInvitationGateway, type DesignView } from './invitation-api';
+import { estimateMediaCutoff } from './media-cutoff';
+import { useCoupleWorkspace } from '../couple-workspace/use-couple-workspace';
 
 /**
  * Studio thiệp (~1.500 dòng: trình biên tập, xuất bản, đặt in) được tách thành chunk riêng bằng
@@ -49,6 +51,15 @@ export function CoupleInvitationsPage() {
   const urlTab = searchParams.get('tab');
 
   const bookingId = rawBookingId;
+  // Lịch tiệc lấy từ lớp cache dùng chung của /khong-gian (không gọi thêm API).
+  const workspace = useCoupleWorkspace();
+  const proposal =
+    workspace.state.status === 'ready' && workspace.state.proposal.bookingId === bookingId
+      ? workspace.state.proposal
+      : null;
+  const mediaCutoffEstimate = proposal
+    ? estimateMediaCutoff(proposal.eventDate, proposal.proposal.shift.startTime)
+    : null;
   const initialTab = parseTab(urlTab);
   const [tab, setTab] = useState<StudioTab>(initialTab);
   const [prevUrlTab, setPrevUrlTab] = useState(urlTab);
@@ -192,6 +203,7 @@ export function CoupleInvitationsPage() {
     <WorkspaceShell active={tab} bookingId={bookingId ?? undefined}>
       <div className="invitation-page">
         <InvitationStudioView
+          mediaCutoffEstimate={mediaCutoffEstimate}
           bookingId={bookingId}
           accessToken={token}
           gateway={gateway}

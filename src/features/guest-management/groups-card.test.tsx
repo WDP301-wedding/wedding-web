@@ -94,4 +94,22 @@ describe('GroupsCard', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Lưu tên' }));
     expect(await screen.findByText('Mã hỗ trợ: req-123')).toBeInTheDocument();
   });
+
+  it('explains instead of calling the backend when the group still has active guests', async () => {
+    const update = vi.spyOn(guestApi, 'updateGroup');
+    render(
+      <GroupsCard
+        bookingId="booking"
+        groups={[group]}
+        activeGuestCounts={new Map([['group-1', 3]])}
+        onChanged={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu trữ' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Chưa thể lưu trữ nhóm “Nhà trai”' });
+    expect(dialog).toHaveTextContent('Nhóm còn 3 khách đang mời');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Đã hiểu' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(update).not.toHaveBeenCalled();
+  });
 });

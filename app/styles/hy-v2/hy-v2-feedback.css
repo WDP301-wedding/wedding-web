@@ -134,3 +134,12 @@
     animation: none;
   }
 }
+
+/* Cảnh báo trong Studio (vd. đã qua hạn chỉnh sửa ảnh theo lịch tiệc) */
+.v0-workspace .invitation-live .studio-hint.studio-hint-warning {
+  padding: 10px 12px;
+  border-left: 4px solid var(--hy-warning);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-warning-bg);
+  color: var(--hy-warning);
+}

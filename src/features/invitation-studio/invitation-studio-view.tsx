@@ -83,6 +83,11 @@ export interface InvitationStudioViewProps {
   readonly initialDesigns?: readonly DesignView[];
   readonly initialOrders?: readonly PrintOrderView[];
   readonly initialTemplates?: readonly TemplateItemView[];
+  /**
+   * Mốc khoá ảnh ƯỚC TÍNH (ISO) từ lịch tiệc — xem media-cutoff.ts. Đã qua mốc thì hiện cảnh báo
+   * trước khi người dùng mất công nhập mô tả/chọn ảnh (backend vẫn quyết định cuối cùng).
+   */
+  readonly mediaCutoffEstimate?: string | null;
 }
 
 const orderStatusMap: Record<string, { label: string; className: string }> = {
@@ -103,7 +108,18 @@ export function InvitationStudioView({
   onTabChange,
   initialDesigns = [],
   initialOrders,
+  mediaCutoffEstimate = null,
 }: InvitationStudioViewProps) {
+  // Mốc thời gian lấy một lần khi mở Studio (lazy init: không gọi Date.now() mỗi lần render).
+  const [openedAt] = useState(() => Date.now());
+  const mediaLikelyLocked =
+    mediaCutoffEstimate !== null && openedAt >= Date.parse(mediaCutoffEstimate);
+  const mediaLockNote = mediaLikelyLocked ? (
+    <p className="studio-hint studio-hint-warning" role="note">
+      Theo lịch tiệc, hạn chỉnh sửa ảnh (72 giờ trước giờ khai tiệc) đã qua nên nhiều khả năng không
+      tạo/tải ảnh mới được nữa. Nếu cần, hãy liên hệ nhà hàng để được gia hạn.
+    </p>
+  ) : null;
   const [activeTab, setActiveTab] = useState<'design' | 'media' | 'publish' | 'print'>(initialTab);
   const prevInitialTab = React.useRef(initialTab);
   useEffect(() => {
@@ -1046,6 +1062,7 @@ export function InvitationStudioView({
           {/* AI Generation Box */}
           <div className="ai-box">
             <h3 className="studio-subtitle">Tạo Hoạ Tiết Thiệp Bằng Trí Tuệ Nhân Tạo (AI)</h3>
+            {mediaLockNote}
             <p className="studio-hint">
               Nhập mô tả phong cách hoa văn hoặc khung cảnh tiệc cưới (ví dụ: hoa cẩm tú cầu pastel,
               phong cách hoàng gia).
@@ -1149,6 +1166,7 @@ export function InvitationStudioView({
               Hạn ngạch: Tối đa 100 ảnh hoặc 1 GiB mỗi tiệc cưới. Hạn chót tải ảnh: 72 giờ trước giờ
               khai tiệc. Định dạng hỗ trợ: JPEG, PNG, WebP (&le; 25MB).
             </p>
+            {mediaLockNote}
 
             <form
               onSubmit={(e) => {
