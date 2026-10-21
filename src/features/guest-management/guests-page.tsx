@@ -32,7 +32,9 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
     status,
     setStatus,
     loadError,
+    extrasError,
     reload,
+    reloadExtras,
     onPlanSaved,
     onCheckInChanged,
     onGroupSaved,
@@ -61,12 +63,22 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
         onChanged={onGuestSaved}
       />
       <ImportCard bookingId={bookingId} groups={data.groups} onImported={reload} />
-      <CheckInCard
-        bookingId={bookingId}
-        settings={data.settings}
-        attendance={data.attendance}
-        onChanged={onCheckInChanged}
-      />
+      {data.settings && data.attendance ? (
+        <CheckInCard
+          bookingId={bookingId}
+          settings={data.settings}
+          attendance={data.attendance}
+          onChanged={onCheckInChanged}
+        />
+      ) : extrasError ? (
+        // Chỉ thẻ check-in lỗi; phần còn lại của trang vẫn dùng bình thường, không cần F5.
+        <section className="cw-card" aria-label="Check-in theo tên tại tiệc">
+          <h2>Check-in theo tên tại tiệc</h2>
+          <ErrorPanel error={extrasError} onRetry={reloadExtras} />
+        </section>
+      ) : (
+        <Skeleton label="Đang tải cài đặt check-in…" variant="card" />
+      )}
     </>
   );
 }

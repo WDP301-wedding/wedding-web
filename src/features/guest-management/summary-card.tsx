@@ -8,7 +8,8 @@ export function SummaryCard({
   data,
   status,
 }: Readonly<{ data: GuestsData; status: GuestStatusFilter }>) {
-  const checkedIn = data.attendance.checkedInGuestCount;
+  // `undefined` = phần check-in chưa tải xong/lỗi; `null` = check-in đang tắt (backend).
+  const checkedIn = data.attendance ? data.attendance.checkedInGuestCount : undefined;
   return (
     <section className="cw-card" aria-label="Tóm tắt khách mời">
       <dl className="cw-stats">
@@ -22,7 +23,9 @@ export function SummaryCard({
         </div>
         <div>
           <dt>Tên đã check-in</dt>
-          <dd>{checkedIn === null ? 'Chưa ghi nhận' : checkedIn}</dd>
+          <dd>
+            {checkedIn === undefined ? '…' : checkedIn === null ? 'Chưa ghi nhận' : checkedIn}
+          </dd>
         </div>
         <div>
           <dt>Nhóm đang dùng</dt>
