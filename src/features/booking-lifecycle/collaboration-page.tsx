@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ApiClientError } from '../../lib/api/client';
 import { TimelineEditor } from './timeline-editor';
@@ -9,7 +9,6 @@ import { Skeleton } from '../../design-system/skeleton';
 import { type WebSessionSnapshot } from '../identity-access/session';
 import { browserSession } from '../identity-access/browser-session';
 import { createExperienceGateway } from '../identity-access/experience-api';
-import { CoupleWorkspaceContext } from '../couple-workspace/use-couple-workspace';
 import {
   createCollaborationGateway,
   type CollaborationGateway,
@@ -50,14 +49,7 @@ export function CollaborationPage({
 }: {
   onBookingChange?: ((bookingId: string) => void) | undefined;
 } = {}) {
-  // Trong /khong-gian, SpaceProvider đã khôi phục phiên và tải sẵn proposal của tiệc đang chọn
-  // (SpaceGate chỉ render trang khi đã sẵn sàng) → dùng lại, không tải bookings/proposal lần nữa.
-  const workspace = useContext(CoupleWorkspaceContext);
-  const cachedProposal = workspace?.state.status === 'ready' ? workspace.state.proposal : undefined;
-  const [snapshot, setSnapshot] = useState<WebSessionSnapshot | null>(() => {
-    const current = session.snapshot();
-    return current.status === 'authenticated' ? current : null;
-  });
+  const [snapshot, setSnapshot] = useState<WebSessionSnapshot | null>(null);
   useEffect(() => {
     let active = true;
     void session.restore().then((value) => active && setSnapshot(value));
@@ -79,8 +71,6 @@ export function CollaborationPage({
       authorize={(operation) => session.authorize(operation)}
       gateway={gateway}
       onBookingChange={onBookingChange}
-      initialProposal={cachedProposal}
-      onProposalUpdated={workspace?.reload}
     />
   );
 }
@@ -91,37 +81,26 @@ export function CollaborationWorkspace({
   gateway,
   onBookingChange,
   listBookings = listCoupleBookings,
-  initialProposal,
-  onProposalUpdated,
 }: Readonly<{
   access: 'restricted' | 'full';
   authorize: Authorize;
   gateway: CollaborationGateway;
   onBookingChange?: ((bookingId: string) => void) | undefined;
   listBookings?: ListBookings;
-  /**
-   * Proposal đã có sẵn (lớp cache /khong-gian): hiện ngay, không tải danh sách tiệc và không
-   * tự mở tiệc. Đổi tiệc khi đó do ô chọn trên thanh của khung đảm nhận.
-   */
-  initialProposal?: ProposalView | undefined;
-  /** Gọi sau khi lệnh ghi thành công để lớp cache dùng chung làm mới (tổng quan, sidebar). */
-  onProposalUpdated?: (() => void) | undefined;
 }>) {
-  const embedded = initialProposal !== undefined;
-  const [proposal, setProposal] = useState<ProposalView | null>(initialProposal ?? null);
+  const [proposal, setProposal] = useState<ProposalView | null>(null);
   const [pending, setPending] = useState(false);
-  const [loaded, setLoaded] = useState(embedded);
+  const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // null = đang tải danh sách tiệc (hoặc không cần tải khi embedded); [] = chưa có tiệc nào.
+  // null = đang tải danh sách tiệc; [] = cặp đôi chưa có tiệc nào.
   const [availableBookings, setAvailableBookings] = useState<readonly BookingChoice[] | null>(null);
-  const requestedRef = useRef(embedded);
+  const requestedRef = useRef(false);
 
   const activeRequestIdRef = useRef<string | null>(null);
 
   // Lấy danh sách tiệc của cặp đôi: dùng để tự mở tiệc và hiện ô "Đổi tiệc" khi có nhiều tiệc.
   useEffect(() => {
-    if (embedded) return;
     let active = true;
     void listBookings(authorize)
       .then((items) => active && setAvailableBookings(items))
@@ -129,7 +108,7 @@ export function CollaborationWorkspace({
     return () => {
       active = false;
     };
-  }, [authorize, listBookings, embedded]);
+  }, [authorize, listBookings]);
 
   const load = useCallback(
     async (id: string) => {
@@ -195,7 +174,6 @@ export function CollaborationWorkspace({
       setMessage(success);
       if (proposal)
         setProposal(await authorize((token) => gateway.load(token, proposal.bookingId)));
-      onProposalUpdated?.();
     } catch (caught) {
       if (caught instanceof ApiClientError && [401, 403, 404].includes(caught.status ?? 0))
         setProposal(null);

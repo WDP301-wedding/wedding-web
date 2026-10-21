@@ -30,9 +30,8 @@ afterEach(() => {
 
 describe('collaboration HTTP adapter', () => {
   it.each([
-    { proposal: { menus: [] }, timeline: null, effectiveTimeline: null },
+    { timeline: null, effectiveTimeline: null },
     {
-      proposal: { menus: [{ versionId: 'menu', tableCount: 10 }] },
       timeline: { items: [{ title: 'Draft' }] },
       effectiveTimeline: { items: [{ title: 'Effective' }] },
       cancellationRequests: [{ requestId: 'request' }],
@@ -53,9 +52,7 @@ describe('collaboration HTTP adapter', () => {
   });
   it('creates and reuses the default client lazily', async () => {
     vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'http://localhost:4000/api/v1');
-    const fetch = vi.fn(() =>
-      response({ proposal: { menus: [] }, timeline: null, effectiveTimeline: null }),
-    );
+    const fetch = vi.fn(() => response({ timeline: null, effectiveTimeline: null }));
     vi.stubGlobal('fetch', fetch);
     const gateway = createCollaborationGateway();
     await gateway.load(token, bookingId);

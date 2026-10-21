@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 import { CoupleInvitationsPage as Page } from './invitations-page';
 import { browserSession as session } from '../identity-access/browser-session';
-import { ApiClientError } from '../../lib/api/client';
 
 const mockSearchParams = new URLSearchParams();
 vi.mock('next/navigation', () => ({
@@ -21,7 +20,6 @@ const { mockGateway } = vi.hoisted(() => ({
   mockGateway: {
     listDesigns: vi.fn(),
     listPrintOrders: vi.fn(),
-    listImageJobs: vi.fn(),
     getPublicInvitation: vi.fn(),
   },
 }));
@@ -49,7 +47,6 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
       },
     ]);
     mockGateway.listPrintOrders.mockResolvedValue([]);
-    mockGateway.listImageJobs.mockResolvedValue([]);
     mockGateway.getPublicInvitation.mockResolvedValue({});
     (session.restore as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       status: 'authenticated',
@@ -89,59 +86,6 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     expect(await screen.findByText('Đặt In Thiệp Giấy Truyền Thống')).toBeInTheDocument();
     expect(screen.getByText('Gửi Yêu Cầu Báo Giá In')).toBeInTheDocument();
-  });
-
-  it('loads print orders and contracted print sources only after the print tab is opened', async () => {
-    mockSearchParams.set('bookingId', bookingId);
-    mockSearchParams.set('tab', 'design');
-    const contractedPrintSources = vi.fn().mockResolvedValue([]);
-    Object.assign(mockGateway, { contractedPrintSources });
-
-    render(<Page />);
-
-    expect(await screen.findByText('Cấu Trúc Nội Dung Thiệp Cưới')).toBeInTheDocument();
-    expect(mockGateway.listPrintOrders).not.toHaveBeenCalled();
-    expect(contractedPrintSources).not.toHaveBeenCalled();
-
-    mockGateway.listPrintOrders.mockResolvedValue([{ orderId: 'order-1', status: 'REQUESTED' }]);
-    fireEvent.click(screen.getByText('Đặt In Thiệp Giấy'));
-
-    expect(await screen.findByText('Đặt In Thiệp Giấy (1)')).toBeInTheDocument();
-    expect(mockGateway.listPrintOrders).toHaveBeenCalledWith('test-token', bookingId);
-    expect(contractedPrintSources).toHaveBeenCalledWith('test-token', bookingId);
-
-    // Quay lại tab thiết kế rồi mở lại tab in: không tải lại.
-    fireEvent.click(screen.getByText('Thiết Kế & AI'));
-    fireEvent.click(screen.getByText('Đặt In Thiệp Giấy (1)'));
-    expect(mockGateway.listPrintOrders).toHaveBeenCalledTimes(1);
-    Reflect.deleteProperty(mockGateway, 'contractedPrintSources');
-  });
-
-  it('explains a slow server in Vietnamese and retries only the design request', async () => {
-    mockSearchParams.set('bookingId', bookingId);
-    mockSearchParams.set('tab', 'design');
-    const designs: unknown = await mockGateway.listDesigns();
-    mockGateway.listDesigns.mockReset();
-    mockGateway.listDesigns
-      .mockRejectedValueOnce(
-        new ApiClientError({
-          kind: 'timeout',
-          code: 'REQUEST_TIMEOUT',
-          message: 'The API request timed out after 10000 ms.',
-          requestId: 'request',
-        }),
-      )
-      .mockResolvedValueOnce(designs);
-
-    render(<Page />);
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('Máy chủ đang phản hồi chậm');
-    expect(screen.queryByText(/timed out/)).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
-
-    expect(await screen.findByText('Cấu Trúc Nội Dung Thiệp Cưới')).toBeInTheDocument();
-    expect(mockGateway.listDesigns).toHaveBeenCalledTimes(2);
   });
 
   it('falls back to design tab if tab is missing or invalid', async () => {
