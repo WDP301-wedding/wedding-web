@@ -67,7 +67,7 @@ No migration or monetary policy change is included.
 
 The frontend contract pins backend commit `4e657b8` with OpenAPI SHA-256
 `73726205296c4bf2d7c551f50228df7f9fdcd5d9d61e5a97e2e3c005025d6e91`.
-The commit is local; publish it before remote frontend CI retrieves the artifact.
+The commit has been published on the backend recovery branch for remote CI retrieval.
 
 ## Browser evidence: controlled local HTTP fixtures
 
@@ -92,19 +92,30 @@ Local screenshots are in the backend's ignored `output/playwright/` directory:
 `payment-recovery-balance-mobile.png`, and
 `payment-recovery-balance-failed-desktop.png`.
 
-## Release limits
+## Deployment follow-up
 
-The frontend's unchanged dependency lock currently fails `npm run audit:ci`:
-5 high/3 moderate findings, including Vite GHSA-587h-7wmj-h5pm, and the existing
-braces allowlist expired on 2026-10-16. No dependency exception was extended,
-dependency downgraded or audit gate bypassed by this payment fix. This is an
-existing release blocker, separate from the payment behavior regressions.
+The owner explicitly requested push/deploy and approved renewing only the reviewed
+development-only braces graph until 29 October 2026. See
+[the dated security review](../../docs/security/braces-review-2026-10-22.md).
+Vitest/coverage-v8 were upgraded to 5.0.5 (Vite 8.3.5); production-only audit has
+zero vulnerabilities and the guarded full audit passes with only that scoped
+exception. CI now requires formatting, coverage and audit instead of optional tests.
+The updated full frontend coverage passes 43 files / 308 tests: 95.94% lines,
+91.25% branches; every changed payment file meets the existing per-file 80% gate.
 
-No backend/frontend deployment or main-branch merge is included. Direct deployed
-browser verification and genuine VNPay sandbox outcomes remain pending authorized
-rollout and the release gates. Local/offline checks do not prove live provider
-readiness. Backend must deploy before the website because discovery fails closed
-when the new API is absent.
+Backend PR [#90](https://github.com/WDP301-wedding/wedding-be/pull/90) restores
+mandatory format/unit/contract/integration/coverage gates. Stale media clock,
+acceptance-boundary and Guest batch rollback fixtures were repaired without changing
+production business rules (43 tests plus one fresh repository-cutoff regression
+passed). Only generated Prisma/operator artifacts are excluded from authored-source
+format/lint; five existing formatting violations were corrected. No timeout,
+assertion or coverage threshold was reduced.
+
+Exact-head Linux checks and deployment remain in progress. Direct deployed browser
+verification and genuine VNPay sandbox outcomes remain separate from offline checks.
+Backend must deploy before the website because discovery fails closed when the new
+API is absent. No real-money payment is authorized or performed by this rollout.
 
 Implementation commits on `codex/payment-recovery-20261022`:
-backend `4e657b8`, frontend `9202359`. Both are local and have not been pushed.
+backend `4e657b8`, frontend `9202359`. The backend implementation is published;
+frontend push and both production deployments follow the required checks.

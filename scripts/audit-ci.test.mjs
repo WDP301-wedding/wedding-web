@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { evaluateAuditReport } from './audit-ci.mjs';
 
-const beforeReview = new Date('2026-10-15T23:59:59.000Z');
+const beforeReview = new Date('2026-10-28T23:59:59.000Z');
 
 function reviewedLockfile() {
   return {
@@ -93,7 +93,7 @@ test('blocks the exception at the review date', () => {
   const result = evaluateAuditReport(
     reviewedReport(),
     reviewedLockfile(),
-    new Date('2026-10-16T00:00:00.000Z'),
+    new Date('2026-10-29T00:00:00.000Z'),
   );
   assert.equal(result.ok, false);
   assert.match(result.blocking.join('\n'), /expired/i);
