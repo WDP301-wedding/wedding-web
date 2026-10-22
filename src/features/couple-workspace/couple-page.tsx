@@ -1,5 +1,6 @@
 'use client';
 
+import { Illustration, type IllustrationName } from '../../design-system/illustrations';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
@@ -69,7 +70,7 @@ export function CouplePage({
         {state.status === 'error' ? <ErrorPanel error={state.error} onRetry={reload} /> : null}
         {state.status === 'choose-booking' ? (
           state.bookings.length === 0 ? (
-            <EmptyPanel title="Chưa có tiệc cưới">
+            <EmptyPanel title="Chưa có tiệc cưới" illustration="empty-tiec">
               <p>Nhà hàng sẽ mở hồ sơ sau buổi tư vấn. Bạn có thể gửi yêu cầu tư vấn mới.</p>
               <Link className="button button-secondary" href="/tu-van">
                 Gửi yêu cầu tư vấn
@@ -141,9 +142,14 @@ function BookingStrip({ proposal }: Readonly<{ proposal: Proposal }>) {
   );
 }
 
-export function EmptyPanel({ title, children }: Readonly<{ title: string; children?: ReactNode }>) {
+export function EmptyPanel({
+  title,
+  children,
+  illustration,
+}: Readonly<{ title: string; children?: ReactNode; illustration?: IllustrationName }>) {
   return (
     <section className="cw-card cw-empty">
+      {illustration ? <Illustration name={illustration} /> : null}
       <h2>{title}</h2>
       {children}
     </section>

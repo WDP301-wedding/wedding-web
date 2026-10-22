@@ -1,7 +1,15 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 
-import { faqs, offers, weddingSteps } from '../../content/public-content';
+import {
+  brandIntro,
+  describeShifts,
+  faqs,
+  moments,
+  offers,
+  weddingSteps,
+} from '../../content/public-content';
+import { Illustration } from '../../design-system/illustrations';
 import { CatalogImage } from './catalog-image';
 import type { Catalog } from './catalog-server';
 import { ConsultationEntry } from './consultation-entry';
@@ -9,6 +17,7 @@ import { CredentialForward } from './credential-forward';
 import { consultationHref, formatVnd } from './estimate';
 import { EstimatorHero } from './estimator';
 import { HallsFilter } from './halls-filter';
+import { MomentsGallery } from './moments-gallery';
 import type { Hall, Menu, Restaurant } from './public-api';
 import { PublicShell } from './public-shell';
 
@@ -102,15 +111,28 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
         )}
       </section>
 
+      <section className="hy-section hy-band hy-moments" aria-labelledby="home-moments">
+        <header className="hy-moments-head">
+          <p className="hy-kicker">Khoảnh khắc tại Hỷ Yến</p>
+          <h2 id="home-moments">Những cuộc sum họp ấm áp</h2>
+          <Illustration name="divider" size={36} />
+          <p className="hy-muted">{brandIntro}</p>
+        </header>
+        <MomentsGallery moments={moments} />
+      </section>
+
       <section className="hy-section hy-band hy-band-champagne" aria-labelledby="home-steps">
         <p className="hy-kicker">Quy trình</p>
         <h2 id="home-steps">{weddingSteps.length} bước đến ngày cưới</h2>
         <ol className="hy-steps-grid">
           {weddingSteps.map((step, index) => (
             <li key={step.title}>
-              <span className="hy-step-number" aria-hidden="true">
-                {index + 1}
-              </span>
+              <div className="hy-step-head">
+                <span className="hy-step-number" aria-hidden="true">
+                  {index + 1}
+                </span>
+                <Illustration name={step.icon} size={56} className="hy-step-icon" />
+              </div>
               <h3>{step.title}</h3>
               <p>{step.detail}</p>
             </li>
@@ -143,7 +165,7 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
           {faqs.map((item, index) => (
             <details key={item.question} open={index === 0}>
               <summary>{item.question}</summary>
-              <p>{item.answer}</p>
+              <p>{item.answer.replace('{ca-tiec}', describeShifts(restaurant?.shifts))}</p>
             </details>
           ))}
         </div>
@@ -296,9 +318,12 @@ export function MenusPage({ catalog }: Readonly<{ catalog: Catalog }>) {
       <Unavailable show={catalog.unavailable} />
       <section className="hy-section">
         {catalog.menus.length === 0 ? (
-          <p className="hy-muted">
-            Thực đơn đang được cập nhật. Nhà hàng sẵn sàng trao đổi về mong muốn của bạn.
-          </p>
+          <div className="hy-empty-state">
+            <Illustration name="empty-thuc-don" />
+            <p className="hy-muted">
+              Thực đơn đang được cập nhật. Nhà hàng sẵn sàng trao đổi về mong muốn của bạn.
+            </p>
+          </div>
         ) : (
           <div className="hy-menu-list">
             {catalog.menus.map((menu) => (

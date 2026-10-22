@@ -7,6 +7,7 @@ import { normalizePhone } from './guest-csv';
 import { GuestFields } from './guest-fields';
 import { usePersonalInvitationLink } from './use-personal-invitation-link';
 import { useConfirmDialog } from '../../design-system/confirm-dialog';
+import { Illustration } from '../../design-system/illustrations';
 import type { GuestStatusFilter } from './use-guests-workspace';
 import styles from './guests.module.css';
 
@@ -110,7 +111,8 @@ export function GuestListCard({
       ) : null}
 
       {visible.length === 0 ? (
-        <p className="cw-note">
+        <p className="cw-note cw-note-illustrated">
+          {status === 'ACTIVE' ? <Illustration name="empty-khach" size={64} /> : null}
           {status === 'ACTIVE'
             ? 'Chưa có tên khách nào. Bạn vẫn dùng được nhóm, sơ đồ bàn, thiệp và in mà không cần danh sách tên.'
             : 'Không có khách đã lưu trữ.'}
