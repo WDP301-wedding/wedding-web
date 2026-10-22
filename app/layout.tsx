@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
 import { OfflineBanner } from '../src/design-system/offline-banner';
+import { AppToaster } from '../src/design-system/toast';
 import './globals.css';
 import './public.css';
 import './v0-workspace.css';
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <OfflineBanner />
         {children}
+        <AppToaster />
       </body>
     </html>
   );

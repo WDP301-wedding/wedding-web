@@ -1,7 +1,19 @@
 import { createApiClient, type ApiClient } from '../../lib/api/client';
 import type { components, operations } from '../../lib/api/generated/schema';
 
-export type BillingView = components['schemas']['BookingBillingResponse']['data'];
+type BillingResponseData = components['schemas']['BookingBillingResponse']['data'];
+/**
+ * Điều kiện thanh toán số dư do backend đánh giá (PR #76). Frontend KHÔNG tự suy ra từ số dư
+ * hay trạng thái booking — chỉ đọc `canPay` + `reasonCode` + `nextAction`.
+ */
+export type BalanceEligibility = components['schemas']['BalancePaymentEligibility'];
+export type BalanceBlockReason = Extract<BalanceEligibility, { canPay: false }>['reasonCode'];
+/**
+ * `balancePaymentEligibility: null` = response không có trường này (backend cũ/chưa deploy).
+ * Khi đó coi như CHƯA được phép thanh toán, thay vì đoán.
+ */
+export type BillingView = Omit<BillingResponseData, 'balancePaymentEligibility'> &
+  Readonly<{ balancePaymentEligibility: BalanceEligibility | null }>;
 export type AttemptView = components['schemas']['BillingAttemptResponse']['data'];
 export type CheckoutView = components['schemas']['BillingCheckoutResponse']['data'];
 export type DepositBody = components['schemas']['BillingDepositBody'];
@@ -125,14 +137,12 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
         cache: 'no-store',
       });
       const value = required(data);
-      // openapi-fetch bỏ mất trường chỉ có kiểu `null` (reasonCode khi canPay = true) → điền lại.
-      const eligibility = value.balancePaymentEligibility;
       return {
         ...value,
         history: Array.from(value.history),
-        balancePaymentEligibility: eligibility.canPay
-          ? { ...eligibility, reasonCode: null }
-          : eligibility,
+        balancePaymentEligibility: readEligibility(
+          (value as { balancePaymentEligibility?: unknown }).balancePaymentEligibility,
+        ),
       };
     },
     async loadAttempt(token, bookingId, attemptId) {
@@ -162,4 +172,40 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
       return checkout(data);
     },
   };
+}
+
+const blockReasons: readonly BalanceBlockReason[] = [
+  'BALANCE_NOT_ELIGIBLE',
+  'INVOICE_FINALIZATION_REQUIRED',
+  'FINANCIAL_SOURCE_CONFLICT',
+  'PAYMENT_ATTEMPT_ACTIVE',
+  'BILLING_BALANCE_LIMIT_EXCEEDED',
+  'PAYMENT_PROVIDER_AMOUNT_UNSUPPORTED',
+  'PAYMENT_PROVIDER_UNAVAILABLE',
+  'STALE_BILLING_REVISION',
+];
+const nextActions: readonly Extract<BalanceEligibility, { canPay: false }>['nextAction'][] = [
+  'CONTACT_RESTAURANT',
+  'WAIT_FOR_FINAL_INVOICE',
+  'CHECK_EXISTING_PAYMENT',
+  'NONE',
+  'REFRESH_BILLING',
+];
+
+/**
+ * Đọc `balancePaymentEligibility` một cách phòng thủ: thiếu trường hoặc giá trị lạ (backend
+ * cũ, mã mới chưa biết) → `null` = chưa cho phép thanh toán. Không bao giờ "đoán" là được trả.
+ */
+export function readEligibility(raw: unknown): BalanceEligibility | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const value = raw as Record<string, unknown>;
+  const revision = value.billingRevision;
+  if (typeof revision !== 'number' || !Number.isSafeInteger(revision) || revision < 0) return null;
+  if (value.canPay === true && value.nextAction === 'PAY_BALANCE' && value.reasonCode === null)
+    return { canPay: true, reasonCode: null, nextAction: 'PAY_BALANCE', billingRevision: revision };
+  const reason = blockReasons.find((code) => code === value.reasonCode);
+  const action = nextActions.find((code) => code === value.nextAction);
+  if (value.canPay === false && reason && action)
+    return { canPay: false, reasonCode: reason, nextAction: action, billingRevision: revision };
+  return null;
 }

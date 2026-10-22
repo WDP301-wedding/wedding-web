@@ -7,6 +7,8 @@ import { minimumPreferredDate } from './consultation-date';
 import { consultationHref, formatVnd, menuEstimates, suitableHalls, tableCount } from './estimate';
 import type { Hall, Menu, Restaurant } from './public-api';
 import { CatalogImage } from './catalog-image';
+import { HeroVideo } from './hero-video';
+import { fallbackShifts } from '../../content/public-content';
 
 type Shift = 'LUNCH' | 'DINNER';
 type Estimate = Readonly<{ date: string; guests: number; shift: Shift }>;
@@ -40,12 +42,8 @@ export function EstimatorHero({
   const [shift, setShift] = useState<Shift>('LUNCH');
   const [estimate, setEstimate] = useState<Estimate | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const shifts = restaurant?.shifts.length
-    ? restaurant.shifts
-    : ([
-        { code: 'LUNCH', startTime: '10:30', endTime: '14:00' },
-        { code: 'DINNER', startTime: '17:30', endTime: '21:00' },
-      ] as const);
+  // Chưa tải được catalog → dùng giờ ca nhà hàng công bố (content.md), không tự bịa giờ.
+  const shifts = restaurant?.shifts.length ? restaurant.shifts : fallbackShifts;
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -68,6 +66,7 @@ export function EstimatorHero({
   return (
     <>
       <section className="hy-hero" aria-labelledby={`${formId}-title`}>
+        <HeroVideo />
         <div className="hy-hero-copy">{intro}</div>
         <form className="hy-estimator" onSubmit={submit} aria-labelledby={`${formId}-title`}>
           <h2 id={`${formId}-title`}>Ước tính tiệc của bạn</h2>

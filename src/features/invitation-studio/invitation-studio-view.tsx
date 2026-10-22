@@ -14,6 +14,8 @@ import type {
 } from './invitation-api';
 import { previewAssetId } from './invitation-api';
 import { imageJobStatusText, useImageJob, type SucceededImageJob } from './use-image-job';
+import { useConfirmDialog } from '../../design-system/confirm-dialog';
+import { notify } from '../../design-system/toast';
 
 function invitationErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiClientError) {
@@ -81,6 +83,11 @@ export interface InvitationStudioViewProps {
   readonly initialDesigns?: readonly DesignView[];
   readonly initialOrders?: readonly PrintOrderView[];
   readonly initialTemplates?: readonly TemplateItemView[];
+  /**
+   * Mốc khoá ảnh ƯỚC TÍNH (ISO) từ lịch tiệc — xem media-cutoff.ts. Đã qua mốc thì hiện cảnh báo
+   * trước khi người dùng mất công nhập mô tả/chọn ảnh (backend vẫn quyết định cuối cùng).
+   */
+  readonly mediaCutoffEstimate?: string | null;
 }
 
 const orderStatusMap: Record<string, { label: string; className: string }> = {
@@ -101,7 +108,18 @@ export function InvitationStudioView({
   onTabChange,
   initialDesigns = [],
   initialOrders,
+  mediaCutoffEstimate = null,
 }: InvitationStudioViewProps) {
+  // Mốc thời gian lấy một lần khi mở Studio (lazy init: không gọi Date.now() mỗi lần render).
+  const [openedAt] = useState(() => Date.now());
+  const mediaLikelyLocked =
+    mediaCutoffEstimate !== null && openedAt >= Date.parse(mediaCutoffEstimate);
+  const mediaLockNote = mediaLikelyLocked ? (
+    <p className="studio-hint studio-hint-warning" role="note">
+      Theo lịch tiệc, hạn chỉnh sửa ảnh (72 giờ trước giờ khai tiệc) đã qua nên nhiều khả năng không
+      tạo/tải ảnh mới được nữa. Nếu cần, hãy liên hệ nhà hàng để được gia hạn.
+    </p>
+  ) : null;
   const [activeTab, setActiveTab] = useState<'design' | 'media' | 'publish' | 'print'>(initialTab);
   const prevInitialTab = React.useRef(initialTab);
   useEffect(() => {
@@ -160,7 +178,14 @@ export function InvitationStudioView({
   // Print order form state
   const [printQuantity, setPrintQuantity] = useState(100);
   const [isOrdering, setIsOrdering] = useState(false);
-  const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  // Kết quả thao tác hiển thị bằng toast (sonner). Giữ tên `setNotice` để mọi chỗ gọi cũ không đổi;
+  // `null` (xoá thông báo cũ) không còn cần vì toast tự ẩn.
+  const setNotice = (next: { type: 'success' | 'error'; text: string } | null) => {
+    if (next === null) return;
+    if (next.type === 'success') notify.success(next.text);
+    else notify.error(next.text);
+  };
+  const { confirm, dialog } = useConfirmDialog();
 
   // Media upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -444,6 +469,15 @@ export function InvitationStudioView({
 
   const handleUnpublish = async () => {
     if (!currentDesign) return;
+    const agreed = await confirm({
+      title: 'Huỷ xuất bản thiệp?',
+      description:
+        'Đường dẫn thiệp công khai sẽ ngừng hoạt động — khách đã nhận link sẽ không mở được nữa. Bạn có thể xuất bản lại sau.',
+      confirmLabel: 'Huỷ xuất bản',
+      cancelLabel: 'Giữ thiệp',
+      tone: 'danger',
+    });
+    if (!agreed) return;
     setIsPublishing(true);
     setNotice(null);
     const pubRev = publicationRevision ?? 1;
@@ -552,7 +586,13 @@ export function InvitationStudioView({
 
   const handleApproveQuote = async (order: PrintOrderView) => {
     if (!order.currentCommercialRevision || approvingOrderId || cancellingOrderId) return;
-    setNotice(null);
+    const total = Number(order.currentCommercialRevision.orderTotalVnd).toLocaleString('vi-VN');
+    const agreed = await confirm({
+      title: 'Duyệt báo giá in thiệp?',
+      description: `Hai bạn đồng ý với báo giá ${total} đ. Sau khi duyệt, nhà hàng sẽ tiến hành in theo báo giá này.`,
+      confirmLabel: 'Duyệt báo giá',
+    });
+    if (!agreed) return;
     setApprovingOrderId(order.orderId);
     const signature = `${order.orderId}:${order.currentCommercialRevision.commercialRevisionId}:${order.revision}`;
     const key = getOrGenerateKey(approveKeyRef, signature, 'approve-print-order');
@@ -583,6 +623,15 @@ export function InvitationStudioView({
 
   const handleCancelOrder = async (order: PrintOrderView) => {
     if (approvingOrderId || cancellingOrderId) return;
+    const agreed = await confirm({
+      title: 'Huỷ đơn in thiệp?',
+      description:
+        'Đơn in thiệp này sẽ bị huỷ và không thể khôi phục. Muốn in lại, bạn cần tạo đơn mới.',
+      confirmLabel: 'Huỷ đơn in',
+      cancelLabel: 'Giữ đơn',
+      tone: 'danger',
+    });
+    if (!agreed) return;
     setNotice(null);
     setCancellingOrderId(order.orderId);
     const signature = `${order.orderId}:${order.revision}`;
@@ -766,6 +815,14 @@ export function InvitationStudioView({
     derivedAssetId?: string,
   ) => {
     if (detachingAssetId) return;
+    const agreed = await confirm({
+      title: 'Gỡ ảnh gốc khỏi hồ sơ?',
+      description:
+        'Ảnh gốc và ảnh đã chuẩn bị cho thiệp sẽ bị gỡ vĩnh viễn, thiệp đang dùng ảnh này cũng sẽ bỏ ảnh. Thao tác không thể hoàn tác.',
+      confirmLabel: 'Gỡ ảnh',
+      tone: 'danger',
+    });
+    if (!agreed) return;
     setDetachingAssetId(mediaAssetId);
     setNotice(null);
     const signature = `${mediaAssetId}:${revision}`;
@@ -813,16 +870,6 @@ export function InvitationStudioView({
           truyền thống.
         </p>
       </header>
-
-      {/* Notifications */}
-      {notice && (
-        <div
-          role="alert"
-          className={`studio-notice ${notice.type === 'success' ? 'is-success' : 'is-error'}`}
-        >
-          {notice.text}
-        </div>
-      )}
 
       {/* Navigation Tabs */}
       <nav aria-label="Studio Tabs" className="studio-tabs">
@@ -1015,6 +1062,7 @@ export function InvitationStudioView({
           {/* AI Generation Box */}
           <div className="ai-box">
             <h3 className="studio-subtitle">Tạo Hoạ Tiết Thiệp Bằng Trí Tuệ Nhân Tạo (AI)</h3>
+            {mediaLockNote}
             <p className="studio-hint">
               Nhập mô tả phong cách hoa văn hoặc khung cảnh tiệc cưới (ví dụ: hoa cẩm tú cầu pastel,
               phong cách hoàng gia).
@@ -1118,6 +1166,7 @@ export function InvitationStudioView({
               Hạn ngạch: Tối đa 100 ảnh hoặc 1 GiB mỗi tiệc cưới. Hạn chót tải ảnh: 72 giờ trước giờ
               khai tiệc. Định dạng hỗ trợ: JPEG, PNG, WebP (&le; 25MB).
             </p>
+            {mediaLockNote}
 
             <form
               onSubmit={(e) => {
@@ -1518,6 +1567,7 @@ export function InvitationStudioView({
           </div>
         </section>
       )}
+      {dialog}
     </div>
   );
 }

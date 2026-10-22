@@ -1,0 +1,176 @@
+/*
+ * Media từ bộ assets 22/10/2026: video hero, "Khoảnh khắc tại Hỷ Yến", icon quy trình, hình minh hoạ
+ * trạng thái trống. Chỉ dùng token --hy-* (nét hình minh hoạ = currentColor → đỏ rượu vang).
+ */
+
+/* ---------- Hero: video nằm dưới lớp phủ tối, chữ và form nằm trên cùng ---------- */
+.hy-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.hy-hero:has(.hy-hero-video) {
+  /* Có video: lớp phủ chuyển sang ::before để phủ LÊN video (background nằm dưới video). */
+  background:
+    var(--hy-hero-image) center / cover no-repeat,
+    var(--hy-ink);
+}
+.hy-hero:has(.hy-hero-video)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    90deg,
+    rgb(43 29 34 / 88%) 0%,
+    rgb(43 29 34 / 72%) 45%,
+    rgb(43 29 34 / 28%) 100%
+  );
+}
+.hy-hero-video {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* ---------- Khoảnh khắc ---------- */
+.hy-moments-head {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  max-width: 720px;
+  margin: 0 auto 28px;
+  text-align: center;
+}
+.hy-moments-head h2 {
+  margin: 0;
+}
+.hy-moments-head .hy-divider {
+  width: min(220px, 60%);
+  height: auto;
+  color: var(--hy-wine);
+}
+.hy-moments-grid {
+  display: grid;
+  /* 3 cột (máy tính) / 2 cột (điện thoại): 12 ảnh chia đều, không để ô trống ở hàng cuối. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hy-moments-grid button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface-warm);
+  cursor: zoom-in;
+}
+.hy-moments-grid img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  transition: transform var(--hy-dur-medium) var(--hy-ease-emphasized);
+}
+.hy-moments-grid button:is(:hover, :focus-visible) img {
+  transform: scale(1.04);
+}
+@media (max-width: 720px) {
+  .hy-moments-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+}
+
+.hy-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(20 12 15 / 94%);
+}
+.hy-lightbox-panel {
+  display: grid;
+  gap: 12px;
+  width: min(1200px, 100%);
+  max-height: calc(100vh - 32px);
+}
+.hy-lightbox-panel img {
+  width: 100%;
+  height: auto;
+  max-height: calc(100vh - 160px);
+  object-fit: contain;
+  border-radius: var(--hy-radius-sm);
+}
+.hy-lightbox-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  color: #ffffff;
+}
+.hy-lightbox-caption span {
+  color: rgb(255 255 255 / 70%);
+  font-variant-numeric: tabular-nums;
+}
+.hy-lightbox-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ---------- Quy trình: số bước + icon nét mảnh ---------- */
+.hy-step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.hy-step-icon {
+  flex: none;
+  color: var(--hy-wine);
+}
+
+/* ---------- Hình minh hoạ trạng thái trống / mất mạng ---------- */
+.hy-illustration {
+  color: var(--hy-wine);
+}
+.cw-empty .hy-illustration {
+  display: block;
+  margin: 0 auto 8px;
+}
+.cw-empty {
+  text-align: center;
+}
+.cw-note-illustrated {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cw-note-illustrated .hy-illustration {
+  flex: none;
+}
+.hy-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px 0;
+  text-align: center;
+}
+.hy-offline-icon {
+  vertical-align: middle;
+  margin-right: 8px;
+  color: currentColor;
+}

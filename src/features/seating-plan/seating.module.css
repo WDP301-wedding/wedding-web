@@ -1,0 +1,40 @@
+/* Dedicated styles for seating plan */
+.tableInteractive {
+  cursor: pointer;
+  outline: none;
+}
+
+.tableInteractive:focus-visible {
+  outline: 2px solid var(--gold, #c9a46a);
+  outline-offset: 2px;
+}
+
+.legendList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0;
+  margin: 12px 0;
+  list-style: none;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.zoomToolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.zoomValue {
+  min-width: 44px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}

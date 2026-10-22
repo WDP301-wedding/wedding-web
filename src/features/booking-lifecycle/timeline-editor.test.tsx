@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { TimelineEditor } from './timeline-editor';
@@ -14,9 +14,32 @@ describe('immutable timeline editor', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Xóa mốc 1' }));
-    expect(screen.getByText('Chưa có mốc. Thêm nội dung hoặc lưu bản nháp trống.')).toBeVisible();
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog).toHaveTextContent('Xoá mốc 1 “Welcome”?');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Xoá mốc' }));
+    expect(
+      await screen.findByText('Chưa có mốc. Thêm nội dung hoặc lưu bản nháp trống.'),
+    ).toBeVisible();
+    // Bấm xác nhận trong hộp thoại KHÔNG được submit form lịch trình bao ngoài.
+    expect(onSave).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Lưu kịch bản mới' }));
     await waitFor(() => expect(onSave).toHaveBeenCalledWith([], ''));
+  });
+
+  it('keeps the milestone when the delete confirmation is cancelled', async () => {
+    render(
+      <TimelineEditor
+        disabled={false}
+        initialItems={[{ itemId: 'one', startTime: '18:00', title: 'Welcome', description: null }]}
+        onSave={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa mốc 1' }));
+    fireEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Huỷ' }),
+    );
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(screen.getByLabelText('Giờ bắt đầu mốc 1')).toHaveValue('18:00');
   });
 
   it('submits the replacement reason, changed note and reordered existing IDs', async () => {

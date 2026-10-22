@@ -5,6 +5,7 @@ import { ApiClientError } from '../../lib/api/client';
 import { createExperienceGateway, type Profile } from './experience-api';
 import type { WebIdentitySession } from './session';
 import { Skeleton } from '../../design-system/skeleton';
+import { useToastFeedback } from '../../design-system/toast';
 
 const gateway = createExperienceGateway();
 function waitLabel(seconds: number) {
@@ -22,6 +23,9 @@ export function AccountSettings({
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Thành công → toast; lỗi (OTP sai, phải chờ, mật khẩu chưa khớp) giữ inline cạnh form vì
+  // người dùng cần đọc trong lúc sửa, không được tự biến mất.
+  useToastFeedback(notice, null);
   const [reload, setReload] = useState(0);
   const [challenge, setChallenge] = useState<OtpChallenge | null>(null);
   const [remaining, setRemaining] = useState(0);
@@ -164,7 +168,6 @@ export function AccountSettings({
         </button>
       </div>
       {error ? <p role="alert">{error}</p> : null}
-      {notice ? <p role="status">{notice}</p> : null}
       {!profile && !error ? <Skeleton label="Đang tải hồ sơ…" /> : null}
       {profile ? (
         <div className="account-settings-grid">

@@ -1,0 +1,37 @@
+/* Dedicated styles for guest management */
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.copyRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block: 8px;
+  flex-wrap: wrap;
+}
+
+.copyCode {
+  font-size: 13px;
+  padding: 4px 8px;
+  background: var(--paper, #f9f9f9);
+  border: 1px solid var(--border, #e5e5e5);
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+.colorPicker {
+  width: 36px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+}

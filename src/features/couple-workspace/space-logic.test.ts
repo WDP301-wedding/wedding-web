@@ -68,6 +68,16 @@ describe('Không gian cưới – logic hiển thị', () => {
     expect(tasks[1]?.title).toContain('60.480.000');
   });
 
+  it('stops suggesting preparation once a confirmed event has passed', () => {
+    const before = nextTasks(proposal('CONFIRMED'), summary({ phase: 'CONFIRMED' }), 3);
+    expect(before.map((task) => task.action)).toContain('Xếp sơ đồ');
+    const after = nextTasks(proposal('CONFIRMED'), summary({ phase: 'CONFIRMED' }), -5);
+    expect(after.map((task) => task.href)).toEqual([
+      '/khong-gian/quyet-toan?bookingId=b1',
+      '/khong-gian/thanh-toan?bookingId=b1',
+    ]);
+  });
+
   it('counts days in Vietnam time', () => {
     expect(daysUntil('2026-10-17', new Date('2026-10-16T16:59:00Z'))).toBe(1);
     expect(daysUntil('2026-10-17', new Date('2026-10-16T17:00:00Z'))).toBe(0);

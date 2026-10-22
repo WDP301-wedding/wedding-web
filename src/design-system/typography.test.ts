@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 
@@ -12,6 +12,13 @@ function filesWithExtension(directory: string, extension = '.css'): string[] {
         ? [path]
         : [];
   });
+}
+
+function readCssWithImports(file: string): string {
+  const css = readFileSync(file, 'utf8');
+  return css.replace(/@import\s+['"](\.[^'"]+)['"];/g, (_, relative: string) =>
+    readCssWithImports(join(dirname(file), relative)),
+  );
 }
 
 function styleRules(rules: CSSRuleList): CSSStyleRule[] {
@@ -87,7 +94,9 @@ describe('Vietnamese typography policy', () => {
 
   it('keeps Vietnamese font tokens on a complete sans-serif fallback stack', () => {
     const element = document.createElement('style');
-    element.textContent = readFileSync(join(process.cwd(), 'app/globals.css'), 'utf8');
+    // globals.css nạp token qua @import (app/styles/globals/*.css) → gộp nội dung các file đó
+    // để kiểm tra đúng :root mà trình duyệt nhận được, không phụ thuộc cách chia file.
+    element.textContent = readCssWithImports(join(process.cwd(), 'app/globals.css'));
     document.head.append(element);
     try {
       const root = styleRules(element.sheet!.cssRules).find(

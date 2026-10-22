@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { useConfirmDialog } from '../../design-system/confirm-dialog';
+
 import type { TimelineItemInput } from './collaboration-api';
 
 type Draft = Readonly<{
@@ -36,6 +38,7 @@ export function TimelineEditor({
     })),
   );
   const [reason, setReason] = useState('');
+  const { confirm, dialog } = useConfirmDialog();
   const update = (key: string, change: Partial<Draft>) =>
     setDrafts((current) =>
       current.map((item) => (item.key === key ? { ...item, ...change } : item)),
@@ -112,7 +115,18 @@ export function TimelineEditor({
               <button
                 type="button"
                 onClick={() =>
-                  setDrafts((current) => current.filter((row) => row.key !== item.key))
+                  void (async () => {
+                    // Mốc chỉ bị xoá khỏi bản nháp; bấm "Lưu" mới gửi lên nhà hàng.
+                    const removed = await confirm({
+                      title: `Xoá mốc ${index + 1}${item.title ? ` “${item.title}”` : ''}?`,
+                      description:
+                        'Mốc sẽ bị xoá khỏi bản nháp lịch trình. Thay đổi chỉ được gửi khi bạn bấm lưu.',
+                      confirmLabel: 'Xoá mốc',
+                      tone: 'danger',
+                    });
+                    if (removed)
+                      setDrafts((current) => current.filter((row) => row.key !== item.key));
+                  })()
                 }
               >
                 Xóa mốc {index + 1}
@@ -146,6 +160,7 @@ export function TimelineEditor({
         ) : null}
         <button type="submit">{needsReason ? 'Gửi yêu cầu thay đổi' : 'Lưu kịch bản mới'}</button>
       </fieldset>
+      {dialog}
     </form>
   );
 }

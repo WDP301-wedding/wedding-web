@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 
 import { BrandMark } from '../../design-system/brand-mark';
@@ -115,7 +115,9 @@ function isActive(pathname: string, item: NavItem): boolean {
 export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { state, bookings, bookingId } = useCoupleWorkspace();
+  const effectiveBookingId = bookingId ?? searchParams.get('bookingId');
   const { unread, restaurant } = useSpaceExtras();
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -128,9 +130,9 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [moreOpen]);
   const proposal = state.status === 'ready' ? state.proposal : undefined;
-  const summary = bookings.find((booking) => booking.bookingId === bookingId);
+  const summary = bookings.find((booking) => booking.bookingId === effectiveBookingId);
   const chips = navChips(summary, proposal);
-  const href = (path: string) => withBooking(path, bookingId);
+  const href = (path: string) => withBooking(path, effectiveBookingId);
   const phone = restaurant?.publicPhone ?? null;
 
   return (
@@ -151,6 +153,7 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
               return (
                 <li key={item.id}>
                   <Link
+                    prefetch={false}
                     className={'hy-space-link' + (active ? ' is-active' : '')}
                     href={href(item.href)}
                     aria-current={active && !item.children ? 'page' : undefined}
@@ -169,6 +172,7 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
                         return (
                           <li key={child.href}>
                             <Link
+                              prefetch={false}
                               href={href(child.href)}
                               className={current ? 'is-active' : undefined}
                               aria-current={current ? 'page' : undefined}
@@ -273,6 +277,7 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
           const active = isActive(pathname, item);
           return (
             <Link
+              prefetch={false}
               key={item.id}
               href={href(item.href)}
               className={active ? 'is-active' : undefined}
@@ -304,13 +309,17 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
             aria-label="Thêm"
             onClick={(event) => event.stopPropagation()}
           >
-            <Link href={href(routes.settle)} onClick={() => setMoreOpen(false)}>
+            <Link prefetch={false} href={href(routes.settle)} onClick={() => setMoreOpen(false)}>
               <Icon name="receipt" /> Quyết toán
               {chips.settle ? (
                 <span className={`hy-nav-chip is-${chips.settle.tone}`}>{chips.settle.label}</span>
               ) : null}
             </Link>
-            <Link href={href(routes.notifications)} onClick={() => setMoreOpen(false)}>
+            <Link
+              prefetch={false}
+              href={href(routes.notifications)}
+              onClick={() => setMoreOpen(false)}
+            >
               <Icon name="bell" /> Thông báo
               {unread ? <span className="hy-nav-count">{unread}</span> : null}
             </Link>

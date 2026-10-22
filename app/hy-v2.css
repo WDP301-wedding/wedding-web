@@ -3,3 +3,38 @@
 @import './styles/hy-v2/hy-v2-consultation-footer.css';
 @import './styles/hy-v2/hy-v2-workspace-journey.css';
 @import './styles/hy-v2/hy-v2-overview-responsive.css';
+@import './styles/hy-v2/hy-v2-feedback.css';
+@import './styles/hy-v2/hy-v2-media.css';
+
+/* Nhiều thực đơn trong một đề xuất (BE PR #65): hàng thực đơn chiếm trọn chiều ngang,
+ * mỗi gói một dòng (tên + "số bàn × giá" bên dưới, thành tiền canh phải). */
+:is(dl > div, .collab-proposal dl > div):has(.hy-menu-lines) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+.hy-menu-lines {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.hy-menu-lines li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+.hy-menu-lines span {
+  display: grid;
+}
+.hy-menu-lines small {
+  opacity: 0.8;
+  font-weight: 400;
+}
+.hy-menu-lines strong {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

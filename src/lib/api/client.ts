@@ -130,6 +130,81 @@ async function validateResponse(response: Response, sentRequestId: string): Prom
   });
 }
 
+/**
+ * Gộp các request GET giống hệt nhau đang chờ phản hồi (cùng URL + cùng Authorization).
+ *
+ * Vì sao: backend hiện mỗi module chỉ có 1 kết nối DB (DB_POOL_MAX=1) nên request xếp hàng tuần
+ * tự. Một GET trùng (React StrictMode chạy effect 2 lần khi dev, hai component cùng cần một dữ liệu)
+ * không chỉ tốn thêm một lượt mà còn đẩy mọi request phía sau chậm thêm. Chỉ gộp khi request trước
+ * CHƯA xong — không phải cache: request mới sau khi xong vẫn đọc dữ liệu mới nhất.
+ */
+function coalesceGets(send: ApiFetch, createRequestId: () => string): ApiFetch {
+  type Shared = { response: Promise<Response>; controller: AbortController; waiters: number };
+  const inFlight = new Map<string, Shared>();
+  return async (request) => {
+    if (request.method !== 'GET' || request.signal.aborted) return send(request);
+    const key = `${request.url}\n${request.headers.get('authorization') ?? ''}`;
+    let shared = inFlight.get(key);
+    if (shared === undefined) {
+      // Request dùng chung có AbortController riêng: một người gọi huỷ (rời trang) thì những người
+      // còn chờ vẫn nhận kết quả; chỉ khi KHÔNG còn ai chờ mới huỷ hẳn request.
+      const controller = new AbortController();
+      const headers = new Headers(request.headers);
+      if (!headers.has('x-request-id')) headers.set('x-request-id', createRequestId());
+      const entry: Shared = {
+        controller,
+        waiters: 0,
+        response: send(new Request(request, { headers, signal: controller.signal })),
+      };
+      entry.response
+        .finally(() => {
+          if (inFlight.get(key) === entry) inFlight.delete(key);
+        })
+        .catch(() => undefined);
+      inFlight.set(key, entry);
+      shared = entry;
+    }
+    const entry = shared;
+    entry.waiters += 1;
+    try {
+      const response = await new Promise<Response>((resolve, reject) => {
+        const onAbort = () => {
+          entry.waiters -= 1;
+          if (entry.waiters === 0) {
+            inFlight.delete(key);
+            entry.controller.abort(request.signal.reason);
+          }
+          reject(
+            new ApiClientError({
+              kind: 'aborted',
+              code: 'REQUEST_ABORTED',
+              message: 'The API request was aborted.',
+              requestId: request.headers.get('x-request-id') ?? createRequestId(),
+              cause: request.signal.reason,
+            }),
+          );
+        };
+        request.signal.addEventListener('abort', onAbort, { once: true });
+        entry.response.then(
+          (value) => {
+            request.signal.removeEventListener('abort', onAbort);
+            resolve(value);
+          },
+          (error: unknown) => {
+            request.signal.removeEventListener('abort', onAbort);
+            // Lớp bên dưới luôn ném ApiClientError (là Error); bọc lại phòng trường hợp khác.
+            reject(error instanceof Error ? error : new Error(String(error)));
+          },
+        );
+      });
+      // Mỗi người gọi đọc body của bản sao riêng (body của Response chỉ đọc được một lần).
+      return response.clone();
+    } finally {
+      if (!request.signal.aborted) entry.waiters -= 1;
+    }
+  };
+}
+
 function createFetchWithPolicy(
   fetchImplementation: ApiFetch,
   timeoutMs: number,
@@ -207,12 +282,16 @@ export function createApiClient(options: CreateApiClientOptions = {}): ApiClient
     throw new RangeError('API timeout must be a positive safe integer in milliseconds.');
   }
 
+  const createRequestId = options.requestId ?? (() => crypto.randomUUID());
   return createClient<paths>({
     baseUrl: options.baseUrl ?? readPublicEnv().NEXT_PUBLIC_API_BASE_URL,
-    fetch: createFetchWithPolicy(
-      options.fetch ?? ((request) => globalThis.fetch(request)),
-      timeoutMs,
-      options.requestId ?? (() => crypto.randomUUID()),
+    fetch: coalesceGets(
+      createFetchWithPolicy(
+        options.fetch ?? ((request) => globalThis.fetch(request)),
+        timeoutMs,
+        createRequestId,
+      ),
+      createRequestId,
     ),
   });
 }

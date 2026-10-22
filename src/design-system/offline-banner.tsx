@@ -1,6 +1,8 @@
 'use client';
 import { useSyncExternalStore } from 'react';
 
+import { Illustration } from './illustrations';
+
 /**
  * Banner "mất kết nối" dùng chung cho toàn web.
  *
@@ -26,6 +28,7 @@ export function OfflineBanner() {
   if (online) return null;
   return (
     <div className="hy-offline" role="status">
+      <Illustration name="empty-mat-mang" size={28} className="hy-offline-icon" />
       <strong>Không có kết nối mạng.</strong> Bạn vẫn xem được nội dung đang mở; các thao tác lưu,
       duyệt và thanh toán sẽ cần kết nối lại.
     </div>

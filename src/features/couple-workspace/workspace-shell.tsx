@@ -193,6 +193,7 @@ export function WorkspaceShell({
                 <div key={item.id}>
                   {item.group && <div className="nav-section">{item.group}</div>}
                   <Link
+                    prefetch={false}
                     className={'nav-item' + (active === item.id ? ' active' : '')}
                     aria-current={active === item.id ? 'page' : undefined}
                     href={href(item.href)}

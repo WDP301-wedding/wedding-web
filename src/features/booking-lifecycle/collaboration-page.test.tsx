@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiClientError } from '../../lib/api/client';
 import { CoupleWorkspaceContext } from '../couple-workspace/use-couple-workspace';
@@ -139,7 +139,8 @@ describe('Booking collaboration workspace', () => {
       }),
     );
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
-    expect(screen.getByText('Đã lưu revision kịch bản mới.')).toBeVisible();
+    // Thông báo thành công hiển thị bằng toast (bất đồng bộ).
+    expect(await screen.findByText('Đã lưu revision kịch bản mới.')).toBeVisible();
   });
   it('opens a valid booking link through the authenticated gateway', async () => {
     const id = '20000000-0000-4000-8000-000000000011';
@@ -224,6 +225,10 @@ describe('Booking collaboration workspace', () => {
     );
     fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'Đổi kế hoạch' } });
     fireEvent.click(screen.getByRole('button', { name: 'Gửi yêu cầu hủy' }));
+    // Huỷ tiệc là thao tác nguy hiểm → phải xác nhận lại trong hộp thoại trước khi gửi.
+    const dialog = await screen.findByRole('alertdialog', { name: 'Gửi yêu cầu huỷ tiệc?' });
+    expect(gateway.requestCancellation).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Gửi yêu cầu huỷ' }));
     await waitFor(() =>
       expect(gateway.requestCancellation).toHaveBeenCalledWith('couple-token', {
         bookingId: proposal.bookingId,

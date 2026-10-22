@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 
 import type { ApiBody, ApiData } from '../../lib/api/types';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
-import { CommandFeedback, CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
+import { CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
+import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import {
   authorizedRead,
   bearer,
@@ -132,6 +133,7 @@ function AppendicesWorkspace({
   const [loadError, setLoadError] = useState<FriendlyError | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const command = useCommand();
+  const { confirm, dialog } = useConfirmDialog();
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
 
   useEffect(() => {
@@ -247,7 +249,6 @@ function AppendicesWorkspace({
             <Skeleton label="Đang tải danh mục…" variant="card" />
           )
         ) : null}
-        <CommandFeedback error={command.error} notice={command.notice} />
       </section>
 
       {current ? (
@@ -318,22 +319,30 @@ function AppendicesWorkspace({
                 className="button"
                 type="button"
                 disabled={command.pending}
-                onClick={() => {
-                  if (!window.confirm('Xác nhận hai bạn đồng ý với phụ lục này?')) return;
-                  void command
-                    .run(
-                      (token, key) =>
-                        appendixApi.approve(
-                          token,
-                          key,
-                          bookingId,
-                          current.revisionId,
-                          appendices.bookingRevision,
-                        ),
-                      'Đã duyệt phụ lục.',
-                    )
-                    .then(after);
-                }}
+                onClick={() =>
+                  void (async () => {
+                    const agreed = await confirm({
+                      title: 'Duyệt phụ lục này?',
+                      description:
+                        'Xác nhận hai bạn đồng ý với các thay đổi trong phụ lục. Phụ lục đã duyệt sẽ được tính vào chi phí tiệc.',
+                      confirmLabel: 'Đồng ý & duyệt',
+                    });
+                    if (!agreed) return;
+                    await command
+                      .run(
+                        (token, key) =>
+                          appendixApi.approve(
+                            token,
+                            key,
+                            bookingId,
+                            current.revisionId,
+                            appendices.bookingRevision,
+                          ),
+                        'Đã duyệt phụ lục.',
+                      )
+                      .then(after);
+                  })()
+                }
               >
                 Duyệt phụ lục
               </button>
@@ -356,6 +365,7 @@ function AppendicesWorkspace({
           </ul>
         </section>
       ) : null}
+      {dialog}
     </>
   );
 }
