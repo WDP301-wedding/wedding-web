@@ -4,6 +4,16 @@ The current checkout did not contain the earlier canonical plan/todo documents.
 This scoped continuation records only the owner-requested payment recovery work;
 historical backend SPEC/RV evidence remains unchanged.
 
+## Sandbox connectivity recovery — 23 October
+
+The owner authorized NCB sandbox checkout and bounded database recovery. Render
+querydr connection timeouts are now reproduced; a workstation receives valid
+signed FAILED evidence for the stuck order. Implement the web-server query relay,
+retain backend signature/amount/authorization/idempotency checks, and coordinate
+the provider's five-minute query limit. Then deploy backend before frontend and
+verify UNKNOWN recovery plus the NCB sandbox journey on the deployed website.
+See [API and diagnosis](../../wedding-be/docs/vnpay-query-relay.md).
+
 1. Update the shared deposit/balance frontend recovery flow and regression tests.
 2. Add authorized backend discovery for unresolved attempts and interrupted payment
    applications; preserve settlement, expiry and idempotency safeguards.

@@ -300,7 +300,11 @@ export function CoupleBillingWorkspace({
       setAttemptId(restoreAttemptId);
       setIntent(null);
       setRetry(false);
-      const restored = await authorize((token) => gateway.loadAttempt(token, id, restoreAttemptId));
+      const restored = await authorize((token) =>
+        discovered !== undefined && Date.parse(discovered.expiresAt) > Date.now()
+          ? gateway.loadAttempt(token, id, restoreAttemptId, true)
+          : gateway.loadAttempt(token, id, restoreAttemptId),
+      );
       if (activeRequestIdRef.current !== requestId) return;
       if (
         restored.paymentAttemptId !== restoreAttemptId ||

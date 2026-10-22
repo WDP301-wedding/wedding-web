@@ -1,5 +1,12 @@
 # Payment recovery tasks — 2026-10-22
 
+- [x] WEB-SANDBOX-ROOT-01: Reproduce Render outbound connection timeouts and
+      verify the stuck order's signed FAILED result from an independent connection.
+- [ ] WEB-SANDBOX-FIX-01: Ship authenticated web-server query relay, backend proof
+      verification, durable five-minute query coordination and passive checkout reads.
+- [ ] WEB-SANDBOX-E2E-01: Deploy, recover the old UNKNOWN attempt, then verify the
+      authorized NCB sandbox card checkout with persisted settlement/application.
+
 - [x] WEB-FE-PAY-01: Discover and resume existing deposit/balance attempts without
       browser-stored IDs; recover checkout links, handle conflicting POSTs, preserve
       uncertain intent identity and block fresh payments on failed discovery.
