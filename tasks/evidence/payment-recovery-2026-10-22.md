@@ -111,11 +111,78 @@ passed). Only generated Prisma/operator artifacts are excluded from authored-sou
 format/lint; five existing formatting violations were corrected. No timeout,
 assertion or coverage threshold was reduced.
 
-Exact-head Linux checks and deployment remain in progress. Direct deployed browser
-verification and genuine VNPay sandbox outcomes remain separate from offline checks.
-Backend must deploy before the website because discovery fails closed when the new
-API is absent. No real-money payment is authorized or performed by this rollout.
+Exact-head Linux checks and deployed read verification are now complete, as detailed
+below. Genuine VNPay settlement remains separate. No real-money payment was performed.
 
 Implementation commits on `codex/payment-recovery-20261022`:
-backend `4e657b8`, frontend `9202359`. The backend implementation is published;
-frontend push and both production deployments follow the required checks.
+backend `4e657b8`, frontend `9202359`. Both implementations are published and merged.
+
+## Final rollout — 23 October, Asia/Ho_Chi_Minh
+
+- Backend main `5a102e4814be3399cdf8031bfce62f3c57e6e0e8` is live on
+  <https://wedding-be-render-trial.onrender.com>, deployment
+  `dep-dbd4hlfavr4c73ccbr70`.
+  [Main CI](https://github.com/WDP301-wedding/wedding-be/actions/runs/39822199304)
+  passed 311 files / 2,318 tests, including 708 PostgreSQL integration tests;
+  full coverage is 97.37% lines and 92.88% branches. Five additional meaningful
+  catalog-media cache/cursor/ownership tests fixed the remaining existing per-file
+  branch gap. All original thresholds and assertions remain enforced.
+- Health, catalog and OpenAPI return 200; unauthenticated discovery returns 401.
+  The deployed OpenAPI digest exactly matches the pinned digest above. All 87
+  environment variables match their pre-deployment snapshot; no migration was added.
+- Render did not create an automatic deployment within more than two minutes after
+  green main CI. The same checked main commit was explicitly deployed with Render
+  CLI. This proves this deployment, not the future checksPass trigger.
+- Frontend [PR #26](https://github.com/WDP301-wedding/wedding-web/pull/26) merged
+  the payment implementation. Its main deployment correctly stopped when a newly
+  reported critical Next.js advisory became visible to audit.
+  [PR #27](https://github.com/WDP301-wedding/wedding-web/pull/27) upgraded Next.js
+  to 16.4.2; see the [runtime review](../../docs/security/next-runtime-review-2026-10-23.md).
+  No runtime/critical exception was added.
+- Frontend main `9b914972d4fc9506b055f7662d71f0fb8a1c5562` is live at
+  <https://wedding-web-silk.vercel.app>, deployment
+  <https://wedding-jxbawhvji-bach-le-ba-s-projects.vercel.app>.
+  [Main CI and deployment](https://github.com/WDP301-wedding/wedding-web/actions/runs/39825215261)
+  are green. The upgraded runtime passes 43 files / 308 tests, 95.94% lines and
+  91.25% branches; typecheck, build, guarded audit and production-only audit pass.
+
+## Direct deployed browser evidence
+
+Playwright used a new isolated context and the owner-supplied login through the
+website UI. No HTTP response was mocked and no browser payment journal/attempt ID
+was seeded. The first payment navigation contained only the original booking ID.
+
+- Discovery and status return 200 with `Cache-Control: no-store`, automatically
+  finding attempt `2ea46496-04a9-4da8-b8a6-51cccf76e6dd`, DEPOSIT, 21,000,000 VND.
+- Reload keeps that same attempt ID and amount; payment creation POST count is zero.
+- Desktop 1440px, mobile 390px and a scrolled mobile viewport were visually
+  inspected. Vietnamese text, controls and the retained UNKNOWN explanation render
+  correctly. The authenticated payment phase has zero HTTP/console errors.
+- The initial anonymous login bootstrap returns the expected 401 from
+  `/api/v1/auth/web-session-refreshes`; a separate phase-aware check confirms it
+  precedes authentication and is not a payment request failure.
+- `/`, `/sanh`, `/thuc-don`, `/dang-nhap` and the proxied catalog API return 200.
+- The supplied account is RESTRICTED, so genuine FULL-balance payment cannot be
+  tested on this booking. Balance behavior is covered by the controlled browser
+  fixtures and automated tests above; no new provider settlement is claimed.
+
+Sanitized receipts are in the backend's ignored `output/payment-release-*.json`;
+screenshots are `output/playwright/payment-live-desktop.png`,
+`payment-live-mobile.png` and `payment-live-mobile-viewport.png`. They contain no
+login password, access token or signed checkout URL.
+
+## Remaining provider uncertainty
+
+The retained attempt remains UNKNOWN; its original link expired at
+`2026-10-22T14:45:34.671Z`. Expiry alone does not prove nonpayment. The website
+correctly prevents a new deposit and displays the existing transaction.
+
+Render status reads with request IDs `34460bf5-ccdd-47e3-badc-1ca727bd0e0b` and
+`1c58a303-322a-4e37-8e3a-9c5d10713fa1` took 5,048ms and 5,044ms. This is consistent
+with the existing gateway's 5,000ms timeout, but the caught provider cause is not
+exposed, so a network/signature/provider root cause is not established by timing.
+A local unsigned HEAD probe reached the fixed VNPay query endpoint in 261ms (405).
+A read-only Render-side probe could not run because the operator has no accepted
+SSH public key. No SSH key was registered, no provider secret was changed and no
+payment row was forced terminal. Authenticated VNPay reconciliation/operator proof
+is still required to resolve this payment safely.

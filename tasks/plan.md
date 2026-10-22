@@ -14,3 +14,8 @@ historical backend SPEC/RV evidence remains unchanged.
 
 API hand-off: [payment attempt discovery](../../wedding-be/docs/payment-attempt-discovery.md).
 Task status: [todo](./todo.md).
+
+The authorized rollout completed on 23 October (Asia/Ho_Chi_Minh). See the
+[deployed evidence](./evidence/payment-recovery-2026-10-22.md). Provider resolution
+of the existing UNKNOWN payment remains a separate follow-up; deployment/read
+verification does not establish a new VNPay settlement.
