@@ -30,6 +30,10 @@ const codeMessages: Record<string, string> = {
   DEPOSIT_INTENT_ACTIVE:
     'Đang có giao dịch đặt cọc chưa rõ kết quả. Hãy kiểm tra trạng thái thanh toán.',
   PAYMENT_ATTEMPT_ACTIVE: 'Đang có giao dịch chưa rõ kết quả. Hãy kiểm tra trạng thái thanh toán.',
+  PAYMENT_QUERY_COOLDOWN:
+    'VNPay giới hạn kiểm tra mỗi giao dịch một lần trong 5 phút. Hãy chờ khoảng 5 phút rồi kiểm tra lại; giao dịch của bạn vẫn được giữ nguyên.',
+  PAYMENT_PROVIDER_UNAVAILABLE:
+    'Chưa kết nối được VNPay để xác minh kết quả. Hãy kiểm tra lại sau; chưa tạo giao dịch mới khi kết quả còn chưa rõ.',
   CONTRACT_PRINT_SOURCE_ALLOCATED: 'Mẫu in này đã được đưa vào sản xuất nên không thể bỏ hoặc đổi.',
   CONTRACT_PRINT_QUANTITY_ALLOCATED: 'Không thể giảm số lượng in đã đưa vào sản xuất.',
   // Hoá đơn

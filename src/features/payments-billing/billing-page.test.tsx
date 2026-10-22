@@ -179,7 +179,7 @@ describe('Couple billing experience', () => {
         expect(api.startBalance).not.toHaveBeenCalled();
         page.unmount();
       }
-      expect(api.loadAttempt).toHaveBeenCalledWith('token', 'booking', 'existing-attempt');
+      expect(api.loadAttempt).toHaveBeenCalledWith('token', 'booking', 'existing-attempt', true);
     },
   );
 

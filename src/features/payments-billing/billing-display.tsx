@@ -22,6 +22,8 @@ export function billingMessage(error: unknown): string {
   if (!(error instanceof ApiClientError))
     return 'Chưa hoàn tất yêu cầu. Kiểm tra kết nối và giữ nguyên nội dung để thử lại; nếu lịch sử đã thay đổi, hãy tải lại.';
   const messages: Record<string, string> = {
+    PAYMENT_QUERY_COOLDOWN:
+      'VNPay giới hạn kiểm tra mỗi giao dịch một lần trong 5 phút. Hãy đợi rồi kiểm tra lại.',
     // Lý do chặn thanh toán số dư (POST /payments/balance có thể trả 409 dù GET trước đó cho phép).
     ...Object.fromEntries(
       Object.entries(blockedBalanceCopy).map(([code, copy]) => [code, copy.message]),

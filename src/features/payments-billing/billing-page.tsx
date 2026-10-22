@@ -300,7 +300,11 @@ export function CoupleBillingWorkspace({
       setAttemptId(restoreAttemptId);
       setIntent(null);
       setRetry(false);
-      const restored = await authorize((token) => gateway.loadAttempt(token, id, restoreAttemptId));
+      const restored = await authorize((token) =>
+        discovered !== undefined && Date.parse(discovered.expiresAt) > Date.now()
+          ? gateway.loadAttempt(token, id, restoreAttemptId, true)
+          : gateway.loadAttempt(token, id, restoreAttemptId),
+      );
       if (activeRequestIdRef.current !== requestId) return;
       if (
         restored.paymentAttemptId !== restoreAttemptId ||
@@ -740,7 +744,9 @@ export function CoupleBillingWorkspace({
               >
                 {embedded ? (
                   <p className="billing-attempt-note">
-                    Giao dịch gần nhất của hai bạn. Bấm để hỏi lại trạng thái mới nhất từ nhà hàng.
+                    Giao dịch gần nhất của hai bạn. Bấm để hỏi lại trạng thái mới nhất từ nhà hàng.{' '}
+                    VNPay giới hạn mỗi lần kiểm tra cách nhau khoảng 5 phút. Nếu kết quả chưa rõ,
+                    hãy chờ rồi kiểm tra lại giao dịch này.
                   </p>
                 ) : (
                   <label>

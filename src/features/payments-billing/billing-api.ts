@@ -1,5 +1,6 @@
 import { createApiClient, type ApiClient } from '../../lib/api/client';
 import type { components, operations } from '../../lib/api/generated/schema';
+import { paymentStatusFetch } from './payment-status-fetch';
 
 type BillingResponseData = components['schemas']['BookingBillingResponse']['data'];
 /**
@@ -52,6 +53,7 @@ export interface CoupleBillingGateway {
     token: string,
     bookingId: string,
     attemptId: string,
+    readOnly?: boolean,
   ): Promise<AttemptView>;
   startDeposit(
     this: void,
@@ -90,7 +92,7 @@ function checkout(data: { readonly data: CheckoutView } | undefined): CheckoutVi
 }
 export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGateway {
   let resolved = client;
-  const api = () => (resolved ??= createApiClient());
+  const api = () => (resolved ??= createApiClient({ fetch: paymentStatusFetch }));
   const headers = (token: string) => ({ Authorization: `Bearer ${token}` });
   return {
     async loadContext(token, bookingId) {
@@ -149,9 +151,12 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
         ),
       };
     },
-    async loadAttempt(token, bookingId, attemptId) {
+    async loadAttempt(token, bookingId, attemptId, readOnly = false) {
       const { data } = await api().GET('/bookings/{bookingId}/payments/{attemptId}', {
-        params: { path: { bookingId, attemptId } },
+        params: {
+          path: { bookingId, attemptId },
+          ...(readOnly ? { query: { reconcile: 'false' as const } } : {}),
+        },
         headers: headers(token),
         cache: 'no-store',
       });
