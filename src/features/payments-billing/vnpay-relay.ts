@@ -78,8 +78,10 @@ export async function relayVnpayQuery(
           : {}),
       },
     });
+  let stage = 'STATUS';
   try {
     if (input.check === false) return await forward(await backend(`${path}?reconcile=false`));
+    stage = 'PREPARE';
     const prepared = await backend(`${path}/query`);
     if (prepared.status === 429) {
       const response = await forward(await backend(`${path}?reconcile=false`));
@@ -92,6 +94,7 @@ export async function relayVnpayQuery(
     if (query.vnp_Command !== 'querydr' || query.vnp_Version !== '2.1.0')
       throw new Error('Invalid provider command');
     // Credentials belong only on backend calls; VNPay receives its signed query only.
+    stage = 'PROVIDER';
     const provider = await options.fetch(providerUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -102,12 +105,15 @@ export async function relayVnpayQuery(
     });
     if (!provider.ok) throw new Error('Provider unavailable');
     const response = fields.parse(await boundedJson(provider));
+    stage = 'VERIFY';
     return await forward(await backend(`${path}/evidence`, { response }));
   } catch {
-    return error(
+    const response = error(
       503,
       'PAYMENT_PROVIDER_UNAVAILABLE',
       'Payment status could not be verified. Please try again later.',
     );
+    response.headers.set('x-payment-query-stage', stage);
+    return response;
   }
 }

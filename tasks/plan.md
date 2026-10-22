@@ -14,6 +14,11 @@ the provider's five-minute query limit. Then deploy backend before frontend and
 verify UNKNOWN recovery plus the NCB sandbox journey on the deployed website.
 See [API and diagnosis](../../wedding-be/docs/vnpay-query-relay.md).
 
+Follow-up: the first Vercel query also timed out. Pin its server runtime to
+Singapore (`sin1`) near the API/provider and expose only the failed transport
+stage in an error header for diagnosis. Verify connectivity on the deployed
+runtime before claiming automatic recovery is operational.
+
 1. Update the shared deposit/balance frontend recovery flow and regression tests.
 2. Add authorized backend discovery for unresolved attempts and interrupted payment
    applications; preserve settlement, expiry and idempotency safeguards.
