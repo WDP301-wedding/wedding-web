@@ -22,10 +22,14 @@ const nextConfig: NextConfig = {
     return Promise.resolve(legacyRedirects.map((rule) => ({ ...rule, permanent: true })));
   },
   images: {
-    // Ảnh catalog là signed URL của Supabase Storage (hết hạn sau 15 phút). Chỉ cho phép đúng
-    // đường dẫn object của Storage để next/image không trở thành proxy ảnh mở cho mọi domain.
+    // Signed media URLs: restrict optimization to the exact storage object paths.
     remotePatterns: [
       { protocol: 'https', hostname: '*.supabase.co', pathname: '/storage/v1/object/**' },
+      {
+        protocol: 'https',
+        hostname: 'wedding-be-render-trial.onrender.com',
+        pathname: '/api/v1/storage/objects/**',
+      },
     ],
     // Ảnh tối ưu được cache theo URL; URL đã ký đổi mỗi lần ISR làm mới nên giữ ngắn.
     minimumCacheTTL: 600,
