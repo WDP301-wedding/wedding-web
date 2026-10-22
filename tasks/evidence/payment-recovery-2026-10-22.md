@@ -44,6 +44,21 @@ No migration or monetary policy change is included.
   retry tests pass; fully applied payments skip reconciliation.
 - Backend OpenAPI contract suite: 5 tests passed. Backend typecheck, production
   build, deterministic OpenAPI check and dependency audit passed.
+- The complete backend run finished **NOT_GREEN**: 304 files passed, 6 failed,
+  one worker exited before completing; 2,275 assertions passed and 26 failed.
+  Failures include the unchanged CI-workflow contract expecting a removed
+  format-check step, a Guest-import fault-injection expectation, media tests and
+  two 10-second database cleanup hooks. The Windows worker exit affected the
+  existing billing HTTP test file. This is not a passing whole-repository gate.
+- Isolated manual-payment rerun passed all 4 tests. The isolated media persistence
+  rerun reproduced 11 failures at the unchanged repository cutoff check:
+  the fixture injects 2026-10-09 into the service while `acceptUpload` uses actual
+  `Date.now()` and its cutoff is already past on 2026-10-22. No media rule, test
+  timeout or unrelated business behavior was changed by this payment fix.
+- A billing-HTTP/runtime follow-up also remained NOT_GREEN: all 12 billing HTTP
+  assertions passed but its database cleanup exceeded 10 seconds; the runtime
+  worker exited with Windows code 3221226505 (15 assertions completed across the
+  two files). No timeout, worker-failure treatment or quality threshold was changed.
 - Backend unrestricted lint exhausted the default heap while scanning existing
   generated/operator artifacts. The larger-heap retry was stopped after prolonged
   memory pressure. Authored-source lint uses the repository's previously recorded
@@ -90,3 +105,6 @@ browser verification and genuine VNPay sandbox outcomes remain pending authorize
 rollout and the release gates. Local/offline checks do not prove live provider
 readiness. Backend must deploy before the website because discovery fails closed
 when the new API is absent.
+
+Implementation commits on `codex/payment-recovery-20261022`:
+backend `4e657b8`, frontend `9202359`. Both are local and have not been pushed.
