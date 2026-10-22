@@ -4,10 +4,23 @@ import React from 'react';
 import { CoupleInvitationsPage as Page } from './invitations-page';
 import { browserSession as session } from '../identity-access/browser-session';
 import { ApiClientError } from '../../lib/api/client';
+import type * as CoupleWorkspaceModule from '../couple-workspace/use-couple-workspace';
 
 const mockSearchParams = new URLSearchParams();
 vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
+}));
+
+// Tab synchronization consumes the workspace cache; these isolated tests must not
+// start its real HTTP/session loader outside the application provider.
+vi.mock('../couple-workspace/use-couple-workspace', async (importOriginal) => ({
+  ...(await importOriginal<typeof CoupleWorkspaceModule>()),
+  useCoupleWorkspace: () => ({
+    state: { status: 'loading' },
+    bookingId: null,
+    bookings: [],
+    reload: () => {},
+  }),
 }));
 
 vi.mock('../identity-access/browser-session', () => ({
