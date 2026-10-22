@@ -17,17 +17,13 @@ beforeAll(async () => {
   document.body.appendChild(host);
   toasterHost = host;
   toasterRoot = createRoot(host);
-  await act(async () => {
-    toasterRoot!.render(createElement(AppToaster));
-  });
+  await act(() => Promise.resolve().then(() => toasterRoot!.render(createElement(AppToaster))));
 });
 
 // This root is mounted outside Testing Library, so cleanup() does not own it.
 // Unsubscribe Sonner and finish React's teardown while the DOM still exists.
 afterAll(async () => {
-  await act(async () => {
-    toasterRoot?.unmount();
-  });
+  await act(() => Promise.resolve().then(() => toasterRoot?.unmount()));
   toasterHost?.remove();
   toasterRoot = undefined;
   toasterHost = undefined;
