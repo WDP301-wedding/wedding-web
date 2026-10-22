@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { act, cleanup } from '@testing-library/react';
+import { act, cleanup, waitFor } from '@testing-library/react';
 import { createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { toast } from 'sonner';
@@ -29,10 +29,15 @@ afterAll(async () => {
   toasterHost = undefined;
 });
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
   // Xoá toast còn lại để test sau không thấy thông báo của test trước.
   act(() => {
     toast.dismiss();
+  });
+  // Sonner removes dismissed toasts after an exit animation. Await that actual
+  // removal so its delayed state update cannot run after jsdom is disposed.
+  await waitFor(() => {
+    if (document.querySelector('[data-sonner-toast]')) throw new Error('Toast dismissal pending');
   });
 });

@@ -213,6 +213,7 @@ describe('authenticated VNPay query relay', () => {
       .mockRejectedValueOnce(new Error('Provider connection closed'));
     const response = await relayVnpayQuery(request(), { fetch, backendOrigin });
     expect(response.status).toBe(503);
+    expect(response.headers.get('x-payment-query-stage')).toBe('PROVIDER');
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
