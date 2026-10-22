@@ -2,10 +2,16 @@
 
 - [x] WEB-SANDBOX-ROOT-01: Reproduce Render outbound connection timeouts and
       verify the stuck order's signed FAILED result from an independent connection.
-- [ ] WEB-SANDBOX-FIX-01: Ship authenticated web-server query relay, backend proof
+- [x] WEB-SANDBOX-FIX-01: Ship authenticated web-server query relay, backend proof
       verification, durable five-minute query coordination and passive checkout reads.
-- [ ] WEB-SANDBOX-E2E-01: Deploy, recover the old UNKNOWN attempt, then verify the
+- [x] WEB-SANDBOX-E2E-01: Deploy, recover the old UNKNOWN attempt, then verify the
       authorized NCB sandbox card checkout with persisted settlement/application.
+      Old UNKNOWN recovery used verified operator QueryDr; balance settlement was
+      automatic authentic IPN after correcting the merchant URL. See
+      [live evidence](./evidence/vnpay-ipn-settlement-2026-10-23.md).
+- [ ] WEB-SANDBOX-QUERY-01: Prove a nonterminal QueryDr provider round trip from
+      the final deployed Vercel `sin1` runtime. Terminal-status reads pass; do not
+      claim cloud query recovery based on an operator query or IPN settlement.
 
 - [x] WEB-FE-PAY-01: Discover and resume existing deposit/balance attempts without
       browser-stored IDs; recover checkout links, handle conflicting POSTs, preserve
@@ -25,11 +31,11 @@
       Fresh isolated browser login, deposit recovery/reload, desktop/mobile and
       public smoke reads pass with zero new payment POSTs. No genuine settlement
       or live FULL-balance payment is claimed.
-- [ ] WEB-PROVIDER-PAY-01: Reconcile the existing expired 21,000,000 VND deposit,
-      which remains UNKNOWN. Status requests take approximately the gateway's
-      five-second timeout; a Render-side connectivity cause is not yet proven.
-      Preserve proof and blocking behavior; never force failure to enable a new
-      payment. See the final deployed evidence for request IDs and limits.
+- [x] WEB-PROVIDER-PAY-01: Reconcile the existing expired 21,000,000 VND deposit.
+      Verified signed FAILED evidence released the original attempt. New deposit
+      and balance succeeded; exactly two payment entries total 70,000,000 VND.
+      Render outbound timeouts and the retired Railway merchant IPN were proven.
+      See [live evidence](./evidence/vnpay-ipn-settlement-2026-10-23.md).
 - [ ] WEB-DEPLOY-HOOK-01: Verify the Render checksPass automatic trigger separately.
       This release used an explicit deployment of the checked main commit after
       no automatic deployment appeared; no CI gate was bypassed.

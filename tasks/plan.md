@@ -17,7 +17,10 @@ See [API and diagnosis](../../wedding-be/docs/vnpay-query-relay.md).
 Follow-up: the first Vercel query also timed out. Pin its server runtime to
 Singapore (`sin1`) near the API/provider and expose only the failed transport
 stage in an error header for diagnosis. Verify connectivity on the deployed
-runtime before claiming automatic recovery is operational.
+runtime before claiming automatic recovery is operational. The corrected Render
+merchant IPN now has authentic successful NCB balance evidence, and the original
+UNKNOWN deposit was recovered using signed operator-query evidence. See
+[the live settlement report](./evidence/vnpay-ipn-settlement-2026-10-23.md).
 
 1. Update the shared deposit/balance frontend recovery flow and regression tests.
 2. Add authorized backend discovery for unresolved attempts and interrupted payment
