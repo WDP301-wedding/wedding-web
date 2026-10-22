@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GroupsCard } from './groups-card';
 import { guestApi, type GuestGroup } from './guest-api';
@@ -22,6 +22,13 @@ beforeEach(() => {
   vi.spyOn(browserSession, 'authorize').mockImplementation((operation) => operation('token'));
 });
 
+const clickAsync = (button: HTMLElement) =>
+  act(() =>
+    Promise.resolve().then(() => {
+      fireEvent.click(button);
+    }),
+  );
+
 describe('GroupsCard', () => {
   it('renames through a dialog, calls only the group API and shows a toast', async () => {
     const update = vi
@@ -34,7 +41,7 @@ describe('GroupsCard', () => {
     fireEvent.change(within(dialog).getByLabelText('Tên nhóm mới'), {
       target: { value: 'Họ nhà trai' },
     });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Lưu tên' }));
+    await clickAsync(within(dialog).getByRole('button', { name: 'Lưu tên' }));
     await waitFor(() =>
       expect(update).toHaveBeenCalledWith('token', expect.any(String), 'booking', 'group-1', {
         expectedRevision: 3,
@@ -49,6 +56,8 @@ describe('GroupsCard', () => {
       ),
     );
     expect(await screen.findByText('Đã đổi tên nhóm.')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Đổi tên' })).toBeEnabled();
   });
 
   it('asks before archiving and does nothing when cancelled', async () => {
@@ -57,23 +66,31 @@ describe('GroupsCard', () => {
       status: 'ARCHIVED',
       revision: 4,
     });
-    render(<GroupsCard bookingId="booking" groups={[group]} onChanged={vi.fn()} />);
+    const onChanged = vi.fn();
+    render(<GroupsCard bookingId="booking" groups={[group]} onChanged={onChanged} />);
     fireEvent.click(screen.getByRole('button', { name: 'Lưu trữ' }));
     const dialog = await screen.findByRole('alertdialog', { name: 'Lưu trữ nhóm “Nhà trai”?' });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Huỷ' }));
+    await clickAsync(within(dialog).getByRole('button', { name: 'Huỷ' }));
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
     expect(update).not.toHaveBeenCalled();
+    expect(onChanged).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Lưu trữ' }));
-    fireEvent.click(
-      within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Lưu trữ nhóm' }),
-    );
+    const archiveDialog = await screen.findByRole('alertdialog');
+    await clickAsync(within(archiveDialog).getByRole('button', { name: 'Lưu trữ nhóm' }));
     await waitFor(() =>
       expect(update).toHaveBeenCalledWith('token', expect.any(String), 'booking', 'group-1', {
         expectedRevision: 3,
         status: 'ARCHIVED',
       }),
     );
+    expect(await screen.findByText('Đã lưu trữ nhóm.')).toBeInTheDocument();
+    expect(onChanged).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'ARCHIVED', revision: 4 }),
+      'update',
+    );
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Lưu trữ' })).toBeEnabled();
   });
 
   it('shows backend errors as a toast with the support code', async () => {
@@ -91,8 +108,10 @@ describe('GroupsCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Đổi tên' }));
     const dialog = await screen.findByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('Tên nhóm mới'), { target: { value: 'Mới' } });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Lưu tên' }));
+    await clickAsync(within(dialog).getByRole('button', { name: 'Lưu tên' }));
     expect(await screen.findByText('Mã hỗ trợ: req-123')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Đổi tên' })).toBeEnabled();
   });
 
   it('explains instead of calling the backend when the group still has active guests', async () => {
@@ -108,7 +127,7 @@ describe('GroupsCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Lưu trữ' }));
     const dialog = await screen.findByRole('dialog', { name: 'Chưa thể lưu trữ nhóm “Nhà trai”' });
     expect(dialog).toHaveTextContent('Nhóm còn 3 khách đang mời');
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Đã hiểu' }));
+    await clickAsync(within(dialog).getByRole('button', { name: 'Đã hiểu' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(update).not.toHaveBeenCalled();
   });

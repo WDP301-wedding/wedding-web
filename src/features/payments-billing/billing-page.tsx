@@ -5,6 +5,7 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { type WebIdentitySession, type WebSessionSnapshot } from '../identity-access/session';
 import { browserSession } from '../identity-access/browser-session';
 import { createExperienceGateway } from '../identity-access/experience-api';
+import { ApiClientError } from '../../lib/api/client';
 import {
   createCoupleBillingGateway,
   type AttemptView,
@@ -194,9 +195,39 @@ export function CoupleBillingWorkspace({
       setPending(false);
     }
   };
+  const displayAttempt = async (id: string, restored: AttemptView) => {
+    setAttempt(restored);
+    setAttemptId(restored.paymentAttemptId);
+    setNeedsAttemptStatus(false);
+    setIntent(null);
+    setRetry(false);
+    setCheckout((previous) =>
+      restored.status === 'FAILED' || restored.status === 'SUCCEEDED'
+        ? null
+        : restored.checkoutUrl
+          ? {
+              paymentAttemptId: restored.paymentAttemptId,
+              status: restored.status,
+              checkoutUrl: restored.checkoutUrl,
+              expiresAt: restored.expiresAt,
+            }
+          : previous?.paymentAttemptId === restored.paymentAttemptId
+            ? previous
+            : null,
+    );
+    rememberCheckout(id, restored.paymentAttemptId);
+    const url = new URL(window.location.href);
+    url.searchParams.set('bookingId', id);
+    url.searchParams.set('attemptId', restored.paymentAttemptId);
+    window.history.replaceState({}, '', url.toString());
+    if (completed(restored))
+      await intents.completeCheckout(`checkout:${id}`, restored.paymentAttemptId);
+  };
   const load = async (id: string) => {
     const requestId = id + ':' + Date.now();
     activeRequestIdRef.current = requestId;
+    // A failed discovery must not leave a previously enabled payment button usable.
+    setNeedsAttemptStatus(true);
     const value = await authorize((token) => gateway.loadContext(token, id));
     if (activeRequestIdRef.current !== requestId) return;
     if (value.bookingId !== id) throw new Error('Booking mismatch');
@@ -213,15 +244,21 @@ export function CoupleBillingWorkspace({
     }
     const saved = await intents.pending(`checkout:${id}`);
     const savedAllowed = saved?.timelineRevisionId !== undefined || value.accessLevel === 'FULL';
+    const active = await authorize((token) => gateway.loadActiveAttempts(token, id));
+    if (activeRequestIdRef.current !== requestId) return;
+    const discovered = active.find(
+      (item) => value.accessLevel === 'FULL' || item.purpose === 'DEPOSIT',
+    );
     const restoreAttemptId =
-      savedAllowed && saved?.checkoutAttemptId !== undefined
-        ? saved.checkoutAttemptId
-        : !hideBalanceAttempt &&
-            (context?.bookingId === id ||
-              new URLSearchParams(window.location.search).get('bookingId') === id)
-          ? attemptId.trim()
-          : '';
-    setNeedsAttemptStatus(restoreAttemptId !== '');
+      discovered !== undefined
+        ? discovered.paymentAttemptId
+        : savedAllowed && saved?.checkoutAttemptId !== undefined
+          ? saved.checkoutAttemptId
+          : !hideBalanceAttempt &&
+              (context?.bookingId === id ||
+                new URLSearchParams(window.location.search).get('bookingId') === id)
+            ? attemptId.trim()
+            : '';
     const result =
       value.accessLevel === 'FULL' ? await authorize((token) => gateway.load(token, id)) : null;
     if (activeRequestIdRef.current !== requestId) return;
@@ -235,44 +272,76 @@ export function CoupleBillingWorkspace({
       window.history.replaceState({}, '', url.toString());
     }
     onBookingChange?.(id);
-    if (saved?.timelineRevisionId !== undefined) {
-      setIntent({
-        kind: 'deposit',
-        body: {
-          timelineRevisionId: saved.timelineRevisionId,
-          ...(saved.contractRevisionId === undefined
-            ? {}
-            : { contractRevisionId: saved.contractRevisionId }),
-          ...(saved.documentDigest === undefined ? {} : { documentDigest: saved.documentDigest }),
-        },
-        amountVnd: null,
-      });
-      setRetry(true);
-    } else if (saved?.expectedBillingRevision !== undefined && value.accessLevel === 'FULL') {
-      setIntent({
-        kind: 'balance',
-        body: { expectedBillingRevision: saved.expectedBillingRevision },
-        amountVnd: null,
-      });
-      setRetry(true);
-    }
+    const recoveryIntent: CheckoutIntent | null =
+      saved?.timelineRevisionId !== undefined
+        ? {
+            kind: 'deposit',
+            body: {
+              timelineRevisionId: saved.timelineRevisionId,
+              ...(saved.contractRevisionId === undefined
+                ? {}
+                : { contractRevisionId: saved.contractRevisionId }),
+              ...(saved.documentDigest === undefined
+                ? {}
+                : { documentDigest: saved.documentDigest }),
+            },
+            amountVnd: null,
+          }
+        : saved?.expectedBillingRevision !== undefined && value.accessLevel === 'FULL'
+          ? {
+              kind: 'balance',
+              body: { expectedBillingRevision: saved.expectedBillingRevision },
+              amountVnd: null,
+            }
+          : null;
+    setIntent(recoveryIntent);
+    setRetry(recoveryIntent !== null);
     if (restoreAttemptId !== '') {
+      setAttemptId(restoreAttemptId);
+      setIntent(null);
+      setRetry(false);
       const restored = await authorize((token) => gateway.loadAttempt(token, id, restoreAttemptId));
+      if (activeRequestIdRef.current !== requestId) return;
       if (
         restored.paymentAttemptId !== restoreAttemptId ||
         (value.accessLevel !== 'FULL' && restored.purpose !== 'DEPOSIT')
       )
         throw new Error('Attempt mismatch');
-      setAttempt(restored);
-      setAttemptId(restoreAttemptId);
-      setNeedsAttemptStatus(false);
-      if (restored.status === 'SUCCEEDED' || restored.status === 'FAILED') {
-        setCheckout(null);
-        setIntent(null);
-        setRetry(false);
-        if (completed(restored)) await intents.completeCheckout(`checkout:${id}`, restoreAttemptId);
+      // The server's active attempt wins; with no active attempt an authorized
+      // route lookup can also finish a lost-response journal already made terminal.
+      await intents.rememberAttempt(`checkout:${id}`, restoreAttemptId);
+      await displayAttempt(id, restored);
+      // Older status responses can omit checkoutUrl. Replaying the saved command
+      // uses its original key/body and cannot create a second payment intent.
+      if (
+        discovered === undefined &&
+        recoveryIntent !== null &&
+        restored.checkoutUrl === undefined &&
+        restored.status !== 'SUCCEEDED' &&
+        restored.status !== 'FAILED' &&
+        Date.parse(restored.expiresAt) > Date.now()
+      ) {
+        setIntent(recoveryIntent);
+        setRetry(true);
       }
-    }
+      if (completed(restored)) {
+        setNeedsAttemptStatus(true);
+        const refreshed = await authorize((token) => gateway.loadContext(token, id));
+        const refreshedView =
+          refreshed.accessLevel === 'FULL'
+            ? await authorize((token) => gateway.load(token, id))
+            : null;
+        if (activeRequestIdRef.current !== requestId) return;
+        if (
+          refreshed.bookingId !== id ||
+          (refreshedView !== null && refreshedView.bookingId !== id)
+        )
+          throw new Error('Booking mismatch');
+        setContext(refreshed);
+        setView(refreshedView);
+        setNeedsAttemptStatus(false);
+      }
+    } else setNeedsAttemptStatus(false);
   };
   const start = async () => {
     if (
@@ -313,9 +382,14 @@ export function CoupleBillingWorkspace({
       const unknown = unresolved(caught);
       setRetry(unknown);
       if (!unknown) setIntent(null);
+      if (caught instanceof ApiClientError && caught.code === 'PAYMENT_ATTEMPT_ACTIVE') {
+        // A different tab/device may have created the checkout after our initial read.
+        // Discover that attempt rather than retrying POST with another key.
+        await load(context.bookingId).catch(fail);
+      }
       // Backend từ chối hẳn (vd. 409: chưa chốt hoá đơn, đang có giao dịch, công nợ đổi):
       // tải lại billing MỘT lần để nút và lời nhắc hiện đúng điều kiện mới. Không tự thử lại POST.
-      if (intent.kind === 'balance' && !unknown && !denied(caught))
+      else if (intent.kind === 'balance' && !unknown && !denied(caught))
         void load(context.bookingId).catch(() => undefined);
     } finally {
       busy.current = false;
@@ -462,8 +536,6 @@ export function CoupleBillingWorkspace({
               onClick={() => {
                 void run(async () => {
                   await load(context.bookingId);
-                  if (attempt?.status === 'SUCCEEDED' || attempt?.status === 'FAILED')
-                    setCheckout(null);
                 });
               }}
             >
@@ -659,18 +731,10 @@ export function CoupleBillingWorkspace({
                     );
                     if (value.paymentAttemptId !== attemptId.trim())
                       throw new Error('Attempt mismatch');
-                    setAttempt(value);
-                    setNeedsAttemptStatus(false);
-                    if (value.status === 'FAILED' || value.status === 'SUCCEEDED') {
-                      setCheckout(null);
-                      setIntent(null);
-                      setRetry(false);
-                      if (completed(value))
-                        await intents.completeCheckout(
-                          `checkout:${context.bookingId}`,
-                          value.paymentAttemptId,
-                        );
-                    }
+                    if (context.accessLevel !== 'FULL' && value.purpose !== 'DEPOSIT')
+                      throw new Error('Attempt mismatch');
+                    await displayAttempt(context.bookingId, value);
+                    if (completed(value)) await load(context.bookingId);
                   });
                 }}
               >

@@ -68,6 +68,16 @@ export function createBillingIntents(
       )
         await storage.remove(slot);
     },
+    // Server discovery can recover a committed checkout whose POST response was lost.
+    // Keep its original key/body until this recovered attempt is verified terminal.
+    async rememberAttempt(scope: string, attemptId: string) {
+      const slot = await slotFor(scope);
+      const saved = await storage.read(slot);
+      if (saved === null) return;
+      const record = recordSchema.parse(JSON.parse(saved) as unknown);
+      if (record.checkoutAttemptId !== attemptId)
+        await storage.write(slot, JSON.stringify({ ...record, checkoutAttemptId: attemptId }));
+    },
     async run<T>(
       scope: string,
       body: object,

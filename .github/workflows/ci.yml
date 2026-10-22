@@ -51,6 +51,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check formatting
+        run: npm run format:check
+
       - name: Typecheck
         run: npm run typecheck
 
@@ -116,9 +119,11 @@ jobs:
           NODE
           npm run api:check
 
-      - name: Run automated tests (optional)
-        continue-on-error: true
-        run: npm test -- --maxWorkers=2 || true
+      - name: Enforce automated tests and coverage
+        run: npm run test:coverage -- --maxWorkers=2
+
+      - name: Audit locked dependencies
+        run: npm run audit:ci
 
       # Main is built once, with the real production environment, in deploy.
       - name: Restore PR build cache

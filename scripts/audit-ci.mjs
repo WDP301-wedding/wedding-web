@@ -4,7 +4,8 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const reviewedAdvisory = '1240992|braces|https://github.com/advisories/GHSA-vfj7-8cjw-p6xm';
-const reviewExpiresAt = new Date('2026-10-16T00:00:00.000Z');
+// Owner-approved renewal: docs/security/braces-review-2026-10-22.md.
+const reviewExpiresAt = new Date('2026-10-29T00:00:00.000Z');
 const knownSeverities = new Set(['info', 'low', 'moderate', 'high', 'critical']);
 const dependencySections = [
   'dependencies',
@@ -222,7 +223,7 @@ function main() {
   }
   if (result.allowed.length > 0 && result.ok) {
     console.warn(
-      `Temporarily allowed GHSA-vfj7-8cjw-p6xm through 2026-10-15 across ` +
+      `Temporarily allowed GHSA-vfj7-8cjw-p6xm until ${reviewExpiresAt.toISOString()} across ` +
         `${result.allowed.length} dev-only audit package(s); lockfile scope verified.`,
     );
   }

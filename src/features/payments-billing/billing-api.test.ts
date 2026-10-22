@@ -3,6 +3,84 @@ import { createApiClient } from '../../lib/api/client';
 import { createCoupleBillingGateway } from './billing-api';
 
 describe('generated Couple billing HTTP adapter', () => {
+  it('discovers active payment attempts with booking authorization and no browser cache', async () => {
+    const requests: Request[] = [];
+    const attempt = {
+      paymentAttemptId: 'existing-attempt',
+      purpose: 'BALANCE',
+      status: 'UNKNOWN',
+      amountVnd: 7765433,
+      applicationStatus: null,
+      expiresAt: '2099-10-09T10:00:00Z',
+      checkoutUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_TxnRef=existing',
+    };
+    const client = createApiClient({
+      baseUrl: 'http://localhost:4000/api/v1',
+      fetch: (request) => {
+        requests.push(request.clone());
+        return Promise.resolve(Response.json({ data: { attempts: [attempt] } }));
+      },
+    });
+    expect(await createCoupleBillingGateway(client).loadActiveAttempts('token', 'booking')).toEqual(
+      [attempt],
+    );
+    expect(requests[0]!.url).toBe('http://localhost:4000/api/v1/bookings/booking/payments/active');
+    expect(requests[0]!.method).toBe('GET');
+    expect(requests[0]!.headers.get('Authorization')).toBe('Bearer token');
+    expect(requests[0]!.cache).toBe('no-store');
+  });
+
+  it('distinguishes no active attempts from a missing active-payment response', async () => {
+    const client = createApiClient({
+      baseUrl: 'http://localhost:4000/api/v1',
+      fetch: () => Promise.resolve(Response.json({ data: { attempts: [] } })),
+    });
+    expect(await createCoupleBillingGateway(client).loadActiveAttempts('token', 'booking')).toEqual(
+      [],
+    );
+    const unavailable = createApiClient({
+      baseUrl: 'http://localhost:4000/api/v1',
+      fetch: () => Promise.resolve(Response.json({})),
+    });
+    await expect(
+      createCoupleBillingGateway(unavailable).loadActiveAttempts('token', 'booking'),
+    ).rejects.toThrow('dữ liệu');
+  });
+
+  it('rejects unsafe checkout URLs returned by active discovery or status recovery', async () => {
+    for (const checkoutUrl of [
+      'javascript:alert(1)',
+      'http://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
+      'https://evil.example/paymentv2/vpcpay.html',
+      'https://sandbox.vnpayment.vn.evil.example/paymentv2/vpcpay.html',
+      'https://sandbox.vnpayment.vn/other-path',
+    ]) {
+      const attempt = {
+        paymentAttemptId: 'existing-attempt',
+        purpose: 'DEPOSIT',
+        status: 'PENDING',
+        amountVnd: 1234567,
+        applicationStatus: null,
+        expiresAt: '2099-10-09T10:00:00Z',
+        checkoutUrl,
+      };
+      const client = createApiClient({
+        baseUrl: 'http://localhost:4000/api/v1',
+        fetch: (request) =>
+          Promise.resolve(
+            Response.json({
+              data: request.url.endsWith('/active') ? { attempts: [attempt] } : attempt,
+            }),
+          ),
+      });
+      const gateway = createCoupleBillingGateway(client);
+      await expect(gateway.loadActiveAttempts('token', 'booking')).rejects.toThrow('VNPay');
+      await expect(gateway.loadAttempt('token', 'booking', 'existing-attempt')).rejects.toThrow(
+        'VNPay',
+      );
+    }
+  });
+
   it('uses the booking grant and server deposit snapshot, never a client deposit formula', async () => {
     const client = createApiClient({
       baseUrl: 'http://localhost:4000/api/v1',

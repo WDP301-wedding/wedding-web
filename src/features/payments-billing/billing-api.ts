@@ -40,6 +40,7 @@ export type BillingContext = Readonly<{
 }>;
 export interface CoupleBillingGateway {
   loadContext(this: void, token: string, bookingId: string): Promise<BillingContext>;
+  loadActiveAttempts(this: void, token: string, bookingId: string): Promise<readonly AttemptView[]>;
   load(
     this: void,
     token: string,
@@ -72,9 +73,8 @@ function required<T>(data: { readonly data: T } | undefined): T {
     throw new Error('Không nhận được dữ liệu thanh toán. Giữ nguyên yêu cầu để thử lại.');
   return data.data;
 }
-function checkout(data: { readonly data: CheckoutView } | undefined): CheckoutView {
-  const value = required(data);
-  const url = new URL(value.checkoutUrl);
+function validateCheckoutUrl(value: string): void {
+  const url = new URL(value);
   if (
     url.origin !== 'https://sandbox.vnpayment.vn' ||
     url.pathname !== '/paymentv2/vpcpay.html' ||
@@ -82,6 +82,10 @@ function checkout(data: { readonly data: CheckoutView } | undefined): CheckoutVi
     url.password
   )
     throw new Error('Đường dẫn VNPay không hợp lệ. Giữ nguyên yêu cầu và liên hệ nhà hàng.');
+}
+function checkout(data: { readonly data: CheckoutView } | undefined): CheckoutView {
+  const value = required(data);
+  validateCheckoutUrl(value.checkoutUrl);
   return value;
 }
 export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGateway {
@@ -151,7 +155,20 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
         headers: headers(token),
         cache: 'no-store',
       });
-      return required(data);
+      const value = required(data);
+      if (value.checkoutUrl !== undefined) validateCheckoutUrl(value.checkoutUrl);
+      return value;
+    },
+    async loadActiveAttempts(token, bookingId) {
+      const { data } = await api().GET('/bookings/{bookingId}/payments/active', {
+        params: { path: { bookingId } },
+        headers: headers(token),
+        cache: 'no-store',
+      });
+      const attempts = Array.from(required(data).attempts);
+      for (const attempt of attempts)
+        if (attempt.checkoutUrl !== undefined) validateCheckoutUrl(attempt.checkoutUrl);
+      return attempts;
     },
     async startDeposit(token, bookingId, body, key) {
       const { data } = await api().POST('/bookings/{bookingId}/payments/deposit', {
