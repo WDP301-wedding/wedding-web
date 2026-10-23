@@ -178,7 +178,10 @@ export function CollaborationWorkspace({
   useRealtimeSubscription({
     bookingId: currentBookingId,
     onEvent: (event) => {
-      if (currentBookingId && (!event.scope.bookingId || event.scope.bookingId === currentBookingId)) {
+      if (
+        currentBookingId &&
+        (!event.scope.bookingId || event.scope.bookingId === currentBookingId)
+      ) {
         void load(currentBookingId);
         onProposalUpdated?.();
       }
