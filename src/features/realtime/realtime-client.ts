@@ -118,9 +118,19 @@ export class CoupleRealtimeManager {
       this.setStatus('disconnected');
     });
 
-    socket.on('connect_error', async () => {
+    socket.on('connect_error', async (err: unknown) => {
       this.setStatus('disconnected');
-      if (this.tokenRefreshHandler) {
+      const errorMessage =
+        err && typeof err === 'object' && 'message' in err && typeof err.message === 'string'
+          ? err.message
+          : '';
+      const isAuthError =
+        errorMessage.includes('AUTHENTICATION') ||
+        errorMessage.includes('TOKEN') ||
+        errorMessage.includes('REVOKED') ||
+        errorMessage.includes('UNAUTHORIZED');
+
+      if (isAuthError && this.tokenRefreshHandler) {
         try {
           const renewed = await this.tokenRefreshHandler();
           if (renewed && this.socket) {
