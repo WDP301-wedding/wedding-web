@@ -8,6 +8,7 @@ import { createExperienceGateway, type Overview } from '../identity-access/exper
 import type { WebSessionSnapshot } from '../identity-access/session';
 import { ApiClientError } from '../../lib/api/client';
 import { Skeleton } from '../../design-system/skeleton';
+import { useRealtimeSubscription } from '../realtime/use-realtime';
 
 const gateway = createExperienceGateway();
 
@@ -55,6 +56,19 @@ export function CoupleOverview() {
       active = false;
     };
   }, [retry]);
+
+  const activeBookingId = page?.data[0]?.bookingId;
+  useRealtimeSubscription({
+    bookingId: activeBookingId,
+    onEvent: (event) => {
+      if (!activeBookingId || !event.scope.bookingId || event.scope.bookingId === activeBookingId) {
+        setRetry((value) => value + 1);
+      }
+    },
+    onResync: () => {
+      setRetry((value) => value + 1);
+    },
+  });
   async function more() {
     if (!page?.nextCursor || pending) return;
     setPending(true);

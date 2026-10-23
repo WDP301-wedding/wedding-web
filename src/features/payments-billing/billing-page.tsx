@@ -20,6 +20,7 @@ import { createBillingIntents } from './billing-intents';
 import { balanceGate } from './balance-eligibility';
 import { CheckoutLinkPanel } from './checkout-link';
 import { useSpaceExtras } from '../couple-workspace/space-provider';
+import { useRealtimeSubscription } from '../realtime/use-realtime';
 import {
   AttemptStatus,
   BillingHistory,
@@ -347,6 +348,28 @@ export function CoupleBillingWorkspace({
       }
     } else setNeedsAttemptStatus(false);
   };
+
+  useRealtimeSubscription({
+    bookingId: bookingId || undefined,
+    enabled: Boolean(bookingId),
+    onEvent: (event) => {
+      if (!event.scope.bookingId || event.scope.bookingId === bookingId) {
+        if (
+          event.type === 'billing.updated' ||
+          event.type === 'deposit.received' ||
+          event.type === 'contract.updated'
+        ) {
+          void run(() => load(bookingId));
+        }
+      }
+    },
+    onResync: () => {
+      if (bookingId) {
+        void run(() => load(bookingId));
+      }
+    },
+  });
+
   const start = async () => {
     if (
       busy.current ||

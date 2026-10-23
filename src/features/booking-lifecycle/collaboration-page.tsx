@@ -18,6 +18,7 @@ import {
   type CollaborationGateway,
   type ProposalView,
 } from './collaboration-api';
+import { useRealtimeSubscription } from '../realtime/use-realtime';
 
 type Authorize = <T>(operation: (accessToken: string) => Promise<T>) => Promise<T>;
 export type BookingChoice = Readonly<{ bookingId: string; label: string }>;
@@ -172,6 +173,23 @@ export function CollaborationWorkspace({
     },
     [authorize, gateway, onBookingChange],
   );
+
+  const currentBookingId = proposal?.bookingId;
+  useRealtimeSubscription({
+    bookingId: currentBookingId,
+    onEvent: (event) => {
+      if (currentBookingId && (!event.scope.bookingId || event.scope.bookingId === currentBookingId)) {
+        void load(currentBookingId);
+        onProposalUpdated?.();
+      }
+    },
+    onResync: () => {
+      if (currentBookingId) {
+        void load(currentBookingId);
+        onProposalUpdated?.();
+      }
+    },
+  });
   /**
    * Tự mở đúng tiệc, không bắt người dùng nhập mã:
    * 1) `?bookingId=` hợp lệ trên URL (đến từ sidebar, tổng quan, email) → mở ngay;

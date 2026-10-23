@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { authorizedRead, type Proposal } from '../couple-workspace/use-couple-workspace';
+import { useRealtimeSubscription } from '../realtime/use-realtime';
 import {
   guestApi,
   type AttendanceSummary,
@@ -186,6 +187,22 @@ export function useGuestsWorkspace(proposal: Proposal) {
     },
     [reload, status],
   );
+
+  useRealtimeSubscription({
+    bookingId,
+    onEvent: (event) => {
+      if (!event.scope.bookingId || event.scope.bookingId === bookingId) {
+        if (event.type === 'guest.updated' || event.type === 'booking.updated') {
+          reload();
+          reloadExtras();
+        }
+      }
+    },
+    onResync: () => {
+      reload();
+      reloadExtras();
+    },
+  });
 
   return {
     bookingId,

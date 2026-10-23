@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { authorizedRead, type Proposal } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestGroup } from '../guest-management/guest-api';
+import { useRealtimeSubscription } from '../realtime/use-realtime';
 import { seatingApi, type LayoutOptions, type SeatingPlan } from './seating-api';
 
 export const statusLabels: Record<SeatingPlan['status'], string> = {
@@ -62,6 +63,24 @@ export function useSeatingWorkspace(proposal: Proposal) {
     setPlanId(next.seatingPlanId);
     setPlan(next);
   }, []);
+
+  useRealtimeSubscription({
+    bookingId,
+    onEvent: (event) => {
+      if (!event.scope.bookingId || event.scope.bookingId === bookingId) {
+        if (
+          event.type === 'seating.updated' ||
+          event.type === 'guest.updated' ||
+          event.type === 'booking.updated'
+        ) {
+          reload();
+        }
+      }
+    },
+    onResync: () => {
+      reload();
+    },
+  });
 
   return {
     bookingId,

@@ -8,6 +8,7 @@ import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import type { ApiData } from '../../lib/api/types';
 import { browserSession } from '../identity-access/browser-session';
 import { notify } from '../../design-system/toast';
+import { useRealtimeSubscription } from '../realtime/use-realtime';
 
 export type Proposal = ApiData<'/bookings/{bookingId}/proposal', 'get'>;
 export type BookingSummary = ApiData<'/couple/bookings', 'get'>[number];
@@ -152,6 +153,27 @@ export function useWorkspaceLoader(enabled = true): CoupleWorkspace {
   }, [enabled, urlBookingId, reloadKey]);
 
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
+
+  const activeBookingId = state.status === 'ready' ? state.proposal.bookingId : urlBookingId;
+  useRealtimeSubscription({
+    bookingId: activeBookingId ?? undefined,
+    enabled,
+    onEvent: (event) => {
+      if (
+        event.scope.entityType === 'account' ||
+        event.scope.entityType === 'booking' ||
+        !event.scope.bookingId ||
+        event.scope.bookingId === activeBookingId ||
+        bookings.some((b) => b.bookingId === event.scope.bookingId)
+      ) {
+        reload();
+      }
+    },
+    onResync: () => {
+      reload();
+    },
+  });
+
   return {
     state,
     reload,

@@ -1,5 +1,6 @@
 import type { components } from '../../lib/api/generated/schema';
 import { ApiClientError, createApiClient, type ApiClient } from '../../lib/api/client';
+import { sharedCoupleRealtime } from '../realtime/realtime-client';
 
 type Role = components['schemas']['AccountSummary']['roles'][number];
 
@@ -151,6 +152,9 @@ export class WebIdentitySession {
         // BroadcastChannel might fail in sandboxed iframes
       }
     }
+    sharedCoupleRealtime.setTokenRefreshHandler(async () => {
+      return await this.renewAccessToken();
+    });
   }
 
   snapshot(): WebSessionSnapshot {
@@ -301,6 +305,7 @@ export class WebIdentitySession {
       this.accessToken = credential.accessToken;
       saveCachedCoupleToken(credential.accessToken, credential.accessExpiresAt);
       this.scheduleProactiveRefresh(credential.accessExpiresAt);
+      void sharedCoupleRealtime.connect(credential.accessToken);
       return credential.accessToken;
     } catch (error) {
       if (error instanceof ApiClientError && error.status === 401) {
@@ -355,6 +360,7 @@ export class WebIdentitySession {
         actor,
         denial: null,
       });
+      void sharedCoupleRealtime.connect(credential.accessToken);
       return this.state;
     } catch (error) {
       this.clear();
@@ -369,6 +375,7 @@ export class WebIdentitySession {
     }
     this.accessToken = null;
     clearCachedCoupleToken();
+    sharedCoupleRealtime.disconnect();
     this.updateSnapshot(anonymousSnapshot);
   }
 }

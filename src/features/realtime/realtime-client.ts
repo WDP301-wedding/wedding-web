@@ -1,0 +1,280 @@
+'use client';
+
+import { io, type Socket } from 'socket.io-client';
+import { readPublicEnv } from '../../lib/env';
+
+export type RealtimeEventType =
+  | 'booking.updated'
+  | 'proposal.updated'
+  | 'timeline.updated'
+  | 'contract.updated'
+  | 'deposit.received'
+  | 'billing.updated'
+  | 'guest.updated'
+  | 'seating.updated'
+  | 'print_order.updated'
+  | 'catalog.updated'
+  | 'notification.received'
+  | 'session.revoked';
+
+export interface RealtimeScope {
+  readonly entityType: 'booking' | 'catalog' | 'account' | 'print_order' | 'session';
+  readonly entityId?: string | undefined;
+  readonly bookingId?: string | undefined;
+  readonly revision?: number | undefined;
+}
+
+export interface RealtimeEvent<T = Record<string, unknown>> {
+  readonly eventId: string;
+  readonly schemaVersion: 1;
+  readonly type: RealtimeEventType;
+  readonly scope: RealtimeScope;
+  readonly resources: readonly string[];
+  readonly occurredAt: string;
+  readonly payload?: T | undefined;
+}
+
+export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
+export type TokenRefreshHandler = () => Promise<string | null>;
+
+export function resolveRealtimeSocketUrl(): string {
+  try {
+    if (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_REALTIME_URL) {
+      return new URL(process.env.NEXT_PUBLIC_REALTIME_URL).origin;
+    }
+    const apiBase = readPublicEnv().NEXT_PUBLIC_API_BASE_URL;
+    const parsed = new URL(apiBase);
+    // In local dev, if NEXT_PUBLIC_API_BASE_URL points to Next.js BFF (port 3000 or 3002),
+    // backend WebSocket is running on port 3001.
+    if (parsed.port === '3000' || parsed.port === '3002') {
+      return `${parsed.protocol}//${parsed.hostname}:3001`;
+    }
+    return parsed.origin;
+  } catch {
+    return 'http://127.0.0.1:3001';
+  }
+}
+
+export class CoupleRealtimeManager {
+  private socket: Socket | null = null;
+  private token: string | null = null;
+  private status: ConnectionStatus = 'disconnected';
+  private tokenRefreshHandler: TokenRefreshHandler | null = null;
+  private readonly statusListeners = new Set<(status: ConnectionStatus) => void>();
+  private readonly eventListeners = new Set<(event: RealtimeEvent) => void>();
+  private readonly resyncListeners = new Set<() => void>();
+  private readonly activeSubscriptions = new Map<string, number>();
+  private readonly seenEventIds = new Set<string>();
+
+  setTokenRefreshHandler(handler: TokenRefreshHandler | null): void {
+    this.tokenRefreshHandler = handler;
+  }
+
+  connect(token: string): void {
+    if (typeof window === 'undefined') return;
+
+    const tokenChanged = this.token !== token;
+    this.token = token;
+
+    if (this.socket) {
+      this.socket.auth = { token };
+      if (this.socket.connected) {
+        if (!tokenChanged) return;
+        this.socket.disconnect().connect();
+        return;
+      }
+      this.socket.connect();
+      return;
+    }
+
+    this.setStatus('connecting');
+
+    const socket = io(resolveRealtimeSocketUrl(), {
+      path: '/realtime',
+      transports: ['websocket'],
+      auth: { token },
+      autoConnect: true,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1_000,
+      reconnectionDelayMax: 10_000,
+      randomizationFactor: 0.3,
+      timeout: 10_000,
+    });
+
+    this.socket = socket;
+
+    socket.on('connect', () => {
+      this.setStatus('connected');
+      // Resubscribe to active bookings with refcount > 0
+      for (const bookingId of this.activeSubscriptions.keys()) {
+        socket.emit('subscribe:booking', { bookingId });
+      }
+      // Authoritative resync on reconnect
+      this.triggerResync();
+    });
+
+    socket.on('disconnect', () => {
+      this.setStatus('disconnected');
+    });
+
+    socket.on('connect_error', async () => {
+      this.setStatus('disconnected');
+      if (this.tokenRefreshHandler) {
+        try {
+          const renewed = await this.tokenRefreshHandler();
+          if (renewed && this.socket) {
+            this.token = renewed;
+            this.socket.auth = { token: renewed };
+            if (this.socket.disconnected) {
+              this.socket.connect();
+            }
+          }
+        } catch {
+          // Token refresh failure handled by session layer
+        }
+      }
+    });
+
+    socket.on('realtime:event', (event: unknown) => {
+      if (!this.isValidEvent(event)) return;
+      if (this.seenEventIds.has(event.eventId)) {
+        return;
+      }
+      if (this.seenEventIds.size >= 10_000) {
+        const iter = this.seenEventIds.values();
+        for (let i = 0; i < 2_000; i++) {
+          const next = iter.next();
+          if (next.done) break;
+          this.seenEventIds.delete(next.value);
+        }
+      }
+      this.seenEventIds.add(event.eventId);
+
+      for (const listener of this.eventListeners) {
+        try {
+          listener(event);
+        } catch {
+          // Prevent listener error from breaking socket event loop
+        }
+      }
+    });
+
+    socket.on('realtime:resync', () => {
+      this.triggerResync();
+    });
+
+    socket.on('subscription:confirmed', () => {
+      this.setStatus('connected');
+    });
+
+    socket.on('subscription:denied', () => {
+      this.setStatus('connected');
+    });
+  }
+
+  updateToken(token: string): void {
+    this.token = token;
+    if (this.socket) {
+      this.socket.auth = { token };
+      if (this.socket.disconnected) {
+        this.socket.connect();
+      }
+    }
+  }
+
+  disconnect(): void {
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+    this.token = null;
+    this.setStatus('disconnected');
+    this.activeSubscriptions.clear();
+  }
+
+  subscribeBooking(bookingId: string): () => void {
+    const current = this.activeSubscriptions.get(bookingId) ?? 0;
+    this.activeSubscriptions.set(bookingId, current + 1);
+
+    if (current === 0 && this.socket?.connected) {
+      this.socket.emit('subscribe:booking', { bookingId });
+    }
+
+    return () => {
+      const remaining = (this.activeSubscriptions.get(bookingId) ?? 1) - 1;
+      if (remaining <= 0) {
+        this.activeSubscriptions.delete(bookingId);
+        if (this.socket?.connected) {
+          this.socket.emit('unsubscribe:booking', { bookingId });
+        }
+      } else {
+        this.activeSubscriptions.set(bookingId, remaining);
+      }
+    };
+  }
+
+  addEventListener(listener: (event: RealtimeEvent) => void): () => void {
+    this.eventListeners.add(listener);
+    return () => {
+      this.eventListeners.delete(listener);
+    };
+  }
+
+  addResyncListener(listener: () => void): () => void {
+    this.resyncListeners.add(listener);
+    return () => {
+      this.resyncListeners.delete(listener);
+    };
+  }
+
+  addStatusListener(listener: (status: ConnectionStatus) => void): () => void {
+    this.statusListeners.add(listener);
+    listener(this.status);
+    return () => {
+      this.statusListeners.delete(listener);
+    };
+  }
+
+  getStatus(): ConnectionStatus {
+    return this.status;
+  }
+
+  private setStatus(status: ConnectionStatus): void {
+    if (this.status === status) return;
+    this.status = status;
+    for (const listener of this.statusListeners) {
+      try {
+        listener(status);
+      } catch {
+        // Ignore
+      }
+    }
+  }
+
+  private triggerResync(): void {
+    for (const listener of this.resyncListeners) {
+      try {
+        listener();
+      } catch {
+        // Ignored
+      }
+    }
+  }
+
+  private isValidEvent(payload: unknown): payload is RealtimeEvent {
+    if (!payload || typeof payload !== 'object') return false;
+    const evt = payload as Record<string, unknown>;
+    return (
+      typeof evt.eventId === 'string' &&
+      evt.schemaVersion === 1 &&
+      typeof evt.type === 'string' &&
+      typeof evt.occurredAt === 'string' &&
+      typeof evt.scope === 'object' &&
+      evt.scope !== null &&
+      Array.isArray(evt.resources)
+    );
+  }
+}
+
+export const sharedCoupleRealtime = new CoupleRealtimeManager();
