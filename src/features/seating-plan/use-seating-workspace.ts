@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { authorizedRead, type Proposal } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestGroup } from '../guest-management/guest-api';
@@ -22,6 +22,12 @@ export const layoutWarnings: Record<string, string> = {
 };
 
 export function useSeatingWorkspace(proposal: Proposal) {
+  const dirty = useRef(false);
+  const fetchGeneration = useRef(0);
+  const [refreshAvailable, setRefreshAvailable] = useState(false);
+  const setDirty = useCallback((value: boolean) => {
+    dirty.current = value;
+  }, []);
   const bookingId = proposal.bookingId;
   const [options, setOptions] = useState<LayoutOptions | null>(null);
   const [groups, setGroups] = useState<GuestGroup[]>([]);
@@ -30,10 +36,18 @@ export function useSeatingWorkspace(proposal: Proposal) {
   const [loadError, setLoadError] = useState<FriendlyError | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const reload = useCallback(() => setReloadKey((value) => value + 1), []);
+  const reload = useCallback(() => {
+    setRefreshAvailable(false);
+    setReloadKey((value) => value + 1);
+  }, []);
+  const backgroundReload = useCallback(() => {
+    if (dirty.current) setRefreshAvailable(true);
+    else reload();
+  }, [reload]);
 
   useEffect(() => {
     let active = true;
+    const generation = ++fetchGeneration.current;
     authorizedRead(async (token) => {
       const [layoutOptions, guestGroups, current] = await Promise.all([
         seatingApi.options(token, bookingId),
@@ -43,7 +57,11 @@ export function useSeatingWorkspace(proposal: Proposal) {
       return { layoutOptions, guestGroups, current };
     })
       .then(({ layoutOptions, guestGroups, current }) => {
-        if (!active) return;
+        if (!active || generation !== fetchGeneration.current) return;
+        if (dirty.current) {
+          setRefreshAvailable(true);
+          return;
+        }
         setOptions(layoutOptions);
         setGroups(guestGroups.filter((group) => group.status === 'ACTIVE'));
         setPlan(current);
@@ -51,7 +69,10 @@ export function useSeatingWorkspace(proposal: Proposal) {
         setLoadError(null);
       })
       .catch((error: unknown) => {
-        if (active) setLoadError(describeApiError(error));
+        if (active && generation === fetchGeneration.current) {
+          if (dirty.current) setRefreshAvailable(true);
+          else setLoadError(describeApiError(error));
+        }
       });
     return () => {
       active = false;
@@ -60,6 +81,7 @@ export function useSeatingWorkspace(proposal: Proposal) {
 
   const accept = useCallback((next: SeatingPlan | undefined) => {
     if (!next) return;
+    fetchGeneration.current++;
     setPlanId(next.seatingPlanId);
     setPlan(next);
   }, []);
@@ -73,12 +95,12 @@ export function useSeatingWorkspace(proposal: Proposal) {
           event.type === 'guest.updated' ||
           event.type === 'booking.updated'
         ) {
-          reload();
+          backgroundReload();
         }
       }
     },
     onResync: () => {
-      reload();
+      backgroundReload();
     },
   });
 
@@ -90,6 +112,9 @@ export function useSeatingWorkspace(proposal: Proposal) {
     planId,
     loadError,
     reload,
+    setDirty,
+    requestRefresh: backgroundReload,
+    refreshAvailable,
     accept,
   };
 }

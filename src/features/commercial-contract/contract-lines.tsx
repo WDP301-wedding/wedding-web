@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { formatVnd } from '../couple-workspace/use-couple-workspace';
+import { describeApiError } from '../../lib/api/api-errors';
+import type { ContractPreview } from './contract-preview-api';
 import type { Catalog, ContractLine, ContractLineInput } from './contract-api';
 
 export const categoryLabels: Record<ContractLine['category'], string> = {
@@ -42,7 +44,10 @@ export function ContractLinesTable({
           {lines.map((line) => (
             <tr key={`${line.category}:${line.sourceId}`}>
               <td>{categoryLabels[line.category]}</td>
-              <td>{line.name}</td>
+              <td>
+                <strong>{line.name}</strong>
+                {line.description ? <p className="muted">{line.description}</p> : null}
+              </td>
               <td className="num">
                 {line.quantity} {unitLabel(line.unit)}
               </td>
@@ -84,6 +89,7 @@ export function LineSelector({
   extraFields,
   frozenLines,
   onSubmit,
+  onPreview,
 }: Readonly<{
   catalog: Catalog;
   /**
@@ -102,12 +108,23 @@ export function LineSelector({
   pending: boolean;
   extraFields?: React.ReactNode;
   onSubmit: (lines: ContractLineInput[], form: FormData) => void;
+  onPreview?: (lines: ContractLineInput[]) => Promise<ContractPreview>;
 }>) {
   const [selection, setSelection] = useState<Selection>(() =>
     Object.fromEntries(
       initialLines.map((line) => [keyOf(line.category, line.sourceId), line.quantity]),
     ),
   );
+  const requestSequence = useRef(0);
+  useEffect(
+    () => () => {
+      requestSequence.current++;
+    },
+    [],
+  );
+  const [preview, setPreview] = useState<{ signature: string; data: ContractPreview } | null>(null);
+  const [previewPending, setPreviewPending] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
   // Dòng cũ có sourceId không còn trong danh mục đang bán → báo để người dùng biết phải chọn lại.
@@ -209,6 +226,29 @@ export function LineSelector({
       .filter((line) => line.category === 'MENU')
       .reduce((sum, line) => sum + (selection[keyOf('MENU', line.sourceId)] ?? 0), 0);
 
+  const selectionSignature = JSON.stringify(buildLines());
+  const previewCurrent = preview?.signature === selectionSignature;
+  const requestPreview = async () => {
+    if (!onPreview || previewPending) return;
+    const lines = buildLines();
+    if (!lines.some((line) => line.category === 'MENU')) {
+      setLocalError('Chọn ít nhất một thực đơn trước khi xem chi phí.');
+      return;
+    }
+    const sequence = ++requestSequence.current;
+    setPreviewPending(true);
+    setPreviewError(null);
+    setLocalError(null);
+    try {
+      const data = await onPreview(lines);
+      if (sequence === requestSequence.current)
+        setPreview({ signature: JSON.stringify(lines), data });
+    } catch (error) {
+      if (sequence === requestSequence.current) setPreviewError(describeApiError(error).message);
+    } finally {
+      if (sequence === requestSequence.current) setPreviewPending(false);
+    }
+  };
   return (
     <form
       className="cw-form"
@@ -317,6 +357,52 @@ export function LineSelector({
       ) : null}
       {frozenLines ? (
         <p className="cw-note">Hạng mục đã có trong thoả thuận được giữ nguyên đơn giá đã chốt.</p>
+      ) : null}
+      {onPreview ? (
+        <section className="cw-card" aria-label="Xem trước chi phí" aria-busy={previewPending}>
+          <h3>Xem trước chi phí chưa lưu</h3>
+          <p>
+            Tính từ giá chính thức trên máy chủ. Không tạo bản hợp đồng, không gửi duyệt và không
+            ghi nhận thanh toán.
+          </p>
+          {preview && previewCurrent ? (
+            <>
+              <ContractLinesTable
+                lines={preview.data.document.lines}
+                totalVnd={preview.data.document.contractTotalVnd}
+                totalLabel="Tổng dự kiến cho lựa chọn này"
+              />
+              <p>
+                Tiền cọc theo hợp đồng:{' '}
+                <strong>{formatVnd(preview.data.document.depositAmountVnd)}</strong>
+              </p>
+              <p>{preview.data.document.incidentalClause}</p>
+              <p className="muted">
+                Giá, quyền và revision được kiểm tra lại khi lưu. Phát sinh tương lai chưa ghi nhận
+                không nằm trong tổng này.
+              </p>
+            </>
+          ) : (
+            <p role="status">
+              {preview
+                ? 'Lựa chọn đã thay đổi. Bấm tính lại để xem tổng mới.'
+                : 'Chọn các hạng mục rồi bấm Xem trước chi phí.'}
+            </p>
+          )}
+          {previewError ? <p role="alert">{previewError}</p> : null}
+          <button
+            className="button button-secondary"
+            type="button"
+            disabled={pending || previewPending}
+            onClick={() => void requestPreview()}
+          >
+            {previewPending
+              ? 'Đang tính chi phí…'
+              : preview
+                ? 'Tính lại chi phí'
+                : 'Xem trước chi phí'}
+          </button>
+        </section>
       ) : null}
       {extraFields}
       {localError ? (

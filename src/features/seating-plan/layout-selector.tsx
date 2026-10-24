@@ -1,8 +1,15 @@
 import { formText, useCommand } from '../couple-workspace/use-couple-workspace';
-import { seatingApi, type LayoutOptions, type SeatingPlan } from './seating-api';
+import {
+  viewBoxOf,
+  seatingApi,
+  type SeatingTable,
+  type LayoutOptions,
+  type SeatingPlan,
+} from './seating-api';
 import { layoutWarnings } from './use-seating-workspace';
 
 export function LayoutSelector({
+  disabled = false,
   bookingId,
   options,
   plan,
@@ -10,6 +17,7 @@ export function LayoutSelector({
   onSelect,
   onStale,
 }: Readonly<{
+  disabled?: boolean;
   bookingId: string;
   options: LayoutOptions;
   plan: SeatingPlan | null;
@@ -26,6 +34,9 @@ export function LayoutSelector({
         <h2>{plan ? `Mẫu đang dùng: ${plan.layoutName}` : 'Chọn mẫu sơ đồ'}</h2>
         <span className="muted">Số khách dự kiến: {options.planningHeadcount}</span>
       </div>
+      {disabled ? (
+        <p role="status">Lưu hoặc khôi phục nhãn bàn trước khi đổi mẫu để tránh mất thay đổi.</p>
+      ) : null}
       {options.items.length === 0 ? (
         <p className="cw-note">Sảnh chưa có mẫu sơ đồ nào được xuất bản. Hãy liên hệ nhà hàng.</p>
       ) : (
@@ -48,7 +59,71 @@ export function LayoutSelector({
               {options.items.map((option) => (
                 <tr key={option.layoutTemplateVersionId}>
                   <td>
-                    {option.name}
+                    <strong>{option.name}</strong>
+                    {option.description ? <p>{option.description}</p> : null}
+                    {option.tables ? (
+                      <>
+                        <p>
+                          {option.tables.length} bàn · {option.totalSeatCapacity} ghế
+                        </p>
+                        <svg
+                          viewBox={viewBoxOf(
+                            option.tables.map(
+                              (table) =>
+                                ({
+                                  ...table,
+                                  guestGroupId: null,
+                                  guestGroupName: null,
+                                  color: null,
+                                }) satisfies SeatingTable,
+                            ),
+                          )}
+                          width="240"
+                          height="160"
+                          style={{ maxWidth: '100%' }}
+                          role="img"
+                          aria-label={'Xem trước mẫu ' + option.name}
+                        >
+                          {option.tables.map((table) => (
+                            <g
+                              key={table.layoutTableId}
+                              transform={
+                                'translate(' +
+                                (table.x + table.width / 2) +
+                                ' ' +
+                                (table.y + table.height / 2) +
+                                ') rotate(' +
+                                table.rotationDegrees +
+                                ')'
+                              }
+                            >
+                              <title>
+                                {table.tableLabel} · {table.seatCapacity} ghế
+                              </title>
+                              {table.shape === 'ROUND' ? (
+                                <ellipse
+                                  rx={table.width / 2}
+                                  ry={table.height / 2}
+                                  fill="var(--paper)"
+                                  stroke="currentColor"
+                                />
+                              ) : (
+                                <rect
+                                  x={-table.width / 2}
+                                  y={-table.height / 2}
+                                  width={table.width}
+                                  height={table.height}
+                                  fill="var(--paper)"
+                                  stroke="currentColor"
+                                />
+                              )}
+                            </g>
+                          ))}
+                        </svg>
+                      </>
+                    ) : (
+                      <p className="muted">Bản xem trước chưa được máy chủ cung cấp.</p>
+                    )}
                     {option.warning ? (
                       <>
                         <br />
@@ -74,6 +149,7 @@ export function LayoutSelector({
                       className="cw-text-button"
                       type="button"
                       disabled={
+                        disabled ||
                         command.pending ||
                         plan?.layoutTemplateVersionId === option.layoutTemplateVersionId
                       }

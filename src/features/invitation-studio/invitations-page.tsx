@@ -203,6 +203,17 @@ export function CoupleInvitationsPage() {
     <WorkspaceShell active={tab} bookingId={bookingId ?? undefined}>
       <div className="invitation-page">
         <InvitationStudioView
+          event={
+            proposal
+              ? {
+                  eventDate: proposal.eventDate,
+                  hallName: proposal.proposal.hall.name,
+                  shiftCode: proposal.proposal.shift.code,
+                  startTime: proposal.proposal.shift.startTime,
+                }
+              : null
+          }
+          timeline={proposal?.timeline?.items ?? []}
           mediaCutoffEstimate={mediaCutoffEstimate}
           bookingId={bookingId}
           accessToken={token}

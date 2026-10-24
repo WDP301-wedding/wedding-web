@@ -17,4 +17,17 @@ Mở: `Hỷ Yến Web Khách Hàng v2.dc.html` (prototype) và `Hỷ Yến Web v
 | `V2Guest.dc.html` | Thiệp khách mời (công khai / cá nhân) | C1 |
 | `HyState.dc.html`, `support.js`, `hy-motion.js` | dùng chung – không sửa | – |
 
-Prompt code: `PROMPT_ClaudeCode_Web-v2.md`.
+## Implementation references
+
+The one-off v2 implementation prompt has been retired. Keep this screen map and
+its prototypes as design references; current execution status is maintained in
+[plan](../../../../tasks/plan.md) and [todo](../../../../tasks/todo.md).
+Use the repository AGENTS.md typography rules and existing API transport,
+idempotency, revision and authorization boundaries. Prototype data is not a source
+of business rules or prices. Personal invitation credentials stay in URL fragments;
+VNPay redirect parameters are not proof of payment. Existing route compatibility
+and server-authoritative payment state must be preserved.
+
+VNPay reopening/expiry now uses the implemented
+[backend hand-off](../../../../../wedding-be/docs/payment-attempt-reopen-and-expiry.md)
+and its linked verification record; the earlier frontend request was removed.

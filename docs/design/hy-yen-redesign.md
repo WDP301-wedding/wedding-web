@@ -1,8 +1,8 @@
 # Giao diện Hỷ Yến cho wedding-web
 
-Nguồn thiết kế: `docs/design/hy-yen/` (prototype Claude Design – chỉ tham khảo, không import vào app).
-`design-system/` = token, component, motion spec · `web-khach-hang/` = prototype từng màn (Hy*.dc.html).
-Xem prototype: chạy `npx serve docs/design/hy-yen` rồi mở file `.dc.html` (cần Internet để tải React/font).
+Current design reference: [web v2 screen map](./hy-yen/web-v2/README.md) and its HTML prototypes.
+The superseded v1 prototypes have been removed. Shared design-system prototypes and their runtime are retained.
+Prototypes remain design references only; application UI and data use the production source.
 
 ## Nguyên tắc
 
@@ -79,20 +79,6 @@ Khác prototype có chủ đích: thiệp cá nhân giữ mã trong `#fragment` 
 
 Font: tự host qua `next/font/local` (`app/fonts.ts`, file woff2 đã subset Latin + tiếng Việt trong
 `app/fonts/`, giấy phép OFL kèm theo). `app/fonts.css` đặt font next/font lên đầu token chữ.
-
-## Ánh xạ màn prototype v1 → route (đã thay bằng bảng web v2 ở trên)
-
-| Mã      | Prototype            | Route                                                                     |
-| ------- | -------------------- | ------------------------------------------------------------------------- |
-| P1–P3   | HyPublic             | `/`, `/halls`, `/halls/[id]`, `/menus`, `/consultation`                   |
-| A1      | HyAccount            | `/account`, `/password-reset`, `/reset-password`, `/workspace-invitation` |
-| C1, N1  | HyOverview           | `/overview`, `/notifications`                                             |
-| C2      | HyAgreement          | `/workspace` (timeline), `/contract` (tên + hợp đồng)                     |
-| C3      | HyDeposit            | `/billing`, `/payment-return`                                             |
-| C4 / C5 | HyGuests / HySeating | `/guests` / `/seating`                                                    |
-| C6      | HyStudio             | `/invitations?tab=…`                                                      |
-| C7      | HyExtras             | `/appendices`, `/invoices`                                                |
-| G1      | HyInvite             | `/invitation/[slug]`, `/invitation/personal`                              |
 
 ## Chênh lệch prototype ↔ chức năng hiện có (cần nhóm quyết)
 

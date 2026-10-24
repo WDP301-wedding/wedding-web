@@ -1,7 +1,18 @@
 import type { ApiBody, ApiData } from '../../lib/api/types';
 import { bearer, coupleApi, unwrap } from '../couple-workspace/use-couple-workspace';
 
-export type LayoutOptions = ApiData<'/bookings/{bookingId}/seating-layout-options', 'get'>;
+type LayoutOptionsResponse = ApiData<'/bookings/{bookingId}/seating-layout-options', 'get'>;
+/** Additive preview metadata; older deployed servers can omit it. */
+export type LayoutPreviewTable = Pick<
+  SeatingTable,
+  'layoutTableId' | 'tableLabel' | 'shape' | 'x' | 'y' | 'width' | 'height' | 'rotationDegrees'
+> & { seatCapacity: number };
+export type LayoutOptions = Omit<LayoutOptionsResponse, 'items'> & {
+  items: readonly (LayoutOptionsResponse['items'][number] & {
+    description?: string;
+    tables?: readonly LayoutPreviewTable[];
+  })[];
+};
 export type SeatingPlan = ApiData<'/bookings/{bookingId}/seating-plans/{planId}', 'get'>;
 export type SeatingTable = SeatingPlan['renderSnapshot'][number];
 

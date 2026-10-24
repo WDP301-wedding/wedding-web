@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { previewContract } from './contract-preview-api';
 import { useCallback, useEffect, useState } from 'react';
 
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
@@ -303,6 +304,11 @@ function ContractCard({
             lines={current.document.lines}
             totalVnd={current.document.contractTotalVnd}
           />
+          <p className="cw-note">
+            Tổng dưới đây do nhà hàng tính trên máy chủ cho đúng phiên bản đang xem. Bao gồm các
+            hạng mục trong bảng; chi phí phát sinh chưa ghi nhận không nằm trong tổng này. Kiểm tra
+            toàn bộ trước khi gửi hoặc xác nhận duyệt.
+          </p>
           <dl className="cw-stats">
             <div>
               <dt>Tổng hợp đồng</dt>
@@ -495,12 +501,23 @@ function ContractCard({
           <p className="cw-note">Cần có kịch bản tiệc trước khi lập hợp đồng.</p>
         ) : (
           <LineSelector
+            key={bookingId + ':' + expectedRevision}
             catalog={catalog}
             initialLines={current?.document.lines ?? []}
             maxGuests={proposal.proposal.hall.maxGuests}
             planningHeadcount={proposal.planningHeadcount}
             pending={command.pending}
             submitLabel={current ? 'Lưu bản hợp đồng mới' : 'Lưu bản nháp'}
+            onPreview={(lines) =>
+              authorizedRead((token) =>
+                previewContract(token, bookingId, {
+                  expectedRevision,
+                  predecessorRevisionId: current?.revisionId ?? null,
+                  timelineRevisionId: timeline.revisionId,
+                  lines,
+                }),
+              )
+            }
             onSubmit={(lines) =>
               void command
                 .run(

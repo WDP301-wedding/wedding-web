@@ -91,6 +91,7 @@ export function SeatingSvg({
               }}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
                   onSelectTable(table.layoutTableId);
                 }
               }}

@@ -1,5 +1,10 @@
 'use client';
 
+import {
+  InvitationContents,
+  type InvitationEvent,
+  type InvitationContent,
+} from './invitation-content';
 import { ApiClientError } from '../../lib/api/client';
 import { readPublicEnv } from '../../lib/env';
 
@@ -75,6 +80,8 @@ function getApiBaseUrl(): string {
 }
 
 export interface InvitationStudioViewProps {
+  readonly event?: InvitationEvent | null;
+  readonly timeline?: InvitationContent['timeline'];
   readonly bookingId: string;
   readonly accessToken: string;
   readonly gateway: InvitationGateway;
@@ -101,6 +108,8 @@ const orderStatusMap: Record<string, { label: string; className: string }> = {
 };
 
 export function InvitationStudioView({
+  event = null,
+  timeline = [],
   bookingId,
   accessToken,
   gateway,
@@ -168,6 +177,7 @@ export function InvitationStudioView({
   const [derivedAssetIds, setDerivedAssetIds] = useState<readonly string[]>(
     designs[0]?.derivedAssetIds ?? [],
   );
+  const [footer, setFooter] = useState(designs[0]?.textFields?.footer ?? '');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
@@ -311,7 +321,7 @@ export function InvitationStudioView({
       .filter((id) => !sanitizedSections.some((section) => section.derivedAssetId === id))
       .map((id) => ({ kind: 'HERO' as const, textKey: null, derivedAssetId: id }));
     const finalSections = [...sanitizedSections, ...newImageSections];
-    const signature = `${currentDesign?.designId ?? 'new'}:${currentDesign?.revisionNumber ?? 0}:${title}:${brideName}:${groomName}:${greeting}:${message}:${derivedAssetIds.join(',')}`;
+    const signature = `${currentDesign?.designId ?? 'new'}:${currentDesign?.revisionNumber ?? 0}:${title}:${brideName}:${groomName}:${greeting}:${message}:${footer}:${derivedAssetIds.join(',')}`;
     const key = getOrGenerateKey(saveKeyRef, signature, 'save-design');
     try {
       if (currentDesign) {
@@ -329,6 +339,7 @@ export function InvitationStudioView({
                 groomName,
                 greeting,
                 message,
+                footer,
               },
               sections: finalSections,
               derivedAssetIds,
@@ -346,7 +357,7 @@ export function InvitationStudioView({
           bookingId,
           {
             title,
-            textFields: { brideName, groomName, greeting, message },
+            textFields: { brideName, groomName, greeting, message, footer },
             sections: newImageSections,
             derivedAssetIds,
             includesSeating: false,
@@ -933,22 +944,25 @@ export function InvitationStudioView({
           <section className="invitation-preview" aria-label="Xem trước thiệp cưới">
             <div className="preview-toolbar">Preview · Nội dung đang chỉnh</div>
             <div className="invite-paper">
-              <span className="invite-overline">{greeting}</span>
-              <h2>
-                {groomName || 'Chú rể'} &amp; {brideName || 'Cô dâu'}
-              </h2>
-              <div className="invite-line" />
-              {previewUrl && (
-                <Image
-                  src={previewUrl}
-                  alt="Ảnh nền đang chọn"
-                  width={400}
-                  height={300}
-                  unoptimized
-                />
-              )}
-              <p>{message}</p>
-              <small>Thông tin tiệc sẽ lấy từ hồ sơ đã được duyệt khi xuất bản.</small>
+              <InvitationContents
+                apiBase={getApiBaseUrl()}
+                invitation={{
+                  title,
+                  textFields: { brideName, groomName, greeting, message, footer },
+                  event,
+                  timeline,
+                  sections: (currentDesign?.sections ?? []).map((section) => ({
+                    kind: section.kind,
+                    textKey: section.textKey,
+                    imageUrl: null,
+                  })),
+                  assets: previewUrl ? [{ url: previewUrl, width: 400, height: 300 }] : [],
+                }}
+              />
+              <p className="cw-note">
+                Bản xem trước nội dung đang chỉnh. Khi xuất bản, máy chủ dùng thông tin và lịch
+                trình có hiệu lực.
+              </p>
             </div>
           </section>
           <div className="inspector">
@@ -961,6 +975,18 @@ export function InvitationStudioView({
               }}
               className="studio-form"
             >
+              <div>
+                <label htmlFor="invitation-footer" className="studio-label">
+                  Lời cảm ơn cuối thiệp
+                </label>
+                <textarea
+                  id="invitation-footer"
+                  value={footer}
+                  maxLength={2000}
+                  rows={3}
+                  onChange={(event) => setFooter(event.target.value)}
+                />
+              </div>
               <div>
                 <label htmlFor="invitation-title" className="studio-label">
                   Tiêu Đề Thiệp Cưới

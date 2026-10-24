@@ -1,4 +1,5 @@
 'use client';
+import fieldStyles from './identity-field.module.css';
 
 import { type FormEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -286,13 +287,17 @@ function PublicShell({
       <a className="skip-link" href="#identity-content">
         Đi đến nội dung chính
       </a>
-      <PublicHeader session={session} restoreSession={false} />
+      <PublicHeader
+        className={fieldStyles.authHeader ?? ''}
+        session={session}
+        restoreSession={false}
+      />
       <div className="invitation-ribbon">Một nơi riêng tư cho mọi quyết định quan trọng</div>
-      <main id="identity-content" className="identity-layout">
+      <main id="identity-content" className={'identity-layout ' + fieldStyles.authLayout}>
         <section
           className="invitation-visual"
           role="img"
-          aria-label="Cặp đôi trong không gian lễ cưới với hoa trắng"
+          aria-label="Hình ảnh cặp đôi trong ngày cưới"
         >
           <div className="visual-caption">
             <span>Bảo mật</span>
@@ -345,11 +350,33 @@ function Field({
   label: string;
   name: string;
 }) {
+  const [visible, setVisible] = useState(false);
+  const password = input.type === 'password';
   const id = `identity-${name}`;
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
-      <input {...input} id={id} name={name} required />
+      <div className={fieldStyles.inputWrap}>
+        <input
+          {...input}
+          type={password && visible ? 'text' : input.type}
+          id={id}
+          name={name}
+          required
+        />
+        {password ? (
+          <button
+            className={fieldStyles.toggle}
+            type="button"
+            aria-label={visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+            aria-controls={id}
+            aria-pressed={visible}
+            onClick={() => setVisible((value) => !value)}
+          >
+            {visible ? 'Ẩn' : 'Hiện'}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

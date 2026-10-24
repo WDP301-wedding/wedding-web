@@ -38,3 +38,10 @@
   font-variant-numeric: tabular-nums;
   font-weight: 500;
 }
+
+.assignmentToolbar button[aria-pressed='true'] {
+  background: var(--hy-wine, var(--ink));
+  color: var(--hy-surface, var(--paper));
+  outline: 2px solid var(--hy-wine, var(--ink));
+  outline-offset: 2px;
+}

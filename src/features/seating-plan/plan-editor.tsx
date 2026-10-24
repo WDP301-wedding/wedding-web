@@ -1,6 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSeatingLabels } from './use-seating-labels';
+import { useUnsavedSeating } from './use-unsaved-seating';
 import { useCommand } from '../couple-workspace/use-couple-workspace';
 import type { GuestGroup } from '../guest-management/guest-api';
 import { seatingApi, type SeatingPlan, type SeatingTable } from './seating-api';
@@ -14,6 +16,7 @@ export function PlanEditor({
   groups,
   onChanged,
   onStale,
+  onDirtyChange,
 }: Readonly<{
   bookingId: string;
   plan: SeatingPlan;
@@ -21,21 +24,26 @@ export function PlanEditor({
   onChanged: (plan: SeatingPlan) => void;
   /** Backend báo sơ đồ/tiệc đã đổi (409 SEATING_REVISION_STALE) → trang tải lại sơ đồ mới nhất. */
   onStale: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }>) {
   const command = useCommand();
   // Lỗi "revision cũ": tiệc vừa đổi số khách/thông tin (ở tab khác, máy khác hoặc nhà hàng sửa)
   // sau khi trang tải sơ đồ. Trước đây chỉ báo "Hãy tải lại" mà không tải → bấm lại vẫn lỗi mãi.
   const staleMessage = {
     SEATING_REVISION_STALE:
-      'Thông tin tiệc hoặc sơ đồ vừa thay đổi. Đã tải lại sơ đồ mới nhất — hãy kiểm tra rồi thao tác lại.',
+      'Thông tin tiệc hoặc sơ đồ vừa thay đổi. Giữ lại nhãn đang chỉnh để đối chiếu, hoặc chọn Xem bản mới trước khi thao tác tiếp.',
   };
   const reloadIfStale = (error: { code: string | null }) => {
     if (error.code === 'SEATING_REVISION_STALE') onStale();
   };
   // Nhãn đang chỉnh: bàn → nhóm. Khởi tạo từ snapshot backend trả về.
-  const [labels, setLabels] = useState<Record<string, string>>(() =>
-    Object.fromEntries(plan.labels.map((label) => [label.layoutTableId, label.guestGroupId])),
+  const { labels, dirty, undoCount, assignLabel, acceptPlan, undo, reset } = useSeatingLabels(
+    bookingId,
+    plan,
+    groups,
+    onChanged,
   );
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
 
   const groupById = useMemo(
@@ -43,10 +51,17 @@ export function PlanEditor({
     [groups],
   );
 
-  const dirty =
-    JSON.stringify(Object.entries(labels).sort()) !==
-    JSON.stringify(plan.labels.map((label) => [label.layoutTableId, label.guestGroupId]).sort());
-
+  const exitDialog = useUnsavedSeating(dirty);
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+    return () => onDirtyChange?.(false);
+  }, [dirty, onDirtyChange]);
+  const groupTableCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const groupId of Object.values(labels))
+      counts.set(groupId, (counts.get(groupId) ?? 0) + 1);
+    return counts;
+  }, [labels]);
   const selectedTable = plan.renderSnapshot.find((table) => table.layoutTableId === selected);
 
   const approvedRangeException =
@@ -70,6 +85,7 @@ export function PlanEditor({
 
   return (
     <section className="cw-card">
+      {exitDialog}
       <div className="cw-card-header">
         <h2>Sơ đồ · bản {plan.revisionNumber}</h2>
         <span className="status status-champagne">{statusLabels[plan.status]}</span>
@@ -115,22 +131,70 @@ export function PlanEditor({
         </p>
       ) : null}
 
-      <SeatingSvg plan={plan} selected={selected} onSelectTable={setSelected} colorOf={colorOf} />
+      <fieldset className={styles.assignmentToolbar + ' cw-card'} disabled={command.pending}>
+        <legend>1. Chọn nhóm hoặc màu · 2. Chọn các bàn trên sơ đồ</legend>
+        <div className="cw-actions">
+          <button
+            type="button"
+            className="button button-secondary"
+            aria-pressed={activeGroup === null}
+            onClick={() => setActiveGroup(null)}
+          >
+            Chỉ xem bàn
+          </button>
+          {groups.map((group) => (
+            <button
+              key={group.guestGroupId}
+              type="button"
+              className="button button-secondary"
+              aria-pressed={activeGroup === group.guestGroupId}
+              onClick={() => setActiveGroup(group.guestGroupId)}
+            >
+              <span className="cw-swatch" style={{ background: group.color }} aria-hidden="true" />{' '}
+              {group.name}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="button button-secondary"
+            aria-pressed={activeGroup === ''}
+            onClick={() => setActiveGroup('')}
+          >
+            Gỡ nhóm khỏi bàn
+          </button>
+        </div>
+        <p className="muted">
+          Thay đổi chỉ được lưu khi bấm Lưu nhãn bàn. Một nhóm có thể dùng nhiều bàn.
+        </p>
+      </fieldset>
+      <SeatingSvg
+        plan={plan}
+        selected={selected}
+        onSelectTable={(id) => {
+          setSelected(id);
+          if (activeGroup === null || command.pending) return;
+          assignLabel(id, activeGroup);
+        }}
+        colorOf={colorOf}
+      />
 
+      <p role="status" className="muted">
+        {activeGroup === null
+          ? 'Chế độ xem: chọn bàn để xem và chỉnh nhóm.'
+          : activeGroup === ''
+            ? 'Chế độ gỡ nhóm: chọn bàn cần gỡ.'
+            : 'Đang gán nhóm: ' + (groupById.get(activeGroup)?.name ?? '')}
+      </p>
       {selectedTable ? (
         <div className="cw-actions">
           <label>
             Nhóm cho bàn <strong>{selectedTable.tableLabel}</strong>{' '}
             <select
+              disabled={command.pending}
               value={labels[selectedTable.layoutTableId] ?? ''}
               onChange={(event) => {
                 const value = event.target.value;
-                setLabels((previous) => {
-                  const next = { ...previous };
-                  if (value) next[selectedTable.layoutTableId] = value;
-                  else delete next[selectedTable.layoutTableId];
-                  return next;
-                });
+                assignLabel(selectedTable.layoutTableId, value);
               }}
             >
               <option value="">— Để trống —</option>
@@ -152,13 +216,28 @@ export function PlanEditor({
         {groups.map((group) => (
           <li key={group.guestGroupId} className={styles.legendItem}>
             <span className="cw-swatch" style={{ background: group.color }} aria-hidden="true" />
-            {group.name} ({Object.values(labels).filter((id) => id === group.guestGroupId).length}{' '}
-            bàn)
+            {group.name} ({groupTableCounts.get(group.guestGroupId) ?? 0} bàn)
           </li>
         ))}
       </ul>
 
       <div className="cw-actions">
+        <button
+          type="button"
+          className="button button-secondary"
+          disabled={command.pending || undoCount === 0}
+          onClick={undo}
+        >
+          Hoàn tác ({undoCount})
+        </button>
+        <button
+          type="button"
+          className="button button-secondary"
+          disabled={command.pending || !dirty}
+          onClick={reset}
+        >
+          Khôi phục nhãn đã lưu
+        </button>
         <button
           className="button button-secondary"
           type="button"
@@ -178,7 +257,7 @@ export function PlanEditor({
                 staleMessage,
                 reloadIfStale,
               )
-              .then((next) => next && onChanged(next))
+              .then(acceptPlan)
           }
         >
           Lưu nhãn bàn
@@ -205,7 +284,7 @@ export function PlanEditor({
                 staleMessage,
                 reloadIfStale,
               )
-              .then((next) => next && onChanged(next))
+              .then(acceptPlan)
           }
         >
           Xác nhận sơ đồ

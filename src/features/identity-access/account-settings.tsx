@@ -172,7 +172,11 @@ export function AccountSettings({
       {profile ? (
         <div className="account-settings-grid">
           <form onSubmit={(event) => void save(event)}>
-            <h3>Hồ sơ</h3>
+            <h3>Thông tin tài khoản đăng nhập</h3>
+            <p>
+              Email dưới đây dùng để đăng nhập và nhận thông báo. Tên cô dâu, chú rể được quản lý
+              riêng theo từng hồ sơ tiệc trong mục Thỏa thuận.
+            </p>
             <label>
               Email
               <input value={profile.displayEmail} readOnly autoComplete="email" />

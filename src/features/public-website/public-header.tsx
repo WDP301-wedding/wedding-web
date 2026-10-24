@@ -11,12 +11,14 @@ const anonymous: WebSessionSnapshot = { status: 'anonymous', denial: null };
 const serverSnapshot = () => anonymous;
 
 export function PublicHeader({
+  className,
   session = browserSession,
   onLogout,
   pending = false,
   restoreSession = true,
   showOffers = false,
 }: {
+  className?: string;
   session?: WebIdentitySession;
   onLogout?: () => void;
   pending?: boolean;
@@ -53,7 +55,7 @@ export function PublicHeader({
   }
 
   return (
-    <header className="public-header">
+    <header className={['public-header', className].filter(Boolean).join(' ')}>
       <Link className="estate-brand" href="/" aria-label="Hỷ Yến — Trang chủ">
         <Image
           className="public-header-logo"
