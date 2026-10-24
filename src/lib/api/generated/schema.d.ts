@@ -1668,55 +1668,6 @@ export interface paths {
     readonly patch?: never;
     readonly trace?: never;
   };
-  readonly '/couple/bookings/{bookingId}/alias': {
-    readonly parameters: {
-      readonly query?: never;
-      readonly header?: never;
-      readonly path: {
-        readonly bookingId: string;
-      };
-      readonly cookie?: never;
-    };
-    readonly get?: never;
-    readonly put?: never;
-    readonly post?: never;
-    readonly delete?: never;
-    readonly options?: never;
-    readonly head?: never;
-    readonly patch: {
-      readonly parameters: {
-        readonly query?: never;
-        readonly header?: never;
-        readonly path: {
-          readonly bookingId: string;
-        };
-        readonly cookie?: never;
-      };
-      readonly requestBody: {
-        readonly content: {
-          readonly 'application/json': {
-            readonly alias?: string | null;
-            readonly expectedRevision?: number;
-            readonly eventType?: 'WEDDING' | 'ENGAGEMENT' | 'RECEPTION' | 'ANNIVERSARY' | 'OTHER';
-          };
-        };
-      };
-      readonly responses: {
-        readonly 200: {
-          readonly content: {
-            readonly 'application/json': {
-              readonly data: {
-                readonly bookingId: string;
-                readonly alias: string | null;
-                readonly revision: number;
-              };
-            };
-          };
-        };
-      };
-    };
-    readonly trace?: never;
-  };
   readonly '/guest/invitation': {
     readonly parameters: {
       readonly query?: never;
@@ -4327,14 +4278,6 @@ export interface components {
         readonly planningHeadcount: number;
         /** @enum {string} */
         readonly shiftCode: 'LUNCH' | 'DINNER';
-        readonly revision?: number;
-        /** @enum {string} */
-        readonly eventType?: 'WEDDING' | 'ENGAGEMENT' | 'RECEPTION' | 'ANNIVERSARY' | 'OTHER';
-        readonly alias?: string | null;
-        readonly brideName?: string | null;
-        readonly groomName?: string | null;
-        readonly totalVnd?: number;
-        readonly depositPaidVnd?: number;
       }[];
       readonly nextCursor: string | null;
     };

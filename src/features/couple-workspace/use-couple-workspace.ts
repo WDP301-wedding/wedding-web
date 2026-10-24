@@ -11,7 +11,15 @@ import { notify } from '../../design-system/toast';
 import { useRealtimeSubscription } from '../realtime/use-realtime';
 
 export type Proposal = ApiData<'/bookings/{bookingId}/proposal', 'get'>;
-export type BookingSummary = ApiData<'/couple/bookings', 'get'>[number];
+export type BookingSummary = ApiData<'/couple/bookings', 'get'>[number] & {
+  readonly revision?: number;
+  readonly eventType?: 'WEDDING' | 'ENGAGEMENT' | 'RECEPTION' | 'ANNIVERSARY' | 'OTHER';
+  readonly alias?: string | null;
+  readonly brideName?: string | null;
+  readonly groomName?: string | null;
+  readonly totalVnd?: number;
+  readonly depositPaidVnd?: number;
+};
 
 /**
  * Trạng thái của một trang trong không gian Couple. Dùng "discriminated union" để component

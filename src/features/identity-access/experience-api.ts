@@ -1,7 +1,44 @@
+import type { Client } from 'openapi-fetch';
 import { createApiClient, type ApiClient } from '../../lib/api/client';
 import type { components } from '../../lib/api/generated/schema';
+import type { BookingSummary } from '../couple-workspace/use-couple-workspace';
+
 export type Profile = components['schemas']['ProfileResponse']['data'];
-export type Overview = components['schemas']['CoupleOverviewResponse'];
+export type Overview = {
+  data: BookingSummary[];
+  nextCursor: string | null;
+};
+
+type AliasPath = {
+  '/couple/bookings/{bookingId}/alias': {
+    patch: {
+      parameters: { path: { bookingId: string } };
+      requestBody: {
+        content: {
+          'application/json': {
+            alias?: string | null;
+            expectedRevision?: number;
+            eventType?: 'WEDDING' | 'ENGAGEMENT' | 'RECEPTION' | 'ANNIVERSARY' | 'OTHER';
+          };
+        };
+      };
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              data: {
+                bookingId: string;
+                alias: string | null;
+                revision: number;
+                eventType?: 'WEDDING' | 'ENGAGEMENT' | 'RECEPTION' | 'ANNIVERSARY' | 'OTHER';
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+};
 const required = <T>(value: T | undefined) => {
   if (value === undefined) throw new Error('Thiếu dữ liệu phản hồi.');
   return value;
@@ -38,7 +75,7 @@ export function createExperienceGateway(client?: ApiClient) {
         body: { challengeId, code, newPassword },
       });
     },
-    async overview(token: string, cursor?: string) {
+    async overview(token: string, cursor?: string): Promise<Overview> {
       const page = required(
         (
           await api().GET('/couple/bookings', {
@@ -55,18 +92,18 @@ export function createExperienceGateway(client?: ApiClient) {
       alias: string | null,
       expectedRevision?: number,
     ) {
-      return required(
-        (
-          await api().PATCH('/couple/bookings/{bookingId}/alias', {
-            headers: headers(token),
-            params: { path: { bookingId } },
-            body: {
-              alias,
-              ...(expectedRevision !== undefined ? { expectedRevision } : {}),
-            },
-          })
-        ).data,
-      ).data;
+      const response = await (api() as ApiClient & Client<AliasPath>).PATCH(
+        '/couple/bookings/{bookingId}/alias',
+        {
+          headers: headers(token),
+          params: { path: { bookingId } },
+          body: {
+            alias,
+            ...(expectedRevision !== undefined ? { expectedRevision } : {}),
+          },
+        },
+      );
+      return required(response.data).data;
     },
   };
 }
