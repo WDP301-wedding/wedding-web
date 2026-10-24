@@ -25,13 +25,39 @@ function readSavedTarget(): string | null {
 }
 
 function computeTarget(): string | null {
+  if (typeof window === 'undefined') return null;
   try {
-    const saved = JSON.parse(localStorage.getItem(lastCheckoutKey) ?? 'null') as {
-      bookingId?: unknown;
-      attemptId?: unknown;
-    } | null;
-    if (typeof saved?.bookingId === 'string' && typeof saved.attemptId === 'string') {
-      return `${routes.payment}?${new URLSearchParams({ bookingId: saved.bookingId, attemptId: saved.attemptId }).toString()}`;
+    const searchParams = new URLSearchParams(window.location.search);
+    const txnRef = searchParams.get('vnp_TxnRef');
+    let raw = txnRef ? localStorage.getItem(`${lastCheckoutKey}.${txnRef}`) : null;
+    if (!raw) {
+      raw = localStorage.getItem(lastCheckoutKey);
+    }
+    if (!raw) return null;
+    let bookingId: string | undefined;
+    let attemptId: string | undefined;
+    try {
+      const parsed = JSON.parse(raw) as { bookingId?: unknown; attemptId?: unknown } | string;
+      if (typeof parsed === 'string') {
+        bookingId = parsed;
+        attemptId = txnRef ?? undefined;
+      } else if (parsed && typeof parsed === 'object') {
+        if (typeof parsed.bookingId === 'string') bookingId = parsed.bookingId;
+        if (typeof parsed.attemptId === 'string') attemptId = parsed.attemptId;
+      }
+    } catch {
+      bookingId = raw;
+      attemptId = txnRef ?? undefined;
+    }
+    if (bookingId && attemptId) {
+      if (txnRef) {
+        try {
+          localStorage.removeItem(`${lastCheckoutKey}.${txnRef}`);
+        } catch {
+          // Bỏ qua lỗi storage
+        }
+      }
+      return `${routes.payment}?${new URLSearchParams({ bookingId, attemptId }).toString()}`;
     }
   } catch {
     // Storage bị chặn hoặc dữ liệu hỏng.

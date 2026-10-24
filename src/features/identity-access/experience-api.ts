@@ -49,5 +49,24 @@ export function createExperienceGateway(client?: ApiClient) {
       );
       return { ...page, data: Array.from(page.data, (item) => ({ ...item })) };
     },
+    async updateBookingAlias(
+      token: string,
+      bookingId: string,
+      alias: string | null,
+      expectedRevision?: number,
+    ) {
+      return required(
+        (
+          await api().PATCH('/couple/bookings/{bookingId}/alias', {
+            headers: headers(token),
+            params: { path: { bookingId } },
+            body: {
+              alias,
+              ...(expectedRevision !== undefined ? { expectedRevision } : {}),
+            },
+          })
+        ).data,
+      ).data;
+    },
   };
 }

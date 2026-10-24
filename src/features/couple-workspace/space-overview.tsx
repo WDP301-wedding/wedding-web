@@ -15,6 +15,9 @@ import { SpaceGate } from './space-gate';
 import { menuLines, ProposalMenus } from './proposal-menus';
 import { useSpaceExtras } from './space-provider';
 import {
+  bookingDisplayName,
+  bookingPhaseLabel,
+  eventTypeLabel,
   formatDateTime,
   formatEventDate,
   formatVnd,
@@ -23,6 +26,8 @@ import {
   type BookingSummary,
   type Proposal,
 } from './use-couple-workspace';
+import { createExperienceGateway } from '../identity-access/experience-api';
+import { notify } from '../../design-system/toast';
 
 /** Số ngày còn lại tới ngày cưới, tính theo lịch Việt Nam (không phụ thuộc múi giờ máy). */
 export function daysUntil(eventDate: string, now = new Date()): number {
@@ -177,9 +182,12 @@ export function SpaceOverview() {
 }
 
 function OverviewContent() {
-  const { state, bookings, bookingId } = useCoupleWorkspace();
+  const { state, bookings, bookingId, reload } = useCoupleWorkspace();
   const { restaurant } = useSpaceExtras();
   const [latest, setLatest] = useState<readonly InboxItem[] | null>(null);
+  const [aliasModalOpen, setAliasModalOpen] = useState(false);
+  const [aliasInput, setAliasInput] = useState('');
+  const [savingAlias, setSavingAlias] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -192,6 +200,15 @@ function OverviewContent() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!aliasModalOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAliasModalOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [aliasModalOpen]);
+
   if (state.status !== 'ready') return null;
   const proposal = state.proposal;
   const summary = bookings.find((booking) => booking.bookingId === bookingId);
@@ -199,6 +216,37 @@ function OverviewContent() {
   const days = daysUntil(proposal.eventDate);
   const tasks = nextTasks(proposal, summary, days);
   const { proposal: offer } = proposal;
+
+  const totalAllVnd = bookings.reduce((sum, b) => sum + (b.totalVnd ?? 0), 0);
+  const depositAllVnd = bookings.reduce((sum, b) => sum + (b.depositPaidVnd ?? 0), 0);
+  const remainingAllVnd = Math.max(0, totalAllVnd - depositAllVnd);
+
+  const openAliasModal = () => {
+    setAliasInput(summary?.alias ?? '');
+    setAliasModalOpen(true);
+  };
+
+  const handleSaveAlias = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingAlias(true);
+    try {
+      await browserSession.authorize((token) =>
+        createExperienceGateway().updateBookingAlias(
+          token,
+          proposal.bookingId,
+          aliasInput.trim() ? aliasInput.trim() : null,
+          summary?.revision,
+        ),
+      );
+      notify.success('Đã cập nhật tên gợi nhớ tiệc!');
+      setAliasModalOpen(false);
+      reload();
+    } catch {
+      notify.error('Không thể cập nhật tên tiệc. Vui lòng thử lại.');
+    } finally {
+      setSavingAlias(false);
+    }
+  };
 
   return (
     <div className="hy-overview2">
@@ -208,6 +256,26 @@ function OverviewContent() {
           Tiệc đã huỷ. Hồ sơ được giữ lại để hai bạn xem lịch sử.
         </p>
       ) : null}
+
+      <div className="hy-overview-booking-header">
+        <div className="hy-overview-booking-title-row">
+          <h2>{summary ? bookingDisplayName(summary) : offer.hall.name}</h2>
+          <button
+            type="button"
+            className="button button-ghost hy-alias-edit-btn"
+            onClick={openAliasModal}
+            title="Đặt tên gợi nhớ cho tiệc này"
+          >
+            ✏️ {summary?.alias ? 'Đổi tên gợi nhớ' : 'Đặt tên gợi nhớ'}
+          </button>
+        </div>
+        {summary?.alias ? (
+          <p className="hy-overview-booking-hall-sub">
+            🏛️ {summary.hallName} · {eventTypeLabel(summary.eventType)}
+          </p>
+        ) : null}
+      </div>
+
       <div className="hy-overview2-top">
         <section className="hy-countdown2" aria-label="Đếm ngược ngày cưới">
           {days > 0 && proposal.phase !== 'CANCELLED' ? (
@@ -252,6 +320,109 @@ function OverviewContent() {
           </dl>
         </section>
       </div>
+
+      {bookings.length > 1 ? (
+        <section className="hy-multi-booking-section" aria-labelledby="multi-bookings-title">
+          <div className="hy-multi-head">
+            <div>
+              <h2 id="multi-bookings-title" className="hy-section-title">
+                Tất cả tiệc của hai bạn ({bookings.length})
+              </h2>
+              <p className="hy-muted">
+                Bạn đang quản lý đồng thời nhiều sự kiện. Bấm &quot;Chuyển tới tiệc này&quot; để đổi không gian thao tác.
+              </p>
+            </div>
+            <Link href={routes.consultation} className="button button-secondary hy-multi-add-btn">
+              + Đăng ký tiệc mới
+            </Link>
+          </div>
+
+          <div className="hy-multi-budget-summary">
+            <div className="hy-multi-budget-item">
+              <span className="hy-multi-budget-label">Tổng chi phí dự kiến ({bookings.length} tiệc)</span>
+              <strong className="hy-multi-budget-value">{formatVnd(totalAllVnd)}</strong>
+            </div>
+            <div className="hy-multi-budget-divider" />
+            <div className="hy-multi-budget-item">
+              <span className="hy-multi-budget-label">Đã thanh toán / đặt cọc</span>
+              <strong className="hy-multi-budget-value is-paid">{formatVnd(depositAllVnd)}</strong>
+            </div>
+            <div className="hy-multi-budget-divider" />
+            <div className="hy-multi-budget-item">
+              <span className="hy-multi-budget-label">Còn lại cần thanh toán</span>
+              <strong className="hy-multi-budget-value is-remaining">{formatVnd(remainingAllVnd)}</strong>
+            </div>
+          </div>
+
+          <div className="hy-multi-grid">
+            {bookings.map((b) => {
+              const isCurrent = b.bookingId === proposal.bookingId;
+              const bDays = daysUntil(b.eventDate);
+              const phaseTone =
+                b.phase === 'CONFIRMED' || b.phase === 'COMPLETED'
+                  ? 'done'
+                  : b.phase === 'CANCELLED'
+                    ? 'off'
+                    : 'wait';
+              return (
+                <article
+                  key={b.bookingId}
+                  className={`hy-multi-card ${isCurrent ? 'is-active' : ''}`}
+                >
+                  <div className="hy-multi-card-top">
+                    <div>
+                      <h3 className="hy-multi-card-title">{bookingDisplayName(b)}</h3>
+                      <p className="hy-multi-card-hall">
+                        🏛️ {b.hallName} · {shiftLabel(b.shiftCode)}
+                      </p>
+                    </div>
+                    <span className={`hy-nav-chip is-${phaseTone}`}>
+                      {bookingPhaseLabel(b.phase)}
+                    </span>
+                  </div>
+
+                  <div className="hy-multi-card-meta">
+                    <div>
+                      <span className="hy-muted">Ngày tổ chức:</span>{' '}
+                      <strong>{formatEventDate(b.eventDate)}</strong>
+                    </div>
+                    <div>
+                      <span className="hy-muted">Thời gian:</span>{' '}
+                      <span className="hy-multi-countdown-pill">
+                        {bDays > 0 ? `Còn ${bDays} ngày` : bDays === 0 ? 'Hôm nay' : 'Đã diễn ra'}
+                      </span>
+                    </div>
+                    {b.totalVnd !== undefined ? (
+                      <div>
+                        <span className="hy-muted">Chi phí tiệc:</span>{' '}
+                        <strong>{formatVnd(b.totalVnd)}</strong>
+                        {b.depositPaidVnd ? (
+                          <span className="hy-multi-paid-sub">
+                            {' '}(đã cọc {formatVnd(b.depositPaidVnd)})
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="hy-multi-card-actions">
+                    {isCurrent ? (
+                      <span className="hy-multi-current-badge">✓ Đang thao tác tiệc này</span>
+                    ) : (
+                      <Link
+                        href={withBooking(routes.space, b.bookingId)}
+                        className="button button-secondary hy-multi-switch-link"
+                      >
+                        Chuyển tới tiệc này →
+                      </Link>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
 
       <section className="hy-journey-card" aria-labelledby="journey-title">
         <div className="hy-journey-head">
@@ -331,6 +502,69 @@ function OverviewContent() {
           </div>
         </section>
       </div>
+
+      {aliasModalOpen ? (
+        <div className="hy-space-sheet-backdrop" onClick={() => setAliasModalOpen(false)}>
+          <div
+            className="hy-space-sheet hy-alias-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="alias-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="hy-booking-sheet-header">
+              <div>
+                <h3 id="alias-modal-title">Đặt tên gợi nhớ cho tiệc</h3>
+                <p>
+                  Tên gợi nhớ giúp hai bạn dễ dàng phân biệt tiệc này trong danh sách quản lý
+                  và trên thông báo/email (VD: Lễ thành hôn nhà gái, Tiệc báo hỷ Sài Gòn...).
+                </p>
+              </div>
+              <button
+                type="button"
+                className="hy-sheet-close-btn"
+                onClick={() => setAliasModalOpen(false)}
+                aria-label="Đóng"
+              >
+                ✕
+              </button>
+            </div>
+            <form
+              onSubmit={(e) => {
+                void handleSaveAlias(e);
+              }}
+              className="hy-alias-form"
+            >
+              <label htmlFor="booking-alias-input" className="form-label">
+                Tên gợi nhớ (tối đa 120 ký tự)
+              </label>
+              <input
+                id="booking-alias-input"
+                type="text"
+                maxLength={120}
+                className="form-input"
+                placeholder="VD: Lễ thành hôn (Nhà gái), Tiệc báo hỷ..."
+                value={aliasInput}
+                onChange={(e) => setAliasInput(e.target.value)}
+                autoFocus
+              />
+              <div className="hy-alias-form-actions">
+                <button
+                  type="button"
+                  className="button button-ghost"
+                  onClick={() => setAliasModalOpen(false)}
+                  disabled={savingAlias}
+                >
+                  Huỷ
+                </button>
+                <button type="submit" className="button" disabled={savingAlias}>
+                  {savingAlias ? 'Đang lưu…' : 'Lưu tên gợi nhớ'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

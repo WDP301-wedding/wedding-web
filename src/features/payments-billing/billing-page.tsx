@@ -48,7 +48,9 @@ const billing = createCoupleBillingGateway();
 export const lastCheckoutKey = 'wedding.lastCheckout';
 function rememberCheckout(bookingId: string, attemptId: string) {
   try {
-    localStorage.setItem(lastCheckoutKey, JSON.stringify({ bookingId, attemptId }));
+    const payload = JSON.stringify({ bookingId, attemptId });
+    localStorage.setItem(lastCheckoutKey, payload);
+    localStorage.setItem(`${lastCheckoutKey}.${attemptId}`, payload);
   } catch {
     // Trình duyệt chặn storage: người dùng vẫn mở được trạng thái từ trang Thanh toán.
   }

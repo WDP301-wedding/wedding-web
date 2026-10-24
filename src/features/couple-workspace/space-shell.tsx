@@ -8,6 +8,8 @@ import { BrandMark } from '../../design-system/brand-mark';
 import { routes, withBooking } from '../../routes';
 import { useSpaceExtras } from './space-provider';
 import {
+  bookingDisplayName,
+  bookingPhaseLabel,
   formatEventDate,
   shiftLabel,
   useCoupleWorkspace,
@@ -120,15 +122,19 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
   const effectiveBookingId = bookingId ?? searchParams.get('bookingId');
   const { unread, restaurant } = useSpaceExtras();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   useEffect(() => {
-    if (!moreOpen) return;
+    if (!moreOpen && !switcherOpen) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMoreOpen(false);
+      if (e.key === 'Escape') {
+        setMoreOpen(false);
+        setSwitcherOpen(false);
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [moreOpen]);
+  }, [moreOpen, switcherOpen]);
   const proposal = state.status === 'ready' ? state.proposal : undefined;
   const summary = bookings.find((booking) => booking.bookingId === effectiveBookingId);
   const chips = navChips(summary, proposal);
@@ -226,11 +232,20 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
       <div className="hy-space-main">
         <header className="hy-space-top">
           <div className="hy-space-context">
-            {proposal ? (
+            {summary ? (
               <>
-                <strong>{proposal.proposal.hall.name}</strong>
+                <strong>{bookingDisplayName(summary)}</strong>
                 <span>
-                  {formatEventDate(proposal.eventDate)} · {shiftLabel(proposal.proposal.shift.code)}{' '}
+                  {summary.hallName} · {formatEventDate(summary.eventDate)} · {shiftLabel(summary.shiftCode)}{' '}
+                  {proposal ? `· ${proposal.planningHeadcount} khách` : ''} ·{' '}
+                  <span className="hy-space-phase-pill">{bookingPhaseLabel(summary.phase)}</span>
+                </span>
+              </>
+            ) : proposal ? (
+              <>
+                <strong>{bookingDisplayName({ hallName: proposal.proposal.hall.name })}</strong>
+                <span>
+                  {proposal.proposal.hall.name} · {formatEventDate(proposal.eventDate)} · {shiftLabel(proposal.proposal.shift.code)}{' '}
                   · {proposal.planningHeadcount} khách
                 </span>
               </>
@@ -239,20 +254,34 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
             )}
           </div>
           {bookings.length > 1 && bookingId ? (
-            <label className="hy-space-switch">
-              <span className="visually-hidden">Đổi tiệc cưới</span>
-              <select
-                value={bookingId}
-                onChange={(event) => router.push(withBooking(pathname, event.target.value))}
+            <>
+              <label className="hy-space-switch hy-space-switch-desktop">
+                <span className="visually-hidden">Đổi tiệc cưới</span>
+                <select
+                  value={bookingId}
+                  onChange={(event) => router.push(withBooking(pathname, event.target.value))}
+                >
+                  {bookings.map((booking) => (
+                    <option key={booking.bookingId} value={booking.bookingId}>
+                      {bookingDisplayName(booking)} · {booking.hallName} · {formatEventDate(booking.eventDate)} · {shiftLabel(booking.shiftCode)} [{bookingPhaseLabel(booking.phase)}]
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                className="hy-space-switch-mobile-btn"
+                onClick={() => setSwitcherOpen(true)}
+                aria-expanded={switcherOpen}
+                aria-controls="booking-switch-sheet"
               >
-                {bookings.map((booking) => (
-                  <option key={booking.bookingId} value={booking.bookingId}>
-                    {booking.hallName} · {formatEventDate(booking.eventDate)} ·{' '}
-                    {shiftLabel(booking.shiftCode)}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <Icon name="checklist" />
+                <span className="hy-space-switch-mobile-text">
+                  {summary ? bookingDisplayName(summary) : 'Đổi tiệc'}
+                </span>
+                <span className="hy-space-switch-mobile-badge">{bookings.length} tiệc</span>
+              </button>
+            </>
           ) : null}
           <Link
             className="hy-space-bell"
@@ -330,6 +359,82 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
               <Icon name="back" /> Trang chủ
             </Link>
             <SupportCard phone={phone} />
+          </div>
+        </div>
+      ) : null}
+      {switcherOpen ? (
+        <div className="hy-space-sheet-backdrop" onClick={() => setSwitcherOpen(false)}>
+          <div
+            id="booking-switch-sheet"
+            className="hy-space-sheet hy-booking-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Danh sách tiệc cưới"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="hy-booking-sheet-header">
+              <div>
+                <h3>Danh sách tiệc của bạn</h3>
+                <p>Bạn có {bookings.length} tiệc đang được quản lý. Chạm vào tiệc để chuyển không gian làm việc.</p>
+              </div>
+              <button
+                type="button"
+                className="hy-sheet-close-btn"
+                onClick={() => setSwitcherOpen(false)}
+                aria-label="Đóng"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="hy-booking-sheet-list">
+              {bookings.map((b) => {
+                const isCurrent = b.bookingId === bookingId;
+                return (
+                  <button
+                    key={b.bookingId}
+                    type="button"
+                    className={`hy-booking-sheet-item ${isCurrent ? 'is-selected' : ''}`}
+                    onClick={() => {
+                      router.push(withBooking(pathname, b.bookingId));
+                      setSwitcherOpen(false);
+                    }}
+                  >
+                    <div className="hy-booking-sheet-item-header">
+                      <strong className="hy-booking-sheet-title">{bookingDisplayName(b)}</strong>
+                      <span
+                        className={`hy-nav-chip is-${
+                          b.phase === 'CONFIRMED' || b.phase === 'COMPLETED'
+                            ? 'done'
+                            : b.phase === 'CANCELLED'
+                              ? 'off'
+                              : 'wait'
+                        }`}
+                      >
+                        {bookingPhaseLabel(b.phase)}
+                      </span>
+                    </div>
+                    <div className="hy-booking-sheet-details">
+                      <span>🏛️ {b.hallName}</span>
+                      <span>📅 {formatEventDate(b.eventDate)} ({shiftLabel(b.shiftCode)})</span>
+                    </div>
+                    {isCurrent ? (
+                      <span className="hy-booking-sheet-current-tag">✓ Đang hiển thị tiệc này</span>
+                    ) : (
+                      <span className="hy-booking-sheet-switch-tag">Chuyển sang tiệc này →</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="hy-booking-sheet-footer">
+              <Link
+                href={routes.consultation}
+                className="hy-booking-sheet-add-btn"
+                onClick={() => setSwitcherOpen(false)}
+              >
+                + Đăng ký đặt thêm tiệc mới
+              </Link>
+            </div>
           </div>
         </div>
       ) : null}

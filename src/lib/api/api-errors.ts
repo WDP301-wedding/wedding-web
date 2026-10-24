@@ -36,10 +36,15 @@ const codeMessages: Record<string, string> = {
     'Chưa kết nối được VNPay để xác minh kết quả. Hãy kiểm tra lại sau; chưa tạo giao dịch mới khi kết quả còn chưa rõ.',
   CONTRACT_PRINT_SOURCE_ALLOCATED: 'Mẫu in này đã được đưa vào sản xuất nên không thể bỏ hoặc đổi.',
   CONTRACT_PRINT_QUANTITY_ALLOCATED: 'Không thể giảm số lượng in đã đưa vào sản xuất.',
-  // Hoá đơn
+  // Hoá đơn & Thoả thuận thương mại
   EVENT_NOT_ENDED: 'Tiệc chưa kết thúc.',
-  INVOICE_FINALIZED: 'Hoá đơn đã được chốt.',
+  INVOICE_FINALIZED: 'Hoá đơn quyết toán đã được chốt. Không thể thay đổi thoả thuận.',
   STALE_BILLING_REVISION: 'Số dư vừa thay đổi. Hãy tải lại trước khi thanh toán.',
+  APPENDIX_NOT_EDITABLE: 'Tiệc đã ở giai đoạn kết thúc hoặc tất toán. Không thể lập thêm phụ lục.',
+  SETTLED_CONTRACT_REQUIRED: 'Tiệc chưa có bản hợp đồng đặt cọc được xác nhận.',
+  FINANCIAL_SOURCE_CONFLICT: 'Hồ sơ thương mại đã được cố định theo chứng từ kế toán.',
+  APPENDIX_APPROVAL_REQUIRED: 'Phụ lục trước đó cần được hai bên phê duyệt đầy đủ.',
+  COMMERCIAL_SELECTION_INVALID: 'Danh mục dịch vụ trong thoả thuận không hợp lệ.',
   // Khách & sơ đồ
   GUEST_GROUP_IN_USE: 'Nhóm còn khách đang hoạt động. Hãy chuyển hoặc lưu trữ các khách đó trước.',
   // Các mã dưới đây trước đây rơi về câu chung "Dữ liệu vừa thay đổi. Hãy tải lại" — sai hướng

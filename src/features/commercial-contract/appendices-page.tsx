@@ -168,6 +168,7 @@ function AppendicesWorkspace({
     null;
   const open =
     current !== null && (current.state === 'DRAFT' || current.state === 'AWAITING_APPROVAL');
+  const isClosed = proposal.phase === 'COMPLETED' || proposal.phase === 'CANCELLED';
   const after = (result: unknown) => {
     if (!result) return;
     setCreating(false);
@@ -191,7 +192,12 @@ function AppendicesWorkspace({
           Phụ lục không thu thêm tiền cọc; chênh lệch được cộng/trừ vào số tiền còn phải thanh toán.
           Chi phí phát sinh trong tiệc do nhà hàng ghi nhận riêng sau khi tiệc kết thúc.
         </p>
-        {!open && !creating ? (
+        {isClosed ? (
+          <p className="cw-note">
+            Tiệc cưới đã hoàn thành tất toán. Hợp đồng gốc và các phụ lục đã được chốt và lưu trữ.
+          </p>
+        ) : null}
+        {!open && !creating && !isClosed ? (
           <div className="cw-actions">
             <button
               className="button"
@@ -289,7 +295,7 @@ function AppendicesWorkspace({
             {current.approvals.some((a) => a.party === 'COUPLE') ? 'rồi' : 'chưa'}
           </p>
           <div className="cw-actions">
-            {current.state === 'DRAFT' ? (
+            {current.state === 'DRAFT' && !isClosed ? (
               <button
                 className="button"
                 type="button"
@@ -314,6 +320,7 @@ function AppendicesWorkspace({
               </button>
             ) : null}
             {current.state === 'AWAITING_APPROVAL' &&
+            !isClosed &&
             !current.approvals.some((a) => a.party === 'COUPLE') ? (
               <button
                 className="button"

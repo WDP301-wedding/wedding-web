@@ -57,6 +57,57 @@ export function pickDefaultBooking(
   return active[0] ?? bookings[0];
 }
 
+export function bookingPhaseLabel(phase: string): string {
+  switch (phase) {
+    case 'CONFIRMED':
+      return 'Đã đặt cọc';
+    case 'AWAITING_DEPOSIT':
+      return 'Chờ đặt cọc';
+    case 'DRAFT':
+      return 'Đang dự thảo';
+    case 'COMPLETED':
+      return 'Đã hoàn tất';
+    case 'CANCELLED':
+      return 'Đã huỷ';
+    default:
+      return phase;
+  }
+}
+
+export function eventTypeLabel(type?: string): string {
+  switch (type) {
+    case 'ENGAGEMENT':
+      return 'Lễ ăn hỏi';
+    case 'RECEPTION':
+      return 'Tiệc báo hỷ';
+    case 'ANNIVERSARY':
+      return 'Kỷ niệm';
+    case 'OTHER':
+      return 'Sự kiện khác';
+    case 'WEDDING':
+    default:
+      return 'Tiệc cưới';
+  }
+}
+
+export function bookingDisplayName(booking: {
+  alias?: string | null;
+  eventType?: string;
+  hallName: string;
+  brideName?: string | null;
+  groomName?: string | null;
+}): string {
+  if (booking.alias?.trim()) return booking.alias.trim();
+  if (booking.brideName && booking.groomName) {
+    const type = eventTypeLabel(booking.eventType);
+    return `${type} · ${booking.brideName} & ${booking.groomName}`;
+  }
+  if (booking.eventType && booking.eventType !== 'WEDDING') {
+    return `${eventTypeLabel(booking.eventType)} · ${booking.hallName}`;
+  }
+  return booking.hallName;
+}
+
 export type CoupleWorkspace = Readonly<{
   state: WorkspaceState;
   reload: () => void;
