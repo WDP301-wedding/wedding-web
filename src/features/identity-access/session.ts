@@ -122,6 +122,7 @@ function isCoupleTokenFresh(expiresAtStr: string): boolean {
 
 export class WebIdentitySession {
   private accessToken: string | null = null;
+  private authGeneration = 0;
   private restoreOperation: Promise<WebSessionSnapshot> | null = null;
   /** true khi backend đã từ chối cookie refresh (401): `restore()` không thử lại cho đến khi đăng nhập. */
   private refreshRejected = false;
@@ -129,6 +130,10 @@ export class WebIdentitySession {
   private readonly listeners = new Set<() => void>();
 
   constructor(private readonly api: IdentityApi) {
+    sharedCoupleRealtime.setSessionRevokedHandler(() => {
+      this.refreshRejected = true;
+      this.clear();
+    });
     if (typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined') {
       try {
         const channel = new BroadcastChannel(COUPLE_AUTH_CHANNEL);
@@ -144,6 +149,7 @@ export class WebIdentitySession {
             'expiresAt' in data &&
             typeof data.expiresAt === 'string'
           ) {
+            if (this.refreshRejected) return;
             this.accessToken = data.token;
             this.scheduleProactiveRefresh(data.expiresAt);
           }
@@ -265,16 +271,19 @@ export class WebIdentitySession {
   }
 
   private async renewAccessToken(): Promise<string | null> {
+    if (this.refreshRejected) return null;
     if (typeof window === 'undefined') return null;
 
     if (this.renewOperation !== null) {
       return this.renewOperation;
     }
 
+    const generation = this.authGeneration;
     this.renewOperation = (async () => {
       try {
         if (typeof navigator !== 'undefined' && 'locks' in navigator) {
           return await navigator.locks.request(COUPLE_REFRESH_LOCK, async () => {
+            if (generation !== this.authGeneration) return null;
             const cached = readCachedCoupleToken();
             if (cached && isCoupleTokenFresh(cached.expiresAt)) {
               this.accessToken = cached.token;
@@ -300,14 +309,17 @@ export class WebIdentitySession {
   }
 
   private async performSingleRefresh(): Promise<string | null> {
+    const generation = this.authGeneration;
     try {
       const credential = await this.api.refreshSession();
+      if (generation !== this.authGeneration) return null;
       this.accessToken = credential.accessToken;
       saveCachedCoupleToken(credential.accessToken, credential.accessExpiresAt);
       this.scheduleProactiveRefresh(credential.accessExpiresAt);
       void sharedCoupleRealtime.connect(credential.accessToken);
       return credential.accessToken;
     } catch (error) {
+      if (generation !== this.authGeneration) return null;
       if (error instanceof ApiClientError && error.status === 401) {
         this.clear();
         this.refreshRejected = true;
@@ -332,10 +344,13 @@ export class WebIdentitySession {
   }
 
   private async restoreFromCookie(): Promise<WebSessionSnapshot> {
+    const generation = this.authGeneration;
     let refreshed: SessionCredential;
     try {
       refreshed = await this.api.refreshSession();
+      if (generation !== this.authGeneration) return this.state;
     } catch (error) {
+      if (generation !== this.authGeneration) return this.state;
       this.clear();
       if (error instanceof ApiClientError && error.status === 401) this.refreshRejected = true;
       return this.state;
@@ -348,12 +363,14 @@ export class WebIdentitySession {
   }
 
   private async finishSignIn(credential: SessionCredential): Promise<WebSessionSnapshot> {
+    const generation = this.authGeneration;
     this.refreshRejected = false;
     this.accessToken = credential.accessToken;
     saveCachedCoupleToken(credential.accessToken, credential.accessExpiresAt);
     this.scheduleProactiveRefresh(credential.accessExpiresAt);
     try {
       const actor = await this.api.getCurrentUser(credential.accessToken);
+      if (generation !== this.authGeneration) return this.state;
       this.updateSnapshot({
         status: 'authenticated',
         access: actor.roles.includes('COUPLE') ? 'full' : 'restricted',
@@ -363,12 +380,13 @@ export class WebIdentitySession {
       void sharedCoupleRealtime.connect(credential.accessToken);
       return this.state;
     } catch (error) {
-      this.clear();
+      if (generation === this.authGeneration) this.clear();
       throw error;
     }
   }
 
   private clear(): void {
+    this.authGeneration++;
     if (this.proactiveTimer) {
       clearTimeout(this.proactiveTimer);
       this.proactiveTimer = null;

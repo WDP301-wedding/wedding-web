@@ -58,6 +58,11 @@ export function resolveRealtimeSocketUrl(): string {
 export class CoupleRealtimeManager {
   private socket: Socket | null = null;
   private token: string | null = null;
+  private sessionRevokedHandler: (() => void) | null = null;
+
+  setSessionRevokedHandler(handler: () => void): void {
+    this.sessionRevokedHandler = handler;
+  }
   private status: ConnectionStatus = 'disconnected';
   private tokenRefreshHandler: TokenRefreshHandler | null = null;
   private readonly statusListeners = new Set<(status: ConnectionStatus) => void>();
@@ -114,8 +119,18 @@ export class CoupleRealtimeManager {
       this.triggerResync();
     });
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', (reason) => {
       this.setStatus('disconnected');
+      if (reason === 'io server disconnect' && this.token !== null && this.tokenRefreshHandler) {
+        void this.tokenRefreshHandler().then(renewed => {
+          if (renewed && this.socket === socket && this.token !== null) {
+            this.token = renewed;
+            socket.auth = { token: renewed };
+            socket.connect();
+          }
+        }).catch(() => { /* Session layer handles refresh denial. */ });
+      }
+
     });
 
     socket.on('connect_error', async (err: unknown) => {
@@ -148,6 +163,11 @@ export class CoupleRealtimeManager {
 
     socket.on('realtime:event', (event: unknown) => {
       if (!this.isValidEvent(event)) return;
+      if (event.type === 'session.revoked') {
+        this.disconnect();
+        this.sessionRevokedHandler?.();
+        return;
+      }
       if (this.seenEventIds.has(event.eventId)) {
         return;
       }

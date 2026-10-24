@@ -9,6 +9,7 @@ import type { WebSessionSnapshot } from '../identity-access/session';
 import { ApiClientError } from '../../lib/api/client';
 import { Skeleton } from '../../design-system/skeleton';
 import { useRealtimeSubscription } from '../realtime/use-realtime';
+import { sharedCoupleRealtime } from '../realtime/realtime-client';
 
 const gateway = createExperienceGateway();
 
@@ -57,18 +58,23 @@ export function CoupleOverview() {
     };
   }, [retry]);
 
-  const activeBookingId = page?.data[0]?.bookingId;
   useRealtimeSubscription({
-    bookingId: activeBookingId,
-    onEvent: (event) => {
-      if (!activeBookingId || !event.scope.bookingId || event.scope.bookingId === activeBookingId) {
-        setRetry((value) => value + 1);
-      }
+    enabled: Boolean(page),
+    onEvent: () => {
+      setRetry((value) => value + 1);
     },
     onResync: () => {
       setRetry((value) => value + 1);
     },
   });
+
+  useEffect(() => {
+    if (!page?.data || page.data.length === 0) return;
+    const unsubs = page.data.map((item) => sharedCoupleRealtime.subscribeBooking(item.bookingId));
+    return () => {
+      for (const unsub of unsubs) unsub();
+    };
+  }, [page?.data]);
   async function more() {
     if (!page?.nextCursor || pending) return;
     setPending(true);
