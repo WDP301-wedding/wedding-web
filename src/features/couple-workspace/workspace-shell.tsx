@@ -117,7 +117,7 @@ function UnreadBell() {
       href="/khong-gian/thong-bao"
       aria-label={count ? `${count} thông báo chưa đọc` : 'Thông báo'}
     >
-      <span aria-hidden="true">🔔</span>
+      Thông báo
       {count ? <span className="cw-badge">{count > 99 ? '99+' : count}</span> : null}
     </Link>
   );

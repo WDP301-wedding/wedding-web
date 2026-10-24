@@ -10,6 +10,7 @@ import './couple.css';
 import './hy-yen.css';
 import './hy-v2.css';
 import './fonts.css';
+import './select.css';
 import { beVietnamPro, playfairWordmark } from './fonts';
 
 export const metadata: Metadata = {

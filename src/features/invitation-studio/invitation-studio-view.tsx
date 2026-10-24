@@ -1293,7 +1293,7 @@ export function InvitationStudioView({
                         </div>
                       ) : (
                         <div className="studio-media-state">
-                          <span className="hy-chip is-warning">⚠ Chưa sẵn sàng cho thiệp</span>
+                          <span className="hy-chip is-warning">Chưa sẵn sàng cho thiệp</span>
                           {item.deriveError && (
                             <p className="studio-meta is-warning">{item.deriveError}</p>
                           )}
