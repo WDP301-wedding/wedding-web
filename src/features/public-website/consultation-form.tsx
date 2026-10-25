@@ -5,6 +5,7 @@ import { minimumPreferredDate } from './consultation-date';
 import { ApiClientError } from '../../lib/api/client';
 import { browserSession } from '../identity-access/browser-session';
 import { createExperienceGateway } from '../identity-access/experience-api';
+import { DatePicker } from '../../design-system/date-picker';
 import Link from 'next/link';
 
 export type ContactPrefill = Readonly<{ displayName: string | null; email: string }>;
@@ -188,12 +189,11 @@ export function ConsultationForm({
         </label>
         <label>
           Ngày tổ chức dự kiến <span>(không bắt buộc)</span>
-          <input
+          <DatePicker
             name="preferredDate"
-            type="date"
             min={minimumDate}
             defaultValue={prefill.date}
-            aria-describedby="preferred-date-help"
+            ariaDescribedby="preferred-date-help"
           />
           <span id="preferred-date-help">Chọn ngày mốt hoặc muộn hơn (theo giờ Việt Nam).</span>
         </label>

@@ -151,10 +151,14 @@ export function CoupleBillingWorkspace({
     void authorize((token) => expGateway.overview(token))
       .then((overview) => {
         if (!active || !overview?.data) return;
-        const mapped = overview.data.map((item) => ({
-          bookingId: item.bookingId,
-          label: `${item.hallName} · ${item.eventDate} · ${item.shiftCode === 'LUNCH' ? 'Trưa' : 'Tối'}`,
-        }));
+        const mapped = overview.data.map((item) => {
+          const [y, m, d] = item.eventDate.split('-');
+          const eventDateFormatted = y && m && d ? `${d}/${m}/${y}` : item.eventDate;
+          return {
+            bookingId: item.bookingId,
+            label: `${item.hallName} · ${eventDateFormatted} · ${item.shiftCode === 'LUNCH' ? 'Trưa' : 'Tối'}`,
+          };
+        });
         setAvailableBookings(mapped);
       })
       .catch(() => {

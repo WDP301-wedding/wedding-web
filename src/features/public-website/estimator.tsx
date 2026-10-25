@@ -8,6 +8,7 @@ import { consultationHref, formatVnd, menuEstimates, suitableHalls, tableCount }
 import type { Hall, Menu, Restaurant } from './public-api';
 import { CatalogImage } from './catalog-image';
 import { HeroVideo } from './hero-video';
+import { DatePicker } from '../../design-system/date-picker';
 import { fallbackShifts } from '../../content/public-content';
 
 type Shift = 'LUNCH' | 'DINNER';
@@ -73,7 +74,7 @@ export function EstimatorHero({
           <div className="hy-estimator-row">
             <label>
               Ngày
-              <input name="date" type="date" min={minimumDate} />
+              <DatePicker name="date" min={minimumDate} />
             </label>
             <label>
               Số khách
