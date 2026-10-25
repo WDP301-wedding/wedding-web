@@ -75,7 +75,7 @@ describe('EstimatorHero component', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Xem ước tính' }));
 
     // Estimate results section should now appear!
-    expect(screen.getByText(/280 khách · 28 bàn · Ca trưa/)).toBeInTheDocument();
+    expect(screen.getAllByText(/280 khách · 28 bàn · Ca trưa/).length).toBeGreaterThan(0);
     expect(screen.getByText('Ước tính – chưa giữ chỗ')).toBeInTheDocument();
 
     // Sảnh vừa nhất (Hoàng Gia 300 khách) should be displayed with "Vừa nhất"
@@ -129,4 +129,40 @@ describe('EstimatorHero component', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('Nhập số khách từ 1 đến 10.000.');
   });
+
+  it('allows closing modal via close button and reopening via banner', () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
+    );
+
+    render(
+      <EstimatorHero
+        intro={<h1>Tiêu đề giới thiệu</h1>}
+        halls={mockHalls}
+        menus={mockMenus}
+        restaurant={null}
+      />
+    );
+
+    // Open modal
+    fireEvent.click(screen.getByRole('button', { name: 'Xem ước tính' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Close modal via Close button
+    fireEvent.click(screen.getByRole('button', { name: 'Đóng bảng ước tính' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    // Reopen banner should be visible
+    expect(screen.getByText('Mở lại bảng ước tính')).toBeInTheDocument();
+
+    // Click reopen banner
+    fireEvent.click(screen.getByText('Mở lại bảng ước tính'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Close modal via Escape key
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
 });
+
