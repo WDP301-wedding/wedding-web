@@ -231,14 +231,12 @@ export function IdentityExperience({
               name="password"
               type="password"
               autoComplete="new-password"
-              minLength={12}
             />
             <Field
               label="Xác nhận mật khẩu"
               name="passwordConfirmation"
               type="password"
               autoComplete="new-password"
-              minLength={12}
             />
           </AuthForm>
         ) : null}
