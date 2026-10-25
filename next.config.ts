@@ -14,6 +14,13 @@ import { legacyRedirects } from './src/routes';
  * BACKEND_ORIGIN là biến phía server (không có tiền tố NEXT_PUBLIC_) nên không lộ ra trình duyệt.
  */
 const backendOrigin = process.env.BACKEND_ORIGIN?.replace(/\/+$/, '');
+const backendHostname = (() => {
+  try {
+    return backendOrigin ? new URL(backendOrigin).hostname : undefined;
+  } catch {
+    return undefined;
+  }
+})();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -30,9 +37,24 @@ const nextConfig: NextConfig = {
         hostname: 'wedding-be-render-trial.onrender.com',
         pathname: '/api/v1/storage/objects/**',
       },
+      {
+        protocol: 'https',
+        hostname: '*.up.railway.app',
+        pathname: '/api/v1/storage/objects/**',
+      },
+      ...(backendHostname
+        ? [
+            {
+              protocol: 'https' as const,
+              hostname: backendHostname,
+              pathname: '/api/v1/storage/objects/**',
+            },
+          ]
+        : []),
     ],
-    // Ảnh tối ưu được cache theo URL; URL đã ký đổi mỗi lần ISR làm mới nên giữ ngắn.
-    minimumCacheTTL: 600,
+    formats: ['image/avif', 'image/webp'],
+    // Lưu cache ảnh đã tối ưu trong 7 ngày tại Next.js / Edge để giảm tải cho backend
+    minimumCacheTTL: 86400 * 7,
   },
   rewrites() {
     if (!backendOrigin) return Promise.resolve([]);

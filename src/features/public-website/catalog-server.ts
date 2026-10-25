@@ -11,7 +11,7 @@ import { createPublicGateway, type Hall, type Menu, type Restaurant } from './pu
  * ở backend). Trang phải được dựng lại trước khi URL ảnh hết hạn, nên chọn 5 phút — đủ để gần như
  * mọi lượt xem nhận HTML có sẵn (nhanh), nhưng URL ảnh không bao giờ quá ~10 phút tuổi.
  */
-export const catalogRevalidateSeconds = 300; // các app/**/page.tsx ghi lại số này dạng literal
+export const catalogRevalidateSeconds = 0; // Luôn render động để URL ảnh không bị hết hạn 15 phút
 
 /**
  * Base URL khi gọi API từ SERVER (lúc build và khi ISR làm mới).
@@ -37,15 +37,62 @@ export type Catalog = Readonly<{
   unavailable: boolean;
 }>;
 
+let cachedCatalog: { data: Catalog; expiresAt: number } | null = null;
+const CATALOG_IN_MEMORY_TTL_MS = 60_000; // 60s: đảm bảo URL ảnh (TTL 15m) luôn còn hạn ≥14 phút
+
+/**
+ * Kiểm tra xem signed URL còn hạn ít nhất `minRemainingSeconds` giây nữa không.
+ * Nếu còn dưới ngưỡng thì coi như cần làm mới để người dùng không bao giờ gặp link sắp hết hạn.
+ */
+function isSignedUrlValid(urlStr?: string, minRemainingSeconds = 120): boolean {
+  if (!urlStr) return true;
+  try {
+    const parsed = new URL(urlStr);
+    const expiresParam = parsed.searchParams.get('expires');
+    if (expiresParam) {
+      const expiresAtSec = Number(expiresParam);
+      if (!Number.isNaN(expiresAtSec)) {
+        const nowSec = Math.floor(Date.now() / 1000);
+        return expiresAtSec - nowSec > minRemainingSeconds;
+      }
+    }
+  } catch {
+    // URL không hợp lệ thì để hàm gọi tự xử lý
+  }
+  return true;
+}
+
+function areCatalogMediaUrlsValid(catalog: Catalog): boolean {
+  for (const hall of catalog.halls) {
+    for (const media of hall.media) {
+      if (!isSignedUrlValid(media.signedUrl)) return false;
+    }
+  }
+  for (const menu of catalog.menus) {
+    for (const media of menu.media) {
+      if (!isSignedUrlValid(media.signedUrl)) return false;
+    }
+  }
+  return true;
+}
+
 /**
  * Tải catalog công khai cho Server Component.
  *
- * - `cache()` của React: trong một lần render, nhiều component cùng gọi `loadCatalog()` chỉ
- *   tạo một lượt gọi API.
- * - Lỗi mạng KHÔNG làm hỏng build/trang: trả về danh sách rỗng + `unavailable`, lần ISR sau
- *   (≤ 5 phút) sẽ thử lại.
+ * - Giữ bộ nhớ đệm ngắn 60s để tránh gọi liên tục vào backend khi có nhiều lượt truy cập,
+ *   đồng thời chủ động kiểm tra thời hạn signed URL để đảm bảo người dùng luôn nhận
+ *   link còn hạn dài (không bao giờ bị lỗi 403 ở lần mở đầu tiên).
  */
 export const loadCatalog = cache(async (): Promise<Catalog> => {
+  const now = Date.now();
+  if (
+    cachedCatalog &&
+    cachedCatalog.expiresAt > now &&
+    areCatalogMediaUrlsValid(cachedCatalog.data)
+  ) {
+    return cachedCatalog.data;
+  }
+
   let gateway: ReturnType<typeof createPublicGateway>;
   try {
     gateway = serverGateway();
@@ -58,18 +105,36 @@ export const loadCatalog = cache(async (): Promise<Catalog> => {
     gateway.halls(),
     gateway.menus(),
   ]);
-  return {
+  const data: Catalog = {
     restaurant: restaurant.status === 'fulfilled' ? restaurant.value : null,
     halls: halls.status === 'fulfilled' ? halls.value.items : [],
     menus: menus.status === 'fulfilled' ? menus.value.items : [],
     unavailable: [restaurant, halls, menus].some((result) => result.status === 'rejected'),
   };
+  if (!data.unavailable) {
+    cachedCatalog = { data, expiresAt: now + CATALOG_IN_MEMORY_TTL_MS };
+  }
+  return data;
 });
+
+const hallCache = new Map<string, { data: Hall | null; expiresAt: number }>();
 
 /** Một sảnh theo id; `null` khi không tồn tại (404) hoặc không tải được. */
 export const loadHall = cache(async (hallId: string): Promise<Hall | null> => {
+  const now = Date.now();
+  const existing = hallCache.get(hallId);
+  const hallValid = existing?.data
+    ? existing.data.media.every((m) => isSignedUrlValid(m.signedUrl))
+    : true;
+  if (existing && existing.expiresAt > now && hallValid) {
+    return existing.data;
+  }
   try {
-    return await serverGateway().hall(hallId);
+    const hall = await serverGateway().hall(hallId);
+    if (hall) {
+      hallCache.set(hallId, { data: hall, expiresAt: now + CATALOG_IN_MEMORY_TTL_MS });
+    }
+    return hall;
   } catch {
     return null;
   }

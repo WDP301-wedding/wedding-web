@@ -164,7 +164,14 @@ export function ConsultationForm({
       <div className="public-form-grid">
         <label>
           Họ và tên
-          <input ref={nameInput} name="displayName" required maxLength={120} autoComplete="name" />
+          <input
+            ref={nameInput}
+            name="displayName"
+            required
+            maxLength={120}
+            autoComplete="name"
+            placeholder="Họ và tên"
+          />
         </label>
         <label>
           Email
@@ -175,65 +182,69 @@ export function ConsultationForm({
             type="email"
             maxLength={320}
             autoComplete="email"
+            placeholder="example@email.com"
           />
         </label>
         <label>
-          Số điện thoại <span>(không bắt buộc)</span>
+          Số điện thoại
           <input
             name="phone"
             type="tel"
             maxLength={30}
             autoComplete="tel"
             pattern="[+0-9 .\(\)\-]*"
+            placeholder="Số điện thoại (không bắt buộc)"
           />
         </label>
         <label>
-          Ngày tổ chức dự kiến <span>(không bắt buộc)</span>
+          Ngày tổ chức dự kiến
           <DatePicker
             name="preferredDate"
             min={minimumDate}
             defaultValue={prefill.date}
+            placeholder="dd/mm/yyyy (không bắt buộc)"
             ariaDescribedby="preferred-date-help"
           />
-          <span id="preferred-date-help">Chọn ngày mốt hoặc muộn hơn (theo giờ Việt Nam).</span>
+          <span id="preferred-date-help">Chọn từ ngày mốt trở đi (theo giờ Việt Nam).</span>
         </label>
         <label>
-          Số khách dự kiến <span>(không bắt buộc)</span>
+          Số khách dự kiến
           <input
             name="expectedGuests"
             type="number"
             min={1}
             max={10000}
             defaultValue={prefill.guests}
+            placeholder="Số lượng khách (không bắt buộc)"
+          />
+        </label>
+        <fieldset className="hy-shift-picker">
+          <legend>Ca mong muốn</legend>
+          <div className="hy-shift-options">
+            {(['LUNCH', 'DINNER'] as const).map((code) => (
+              <label key={code} className={shift === code ? 'is-selected' : undefined}>
+                <input
+                  type="radio"
+                  name="shift"
+                  value={code}
+                  checked={shift === code}
+                  onChange={() => setShift(code)}
+                />
+                <strong>{code === 'LUNCH' ? 'Ca trưa' : 'Ca tối'}</strong>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <label className="consultation-full-width">
+          Điều bạn mong muốn
+          <textarea
+            name="message"
+            maxLength={2000}
+            rows={3}
+            placeholder="Không gian, thực đơn hoặc điều bạn muốn trao đổi cùng nhà hàng… (không bắt buộc)"
           />
         </label>
       </div>
-      <fieldset className="hy-shift-picker">
-        <legend>
-          Ca mong muốn <span>(không bắt buộc)</span>
-        </legend>
-        {(['LUNCH', 'DINNER'] as const).map((code) => (
-          <label key={code} className={shift === code ? 'is-selected' : undefined}>
-            <input
-              type="radio"
-              name="shift"
-              value={code}
-              checked={shift === code}
-              onChange={() => setShift(code)}
-            />
-            <strong>{code === 'LUNCH' ? 'Ca trưa' : 'Ca tối'}</strong>
-          </label>
-        ))}
-      </fieldset>
-      <label>
-        Điều bạn mong muốn <span>(không bắt buộc)</span>
-        <textarea
-          name="message"
-          maxLength={2000}
-          rows={4}
-          placeholder="Không gian, thực đơn hoặc điều bạn muốn trao đổi cùng nhà hàng…"
-        />
-      </label>
       <p className="public-muted">
         Thông tin được dùng để tiếp nhận và liên hệ tư vấn. Gửi yêu cầu chưa giữ chỗ hay xác nhận
         đặt tiệc.

@@ -70,23 +70,27 @@
   margin-top: 40px;
 }
 .consultation-form {
-  padding: 32px;
+  padding: 24px;
   background: #fff;
   border: 1px solid #eadfd6;
+  border-radius: var(--hy-radius-md, 16px);
 }
 .public-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 14px 18px;
 }
-.consultation-form label,
-.account-settings label {
+.consultation-form label {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 24px;
+  gap: 6px;
+  margin-bottom: 0;
   font-size: 14px;
   font-weight: 500;
+}
+.consultation-form label.consultation-full-width {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
 }
 .consultation-form label span {
   color: var(--muted);
@@ -98,15 +102,68 @@
 .account-settings input {
   width: 100%;
   min-width: 0;
-  min-height: 48px;
-  padding: 12px;
+  min-height: 44px;
+  padding: 10px 14px;
   border: 1px solid #9a877f;
   border-radius: var(--hy-radius-sm);
   background: var(--paper);
   color: var(--ink);
+  font-size: 15px;
 }
 .consultation-form textarea {
   resize: vertical;
+  min-height: 76px;
+  line-height: 1.5;
+}
+.consultation-form .hy-shift-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  grid-template-columns: none;
+}
+.consultation-form .hy-shift-picker legend {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: inherit;
+}
+.consultation-form .hy-shift-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.consultation-form .hy-shift-picker label {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  margin: 0;
+  border-radius: var(--hy-radius-sm);
+  cursor: pointer;
+}
+#preferred-date-help {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+.consultation-form .public-muted {
+  margin: 10px 0 16px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.account-settings label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
 }
 .consultation-success {
   border: 1px solid var(--gold);
@@ -223,7 +280,7 @@
   }
   .public-form-grid {
     grid-template-columns: 1fr;
-    gap: 0;
+    gap: 14px;
   }
 }
 @media (max-width: 700px) {

@@ -28,17 +28,22 @@ export function GuestFields({
         </select>
       </label>
       <label>
-        Điện thoại (tùy chọn)
+        Điện thoại
         <input
           name="phone"
           inputMode="tel"
           defaultValue={guest?.phone ?? ''}
-          placeholder="0901234567"
+          placeholder="0901234567 (tùy chọn)"
         />
       </label>
       <label>
-        Ghi chú vận hành (tùy chọn)
-        <input name="note" maxLength={500} defaultValue={guest?.operationalNote ?? ''} />
+        Ghi chú vận hành
+        <input
+          name="note"
+          maxLength={500}
+          defaultValue={guest?.operationalNote ?? ''}
+          placeholder="Ghi chú vận hành (tùy chọn)"
+        />
       </label>
     </div>
   );

@@ -4,16 +4,7 @@ import { notFound } from 'next/navigation';
 import { loadCatalog, loadHall } from '../../../src/features/public-website/catalog-server';
 import { HallDetailPage } from '../../../src/features/public-website/public-pages';
 
-/**
- * ISR theo từng sảnh: lần đầu có người mở `/sanh/<id>` thì dựng trang rồi cache, 300 giây sau
- * làm mới. Không liệt kê sẵn id lúc build (generateStaticParams rỗng) để build không phụ thuộc
- * backend. Đường dẫn dùng id (UUID) vì API catalog chưa có slug.
- */
-export const revalidate = 300;
-export const dynamicParams = true;
-export function generateStaticParams() {
-  return [];
-}
+export const dynamic = 'force-dynamic';
 
 type Props = Readonly<{ params: Promise<{ id: string }> }>;
 
