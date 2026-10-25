@@ -30,6 +30,8 @@ const mockHalls: Hall[] = [
 const mockMenus: Menu[] = [
   {
     id: 'menu-1',
+    versionId: 'v1',
+    versionNumber: 1,
     name: 'Thực đơn Tiêu Chuẩn',
     priceVndPerTable: 4_500_000,
     description: 'Tiết kiệm',
@@ -38,6 +40,8 @@ const mockMenus: Menu[] = [
   },
   {
     id: 'menu-2',
+    versionId: 'v2',
+    versionNumber: 1,
     name: 'Thực đơn Cao Cấp',
     priceVndPerTable: 5_500_000,
     description: 'Đầy đủ',

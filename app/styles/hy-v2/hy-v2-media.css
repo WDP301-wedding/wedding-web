@@ -7,7 +7,7 @@
 .hy-hero {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
+  z-index: 10;
 }
 .hy-hero:has(.hy-hero-video) {
   /* Có video: lớp phủ chuyển sang ::before để phủ LÊN video (background nằm dưới video). */
