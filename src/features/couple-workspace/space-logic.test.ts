@@ -5,6 +5,7 @@ import { daysUntil, nextTasks } from './space-overview';
 import { pickDefaultBooking, type BookingSummary, type Proposal } from './use-couple-workspace';
 
 const summary = (overrides: Partial<BookingSummary> = {}): BookingSummary => ({
+  eventType: 'WEDDING',
   bookingId: 'b1',
   consultationId: 'c1',
   accessLevel: 'RESTRICTED',

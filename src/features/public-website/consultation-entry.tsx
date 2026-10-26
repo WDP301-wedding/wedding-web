@@ -23,10 +23,14 @@ export function ConsultationEntry({
   const shift = query.get('ca');
   return (
     <ConsultationForm
+      halls={halls}
+      menus={menus}
       prefill={{
         date: date && isoDate.test(date) ? date : undefined,
         guests: Number.isInteger(guests) && guests > 0 && guests <= 10_000 ? guests : undefined,
         shift: shift === 'trua' ? 'LUNCH' : shift === 'toi' ? 'DINNER' : undefined,
+        hallId: halls.find((hall) => hall.id === query.get('sanh'))?.id,
+        menuVersionId: menus.find((menu) => menu.id === query.get('thuc-don'))?.versionId,
         hallName: halls.find((hall) => hall.id === query.get('sanh'))?.name,
         menuName: menus.find((menu) => menu.id === query.get('thuc-don'))?.name,
       }}

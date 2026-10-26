@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
-import { createPublicGateway, type ConsultationRequest } from './public-api';
+import { createPublicGateway, type ConsultationRequest, type Hall, type Menu } from './public-api';
 import { minimumPreferredDate } from './consultation-date';
 import { ApiClientError } from '../../lib/api/client';
 import { browserSession } from '../identity-access/browser-session';
@@ -41,13 +41,15 @@ export type ConsultationPrefill = Readonly<{
   date?: string | undefined;
   guests?: number | undefined;
   shift?: 'LUNCH' | 'DINNER' | undefined;
+  hallId?: string | undefined;
+  menuVersionId?: string | undefined;
   hallName?: string | undefined;
   menuName?: string | undefined;
 }>;
 
 /**
- * Backend chưa có trường sảnh/thực đơn/ca trong yêu cầu tư vấn → ghép thành vài dòng đầu của
- * lời nhắn để quản lý tiệc đọc được ngay, không mất lựa chọn của khách.
+ * Giữ bản mô tả dễ đọc trong lời nhắn; các mã sảnh, phiên bản thực đơn và ca
+ * được gửi bằng trường riêng để manager điền sẵn chính xác.
  */
 export function choiceLines(prefill: ConsultationPrefill, shift: 'LUNCH' | 'DINNER' | ''): string {
   return [
@@ -64,7 +66,11 @@ export function ConsultationForm({
   prefill = {},
   onSent,
   loadContact = loadSignedInContact,
+  halls = [],
+  menus = [],
 }: {
+  halls?: readonly Hall[];
+  menus?: readonly Menu[];
   submit?: (request: ConsultationRequest) => Promise<void>;
   prefill?: ConsultationPrefill;
   /** Gửi thành công → trang chuyển sang /tu-van/da-gui; không truyền thì hiện lời cảm ơn tại chỗ. */
@@ -91,6 +97,10 @@ export function ConsultationForm({
       active = false;
     };
   }, [loadContact]);
+  const [hallId, setHallId] = useState(prefill.hallId ?? '');
+  const [menuVersionId, setMenuVersionId] = useState(prefill.menuVersionId ?? '');
+  const selectedHall = halls.find((item) => item.id === hallId);
+  const selectedMenu = menus.find((item) => item.versionId === menuVersionId);
   const [shift, setShift] = useState<'LUNCH' | 'DINNER' | ''>(prefill.shift ?? '');
   const [state, setState] = useState<'idle' | 'pending' | 'success'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -114,7 +124,15 @@ export function ConsultationForm({
       phone: field('phone'),
       preferredDate: field('preferredDate') || null,
       expectedGuests: field('expectedGuests') ? Number(field('expectedGuests')) : null,
-      message: [choiceLines(prefill, shift), field('message')].filter(Boolean).join('\n\n'),
+      preferredHallId: hallId || null,
+      preferredMenuVersionId: menuVersionId || null,
+      preferredShift: shift || null,
+      message: [
+        choiceLines({ hallName: selectedHall?.name, menuName: selectedMenu?.name }, shift),
+        field('message'),
+      ]
+        .filter(Boolean)
+        .join('\n\n'),
     };
     if (fields.preferredDate !== null && fields.preferredDate < minimumPreferredDate()) {
       setError('Ngày tổ chức dự kiến phải từ ngày mốt trở đi (theo giờ Việt Nam).');
@@ -131,9 +149,12 @@ export function ConsultationForm({
     } catch (caught) {
       setState('idle');
       setError(
-        caught instanceof ApiClientError && caught.status === 429
-          ? 'Bạn đã gửi nhiều yêu cầu. Vui lòng chờ hoặc liên hệ nhà hàng.'
-          : 'Chưa gửi được yêu cầu. Nội dung của bạn vẫn được giữ lại; hãy thử lại.',
+        caught instanceof ApiClientError &&
+          ['CONSULTATION_HALL_UNAVAILABLE', 'CONSULTATION_MENU_UNAVAILABLE'].includes(caught.code)
+          ? 'Sảnh hoặc thực đơn vừa ngừng phục vụ. Vui lòng đổi lựa chọn rồi gửi lại.'
+          : caught instanceof ApiClientError && caught.status === 429
+            ? 'Bạn đã gửi nhiều yêu cầu. Vui lòng chờ hoặc liên hệ nhà hàng.'
+            : 'Chưa gửi được yêu cầu. Nội dung của bạn vẫn được giữ lại; hãy thử lại.',
       );
     }
   }
@@ -153,15 +174,37 @@ export function ConsultationForm({
     );
   return (
     <form className="consultation-form" onSubmit={(event) => void send(event)}>
-      {prefill.hallName || prefill.menuName ? (
+      {selectedHall || selectedMenu ? (
         <p className="hy-choice-summary">
           <span>Lựa chọn của bạn:</span>
-          {prefill.hallName ? <span className="hy-chip">{prefill.hallName}</span> : null}
-          {prefill.menuName ? <span className="hy-chip">{prefill.menuName}</span> : null}
-          <Link href="/#uoc-tinh">Đổi lựa chọn</Link>
+          {selectedHall ? <span className="hy-chip">{selectedHall.name}</span> : null}
+          {selectedMenu ? <span className="hy-chip">{selectedMenu.name}</span> : null}
+          <span>Có thể đổi hoặc bỏ lựa chọn bên dưới.</span>
         </p>
       ) : null}
       <div className="public-form-grid">
+        <label>
+          Sảnh quan tâm (không bắt buộc)
+          <select value={hallId} onChange={(event) => setHallId(event.target.value)}>
+            <option value="">Chưa chọn sảnh · nhờ tư vấn</option>
+            {halls.map((hall) => (
+              <option key={hall.id} value={hall.id}>
+                {hall.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Thực đơn quan tâm (không bắt buộc)
+          <select value={menuVersionId} onChange={(event) => setMenuVersionId(event.target.value)}>
+            <option value="">Chưa chọn thực đơn · nhờ tư vấn</option>
+            {menus.map((menu) => (
+              <option key={menu.versionId} value={menu.versionId}>
+                {menu.name}
+              </option>
+            ))}
+          </select>
+        </label>
         <label>
           Họ và tên
           <input

@@ -139,3 +139,47 @@ export const loadHall = cache(async (hallId: string): Promise<Hall | null> => {
     return null;
   }
 });
+
+let consultationCatalog: { data: Catalog; expiresAt: number } | null = null;
+let consultationCatalogRequest: Promise<Catalog> | null = null;
+/** The consultation chooser needs every published option, not just the landing-page preview. */
+export const loadConsultationCatalog = cache(async (): Promise<Catalog> => {
+  if (
+    consultationCatalog &&
+    consultationCatalog.expiresAt > Date.now() &&
+    areCatalogMediaUrlsValid(consultationCatalog.data)
+  )
+    return consultationCatalog.data;
+  if (consultationCatalogRequest) return consultationCatalogRequest;
+  consultationCatalogRequest = (async () => {
+    const gateway = serverGateway();
+    async function all<T>(
+      read: (cursor?: string) => Promise<{ items: readonly T[]; nextCursor: string | null }>,
+    ): Promise<T[]> {
+      const result: T[] = [];
+      const seen = new Set<string>();
+      let cursor: string | undefined;
+      do {
+        const page = await read(cursor);
+        result.push(...page.items);
+        cursor = page.nextCursor ?? undefined;
+        if (cursor && seen.has(cursor)) throw new Error('Catalog pagination did not advance.');
+        if (cursor) seen.add(cursor);
+      } while (cursor);
+      return result;
+    }
+    const [restaurant, halls, menus] = await Promise.all([
+      gateway.restaurant(),
+      all((cursor) => gateway.halls(cursor, 100)),
+      all((cursor) => gateway.menus(cursor, 100)),
+    ]);
+    const data: Catalog = { restaurant, halls, menus, unavailable: false };
+    consultationCatalog = { data, expiresAt: Date.now() + CATALOG_IN_MEMORY_TTL_MS };
+    return data;
+  })()
+    .catch(() => ({ restaurant: null, halls: [], menus: [], unavailable: true }))
+    .finally(() => {
+      consultationCatalogRequest = null;
+    });
+  return consultationCatalogRequest;
+});

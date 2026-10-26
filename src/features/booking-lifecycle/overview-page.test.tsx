@@ -35,6 +35,7 @@ function booking(overrides: Partial<Overview['data'][number]> = {}): Overview['d
   return {
     accessLevel: 'FULL',
     bookingId: 'booking-1',
+    eventType: 'WEDDING',
     consultationId: 'consultation-1',
     coupleApproved: false,
     managerApproved: false,

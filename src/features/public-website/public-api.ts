@@ -4,7 +4,12 @@ import type { components } from '../../lib/api/generated/schema';
 export type Hall = components['schemas']['CatalogPublicHall'];
 export type Menu = components['schemas']['CatalogPublicMenuPackage'];
 export type Restaurant = components['schemas']['CatalogPublicRestaurant'];
-export type ConsultationRequest = components['schemas']['ConsultationRequestBody'];
+export type ConsultationRequest = components['schemas']['ConsultationRequestBody'] &
+  Readonly<{
+    preferredHallId?: string | null;
+    preferredMenuVersionId?: string | null;
+    preferredShift?: 'LUNCH' | 'DINNER' | null;
+  }>;
 const required = <T>(value: T | undefined) => {
   if (value === undefined) throw new Error('Thiếu dữ liệu phản hồi.');
   return value;
@@ -21,11 +26,11 @@ export function createPublicGateway(client?: ApiClient) {
         media: Array.from(value.media, (item) => ({ ...item })),
       };
     },
-    async halls(cursor?: string) {
+    async halls(cursor?: string, limit = 12) {
       const value = required(
         (
           await api().GET('/catalog/halls', {
-            params: { query: { limit: 12, ...(cursor ? { cursor } : {}) } },
+            params: { query: { limit, ...(cursor ? { cursor } : {}) } },
           })
         ).data,
       ).data;
@@ -43,11 +48,11 @@ export function createPublicGateway(client?: ApiClient) {
       ).data;
       return { ...value, media: Array.from(value.media, (item) => ({ ...item })) };
     },
-    async menus(cursor?: string) {
+    async menus(cursor?: string, limit = 12) {
       const value = required(
         (
           await api().GET('/catalog/menu-packages', {
-            params: { query: { limit: 12, ...(cursor ? { cursor } : {}) } },
+            params: { query: { limit, ...(cursor ? { cursor } : {}) } },
           })
         ).data,
       ).data;

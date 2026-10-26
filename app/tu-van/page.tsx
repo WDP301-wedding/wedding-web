@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { loadCatalog } from '../../src/features/public-website/catalog-server';
+import { loadConsultationCatalog } from '../../src/features/public-website/catalog-server';
 import { ConsultationPage } from '../../src/features/public-website/public-pages';
 
 export const dynamic = 'force-dynamic';
@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default async function Consultation() {
-  return <ConsultationPage catalog={await loadCatalog()} />;
+  return <ConsultationPage catalog={await loadConsultationCatalog()} />;
 }

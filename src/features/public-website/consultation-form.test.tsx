@@ -25,7 +25,7 @@ describe('public consultation submission', () => {
       .fn<(input: ConsultationRequest) => Promise<void>>()
       .mockResolvedValue(undefined);
     render(<ConsultationForm submit={submit} />);
-    const date = screen.getByLabelText(/Ngày tổ chức dự kiến/);
+    const date = screen.getByRole('textbox', { name: /Ngày tổ chức dự kiến/ });
     expect(date).toHaveAttribute('min', '2026-10-11');
     expect(date).not.toBeRequired();
     fireEvent.change(screen.getByLabelText('Họ và tên'), { target: { value: 'Lan' } });
@@ -46,7 +46,7 @@ describe('public consultation submission', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-10-08T16:59:59Z'));
     render(<ConsultationForm />);
-    const date = screen.getByLabelText(/Ngày tổ chức dự kiến/);
+    const date = screen.getByRole('textbox', { name: /Ngày tổ chức dự kiến/ });
     expect(date).toHaveAttribute('min', '2026-10-10');
     vi.setSystemTime(new Date('2026-10-08T17:00:00Z'));
     fireEvent.focus(window);
@@ -149,5 +149,41 @@ describe('consultation contact prefill for a signed-in couple', () => {
     await waitFor(() => expect(restore).toHaveBeenCalledTimes(2));
     expect(profile).not.toHaveBeenCalled();
     expect(screen.getByLabelText('Email')).toHaveValue('');
+  });
+});
+
+describe('structured consultation choices', () => {
+  it('keeps both selections and lets a customer remove either independently', async () => {
+    const submit = vi.fn().mockResolvedValue(undefined);
+    render(
+      <ConsultationForm
+        submit={submit}
+        loadContact={() => Promise.resolve(null)}
+        prefill={{ hallId: 'hall-1', menuVersionId: 'menu-v1' }}
+        halls={[{ id: 'hall-1', name: 'Sảnh vườn', description: '', maxGuests: 100, media: [] }]}
+        menus={[
+          {
+            id: 'menu-1',
+            versionId: 'menu-v1',
+            name: 'Thực đơn xuân',
+            description: '',
+            versionNumber: 1,
+            priceVndPerTable: 1000000,
+            items: [],
+            media: [],
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByRole('combobox', { name: /Sảnh quan tâm/ })).toHaveValue('hall-1');
+    expect(screen.getByRole('combobox', { name: /Thực đơn quan tâm/ })).toHaveValue('menu-v1');
+    fireEvent.change(screen.getByLabelText('Họ và tên'), { target: { value: 'Lan' } });
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'lan@example.test' } });
+    fireEvent.click(screen.getByRole('button', { name: /Gửi lời hẹn/ }));
+    await waitFor(() =>
+      expect(submit).toHaveBeenCalledWith(
+        expect.objectContaining({ preferredHallId: 'hall-1', preferredMenuVersionId: 'menu-v1' }),
+      ),
+    );
   });
 });
