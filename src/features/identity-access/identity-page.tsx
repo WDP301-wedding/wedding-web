@@ -76,6 +76,7 @@ export function IdentityExperience({
   const [pending, setPending] = useState(false);
   const [credentialConsumed, setCredentialConsumed] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState<string | null>(null);
   const credentialSubmitted = useRef(false);
 
@@ -150,10 +151,35 @@ export function IdentityExperience({
   const run = async (operation: () => Promise<void>) => {
     setPending(true);
     setError(null);
+    setFieldErrors({});
     setNotice(null);
     try {
       await operation();
     } catch (caught) {
+      credentialSubmitted.current = false;
+      setCredentialConsumed(false);
+
+      if (caught instanceof ApiClientError && caught.details && caught.details.length > 0) {
+        const errors: Record<string, string> = {};
+        for (const detail of caught.details) {
+          if (detail.path) {
+            let msg = detail.message;
+            if (detail.path === 'password' || detail.path === 'newPassword') {
+              if (detail.code === 'too_small') {
+                msg = 'Mật khẩu quá ngắn. Vui lòng nhập mật khẩu hợp lệ.';
+              } else if (detail.code === 'too_big') {
+                msg = 'Mật khẩu quá dài (tối đa 128 ký tự).';
+              } else {
+                msg = detail.message || 'Mật khẩu không hợp lệ.';
+              }
+            } else if (detail.path === 'email') {
+              msg = 'Email không hợp lệ.';
+            }
+            errors[detail.path] = msg;
+          }
+        }
+        setFieldErrors(errors);
+      }
       setError(identityErrorMessage(caught));
     } finally {
       setPending(false);
@@ -163,11 +189,22 @@ export function IdentityExperience({
   const handleLogin = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const email = readField(form, 'email');
+    const password = readField(form, 'password');
+    const errors: Record<string, string> = {};
+    if (!email) {
+      errors.email = 'Vui lòng nhập email.';
+    }
+    if (!password) {
+      errors.password = 'Vui lòng nhập mật khẩu.';
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError('Vui lòng điền đầy đủ thông tin đăng nhập.');
+      return;
+    }
     void run(async () => {
-      const nextSnapshot = await session.login(
-        readField(form, 'email'),
-        readField(form, 'password'),
-      );
+      const nextSnapshot = await session.login(email, password);
       setSnapshot(nextSnapshot);
     });
   };
@@ -177,8 +214,19 @@ export function IdentityExperience({
     if (credentialSubmitted.current || initialCredential?.kind !== 'invitation') return;
     const form = new FormData(event.currentTarget);
     const password = readField(form, 'password');
-    if (password !== readField(form, 'passwordConfirmation')) {
-      setError('Hai mật khẩu chưa trùng khớp.');
+    const passwordConfirmation = readField(form, 'passwordConfirmation');
+    const errors: Record<string, string> = {};
+    if (!password) {
+      errors.password = 'Vui lòng nhập mật khẩu.';
+    }
+    if (!passwordConfirmation) {
+      errors.passwordConfirmation = 'Vui lòng xác nhận mật khẩu.';
+    } else if (password !== passwordConfirmation) {
+      errors.passwordConfirmation = 'Hai mật khẩu chưa trùng khớp.';
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError(errors.passwordConfirmation || errors.password || 'Vui lòng kiểm tra lại thông tin.');
       return;
     }
     credentialSubmitted.current = true;
@@ -208,12 +256,19 @@ export function IdentityExperience({
             pending={pending}
             onSubmit={handleLogin}
           >
-            <Field label="Email" name="email" type="email" autoComplete="email" />
+            <Field
+              label="Email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              error={fieldErrors.email}
+            />
             <Field
               label="Mật khẩu"
               name="password"
               type="password"
               autoComplete="current-password"
+              error={fieldErrors.password}
             />
           </AuthForm>
         ) : null}
@@ -231,12 +286,14 @@ export function IdentityExperience({
               name="password"
               type="password"
               autoComplete="new-password"
+              error={fieldErrors.password}
             />
             <Field
               label="Xác nhận mật khẩu"
               name="passwordConfirmation"
               type="password"
               autoComplete="new-password"
+              error={fieldErrors.passwordConfirmation}
             />
           </AuthForm>
         ) : null}
@@ -382,14 +439,17 @@ function Field({
   label,
   name,
   className,
+  error,
   ...input
 }: Readonly<React.InputHTMLAttributes<HTMLInputElement>> & {
   label: string;
   name: string;
+  error?: string | null | undefined;
 }) {
   const [visible, setVisible] = useState(false);
   const password = input.type === 'password';
   const id = `identity-${name}`;
+  const errorId = error ? `${id}-error` : undefined;
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
@@ -399,7 +459,9 @@ function Field({
           type={password && visible ? 'text' : input.type}
           id={id}
           name={name}
-          className={`${className ?? ''} ${password ? fieldStyles.passwordInput : ''}`.trim() || undefined}
+          aria-invalid={Boolean(error)}
+          aria-describedby={errorId}
+          className={`${className ?? ''} ${password ? fieldStyles.passwordInput : ''} ${error ? fieldStyles.inputError : ''}`.trim() || undefined}
           required
         />
         {password ? (
@@ -416,6 +478,11 @@ function Field({
           </button>
         ) : null}
       </div>
+      {error ? (
+        <p id={errorId} className={fieldStyles.fieldError} role="alert">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -489,11 +556,50 @@ function readField(form: FormData, name: string): string {
 
 function identityErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
-    if (error.status === 401) return 'Thông tin xác thực không hợp lệ hoặc đã hết hạn.';
+    if (error.kind === 'network' || error.kind === 'timeout') {
+      return 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng và thử lại.';
+    }
+    if (error.status === 400 || error.code === 'VALIDATION_ERROR' || error.status === 422) {
+      if (error.details && error.details.length > 0) {
+        const pwDetail = error.details.find(
+          (d) => d.path === 'password' || d.path === 'newPassword',
+        );
+        if (pwDetail) {
+          if (pwDetail.code === 'too_small') {
+            return 'Mật khẩu quá ngắn. Vui lòng nhập mật khẩu hợp lệ.';
+          }
+          if (pwDetail.code === 'too_big') {
+            return 'Mật khẩu quá dài (tối đa 128 ký tự).';
+          }
+          return `Mật khẩu chưa hợp lệ: ${pwDetail.message}`;
+        }
+        return (
+          error.details
+            .map((d) => d.message)
+            .filter(Boolean)
+            .join(' ') || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.'
+        );
+      }
+      return 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+    }
+    if (error.status === 401 || error.code === 'AUTHENTICATION_REQUIRED') {
+      return 'Thông tin xác thực không hợp lệ hoặc đã hết hạn.';
+    }
     if (error.status === 403 || error.status === 404) {
       return 'Bạn chưa có quyền thực hiện thao tác này. Dữ liệu hiển thị đã được làm mới.';
     }
-    if (error.status === 429) return 'Bạn đã thử quá nhiều lần. Vui lòng chờ rồi thử lại.';
+    if (error.status === 409) {
+      return 'Dữ liệu có xung đột hoặc liên kết đã được sử dụng. Vui lòng làm mới trang.';
+    }
+    if (error.status === 429) {
+      return 'Bạn đã thử quá nhiều lần. Vui lòng chờ rồi thử lại.';
+    }
+    if (error.status && error.status >= 500) {
+      return 'Máy chủ đang gặp sự cố. Vui lòng thử lại sau.';
+    }
+    if (error.message && error.message !== 'The request is invalid.') {
+      return error.message;
+    }
   }
-  return 'Không thể kết nối máy chủ. Vui lòng thử lại.';
+  return 'Đã có lỗi xảy ra. Vui lòng thử lại.';
 }
