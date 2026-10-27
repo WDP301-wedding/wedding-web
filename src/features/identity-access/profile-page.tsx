@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { BrandMark } from '../../design-system/brand-mark';
 import { Skeleton } from '../../design-system/skeleton';
 import { routes } from '../../routes';
+import { useInSpace } from '../couple-workspace/space-provider';
 import { AccountSettings } from './account-settings';
 import { browserSession } from './browser-session';
 import { PublicIdentityPage } from './identity-page';
@@ -15,6 +16,7 @@ import styles from './profile-page.module.css';
 
 export function ProfilePage() {
   const router = useRouter();
+  const inSpace = useInSpace();
   const [snapshot, setSnapshot] = useState<WebSessionSnapshot>(() => browserSession.snapshot());
   const [restoring, setRestoring] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -46,8 +48,16 @@ export function ProfilePage() {
 
   if (restoring) {
     return (
-      <div className={styles.profilePageWrapper}>
-        <main className={styles.profileMain}>
+      <div
+        className={[styles.profilePageWrapper, inSpace ? styles.inSpace : '']
+          .filter(Boolean)
+          .join(' ')}
+      >
+        <main
+          className={[styles.profileMain, inSpace ? styles.mainInSpace : '']
+            .filter(Boolean)
+            .join(' ')}
+        >
           <Skeleton label="Đang tải hồ sơ của bạn…" />
         </main>
       </div>
@@ -67,29 +77,40 @@ export function ProfilePage() {
   const initial = email.slice(0, 1).toUpperCase();
 
   return (
-    <div className={styles.profilePageWrapper}>
-      <header className={styles.profileHeaderBar}>
-        <div className={styles.headerInner}>
-          <Link href={routes.space} style={{ textDecoration: 'none' }}>
-            <BrandMark compact />
-          </Link>
-          <div className={styles.headerActions}>
-            <Link className={styles.backLink} href={routes.space}>
-              <span aria-hidden="true">←</span> Quay lại Kế hoạch cưới
+    <div
+      className={[styles.profilePageWrapper, inSpace ? styles.inSpace : '']
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {!inSpace ? (
+        <header className={styles.profileHeaderBar}>
+          <div className={styles.headerInner}>
+            <Link href={routes.space} style={{ textDecoration: 'none' }}>
+              <BrandMark compact />
             </Link>
-            <button
-              className={styles.logoutButton}
-              type="button"
-              disabled={loggingOut}
-              onClick={() => void handleLogout()}
-            >
-              {loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}
-            </button>
+            <div className={styles.headerActions}>
+              <Link className={styles.backLink} href={routes.space}>
+                <span aria-hidden="true">←</span> Quay lại Kế hoạch cưới
+              </Link>
+              <button
+                className={styles.logoutButton}
+                type="button"
+                disabled={loggingOut}
+                onClick={() => void handleLogout()}
+              >
+                {loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      ) : null}
 
-      <main className={styles.profileMain} id="profile-content">
+      <main
+        className={[styles.profileMain, inSpace ? styles.mainInSpace : '']
+          .filter(Boolean)
+          .join(' ')}
+        id="profile-content"
+      >
         <nav aria-label="Đường dẫn" className={styles.breadcrumb}>
           <Link href={routes.space}>Không gian cưới</Link>
           <span aria-hidden="true">/</span>

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useEffectEvent, useRef, useState } from 'react';
+import { useContext, useEffect, useEffectEvent, useRef, useState } from 'react';
 import { type WebIdentitySession, type WebSessionSnapshot } from '../identity-access/session';
 import { browserSession } from '../identity-access/browser-session';
 import { createExperienceGateway } from '../identity-access/experience-api';
@@ -20,6 +20,7 @@ import { createBillingIntents } from './billing-intents';
 import { balanceGate } from './balance-eligibility';
 import { CheckoutLinkPanel } from './checkout-link';
 import { useSpaceExtras } from '../couple-workspace/space-provider';
+import { CoupleWorkspaceContext, type Proposal } from '../couple-workspace/use-couple-workspace';
 import { useRealtimeSubscription } from '../realtime/use-realtime';
 import {
   AttemptStatus,
@@ -73,6 +74,7 @@ export function CoupleBillingPage({
    */
   embedded?: boolean;
 }>) {
+  const workspace = useContext(CoupleWorkspaceContext);
   const [snapshot, setSnapshot] = useState<WebSessionSnapshot | null>(null);
   useEffect(() => {
     let active = true;
@@ -106,6 +108,9 @@ export function CoupleBillingPage({
       gateway={gateway}
       onBookingChange={onBookingChange}
       embedded={embedded}
+      initialProposal={
+        embedded && workspace?.state.status === 'ready' ? workspace.state.proposal : undefined
+      }
     />
   );
 }
@@ -116,8 +121,10 @@ export function CoupleBillingWorkspace({
   intents: provided,
   onBookingChange,
   embedded = false,
+  initialProposal,
 }: Readonly<{
   accountId: string;
+  initialProposal?: Proposal | undefined;
   authorize: Authorize;
   gateway: CoupleBillingGateway;
   intents?: ReturnType<typeof createBillingIntents>;
@@ -125,6 +132,9 @@ export function CoupleBillingWorkspace({
   embedded?: boolean;
 }>) {
   const [intents] = useState(() => provided ?? createBillingIntents(accountId));
+  const contextSeed = useRef(initialProposal);
+  const pendingProviderRead = useRef<Proposal | undefined>(undefined);
+  const previousProviderProposal = useRef(initialProposal);
   const [bookingId, setBookingId] = useState('');
   const [context, setContext] = useState<BillingContext | null>(null);
   const [view, setView] = useState<BillingView | null>(null);
@@ -188,6 +198,15 @@ export function CoupleBillingWorkspace({
     }
     setError(billingMessage(caught));
   };
+  const drainProviderRead = () => {
+    const next = pendingProviderRead.current;
+    pendingProviderRead.current = undefined;
+    if (next) {
+      contextSeed.current = next;
+      setBookingId(next.bookingId);
+      void run(() => load(next.bookingId));
+    }
+  };
   const run = async (operation: () => Promise<void>) => {
     if (busy.current) return;
     busy.current = true;
@@ -200,6 +219,7 @@ export function CoupleBillingWorkspace({
     } finally {
       busy.current = false;
       setPending(false);
+      drainProviderRead();
     }
   };
   const displayAttempt = async (id: string, restored: AttemptView) => {
@@ -235,7 +255,9 @@ export function CoupleBillingWorkspace({
     activeRequestIdRef.current = requestId;
     // A failed discovery must not leave a previously enabled payment button usable.
     setNeedsAttemptStatus(true);
-    const value = await authorize((token) => gateway.loadContext(token, id));
+    const seed = contextSeed.current;
+    contextSeed.current = undefined;
+    const value = await authorize((token) => gateway.loadContext(token, id, seed));
     if (activeRequestIdRef.current !== requestId) return;
     if (value.bookingId !== id) throw new Error('Booking mismatch');
     const hideBalanceAttempt =
@@ -357,7 +379,7 @@ export function CoupleBillingWorkspace({
 
   useRealtimeSubscription({
     bookingId: bookingId || undefined,
-    enabled: Boolean(bookingId),
+    enabled: Boolean(bookingId) && !embedded,
     onEvent: (event) => {
       if (!event.scope.bookingId || event.scope.bookingId === bookingId) {
         if (
@@ -427,6 +449,7 @@ export function CoupleBillingWorkspace({
     } finally {
       busy.current = false;
       setPending(false);
+      drainProviderRead();
     }
   };
   /*
@@ -454,6 +477,24 @@ export function CoupleBillingWorkspace({
   const refreshBilling = useEffectEvent(() => {
     if (context !== null) void run(() => load(context.bookingId));
   });
+  // The provider is the only realtime owner of proposal in the embedded workspace.
+  // Billing consumes its completed read, while financial commands keep their pending guard.
+  const readProviderProposal = useEffectEvent((next: Proposal) => {
+    if (busy.current) {
+      pendingProviderRead.current = next;
+      return;
+    }
+    contextSeed.current = next;
+    setBookingId(next.bookingId);
+    void run(() => load(next.bookingId));
+  });
+  useEffect(() => {
+    if (!embedded || !initialProposal || previousProviderProposal.current === initialProposal)
+      return;
+    previousProviderProposal.current = initialProposal;
+    if (autoOpened.current) readProviderProposal(initialProposal);
+  }, [embedded, initialProposal]);
+
   const needsRefresh = gate !== null && !gate.allowed && gate.action === 'refresh';
   useEffect(() => {
     if (!needsRefresh || view === null || autoRefreshedFor.current === view.billingRevision) return;

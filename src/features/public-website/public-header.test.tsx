@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WebIdentitySession, type IdentityApi } from '../identity-access/session';
 import { ApiClientError } from '../../lib/api/client';
@@ -31,28 +31,47 @@ function fixture() {
   return { api, session: new WebIdentitySession(api) };
 }
 describe('public navbar authentication', () => {
-  it('replaces the account label after login and places logout next to the consultation action', async () => {
+  it('replaces the account label after login and provides an enterprise user dropdown menu', async () => {
     const { session, api } = fixture();
     render(<PublicHeader session={session} restoreSession={false} />);
     expect(screen.getByRole('link', { name: 'Đăng nhập' })).toHaveAttribute('href', '/dang-nhap');
-    expect(screen.queryByRole('button', { name: 'Đăng xuất' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Đăng xuất/ })).not.toBeInTheDocument();
     await act(() => session.login('couple@example.com', 'test-password'));
-    expect(screen.getByRole('link', { name: 'couple@example.com' })).toHaveAttribute(
+
+    // Nút không gian cưới nổi bật
+    expect(screen.getByRole('link', { name: 'Không gian cưới' })).toHaveAttribute(
       'href',
-      '/ho-so',
+      '/khong-gian',
     );
-    const actions = screen.getByRole('button', { name: 'Đăng xuất' }).parentElement!;
-    expect(within(actions).getByRole('link', { name: /Nhận tư vấn/ })).toBeVisible();
-    fireEvent.click(screen.getByRole('button', { name: 'Đăng xuất' }));
+
+    // Nút tài khoản mở dropdown
+    const userTrigger = screen.getByRole('button', { name: /Tài khoản couple@example.com/ });
+    expect(userTrigger).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Nhận tư vấn/ })).toBeVisible();
+
+    // Mở dropdown
+    fireEvent.click(userTrigger);
+    expect(screen.getByRole('menuitem', { name: /Không gian cưới của bạn/ })).toHaveAttribute(
+      'href',
+      '/khong-gian',
+    );
+    expect(screen.getByRole('menuitem', { name: /Hồ sơ & Bảo mật/ })).toHaveAttribute(
+      'href',
+      '/khong-gian/ho-so',
+    );
+
+    // Đăng xuất từ menu
+    fireEvent.click(screen.getByRole('menuitem', { name: /Đăng xuất/ }));
     await waitFor(() => expect(api.logout).toHaveBeenCalledWith('test-access'));
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/dang-nhap'));
     expect(screen.getByRole('link', { name: 'Đăng nhập' })).toBeVisible();
     expect(screen.queryByText('couple@example.com')).not.toBeInTheDocument();
   });
+
   it('restores the cookie session on public pages and clears navbar identity on session expiry', async () => {
     const { session, api } = fixture();
     render(<PublicHeader session={session} />);
-    await screen.findByRole('link', { name: 'couple@example.com' });
+    await screen.findByRole('button', { name: /Tài khoản couple@example.com/ });
     expect(api.refreshSession).toHaveBeenCalledTimes(1);
     await act(async () => {
       await expect(
@@ -70,16 +89,17 @@ describe('public navbar authentication', () => {
       ).rejects.toMatchObject({ status: 401 });
     });
     expect(screen.getByRole('link', { name: 'Đăng nhập' })).toBeVisible();
-    expect(screen.queryByRole('button', { name: 'Đăng xuất' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Đăng xuất/ })).not.toBeInTheDocument();
   });
+
   it('shows a logout connection failure without an unhandled rejection or success redirect', async () => {
     const { session, api } = fixture();
     await session.login('couple@example.com', 'test-password');
     vi.mocked(api.logout).mockRejectedValue(new Error('offline'));
     render(<PublicHeader session={session} restoreSession={false} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Đăng xuất' }));
+    fireEvent.click(screen.getByRole('button', { name: /Tài khoản couple@example.com/ }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /Đăng xuất/ }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Không thể kết nối máy chủ');
     expect(router.replace).not.toHaveBeenCalled();
-    expect(screen.queryByText('couple@example.com')).not.toBeInTheDocument();
   });
 });

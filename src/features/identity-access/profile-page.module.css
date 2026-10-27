@@ -7,6 +7,11 @@
   flex-direction: column;
 }
 
+.inSpace {
+  min-height: auto;
+  background-color: transparent;
+}
+
 .profileHeaderBar {
   background: var(--hy-surface, #ffffff);
   border-bottom: 1px solid var(--hy-outline, #eadfd6);
@@ -74,6 +79,11 @@
   width: 100%;
   margin: 0 auto;
   padding: 40px 24px 64px;
+}
+
+.mainInSpace {
+  max-width: 100%;
+  padding: 0 0 48px;
 }
 
 .breadcrumb {

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { authorizedRead, type Proposal } from '../couple-workspace/use-couple-workspace';
 import { useRealtimeSubscription } from '../realtime/use-realtime';
+import { useRefreshQueue } from '../realtime/refresh-queue';
 import {
   guestApi,
   type AttendanceSummary,
@@ -70,6 +71,19 @@ export function useGuestsWorkspace(proposal: Proposal) {
   const [extrasError, setExtrasError] = useState<FriendlyError | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [extrasKey, setExtrasKey] = useState(0);
+  const activeRead = useRef<Promise<void> | null>(null);
+  const coreCache = useRef<{
+    bookingId: string;
+    reloadKey: number;
+    groups: GuestGroup[];
+    plan: GuestPlan;
+  } | null>(null);
+  useEffect(() => {
+    const current = coreCache.current;
+    if (data && current?.bookingId === bookingId) {
+      coreCache.current = { ...current, groups: data.groups, plan: data.plan };
+    }
+  }, [data, bookingId]);
   // Hai phần tải song song, về theo thứ tự bất kỳ: giữ kết quả check-in mới nhất để ghép vào
   // khi phần chính về sau (state `data` còn null thì chưa ghép được).
   const extrasRef = useRef<Pick<GuestsData, 'settings' | 'attendance'>>({
@@ -83,16 +97,23 @@ export function useGuestsWorkspace(proposal: Proposal) {
 
   useEffect(() => {
     let active = true;
-    authorizedRead(async (token) => {
-      const [groups, plan, guests] = await Promise.all([
-        guestApi.groups(token, bookingId),
-        guestApi.plan(token, bookingId),
+    activeRead.current = authorizedRead(async (token) => {
+      const cached = coreCache.current;
+      const core =
+        cached?.bookingId === bookingId && cached.reloadKey === reloadKey
+          ? Promise.resolve({ groups: cached.groups, plan: cached.plan })
+          : Promise.all([guestApi.groups(token, bookingId), guestApi.plan(token, bookingId)]).then(
+              ([groups, plan]) => ({ groups, plan }),
+            );
+      const [reference, guests] = await Promise.all([
+        core,
         loadAllGuests(token, bookingId, status),
       ]);
-      return { groups, plan, guests };
+      return { ...reference, guests };
     })
       .then((core) => {
         if (!active) return;
+        coreCache.current = { bookingId, reloadKey, groups: core.groups, plan: core.plan };
         // Chỉ ghép phần check-in của đúng tiệc này (đổi tiệc thì phần cũ không còn hợp lệ).
         const extras =
           extrasRef.current.settings?.bookingId === bookingId
@@ -188,20 +209,21 @@ export function useGuestsWorkspace(proposal: Proposal) {
     [reload, status],
   );
 
+  const realtimeRefresh = useRefreshQueue(async () => {
+    const current = activeRead.current;
+    await current;
+    if (activeRead.current === current) reload();
+  }, bookingId);
   useRealtimeSubscription({
     bookingId,
     onEvent: (event) => {
       if (!event.scope.bookingId || event.scope.bookingId === bookingId) {
         if (event.type === 'guest.updated' || event.type === 'booking.updated') {
-          reload();
-          reloadExtras();
+          realtimeRefresh.schedule();
         }
       }
     },
-    onResync: () => {
-      reload();
-      reloadExtras();
-    },
+    onResync: realtimeRefresh.schedule,
   });
 
   return {

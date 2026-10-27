@@ -1,6 +1,7 @@
 import { createApiClient, type ApiClient } from '../../lib/api/client';
 import type { components, operations } from '../../lib/api/generated/schema';
 import { paymentStatusFetch } from './payment-status-fetch';
+import { coupleApi, type Proposal } from '../couple-workspace/use-couple-workspace';
 
 type BillingResponseData = components['schemas']['BookingBillingResponse']['data'];
 /**
@@ -40,7 +41,12 @@ export type BillingContext = Readonly<{
   contractRequired: boolean;
 }>;
 export interface CoupleBillingGateway {
-  loadContext(this: void, token: string, bookingId: string): Promise<BillingContext>;
+  loadContext(
+    this: void,
+    token: string,
+    bookingId: string,
+    initialProposal?: Proposal,
+  ): Promise<BillingContext>;
   loadActiveAttempts(this: void, token: string, bookingId: string): Promise<readonly AttemptView[]>;
   load(
     this: void,
@@ -95,13 +101,15 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
   const api = () => (resolved ??= createApiClient({ fetch: paymentStatusFetch }));
   const headers = (token: string) => ({ Authorization: `Bearer ${token}` });
   return {
-    async loadContext(token, bookingId) {
+    async loadContext(token, bookingId, initialProposal) {
       const [{ data }, contracts] = await Promise.all([
-        api().GET('/bookings/{bookingId}/proposal', {
-          params: { path: { bookingId } },
-          headers: headers(token),
-          cache: 'no-store',
-        }),
+        initialProposal?.bookingId === bookingId
+          ? Promise.resolve({ data: { data: initialProposal } })
+          : (client ?? coupleApi()).GET('/bookings/{bookingId}/proposal', {
+              params: { path: { bookingId } },
+              headers: headers(token),
+              cache: 'no-store',
+            }),
         api()
           .GET('/bookings/{bookingId}/contracts', {
             params: { path: { bookingId } },

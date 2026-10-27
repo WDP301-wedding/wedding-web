@@ -38,6 +38,7 @@ export type Catalog = Readonly<{
 }>;
 
 let cachedCatalog: { data: Catalog; expiresAt: number } | null = null;
+let catalogRequest: Promise<Catalog> | null = null;
 const CATALOG_IN_MEMORY_TTL_MS = 60_000; // 60s: đảm bảo URL ảnh (TTL 15m) luôn còn hạn ≥14 phút
 
 /**
@@ -93,6 +94,16 @@ export const loadCatalog = cache(async (): Promise<Catalog> => {
     return cachedCatalog.data;
   }
 
+  if (catalogRequest) return catalogRequest;
+  catalogRequest = readCatalog();
+  try {
+    return await catalogRequest;
+  } finally {
+    catalogRequest = null;
+  }
+});
+
+async function readCatalog(): Promise<Catalog> {
   let gateway: ReturnType<typeof createPublicGateway>;
   try {
     gateway = serverGateway();
@@ -112,10 +123,10 @@ export const loadCatalog = cache(async (): Promise<Catalog> => {
     unavailable: [restaurant, halls, menus].some((result) => result.status === 'rejected'),
   };
   if (!data.unavailable) {
-    cachedCatalog = { data, expiresAt: now + CATALOG_IN_MEMORY_TTL_MS };
+    cachedCatalog = { data, expiresAt: Date.now() + CATALOG_IN_MEMORY_TTL_MS };
   }
   return data;
-});
+}
 
 const hallCache = new Map<string, { data: Hall | null; expiresAt: number }>();
 

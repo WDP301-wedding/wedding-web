@@ -213,7 +213,13 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
               </Link>
             </li>
             <li>
-              <Link className="hy-space-link" href={routes.profile}>
+              <Link
+                className={
+                  'hy-space-link' + (pathname.startsWith(routes.profile) ? ' is-active' : '')
+                }
+                href={routes.profile}
+                aria-current={pathname.startsWith(routes.profile) ? 'page' : undefined}
+              >
                 <Icon name="person" />
                 <span>Hồ sơ</span>
               </Link>
@@ -236,7 +242,8 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
               <>
                 <strong>{bookingDisplayName(summary)}</strong>
                 <span>
-                  {summary.hallName} · {formatEventDate(summary.eventDate)} · {shiftLabel(summary.shiftCode)}{' '}
+                  {summary.hallName} · {formatEventDate(summary.eventDate)} ·{' '}
+                  {shiftLabel(summary.shiftCode)}{' '}
                   {proposal ? `· ${proposal.planningHeadcount} khách` : ''} ·{' '}
                   <span className="hy-space-phase-pill">{bookingPhaseLabel(summary.phase)}</span>
                 </span>
@@ -245,8 +252,8 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
               <>
                 <strong>{bookingDisplayName({ hallName: proposal.proposal.hall.name })}</strong>
                 <span>
-                  {proposal.proposal.hall.name} · {formatEventDate(proposal.eventDate)} · {shiftLabel(proposal.proposal.shift.code)}{' '}
-                  · {proposal.planningHeadcount} khách
+                  {proposal.proposal.hall.name} · {formatEventDate(proposal.eventDate)} ·{' '}
+                  {shiftLabel(proposal.proposal.shift.code)} · {proposal.planningHeadcount} khách
                 </span>
               </>
             ) : (
@@ -263,7 +270,9 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
                 >
                   {bookings.map((booking) => (
                     <option key={booking.bookingId} value={booking.bookingId}>
-                      {bookingDisplayName(booking)} · {booking.hallName} · {formatEventDate(booking.eventDate)} · {shiftLabel(booking.shiftCode)} [{bookingPhaseLabel(booking.phase)}]
+                      {bookingDisplayName(booking)} · {booking.hallName} ·{' '}
+                      {formatEventDate(booking.eventDate)} · {shiftLabel(booking.shiftCode)} [
+                      {bookingPhaseLabel(booking.phase)}]
                     </option>
                   ))}
                 </select>
@@ -375,7 +384,10 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
             <div className="hy-booking-sheet-header">
               <div>
                 <h3>Danh sách tiệc của bạn</h3>
-                <p>Bạn có {bookings.length} tiệc đang được quản lý. Chạm vào tiệc để chuyển không gian làm việc.</p>
+                <p>
+                  Bạn có {bookings.length} tiệc đang được quản lý. Chạm vào tiệc để chuyển không
+                  gian làm việc.
+                </p>
               </div>
               <button
                 type="button"
@@ -415,7 +427,9 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
                     </div>
                     <div className="hy-booking-sheet-details">
                       <span>🏛️ {b.hallName}</span>
-                      <span>📅 {formatEventDate(b.eventDate)} ({shiftLabel(b.shiftCode)})</span>
+                      <span>
+                        📅 {formatEventDate(b.eventDate)} ({shiftLabel(b.shiftCode)})
+                      </span>
                     </div>
                     {isCurrent ? (
                       <span className="hy-booking-sheet-current-tag">✓ Đang hiển thị tiệc này</span>

@@ -5,6 +5,7 @@ import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { authorizedRead, type Proposal } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestGroup } from '../guest-management/guest-api';
 import { useRealtimeSubscription } from '../realtime/use-realtime';
+import { useRefreshQueue } from '../realtime/refresh-queue';
 import { seatingApi, type LayoutOptions, type SeatingPlan } from './seating-api';
 
 export const statusLabels: Record<SeatingPlan['status'], string> = {
@@ -35,22 +36,33 @@ export function useSeatingWorkspace(proposal: Proposal) {
   const [planId, setPlanId] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<FriendlyError | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const activeRead = useRef<Promise<void> | null>(null);
+  const optionsCache = useRef<{ bookingId: string; revision: number; value: LayoutOptions } | null>(
+    null,
+  );
 
   const reload = useCallback(() => {
+    optionsCache.current = null;
     setRefreshAvailable(false);
     setReloadKey((value) => value + 1);
   }, []);
   const backgroundReload = useCallback(() => {
     if (dirty.current) setRefreshAvailable(true);
-    else reload();
-  }, [reload]);
+    else {
+      setRefreshAvailable(false);
+      setReloadKey((value) => value + 1);
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
     const generation = ++fetchGeneration.current;
-    authorizedRead(async (token) => {
+    activeRead.current = authorizedRead(async (token) => {
       const [layoutOptions, guestGroups, current] = await Promise.all([
-        seatingApi.options(token, bookingId),
+        optionsCache.current?.bookingId === bookingId &&
+        optionsCache.current.revision === proposal.revision
+          ? Promise.resolve(optionsCache.current.value)
+          : seatingApi.options(token, bookingId),
         guestApi.groups(token, bookingId),
         seatingApi.current(token, bookingId),
       ]);
@@ -62,6 +74,7 @@ export function useSeatingWorkspace(proposal: Proposal) {
           setRefreshAvailable(true);
           return;
         }
+        optionsCache.current = { bookingId, revision: proposal.revision, value: layoutOptions };
         setOptions(layoutOptions);
         setGroups(guestGroups.filter((group) => group.status === 'ACTIVE'));
         setPlan(current);
@@ -77,7 +90,7 @@ export function useSeatingWorkspace(proposal: Proposal) {
     return () => {
       active = false;
     };
-  }, [bookingId, reloadKey]);
+  }, [bookingId, reloadKey, proposal.revision]);
 
   const accept = useCallback((next: SeatingPlan | undefined) => {
     if (!next) return;
@@ -86,21 +99,30 @@ export function useSeatingWorkspace(proposal: Proposal) {
     setPlan(next);
   }, []);
 
+  const realtimeRefresh = useRefreshQueue(async () => {
+    const current = activeRead.current;
+    await current;
+    if (activeRead.current === current) backgroundReload();
+  }, bookingId);
   useRealtimeSubscription({
     bookingId,
     onEvent: (event) => {
+      if (event.type === 'catalog.updated' || event.type === 'booking.updated')
+        optionsCache.current = null;
       if (!event.scope.bookingId || event.scope.bookingId === bookingId) {
         if (
           event.type === 'seating.updated' ||
           event.type === 'guest.updated' ||
-          event.type === 'booking.updated'
+          event.type === 'booking.updated' ||
+          event.type === 'catalog.updated'
         ) {
-          backgroundReload();
+          realtimeRefresh.schedule();
         }
       }
     },
     onResync: () => {
-      backgroundReload();
+      optionsCache.current = null;
+      realtimeRefresh.schedule();
     },
   });
 

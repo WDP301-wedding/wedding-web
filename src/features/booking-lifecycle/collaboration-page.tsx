@@ -19,6 +19,7 @@ import {
   type ProposalView,
 } from './collaboration-api';
 import { useRealtimeSubscription } from '../realtime/use-realtime';
+import { useRefreshQueue } from '../realtime/refresh-queue';
 
 type Authorize = <T>(operation: (accessToken: string) => Promise<T>) => Promise<T>;
 export type BookingChoice = Readonly<{ bookingId: string; label: string }>;
@@ -84,7 +85,7 @@ export function CollaborationPage({
       gateway={gateway}
       onBookingChange={onBookingChange}
       initialProposal={cachedProposal}
-      onProposalUpdated={workspace?.reload}
+      onProposalUpdated={workspace?.refresh ?? workspace?.reload}
     />
   );
 }
@@ -109,10 +110,11 @@ export function CollaborationWorkspace({
    */
   initialProposal?: ProposalView | undefined;
   /** Gọi sau khi lệnh ghi thành công để lớp cache dùng chung làm mới (tổng quan, sidebar). */
-  onProposalUpdated?: (() => void) | undefined;
+  onProposalUpdated?: (() => void | Promise<void>) | undefined;
 }>) {
   const embedded = initialProposal !== undefined;
-  const [proposal, setProposal] = useState<ProposalView | null>(initialProposal ?? null);
+  const [localProposal, setProposal] = useState<ProposalView | null>(initialProposal ?? null);
+  const proposal = initialProposal ?? localProposal;
   const [pending, setPending] = useState(false);
   const [loaded, setLoaded] = useState(embedded);
   const [message, setMessage] = useState<string | null>(null);
@@ -175,21 +177,23 @@ export function CollaborationWorkspace({
   );
 
   const currentBookingId = proposal?.bookingId;
+  const liveRefresh = useRefreshQueue(async () => {
+    if (currentBookingId && !embedded) await load(currentBookingId);
+  }, currentBookingId);
   useRealtimeSubscription({
     bookingId: currentBookingId,
+    enabled: !embedded,
     onEvent: (event) => {
       if (
         currentBookingId &&
         (!event.scope.bookingId || event.scope.bookingId === currentBookingId)
       ) {
-        void load(currentBookingId);
-        onProposalUpdated?.();
+        liveRefresh.schedule();
       }
     },
     onResync: () => {
       if (currentBookingId) {
-        void load(currentBookingId);
-        onProposalUpdated?.();
+        liveRefresh.schedule();
       }
     },
   });
@@ -220,9 +224,9 @@ export function CollaborationWorkspace({
     try {
       await authorize(operation);
       setMessage(success);
-      if (proposal)
+      if (proposal && !embedded)
         setProposal(await authorize((token) => gateway.load(token, proposal.bookingId)));
-      onProposalUpdated?.();
+      await onProposalUpdated?.();
     } catch (caught) {
       if (caught instanceof ApiClientError && [401, 403, 404].includes(caught.status ?? 0))
         setProposal(null);

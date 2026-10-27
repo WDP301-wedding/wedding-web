@@ -9,6 +9,7 @@ import type { ApiData } from '../../lib/api/types';
 import { browserSession } from '../identity-access/browser-session';
 import { notify } from '../../design-system/toast';
 import { useRealtimeSubscription } from '../realtime/use-realtime';
+import { useRefreshQueue } from '../realtime/refresh-queue';
 
 export type Proposal = ApiData<'/bookings/{bookingId}/proposal', 'get'>;
 export type BookingSummary = ApiData<'/couple/bookings', 'get'>[number] & {
@@ -119,6 +120,7 @@ export function bookingDisplayName(booking: {
 export type CoupleWorkspace = Readonly<{
   state: WorkspaceState;
   reload: () => void;
+  refresh?: () => Promise<void>;
   bookingId: string | null;
   /** Danh sách tiệc của cặp đôi (rỗng khi chưa tải hoặc chưa đăng nhập). */
   bookings: readonly BookingSummary[];
@@ -155,15 +157,16 @@ export function useWorkspaceLoader(enabled = true): CoupleWorkspace {
   const urlBookingId = searchParams.get('bookingId');
   const [state, setState] = useState<WorkspaceState>({ status: 'loading' });
   const [bookings, setBookings] = useState<readonly BookingSummary[]>([]);
-  const [reloadKey, setReloadKey] = useState(0);
-
-  useEffect(() => {
+  const requestSequence = useRef(0);
+  const normalizedSelection = useRef<string | null>(null);
+  const refresh = useRefreshQueue(async () => {
     if (!enabled) return;
-    let active = true;
-    const load = async () => {
+    const sequence = ++requestSequence.current;
+    try {
       const snapshot = await browserSession.restore();
-      if (!active) return;
+      if (sequence !== requestSequence.current) return;
       if (snapshot.status === 'anonymous') {
+        setBookings([]);
         setState({ status: 'anonymous' });
         return;
       }
@@ -175,21 +178,13 @@ export function useWorkspaceLoader(enabled = true): CoupleWorkspace {
           })
           .then((response) => unwrap<readonly BookingSummary[]>(response)),
       );
-      if (!active) return;
+      if (sequence !== requestSequence.current) return;
       setBookings(list);
-      let bookingId = urlBookingId;
-      if (!bookingId) {
-        const fallback = pickDefaultBooking(list);
-        if (!fallback) {
-          setState({ status: 'choose-booking', bookings: list });
-          return;
-        }
-        bookingId = fallback.bookingId;
-        const url = new URL(window.location.href);
-        url.searchParams.set('bookingId', bookingId);
-        window.history.replaceState(window.history.state, '', url.toString());
+      const id = urlBookingId ?? pickDefaultBooking(list)?.bookingId;
+      if (!id) {
+        setState({ status: 'choose-booking', bookings: list });
+        return;
       }
-      const id = bookingId;
       const proposal = await browserSession.authorize((token) =>
         coupleApi()
           .GET('/bookings/{bookingId}/proposal', {
@@ -199,43 +194,69 @@ export function useWorkspaceLoader(enabled = true): CoupleWorkspace {
           })
           .then((response) => unwrap<Proposal>(response)),
       );
-      if (active) setState({ status: 'ready', proposal });
-    };
-    load().catch((error: unknown) => {
-      if (!active) return;
-      if (browserSession.snapshot().status === 'anonymous') setState({ status: 'anonymous' });
-      else setState({ status: 'error', error: describeApiError(error) });
-    });
-    return () => {
-      active = false;
-    };
-  }, [enabled, urlBookingId, reloadKey]);
+      if (sequence !== requestSequence.current) return;
+      setState({ status: 'ready', proposal });
+      if (!urlBookingId) {
+        normalizedSelection.current = id;
+        const url = new URL(window.location.href);
+        url.searchParams.set('bookingId', id);
+        window.history.replaceState(window.history.state, '', url.toString());
+      }
+    } catch (error: unknown) {
+      if (sequence !== requestSequence.current) return;
+      if (browserSession.snapshot().status === 'anonymous') {
+        setBookings([]);
+        setState({ status: 'anonymous' });
+      } else setState({ status: 'error', error: describeApiError(error) });
+    }
+  }, urlBookingId ?? 'default');
 
-  const reload = useCallback(() => setReloadKey((value) => value + 1), []);
+  const invalidateRead = useCallback(() => {
+    requestSequence.current++;
+  }, []);
+  useEffect(() => {
+    if (!enabled) return;
+    const normalized = normalizedSelection.current;
+    normalizedSelection.current = null;
+    if (!urlBookingId || normalized !== urlBookingId) void refresh.run();
+    return invalidateRead;
+  }, [enabled, urlBookingId, refresh, invalidateRead]);
 
+  const reload = useCallback(() => {
+    void refresh.refresh();
+  }, [refresh]);
   const activeBookingId = state.status === 'ready' ? state.proposal.bookingId : urlBookingId;
   useRealtimeSubscription({
     bookingId: activeBookingId ?? undefined,
     enabled,
     onEvent: (event) => {
-      if (
-        event.scope.entityType === 'account' ||
-        event.scope.entityType === 'booking' ||
+      const matches =
+        event.type === 'booking.updated' ||
         !event.scope.bookingId ||
         event.scope.bookingId === activeBookingId ||
-        bookings.some((b) => b.bookingId === event.scope.bookingId)
+        bookings.some((booking) => booking.bookingId === event.scope.bookingId);
+      // Guest, seating, print and notification readers own their own data. They do not change proposal.
+      if (
+        matches &&
+        [
+          'booking.updated',
+          'proposal.updated',
+          'timeline.updated',
+          'contract.updated',
+          'deposit.received',
+          'billing.updated',
+        ].includes(event.type)
       ) {
-        reload();
+        refresh.schedule();
       }
     },
-    onResync: () => {
-      reload();
-    },
+    onResync: refresh.schedule,
   });
 
   return {
     state,
     reload,
+    refresh: refresh.refresh,
     bookings,
     bookingId: state.status === 'ready' ? state.proposal.bookingId : urlBookingId,
   };
