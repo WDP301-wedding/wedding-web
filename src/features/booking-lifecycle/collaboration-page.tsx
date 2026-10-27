@@ -114,7 +114,8 @@ export function CollaborationWorkspace({
 }>) {
   const embedded = initialProposal !== undefined;
   const [localProposal, setProposal] = useState<ProposalView | null>(initialProposal ?? null);
-  const proposal = initialProposal ?? localProposal;
+  const [deniedProposal, setDeniedProposal] = useState<ProposalView | null>(null);
+  const proposal = initialProposal === deniedProposal ? null : (initialProposal ?? localProposal);
   const [pending, setPending] = useState(false);
   const [loaded, setLoaded] = useState(embedded);
   const [message, setMessage] = useState<string | null>(null);
@@ -228,8 +229,10 @@ export function CollaborationWorkspace({
         setProposal(await authorize((token) => gateway.load(token, proposal.bookingId)));
       await onProposalUpdated?.();
     } catch (caught) {
-      if (caught instanceof ApiClientError && [401, 403, 404].includes(caught.status ?? 0))
+      if (caught instanceof ApiClientError && [401, 403, 404].includes(caught.status ?? 0)) {
+        setDeniedProposal(initialProposal ?? null);
         setProposal(null);
+      }
       setError(errorMessage(caught, proposal?.proposal.shift));
     } finally {
       setPending(false);
