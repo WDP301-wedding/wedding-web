@@ -29,8 +29,9 @@ import {
   resetExpiredCheckoutState,
   resolveRestoreAttemptId,
   syncUrlParams,
-} from './billing-workspace.helpers.js';
-import { useAvailableBookings, useWorkspaceSync } from './billing-workspace-sync.js';
+} from './billing-workspace.helpers';
+import { useAvailableBookings, useWorkspaceSync } from './billing-workspace-sync';
+import { useExpired } from './checkout-link';
 
 export {
   type Authorize,
@@ -58,8 +59,8 @@ export function useBillingWorkspace({
   initialProposal?: Proposal | null | undefined;
 }) {
   const [intents] = useState(() => provided ?? createBillingIntents(accountId));
-  const contextSeed = useRef<Proposal | undefined>(initialProposal ?? undefined);
-  const pendingProviderRead = useRef<Proposal | undefined>(undefined);
+  const contextSeedRef = useRef<Proposal | undefined>(initialProposal ?? undefined);
+  const pendingProviderReadRef = useRef<Proposal | undefined>(undefined);
   const [bookingId, setBookingId] = useState(() => initialProposal?.bookingId ?? '');
   const [context, setContext] = useState<BillingContext | null>(null);
   const [view, setView] = useState<BillingView | null>(null);
@@ -70,8 +71,8 @@ export function useBillingWorkspace({
   const [retry, setRetry] = useState(false);
   const [needsAttemptStatus, setNeedsAttemptStatus] = useState(false);
   const [pending, setPending] = useState(false);
-  const busy = useRef(false);
-  const identifierEdited = useRef(false);
+  const busyRef = useRef(false);
+  const identifierEditedRef = useRef(false);
   const activeRequestIdRef = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const availableBookings = useAvailableBookings(authorize, embedded, fail);
@@ -79,7 +80,7 @@ export function useBillingWorkspace({
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     queueMicrotask(() => {
-      if (identifierEdited.current) return;
+      if (identifierEditedRef.current) return;
       setBookingId(params.get('bookingId') ?? '');
       setAttemptId(params.get('attemptId') ?? '');
     });
@@ -98,18 +99,18 @@ export function useBillingWorkspace({
   }
 
   const drainProviderRead = () => {
-    const next = pendingProviderRead.current;
-    pendingProviderRead.current = undefined;
+    const next = pendingProviderReadRef.current;
+    pendingProviderReadRef.current = undefined;
     if (next) {
-      contextSeed.current = next;
+      contextSeedRef.current = next;
       setBookingId(next.bookingId);
       void run(() => load(next.bookingId));
     }
   };
 
   const run = async (operation: () => Promise<void>) => {
-    if (busy.current) return;
-    busy.current = true;
+    if (busyRef.current) return;
+    busyRef.current = true;
     setPending(true);
     setError(null);
     try {
@@ -117,7 +118,7 @@ export function useBillingWorkspace({
     } catch (caught) {
       fail(caught);
     } finally {
-      busy.current = false;
+      busyRef.current = false;
       setPending(false);
       drainProviderRead();
     }
@@ -142,8 +143,8 @@ export function useBillingWorkspace({
     const requestId = id + ':' + Date.now();
     activeRequestIdRef.current = requestId;
     setNeedsAttemptStatus(true);
-    const seed = contextSeed.current;
-    contextSeed.current = undefined;
+    const seed = contextSeedRef.current;
+    contextSeedRef.current = undefined;
     const value = await authorize((token) => gateway.loadContext(token, id, seed));
     if (activeRequestIdRef.current !== requestId) return;
     if (value.bookingId !== id) throw new Error('Booking mismatch');
@@ -248,13 +249,13 @@ export function useBillingWorkspace({
 
   const start = async () => {
     if (
-      busy.current ||
+      busyRef.current ||
       context === null ||
       intent === null ||
       context.bookingId !== bookingId.trim()
     )
       return;
-    busy.current = true;
+    busyRef.current = true;
     setPending(true);
     setError(null);
     try {
@@ -286,7 +287,7 @@ export function useBillingWorkspace({
       } else if (intent.kind === 'balance' && !unknown && !denied(caught))
         void load(context.bookingId).catch(() => undefined);
     } finally {
-      busy.current = false;
+      busyRef.current = false;
       setPending(false);
       drainProviderRead();
     }
@@ -304,16 +305,15 @@ export function useBillingWorkspace({
     initialProposal,
     load,
     run,
-    busy,
-    pendingProviderRead,
-    contextSeed,
+    busyRef,
+    pendingProviderReadRef,
+    contextSeedRef,
     setBookingId,
   });
 
   const { restaurant } = useSpaceExtras();
-  const isCheckoutActive =
-    checkout !== null &&
-    (Number.isNaN(Date.parse(checkout.expiresAt)) || Date.parse(checkout.expiresAt) > Date.now());
+  const isCheckoutExpired = useExpired(checkout?.expiresAt);
+  const isCheckoutActive = checkout !== null && !isCheckoutExpired;
   const inFlight = attempt !== null && !completed(attempt);
   const blocked = pending || intent !== null || isCheckoutActive || inFlight || needsAttemptStatus;
 
@@ -357,7 +357,7 @@ export function useBillingWorkspace({
     inFlight,
     gate,
     restaurant,
-    identifierEdited,
+    identifierEditedRef,
     setNeedsAttemptStatus,
     run,
     load,

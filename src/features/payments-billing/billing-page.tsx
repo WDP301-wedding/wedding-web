@@ -142,7 +142,7 @@ export function CoupleBillingWorkspace({
     inFlight,
     gate,
     restaurant,
-    identifierEdited,
+    identifierEditedRef,
     setNeedsAttemptStatus,
     run,
     load,
@@ -190,7 +190,7 @@ export function CoupleBillingWorkspace({
               onChange={(e) => {
                 const selectedId = e.target.value;
                 if (selectedId) {
-                  identifierEdited.current = true;
+                  identifierEditedRef.current = true;
                   setBookingId(selectedId);
                   setContext(null);
                   setView(null);
@@ -230,7 +230,7 @@ export function CoupleBillingWorkspace({
               disabled={blocked}
               onChange={(event) => {
                 if (blocked) return;
-                identifierEdited.current = true;
+                identifierEditedRef.current = true;
                 setBookingId(event.target.value);
                 setContext(null);
                 setView(null);

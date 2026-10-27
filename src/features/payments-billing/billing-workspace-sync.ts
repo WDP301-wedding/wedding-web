@@ -4,7 +4,7 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import type { Proposal } from '../couple-workspace/use-couple-workspace';
 import type { balanceGate } from './balance-eligibility';
 import type { BillingContext, BillingView } from './billing-api';
-import { type Authorize, loadAvailableBookings } from './billing-workspace.helpers.js';
+import { type Authorize, loadAvailableBookings } from './billing-workspace.helpers';
 
 export function useAvailableBookings(
   authorize: Authorize,
@@ -42,9 +42,9 @@ export function useWorkspaceSync({
   initialProposal,
   load,
   run,
-  busy,
-  pendingProviderRead,
-  contextSeed,
+  busyRef,
+  pendingProviderReadRef,
+  contextSeedRef,
   setBookingId,
 }: {
   embedded: boolean;
@@ -55,9 +55,9 @@ export function useWorkspaceSync({
   initialProposal: Proposal | null | undefined;
   load: (id: string) => Promise<void>;
   run: (operation: () => Promise<void>) => Promise<void>;
-  busy: { current: boolean };
-  pendingProviderRead: { current: Proposal | undefined };
-  contextSeed: { current: Proposal | undefined };
+  busyRef: { current: boolean };
+  pendingProviderReadRef: { current: Proposal | undefined };
+  contextSeedRef: { current: Proposal | undefined };
   setBookingId: (id: string) => void;
 }) {
   const autoOpened = useRef(false);
@@ -77,11 +77,11 @@ export function useWorkspaceSync({
 
   const previousProviderProposal = useRef(initialProposal);
   const readProviderProposal = useEffectEvent((next: Proposal) => {
-    if (busy.current) {
-      pendingProviderRead.current = next;
+    if (busyRef.current) {
+      pendingProviderReadRef.current = next;
       return;
     }
-    contextSeed.current = next;
+    contextSeedRef.current = next;
     setBookingId(next.bookingId);
     void run(() => load(next.bookingId));
   });

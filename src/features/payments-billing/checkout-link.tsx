@@ -30,15 +30,16 @@ const maxTimerMs = 2 ** 31 - 1;
  * Không gọi `Date.now()` trong lúc render (render phải "thuần"); thay vào đó giữ mốc thời gian
  * trong state và hẹn một timer để cập nhật state khi tới hạn.
  */
-function useExpired(expiresAt: string): boolean {
+export function useExpired(expiresAt: string | undefined): boolean {
   const [now, setNow] = useState(() => Date.now());
-  const expiry = Date.parse(expiresAt);
+  const expiry = expiresAt ? Date.parse(expiresAt) : NaN;
   useEffect(() => {
-    // delay = 0 khi đã quá hạn → cập nhật ngay ở lượt kế tiếp (vd. giao dịch được khôi phục khi đã cũ).
+    if (Number.isNaN(expiry)) return;
     const delay = Math.min(Math.max(0, expiry - Date.now()), maxTimerMs);
     const timer = setTimeout(() => setNow(Date.now()), delay);
     return () => clearTimeout(timer);
   }, [expiry]);
+  if (!expiresAt) return false;
   return Number.isNaN(expiry) || now >= expiry;
 }
 
@@ -94,11 +95,15 @@ export function CheckoutLinkPanel({
             ) : null}
             . Mở lại không tạo giao dịch mới.
           </p>
+          <p>
+            Bạn sẽ chuyển sang VNPay trong tab hiện tại. Sau khi hoàn tất, chọn quay về website để
+            xem trạng thái thanh toán đã xác minh.
+          </p>
           <a
             className="billing-primary-link"
             href={checkout.checkoutUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            target="_self"
+            rel="noreferrer"
           >
             Tiếp tục trên VNPay
           </a>
