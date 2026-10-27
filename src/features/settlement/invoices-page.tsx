@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useLiveRefresh, LiveUpdateNotice } from '../realtime/use-live-refresh';
+import { useState } from 'react';
 
 import type { ApiData } from '../../lib/api/types';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
@@ -64,7 +65,7 @@ export function InvoicesPage() {
       description="Nhà hàng ghi nhận chi phí phát sinh sau khi tiệc kết thúc và chốt hoá đơn cuối. Hai bạn xem chi tiết và thanh toán phần còn lại."
       requireFull
     >
-      {(proposal) => <SettlementWorkspace proposal={proposal} />}
+      {(proposal) => <SettlementWorkspace key={proposal.bookingId} proposal={proposal} />}
     </CouplePage>
   );
 }
@@ -77,31 +78,35 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
     billing: Billing;
   } | null>(null);
   const [loadError, setLoadError] = useState<FriendlyError | null>(null);
-  const [reloadKey, setReloadKey] = useState(0);
-  const reload = useCallback(() => setReloadKey((value) => value + 1), []);
-
-  useEffect(() => {
-    let active = true;
-    authorizedRead(async (token) => {
-      const [expenses, invoices, billing] = await Promise.all([
-        settlementApi.expenses(token, bookingId),
-        settlementApi.invoices(token, bookingId),
-        settlementApi.billing(token, bookingId),
-      ]);
-      return { expenses, invoices, billing };
-    })
-      .then((next) => {
-        if (!active) return;
+  const live = useLiveRefresh(
+    async (isCurrent) => {
+      try {
+        const next = await authorizedRead(async (token) => {
+          const [expenses, invoices, billing] = await Promise.all([
+            settlementApi.expenses(token, bookingId),
+            settlementApi.invoices(token, bookingId),
+            settlementApi.billing(token, bookingId),
+          ]);
+          return { expenses, invoices, billing };
+        });
+        if (!isCurrent()) return;
         setData(next);
         setLoadError(null);
-      })
-      .catch((error: unknown) => {
-        if (active) setLoadError(describeApiError(error));
-      });
-    return () => {
-      active = false;
-    };
-  }, [bookingId, reloadKey]);
+      } catch (error) {
+        if (isCurrent()) setLoadError(describeApiError(error));
+      }
+    },
+    {
+      scope: bookingId,
+      bookingId,
+      types: ['billing.updated', 'booking.updated', 'contract.updated', 'deposit.received'],
+      initial: true,
+      blocked: false,
+    },
+  );
+  const reload = () => {
+    void live.refresh();
+  };
 
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
   if (!data) return <Skeleton label="Đang tải quyết toán…" />;
@@ -120,6 +125,7 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
 
   return (
     <>
+      <LiveUpdateNotice waiting={live.waiting} />
       <section className="cw-card" aria-label="Công nợ hiện tại">
         <dl className="cw-stats">
           <div>

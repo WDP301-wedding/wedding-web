@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useLiveRefresh, LiveUpdateNotice } from '../realtime/use-live-refresh';
 import { previewContract } from './contract-preview-api';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { openBlob } from '../../lib/api/download';
@@ -65,7 +66,12 @@ export function ContractPage({ section = 'all' }: Readonly<{ section?: ContractS
       description={sectionCopy[section].description}
     >
       {(proposal, reload) => (
-        <ContractWorkspace proposal={proposal} reloadBooking={reload} section={section} />
+        <ContractWorkspace
+          key={proposal.bookingId}
+          proposal={proposal}
+          reloadBooking={reload}
+          section={section}
+        />
       )}
     </CouplePage>
   );
@@ -79,28 +85,35 @@ function ContractWorkspace({
   const [contracts, setContracts] = useState<ContractList | null>(null);
   const [profile, setProfile] = useState<CoupleProfile | null>(null);
   const [loadError, setLoadError] = useState<FriendlyError | null>(null);
-  const [reloadKey, setReloadKey] = useState(0);
-  const reload = useCallback(() => setReloadKey((value) => value + 1), []);
-
-  useEffect(() => {
-    let active = true;
-    Promise.all([
-      authorizedRead((token) => contractApi.list(token, proposal.bookingId)),
-      authorizedRead((token) => contractApi.profile(token, proposal.consultationId)),
-    ])
-      .then(([list, coupleProfile]) => {
-        if (!active) return;
+  const [editing, setEditing] = useState(false);
+  const [writing, setWriting] = useState(false);
+  const live = useLiveRefresh(
+    async (isCurrent) => {
+      try {
+        const [list, coupleProfile] = await Promise.all([
+          authorizedRead((token) => contractApi.list(token, proposal.bookingId)),
+          authorizedRead((token) => contractApi.profile(token, proposal.consultationId)),
+        ]);
+        if (!isCurrent()) return;
         setContracts(list);
         setProfile(coupleProfile);
         setLoadError(null);
-      })
-      .catch((error: unknown) => {
-        if (active) setLoadError(describeApiError(error));
-      });
-    return () => {
-      active = false;
-    };
-  }, [proposal.bookingId, proposal.consultationId, reloadKey]);
+      } catch (error) {
+        if (isCurrent()) setLoadError(describeApiError(error));
+      }
+    },
+    {
+      scope: proposal.bookingId,
+      bookingId: proposal.bookingId,
+      types: ['contract.updated', 'booking.updated', 'timeline.updated'],
+      initial: true,
+      blocked: editing || writing,
+      invalidateOnBlock: true,
+    },
+  );
+  const reload = () => {
+    void live.refresh();
+  };
 
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
   if (!contracts || !profile) return <Skeleton label="Đang tải hợp đồng…" />;
@@ -110,6 +123,7 @@ function ContractWorkspace({
   const namesMissing = !profile.brideName || !profile.groomName;
   return (
     <>
+      <LiveUpdateNotice waiting={live.waiting} />
       {showNames ? (
         <CoupleNamesCard
           profile={profile}
@@ -136,6 +150,9 @@ function ContractWorkspace({
         <ContractCard
           proposal={proposal}
           contracts={contracts}
+          editing={editing}
+          setEditing={setEditing}
+          onWritingChange={setWriting}
           profile={profile}
           onChanged={() => {
             // Mỗi lệnh hợp đồng làm tăng revision của Booking → nạp lại cả booking lẫn hợp đồng.
@@ -225,15 +242,23 @@ function ContractCard({
   contracts,
   profile,
   onChanged,
+  editing,
+  setEditing,
+  onWritingChange,
 }: Readonly<{
   proposal: Proposal;
   contracts: ContractList;
   profile: CoupleProfile;
   onChanged: () => void;
+  editing: boolean;
+  setEditing: (value: boolean) => void;
+  onWritingChange: (value: boolean) => void;
 }>) {
   const command = useCommand();
   const { confirm, dialog } = useConfirmDialog();
-  const [editing, setEditing] = useState(false);
+  useEffect(() => {
+    onWritingChange(command.pending);
+  }, [command.pending, onWritingChange]);
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [catalogError, setCatalogError] = useState<FriendlyError | null>(null);
   const current = currentRevision(contracts);
@@ -493,6 +518,16 @@ function ContractCard({
       )}
 
       {editing ? (
+        <button
+          className="button button-secondary"
+          type="button"
+          disabled={command.pending}
+          onClick={() => setEditing(false)}
+        >
+          Hủy chỉnh sửa
+        </button>
+      ) : null}
+      {editing ? (
         catalogError ? (
           <ErrorPanel error={catalogError} />
         ) : !catalog ? (
@@ -501,7 +536,7 @@ function ContractCard({
           <p className="cw-note">Cần có kịch bản tiệc trước khi lập hợp đồng.</p>
         ) : (
           <LineSelector
-            key={bookingId + ':' + expectedRevision}
+            key={bookingId + ':' + (current?.revisionId ?? 'new')}
             catalog={catalog}
             initialLines={current?.document.lines ?? []}
             maxGuests={proposal.proposal.hall.maxGuests}

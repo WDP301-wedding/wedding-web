@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 import { legacyRedirects } from './src/routes';
+import deployment from './vercel.json';
 
 /**
  * Chuyển tiếp (proxy) mọi request `/api/v1/*` của trình duyệt sang backend.
@@ -13,7 +14,12 @@ import { legacyRedirects } from './src/routes';
  * Khi deploy trên Vercel, `vercel.json` đã có rewrite tương đương nên biến này chỉ dùng cho local.
  * BACKEND_ORIGIN là biến phía server (không có tiền tố NEXT_PUBLIC_) nên không lộ ra trình duyệt.
  */
-const backendOrigin = process.env.BACKEND_ORIGIN?.replace(/\/+$/, '');
+const apiProxyDestination = deployment.rewrites.find(
+  (rule) => rule.source === '/api/v1/:path*',
+)?.destination;
+const backendOrigin =
+  process.env.BACKEND_ORIGIN?.replace(/\/+$/, '') ||
+  (apiProxyDestination ? new URL(apiProxyDestination).origin : undefined);
 const backendHostname = (() => {
   try {
     return backendOrigin ? new URL(backendOrigin).hostname : undefined;

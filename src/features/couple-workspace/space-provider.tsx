@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
+import { useLiveRefresh } from '../realtime/use-live-refresh';
 import { browserSession } from '../identity-access/browser-session';
 import { notificationApi } from '../notifications/notification-api';
 import { createPublicGateway, type Restaurant } from '../public-website/public-api';
@@ -71,6 +72,29 @@ export function SpaceProvider({ children }: Readonly<{ children: ReactNode }>) {
       active = false;
     };
   }, []);
+
+  useLiveRefresh(
+    async (isCurrent) => {
+      try {
+        const count = await browserSession.authorize((token) => notificationApi.unreadCount(token));
+        if (isCurrent()) setUnread(count);
+      } catch {
+        /* Badge failure does not block the workspace. */
+      }
+    },
+    { scope: 'unread-count', enabled: authenticated, types: ['notification.received'] },
+  );
+  useLiveRefresh(
+    async (isCurrent) => {
+      try {
+        const next = await publicGateway.restaurant();
+        if (isCurrent()) setRestaurant(next);
+      } catch {
+        /* Retain the previous contact details if the refresh fails. */
+      }
+    },
+    { scope: 'restaurant-contact', enabled: authenticated, types: ['catalog.updated'] },
+  );
 
   const refreshUnread = useCallback(() => setUnreadKey((value) => value + 1), []);
 

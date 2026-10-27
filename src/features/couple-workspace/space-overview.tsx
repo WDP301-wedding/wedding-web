@@ -1,4 +1,5 @@
 'use client';
+import { useLiveRefresh } from '../realtime/use-live-refresh';
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -201,6 +202,18 @@ function OverviewContent() {
       active = false;
     };
   }, []);
+
+  useLiveRefresh(
+    async (isCurrent) => {
+      try {
+        const page = await browserSession.authorize((token) => notificationApi.inbox(token));
+        if (isCurrent()) setLatest(page.items.slice(0, 3));
+      } catch {
+        /* Retain the last notifications during a transient read failure. */
+      }
+    },
+    { scope: 'overview-inbox', types: ['notification.received'] },
+  );
 
   useEffect(() => {
     if (!aliasModalOpen) return;

@@ -209,10 +209,13 @@ export class CoupleRealtimeManager {
 
     socket.on('subscription:confirmed', () => {
       this.setStatus('connected');
+      this.triggerResync();
     });
 
-    socket.on('subscription:denied', () => {
-      this.setStatus('connected');
+    socket.on('subscription:denied', (detail: unknown) => {
+      this.setStatus('disconnected');
+      console.error('Realtime booking subscription was denied.', detail);
+      this.triggerResync();
     });
   }
 
@@ -228,6 +231,12 @@ export class CoupleRealtimeManager {
     this.token = null;
     this.setStatus('disconnected');
     this.activeSubscriptions.clear();
+  }
+
+  requestBookingResync(bookingId: string): void {
+    if (this.socket?.connected && this.activeSubscriptions.has(bookingId)) {
+      this.socket.emit('subscribe:booking', { bookingId });
+    }
   }
 
   subscribeBooking(bookingId: string): () => void {

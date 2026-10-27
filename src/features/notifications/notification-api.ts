@@ -5,6 +5,8 @@ export type InboxPage = ApiData<'/notifications/inbox', 'get'>;
 export type InboxItem = InboxPage['items'][number];
 export type Preferences = ApiData<'/notifications/preferences', 'get'>;
 
+export const notificationPageSize = 25;
+
 const idem = (key: string) => ({ 'Idempotency-Key': key });
 
 export const notificationApi = {
@@ -12,7 +14,7 @@ export const notificationApi = {
     return unwrap<InboxPage>(
       await coupleApi().GET('/notifications/inbox', {
         headers: bearer(token),
-        params: { query: { limit: 25, ...(cursor ? { cursor } : {}) } },
+        params: { query: { limit: notificationPageSize, ...(cursor ? { cursor } : {}) } },
         cache: 'no-store',
       }),
     );

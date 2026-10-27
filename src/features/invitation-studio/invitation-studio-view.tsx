@@ -1,4 +1,9 @@
 'use client';
+import { useLiveRefresh, LiveUpdateNotice } from '../realtime/use-live-refresh';
+import { z } from 'zod';
+import { useRealtimeSubscription } from '../realtime/use-realtime';
+import { sharedCoupleRealtime } from '../realtime/realtime-client';
+import { browserSession } from '../identity-access/browser-session';
 
 import {
   InvitationContents,
@@ -21,6 +26,17 @@ import { previewAssetId } from './invitation-api';
 import { imageJobStatusText, useImageJob, type SucceededImageJob } from './use-image-job';
 import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import { notify } from '../../design-system/toast';
+
+const publicationSnapshotSchema = z.object({
+  publicationRevision: z.number().int().nonnegative(),
+  published: z.boolean(),
+  publicSlug: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/u)
+    .nullable(),
+  publishedRevisionId: z.string().uuid().nullable(),
+  designRevisionId: z.string().uuid().nullable(),
+});
 
 function invitationErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiClientError) {
@@ -149,20 +165,6 @@ export function InvitationStudioView({
   const [printVisited, setPrintVisited] = useState(initialTab === 'print');
   if (activeTab === 'print' && !printVisited) setPrintVisited(true);
   const loadOrders = initialOrders === undefined;
-  useEffect(() => {
-    if (!printVisited || !loadOrders) return;
-    let active = true;
-    gateway
-      .listPrintOrders(accessToken, bookingId)
-      .then((loaded) => active && setOrders(loaded))
-      .catch(
-        (err: unknown) =>
-          active && setOrdersError(invitationErrorMessage(err, 'Không thể tải danh sách đơn in.')),
-      );
-    return () => {
-      active = false;
-    };
-  }, [printVisited, loadOrders, gateway, accessToken, bookingId]);
 
   // Design form state
   const [title, setTitle] = useState(designs[0]?.title ?? 'Thiệp Cưới Hạnh Phúc');
@@ -180,10 +182,12 @@ export function InvitationStudioView({
   const [footer, setFooter] = useState(designs[0]?.textFields?.footer ?? '');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [designDirty, setDesignDirty] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [publicationRevision, setPublicationRevision] = useState<number | null>(null);
+  const incomingPublication = React.useRef<z.infer<typeof publicationSnapshotSchema> | null>(null);
 
   // Print order form state
   const [printQuantity, setPrintQuantity] = useState(100);
@@ -248,67 +252,6 @@ export function InvitationStudioView({
 
   const currentDesign = designs[0];
 
-  useEffect(() => {
-    if (!currentDesign) return;
-    const storageKey = `wedding_invitation_pub_${bookingId}_${currentDesign.designId}`;
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        const parsed: unknown = JSON.parse(raw);
-        if (
-          typeof parsed === 'object' &&
-          parsed !== null &&
-          'publicationRevision' in parsed &&
-          typeof parsed.publicationRevision === 'number'
-        ) {
-          const entry = parsed as {
-            publicSlug?: string | null;
-            publicationRevision: number;
-            published?: boolean;
-          };
-          queueMicrotask(() => {
-            setPublicationRevision(entry.publicationRevision);
-            if (entry.published === false) {
-              setPublishedSlug(null);
-              setPublicationState('unpublished');
-            } else if (typeof entry.publicSlug === 'string' && entry.publicSlug) {
-              void gateway
-                .getPublicInvitation(entry.publicSlug)
-                .then(() => {
-                  setPublishedSlug(entry.publicSlug ?? null);
-                  setPublicationState('published');
-                })
-                .catch((err: unknown) => {
-                  if (
-                    (err instanceof ApiClientError && err.status === 404) ||
-                    (err instanceof Error && err.message.includes('không tồn tại'))
-                  ) {
-                    setPublishedSlug(null);
-                    setPublicationState('unpublished');
-                    localStorage.setItem(
-                      storageKey,
-                      JSON.stringify({
-                        publicSlug: entry.publicSlug,
-                        publicationRevision: entry.publicationRevision,
-                        published: false,
-                      }),
-                    );
-                  } else {
-                    setPublishedSlug(entry.publicSlug ?? null);
-                    setPublicationState('published');
-                  }
-                });
-            }
-          });
-        }
-      } else {
-        queueMicrotask(() => setPublicationState('unknown'));
-      }
-    } catch {
-      // Ignore storage errors in test or restricted environments
-    }
-  }, [bookingId, currentDesign, gateway]);
-
   const handleSaveDesign = async (e: React.FormEvent) => {
     e.preventDefault();
     setNotice(null);
@@ -349,6 +292,7 @@ export function InvitationStudioView({
           key,
         );
         setDesigns([updated, ...designs.slice(1)]);
+        setDesignDirty(false);
         saveKeyRef.current = null;
         setNotice({ type: 'success', text: 'Đã lưu bản thiết kế thiệp thành công!' });
       } else {
@@ -365,6 +309,7 @@ export function InvitationStudioView({
           key,
         );
         setDesigns([created]);
+        setDesignDirty(false);
         saveKeyRef.current = null;
         setNotice({ type: 'success', text: 'Đã tạo thiết kế thiệp cưới mới!' });
       }
@@ -405,6 +350,7 @@ export function InvitationStudioView({
         );
         return;
       }
+      setDesignDirty(true);
       setDerivedAssetIds((ids) => (ids.includes(derivedAssetId) ? ids : [...ids, derivedAssetId]));
       void showAiPreview(job).then((url) => url && setPreviewUrl(url));
       setNotice({
@@ -416,6 +362,7 @@ export function InvitationStudioView({
   const applyRestoredAiImage = () => {
     if (!restoredAiImage) return;
     const { derivedAssetId } = restoredAiImage;
+    setDesignDirty(true);
     setDerivedAssetIds((ids) => (ids.includes(derivedAssetId) ? ids : [...ids, derivedAssetId]));
     if (restoredAiImage.previewUrl) setPreviewUrl(restoredAiImage.previewUrl);
     setRestoredAiImage(null);
@@ -430,10 +377,10 @@ export function InvitationStudioView({
   };
 
   const handlePublish = async () => {
-    if (!currentDesign) return;
+    if (!currentDesign || publicationRevision === null) return;
     setIsPublishing(true);
     setNotice(null);
-    const pubRev = publicationRevision ?? 0;
+    const pubRev = publicationRevision;
     const signature = `${currentDesign.designId}:${currentDesign.revisionId}:${currentDesign.revisionNumber}:${pubRev}`;
     const key = getOrGenerateKey(publishKeyRef, signature, 'publish-design');
     try {
@@ -450,24 +397,11 @@ export function InvitationStudioView({
       setPublicationRevision(res.publicationRevision);
       setPublicationState('published');
       publishKeyRef.current = null;
-      try {
-        const storageKey = `wedding_invitation_pub_${bookingId}_${currentDesign.designId}`;
-        localStorage.setItem(
-          storageKey,
-          JSON.stringify({
-            publicSlug: res.publicSlug,
-            publicationRevision: res.publicationRevision,
-            published: true,
-            publishedAt: new Date().toISOString(),
-          }),
-        );
-      } catch {
-        // Ignore storage errors
-      }
       setNotice({ type: 'success', text: 'Thiệp cưới đã được xuất bản trực tuyến!' });
     } catch (err: unknown) {
       if (err instanceof ApiClientError && err.code === 'INVITATION_PUBLICATION_STALE') {
         setPublicationState('stale_conflict');
+        sharedCoupleRealtime.requestBookingResync(bookingId);
       }
       setNotice({
         type: 'error',
@@ -479,7 +413,7 @@ export function InvitationStudioView({
   };
 
   const handleUnpublish = async () => {
-    if (!currentDesign) return;
+    if (!currentDesign || publicationRevision === null) return;
     const agreed = await confirm({
       title: 'Huỷ xuất bản thiệp?',
       description:
@@ -491,7 +425,7 @@ export function InvitationStudioView({
     if (!agreed) return;
     setIsPublishing(true);
     setNotice(null);
-    const pubRev = publicationRevision ?? 1;
+    const pubRev = publicationRevision;
     const signature = `${currentDesign.designId}:${pubRev}`;
     const key = getOrGenerateKey(unpublishKeyRef, signature, 'unpublish-design');
     try {
@@ -502,25 +436,11 @@ export function InvitationStudioView({
         pubRev,
         key,
       );
-      const nextRev = res?.publicationRevision ?? pubRev + 1;
+      const nextRev = res.publicationRevision;
       setPublishedSlug(null);
       setPublicationRevision(nextRev);
       setPublicationState('unpublished');
       unpublishKeyRef.current = null;
-      try {
-        const storageKey = `wedding_invitation_pub_${bookingId}_${currentDesign.designId}`;
-        localStorage.setItem(
-          storageKey,
-          JSON.stringify({
-            publicSlug: publishedSlug,
-            publicationRevision: nextRev,
-            published: false,
-            unpublishedAt: new Date().toISOString(),
-          }),
-        );
-      } catch {
-        // Ignore storage errors
-      }
       setNotice({ type: 'success', text: 'Đã hủy xuất bản thiệp cưới.' });
     } catch (err: unknown) {
       setNotice({
@@ -535,23 +455,8 @@ export function InvitationStudioView({
   // Dòng in thiệp đã có trong hợp đồng/phụ lục (nếu có). Chọn nguồn này để không bị tính tiền 2 lần.
   const [printSources, setPrintSources] = useState<readonly ContractedPrintSource[]>([]);
   const [printSourceIndex, setPrintSourceIndex] = useState(0);
-  useEffect(() => {
-    let active = true;
-    if (!printVisited || !gateway.contractedPrintSources) return;
-    gateway
-      .contractedPrintSources(accessToken, bookingId)
-      .then((sources) => {
-        if (!active) return;
-        setPrintSources(sources);
-        if (sources[0]) setPrintQuantity(sources[0].quantity);
-      })
-      .catch(() => {
-        // Booking theo đề xuất cũ không có hợp đồng: giữ luồng in tính phí riêng như trước.
-      });
-    return () => {
-      active = false;
-    };
-  }, [printVisited, gateway, accessToken, bookingId]);
+  const printSourcesLoaded = React.useRef(false);
+
   const selectedPrintSource = printSources[printSourceIndex];
 
   const handleRequestPrint = async (e: React.FormEvent) => {
@@ -871,8 +776,154 @@ export function InvitationStudioView({
     }
   };
 
+  const writing =
+    saving ||
+    isPublishing ||
+    isOrdering ||
+    isUploadingMedia ||
+    detachingAssetId !== null ||
+    derivingAssetId !== null ||
+    approvingOrderId !== null ||
+    cancellingOrderId !== null;
+  const publicationLive = useLiveRefresh(
+    () => {
+      const next = incomingPublication.current;
+      incomingPublication.current = null;
+      if (next && next.publicationRevision >= (publicationRevision ?? 0)) {
+        setPublicationRevision(next.publicationRevision);
+        setPublishedSlug(next.published ? next.publicSlug : null);
+        setPublicationState(next.published ? 'published' : 'unpublished');
+      }
+    },
+    { scope: bookingId + ':publication', bookingId, types: [], blocked: writing },
+  );
+  useRealtimeSubscription({
+    bookingId,
+    filterBooking: true,
+    onEvent: (event) => {
+      if (event.type !== 'print_order.updated' || event.scope.bookingId !== bookingId) return;
+      const parsed = publicationSnapshotSchema.safeParse(event.payload?.['publication']);
+      if (!parsed.success) return;
+      if (
+        !incomingPublication.current ||
+        parsed.data.publicationRevision >= incomingPublication.current.publicationRevision
+      ) {
+        incomingPublication.current = parsed.data;
+      }
+      publicationLive.schedule();
+    },
+  });
+  useEffect(() => {
+    // The persistent workspace may have subscribed before Studio mounted.
+    sharedCoupleRealtime.requestBookingResync(bookingId);
+  }, [bookingId]);
+  const designLive = useLiveRefresh(
+    async (isCurrent) => {
+      try {
+        const loaded = await browserSession.authorize((token) =>
+          gateway.listDesigns(token, bookingId),
+        );
+        if (!isCurrent()) return;
+        const currentId = currentDesign?.designId;
+        const first = loaded.find((item) => item.designId === currentId) ?? loaded[0];
+        setDesigns(
+          first ? [first, ...loaded.filter((item) => item.designId !== first.designId)] : [],
+        );
+        if (first) {
+          setTitle(first.title);
+          setBrideName(first.textFields.brideName ?? '');
+          setGroomName(first.textFields.groomName ?? '');
+          setGreeting(first.textFields.greeting ?? '');
+          setMessageText(first.textFields.message ?? '');
+          setFooter(first.textFields.footer ?? '');
+          setDerivedAssetIds(first.derivedAssetIds);
+        }
+      } catch (err) {
+        if (isCurrent()) notify.error(invitationErrorMessage(err, 'Không thể cập nhật thiệp.'));
+      }
+    },
+    {
+      scope: bookingId,
+      bookingId,
+      blocked: writing || designDirty,
+      invalidateOnBlock: true,
+      types: ['print_order.updated', 'booking.updated'],
+    },
+  );
+  useLiveRefresh(
+    async (isCurrent) => {
+      try {
+        const loaded = await browserSession.authorize((token) =>
+          gateway.listPrintOrders(token, bookingId),
+        );
+        if (!isCurrent()) return;
+        setOrders(loaded);
+        setOrdersError(null);
+        const loadSources = gateway.contractedPrintSources;
+        if (loadSources) {
+          const sources = await browserSession
+            .authorize((token) => loadSources(token, bookingId))
+            .catch(() => null);
+          if (isCurrent() && sources) {
+            const previous = printSources[printSourceIndex]?.offeringId;
+            setPrintSources(sources);
+            setPrintSourceIndex(
+              Math.max(
+                0,
+                sources.findIndex((source) => source.offeringId === previous),
+              ),
+            );
+            if (!printSourcesLoaded.current && sources[0]) setPrintQuantity(sources[0].quantity);
+            printSourcesLoaded.current = true;
+          }
+        }
+      } catch (err) {
+        if (isCurrent()) setOrdersError(invitationErrorMessage(err, 'Không thể cập nhật đơn in.'));
+      }
+    },
+    {
+      scope: bookingId + ':print',
+      bookingId,
+      enabled: printVisited,
+      blocked: writing,
+      invalidateOnBlock: true,
+      initial: loadOrders,
+      types: ['print_order.updated', 'contract.updated', 'booking.updated', 'billing.updated'],
+    },
+  );
+
   return (
-    <div className="invitation-live">
+    <div
+      className="invitation-live"
+      onChangeCapture={() => {
+        if (activeTab === 'design') setDesignDirty(true);
+      }}
+    >
+      {publicationRevision === null ? (
+        <p role="status">Đang đồng bộ trạng thái xuất bản thiệp…</p>
+      ) : null}
+      <LiveUpdateNotice waiting={designLive.waiting} />
+      {designLive.waiting && designDirty ? (
+        <button
+          type="button"
+          className="studio-btn"
+          disabled={writing}
+          onClick={() => {
+            void confirm({
+              title: 'Nhận bản cập nhật mới?',
+              description: 'Các thay đổi chưa lưu trên thiệp sẽ được bỏ. Bạn muốn tiếp tục?',
+              confirmLabel: 'Bỏ thay đổi và cập nhật',
+            }).then((agreed) => {
+              if (agreed) {
+                setDesignDirty(false);
+                void designLive.refresh();
+              }
+            });
+          }}
+        >
+          Bỏ thay đổi chưa lưu và cập nhật
+        </button>
+      ) : null}
       {/* Header */}
       <header className="page-heading">
         <h1>Studio Thiệp Cưới & In Ấn</h1>
@@ -1355,7 +1406,7 @@ export function InvitationStudioView({
                 onClick={() => {
                   void handlePublish();
                 }}
-                disabled={isPublishing || saving || !currentDesign}
+                disabled={isPublishing || saving || !currentDesign || publicationRevision === null}
                 className="studio-btn"
               >
                 {isPublishing ? 'Đang xử lý...' : 'Xuất Bản Thiệp Ngay'}
@@ -1366,7 +1417,7 @@ export function InvitationStudioView({
                   onClick={() => {
                     void handleUnpublish();
                   }}
-                  disabled={isPublishing}
+                  disabled={isPublishing || publicationRevision === null}
                   className="studio-btn is-danger-outline"
                 >
                   Hủy Xuất Bản

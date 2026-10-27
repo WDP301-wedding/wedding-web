@@ -1,6 +1,7 @@
 'use client';
+import { useLiveRefresh, LiveUpdateNotice } from '../realtime/use-live-refresh';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import type { ApiBody, ApiData } from '../../lib/api/types';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
@@ -99,7 +100,11 @@ export function AppendicesPage() {
       requireFull
     >
       {(proposal, reloadBooking) => (
-        <AppendicesWorkspace proposal={proposal} reloadBooking={reloadBooking} />
+        <AppendicesWorkspace
+          key={proposal.bookingId}
+          proposal={proposal}
+          reloadBooking={reloadBooking}
+        />
       )}
     </CouplePage>
   );
@@ -131,32 +136,37 @@ function AppendicesWorkspace({
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [creating, setCreating] = useState(false);
   const [loadError, setLoadError] = useState<FriendlyError | null>(null);
-  const [reloadKey, setReloadKey] = useState(0);
   const command = useCommand();
   const { confirm, dialog } = useConfirmDialog();
-  const reload = useCallback(() => setReloadKey((value) => value + 1), []);
-
-  useEffect(() => {
-    let active = true;
-    authorizedRead(async (token) => {
-      const [appendices, contracts] = await Promise.all([
-        appendixApi.list(token, bookingId),
-        contractApi.list(token, bookingId),
-      ]);
-      return { appendices, contracts };
-    })
-      .then((next) => {
-        if (!active) return;
+  const live = useLiveRefresh(
+    async (isCurrent) => {
+      try {
+        const next = await authorizedRead(async (token) => {
+          const [appendices, contracts] = await Promise.all([
+            appendixApi.list(token, bookingId),
+            contractApi.list(token, bookingId),
+          ]);
+          return { appendices, contracts };
+        });
+        if (!isCurrent()) return;
         setData(next);
         setLoadError(null);
-      })
-      .catch((error: unknown) => {
-        if (active) setLoadError(describeApiError(error));
-      });
-    return () => {
-      active = false;
-    };
-  }, [bookingId, reloadKey]);
+      } catch (error) {
+        if (isCurrent()) setLoadError(describeApiError(error));
+      }
+    },
+    {
+      scope: bookingId,
+      bookingId,
+      types: ['booking.updated', 'contract.updated'],
+      initial: true,
+      blocked: creating || command.pending,
+      invalidateOnBlock: true,
+    },
+  );
+  const reload = () => {
+    void live.refresh();
+  };
 
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
   if (!data) return <Skeleton label="Đang tải phụ lục…" />;
@@ -178,6 +188,7 @@ function AppendicesWorkspace({
 
   return (
     <>
+      <LiveUpdateNotice waiting={live.waiting} />
       <section className="cw-card">
         <div className="cw-card-header">
           <h2>Thoả thuận đang hiệu lực</h2>
@@ -213,6 +224,16 @@ function AppendicesWorkspace({
               Tạo phụ lục thay đổi
             </button>
           </div>
+        ) : null}
+        {creating ? (
+          <button
+            className="button button-secondary"
+            type="button"
+            disabled={command.pending}
+            onClick={() => setCreating(false)}
+          >
+            Hủy chỉnh sửa
+          </button>
         ) : null}
         {creating ? (
           catalog ? (

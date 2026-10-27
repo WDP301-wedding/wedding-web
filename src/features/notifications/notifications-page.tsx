@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useLiveRefresh } from '../realtime/use-live-refresh';
 import { useCallback, useEffect, useState } from 'react';
 
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
@@ -10,6 +11,7 @@ import { WorkspaceShell } from '../couple-workspace/workspace-shell';
 import { browserSession } from '../identity-access/browser-session';
 import {
   notificationApi,
+  notificationPageSize,
   notificationHref,
   type InboxItem,
   type Preferences,
@@ -90,6 +92,37 @@ export function NotificationsPage() {
       active = false;
     };
   }, [reloadKey]);
+
+  useLiveRefresh(
+    async (isCurrent) => {
+      try {
+        const depth = Math.max(1, Math.ceil(items.length / notificationPageSize));
+        const nextItems: InboxItem[] = [];
+        let nextCursor: string | null = null;
+        for (let pageIndex = 0; pageIndex < depth; pageIndex++) {
+          const page = await browserSession.authorize((token) =>
+            notificationApi.inbox(token, nextCursor ?? undefined),
+          );
+          if (!isCurrent()) return;
+          nextItems.push(...page.items);
+          nextCursor = page.nextCursor;
+          if (nextCursor === null) break;
+        }
+        setItems(nextItems);
+        setCursor(nextCursor);
+        setLoadError(null);
+      } catch (error) {
+        if (isCurrent()) setLoadError(describeApiError(error));
+      }
+    },
+    {
+      scope: 'notification-inbox',
+      enabled: state === 'ready',
+      blocked: command.pending,
+      invalidateOnBlock: true,
+      types: ['notification.received'],
+    },
+  );
 
   const unread = items.filter((item) => item.readAt === null).length;
 
