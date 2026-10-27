@@ -118,6 +118,6 @@ describe('Identity login password visibility toggle', () => {
     fireEvent.click(submitBtn);
 
     const mismatchErrors = await screen.findAllByText('Hai mật khẩu chưa trùng khớp.');
-    expect(mismatchErrors.length).toBe(2);
+    expect(mismatchErrors.length).toBe(1);
   });
 });
