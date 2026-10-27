@@ -1,4 +1,7 @@
 'use client';
+import { InlineError } from '../../design-system/inline-error';
+import { notify } from '../../design-system/toast';
+import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -19,26 +22,37 @@ export function ProfilePage() {
   const inSpace = useInSpace();
   const [snapshot, setSnapshot] = useState<WebSessionSnapshot>(() => browserSession.snapshot());
   const [restoring, setRestoring] = useState(true);
+  const [restoreError, setRestoreError] = useState<FriendlyError | null>(null);
+  const [restoreKey, setRestoreKey] = useState(0);
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     let active = true;
-    void browserSession.restore().then((nextSnapshot) => {
-      if (!active) return;
-      setSnapshot(nextSnapshot);
-      setRestoring(false);
-    });
+    void browserSession
+      .restore()
+      .then((nextSnapshot) => {
+        if (!active) return;
+        setSnapshot(nextSnapshot);
+        setRestoring(false);
+        setRestoreError(null);
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setRestoreError(describeApiError(error));
+          setRestoring(false);
+        }
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [restoreKey]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
       await browserSession.logout();
     } catch {
-      // Bỏ qua lỗi mạng khi logout để xóa trạng thái cục bộ
+      notify.info('Đã xóa phiên trên thiết bị này; chưa xác nhận được đăng xuất với máy chủ.');
     } finally {
       setSnapshot(browserSession.snapshot());
       setLoggingOut(false);
@@ -46,6 +60,19 @@ export function ProfilePage() {
     }
   };
 
+  if (restoreError)
+    return (
+      <main className={styles.profileMain}>
+        <InlineError
+          error={restoreError}
+          onRetry={() => {
+            setRestoreError(null);
+            setRestoring(true);
+            setRestoreKey((value) => value + 1);
+          }}
+        />
+      </main>
+    );
   if (restoring) {
     return (
       <div

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { InlineError } from '../../design-system/inline-error';
 import { useLiveRefresh, LiveUpdateNotice } from '../realtime/use-live-refresh';
 import { previewContract } from './contract-preview-api';
 import { useEffect, useState } from 'react';
@@ -171,7 +172,7 @@ function CoupleNamesCard({
   profile,
   onSaved,
 }: Readonly<{ profile: CoupleProfile; onSaved: (profile: CoupleProfile) => void }>) {
-  const command = useCommand();
+  const command = useCommand({ errorPresentation: 'inline' });
   const missing = !profile.brideName || !profile.groomName;
   return (
     <section className="cw-card" aria-labelledby="names-heading">
@@ -181,6 +182,7 @@ function CoupleNamesCard({
           <span className="status status-danger">Cần bổ sung trước khi gửi duyệt</span>
         ) : null}
       </div>
+      <InlineError error={command.error} />
       <form
         className="cw-form"
         onSubmit={(event) => {
@@ -254,7 +256,7 @@ function ContractCard({
   setEditing: (value: boolean) => void;
   onWritingChange: (value: boolean) => void;
 }>) {
-  const command = useCommand();
+  const command = useCommand({ errorPresentation: editing ? 'inline' : 'toast' });
   const { confirm, dialog } = useConfirmDialog();
   useEffect(() => {
     onWritingChange(command.pending);
@@ -275,6 +277,7 @@ function ContractCard({
   const isPostDeposit = proposal.phase === 'CONFIRMED' || proposal.phase === 'COMPLETED';
 
   const openEditor = () => {
+    command.setError(null);
     setEditing(true);
     if (catalog) return;
     authorizedRead((token) => contractApi.catalog(token))
@@ -517,6 +520,7 @@ function ContractCard({
         </>
       )}
 
+      {editing ? <InlineError error={command.error} /> : null}
       {editing ? (
         <button
           className="button button-secondary"

@@ -1,4 +1,6 @@
 'use client';
+import { InlineError } from '../../design-system/inline-error';
+import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 
 import Link from 'next/link';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
@@ -63,13 +65,35 @@ export function CollaborationPage({
     const current = session.snapshot();
     return current.status === 'authenticated' ? current : null;
   });
+  const [restoreError, setRestoreError] = useState<FriendlyError | null>(null);
+  const [restoreKey, setRestoreKey] = useState(0);
   useEffect(() => {
     let active = true;
-    void session.restore().then((value) => active && setSnapshot(value));
+    void session
+      .restore()
+      .then((value) => {
+        if (active) {
+          setSnapshot(value);
+          setRestoreError(null);
+        }
+      })
+      .catch((caught: unknown) => {
+        if (active) setRestoreError(describeApiError(caught));
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [restoreKey]);
+  if (restoreError)
+    return (
+      <InlineError
+        error={restoreError}
+        onRetry={() => {
+          setRestoreError(null);
+          setRestoreKey((value) => value + 1);
+        }}
+      />
+    );
   if (snapshot === null) return <AccessState title="Đang mở không gian cộng tác…" />;
   if (snapshot.status === 'anonymous')
     return (
@@ -135,7 +159,13 @@ export function CollaborationWorkspace({
     let active = true;
     void listBookings(authorize)
       .then((items) => active && setAvailableBookings(items))
-      .catch(() => active && setAvailableBookings([]));
+      .catch((caught: unknown) => {
+        if (active) {
+          setAvailableBookings([]);
+          setError(errorMessage(caught));
+          setLoaded(true);
+        }
+      });
     return () => {
       active = false;
     };

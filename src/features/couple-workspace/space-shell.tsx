@@ -1,4 +1,5 @@
 'use client';
+import { ConnectionFeedback } from '../realtime/connection-feedback';
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -302,6 +303,9 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
           </Link>
         </header>
         <main id="space-content" className="hy-space-content">
+          {state.status !== 'loading' && state.status !== 'anonymous' ? (
+            <ConnectionFeedback />
+          ) : null}
           {/* key theo đường dẫn → mỗi lần đổi trang, nội dung chạy lại hiệu ứng vào (hy-enter). */}
           <div className="content-inner" key={pathname}>
             {children}
@@ -426,9 +430,9 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
                       </span>
                     </div>
                     <div className="hy-booking-sheet-details">
-                      <span>🏛️ {b.hallName}</span>
+                      <span>{b.hallName}</span>
                       <span>
-                        📅 {formatEventDate(b.eventDate)} ({shiftLabel(b.shiftCode)})
+                        {formatEventDate(b.eventDate)} ({shiftLabel(b.shiftCode)})
                       </span>
                     </div>
                     {isCurrent ? (

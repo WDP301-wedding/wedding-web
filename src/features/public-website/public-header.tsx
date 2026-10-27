@@ -1,4 +1,5 @@
 'use client';
+import { describeApiError } from '../../lib/api/api-errors';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -37,7 +38,8 @@ export function PublicHeader({
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (restoreSession) void session.restore();
+    if (restoreSession)
+      void session.restore().catch((caught: unknown) => setError(describeApiError(caught).message));
   }, [session, restoreSession]);
 
   useEffect(() => {
@@ -149,7 +151,7 @@ export function PublicHeader({
                     role="menuitem"
                     onClick={() => setUserMenuOpen(false)}
                   >
-                    <span>📊 Không gian cưới của bạn</span>
+                    <span>Không gian cưới của bạn</span>
                   </Link>
                   <Link
                     className="public-user-menu-item"
@@ -157,7 +159,7 @@ export function PublicHeader({
                     role="menuitem"
                     onClick={() => setUserMenuOpen(false)}
                   >
-                    <span>⚙️ Hồ sơ & Bảo mật</span>
+                    <span>Hồ sơ & Bảo mật</span>
                   </Link>
                   <div className="public-user-menu-divider" />
                   <button
@@ -170,7 +172,7 @@ export function PublicHeader({
                     }}
                     disabled={pending || loggingOut}
                   >
-                    <span>{pending || loggingOut ? 'Đang đăng xuất…' : '🚪 Đăng xuất'}</span>
+                    <span>{pending || loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}</span>
                   </button>
                 </div>
               ) : null}

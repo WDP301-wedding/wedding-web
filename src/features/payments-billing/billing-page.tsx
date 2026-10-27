@@ -1,4 +1,6 @@
 'use client';
+import { InlineError } from '../../design-system/inline-error';
+import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 
 import Link from 'next/link';
 import { useContext, useEffect, useEffectEvent, useRef, useState } from 'react';
@@ -76,15 +78,35 @@ export function CoupleBillingPage({
 }>) {
   const workspace = useContext(CoupleWorkspaceContext);
   const [snapshot, setSnapshot] = useState<WebSessionSnapshot | null>(null);
+  const [restoreError, setRestoreError] = useState<FriendlyError | null>(null);
+  const [restoreKey, setRestoreKey] = useState(0);
   useEffect(() => {
     let active = true;
-    void session.restore().then((value) => {
-      if (active) setSnapshot(value);
-    });
+    void session
+      .restore()
+      .then((value) => {
+        if (active) {
+          setSnapshot(value);
+          setRestoreError(null);
+        }
+      })
+      .catch((caught: unknown) => {
+        if (active) setRestoreError(describeApiError(caught));
+      });
     return () => {
       active = false;
     };
-  }, [session]);
+  }, [session, restoreKey]);
+  if (restoreError)
+    return (
+      <InlineError
+        error={restoreError}
+        onRetry={() => {
+          setRestoreError(null);
+          setRestoreKey((value) => value + 1);
+        }}
+      />
+    );
   if (snapshot === null)
     return (
       <div className="billing-shell">
@@ -171,8 +193,8 @@ export function CoupleBillingWorkspace({
         });
         setAvailableBookings(mapped);
       })
-      .catch(() => {
-        // Restricted access or no couple bookings
+      .catch((caught: unknown) => {
+        if (active) fail(caught);
       });
     return () => {
       active = false;
@@ -187,7 +209,7 @@ export function CoupleBillingWorkspace({
       setAttemptId(params.get('attemptId') ?? '');
     });
   }, []);
-  const fail = (caught: unknown) => {
+  function fail(caught: unknown) {
     if (denied(caught)) {
       setContext(null);
       setView(null);
@@ -197,7 +219,7 @@ export function CoupleBillingWorkspace({
       setNeedsAttemptStatus(false);
     }
     setError(billingMessage(caught));
-  };
+  }
   const drainProviderRead = () => {
     const next = pendingProviderRead.current;
     pendingProviderRead.current = undefined;

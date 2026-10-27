@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { readPublicEnv } from '../env';
 import type { components, paths } from './generated/schema';
 
-const defaultTimeoutMs = 10_000;
+export const defaultTimeoutMs = 10_000;
 const jsonMediaTypePattern = /^application\/(?:[\w.+-]+\+)?json$/i;
 
 const apiErrorResponseSchema = z.strictObject({

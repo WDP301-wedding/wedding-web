@@ -1,5 +1,6 @@
 'use client';
 
+import { CopyButton } from '../../design-system/copy-button';
 import { useMemo, useState } from 'react';
 import { formText, formatDateTime } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type Guest, type GuestGroup } from './guest-api';
@@ -96,13 +97,7 @@ export function GuestListCard({
           </p>
           <div className={`cw-copy ${styles.copyRow}`}>
             <code className={styles.copyCode}>{link.url}</code>
-            <button
-              className="button button-secondary"
-              type="button"
-              onClick={() => void navigator.clipboard?.writeText(link.url)}
-            >
-              Sao chép
-            </button>
+            <CopyButton className="button button-secondary" text={link.url} />
           </div>
           <button className="cw-text-button" type="button" onClick={clearLink}>
             Đã sao chép, ẩn liên kết

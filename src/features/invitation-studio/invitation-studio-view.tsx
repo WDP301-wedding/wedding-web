@@ -1,6 +1,8 @@
 'use client';
 import { useLiveRefresh, LiveUpdateNotice } from '../realtime/use-live-refresh';
 import { z } from 'zod';
+import { InlineError } from '../../design-system/inline-error';
+import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { useRealtimeSubscription } from '../realtime/use-realtime';
 import { sharedCoupleRealtime } from '../realtime/realtime-client';
 import { browserSession } from '../identity-access/browser-session';
@@ -205,6 +207,7 @@ export function InvitationStudioView({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [mediaAltText, setMediaAltText] = useState('');
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [previewingAssetId, setPreviewingAssetId] = useState<string | null>(null);
   const [detachingAssetId, setDetachingAssetId] = useState<string | null>(null);
   const [derivingAssetId, setDerivingAssetId] = useState<string | null>(null);
   const [approvingOrderId, setApprovingOrderId] = useState<string | null>(null);
@@ -220,6 +223,7 @@ export function InvitationStudioView({
       altText: string;
       previewPath: string;
       signedUrl?: string | undefined;
+      previewError?: FriendlyError | undefined;
       derivedAssetId?: string | undefined;
       deriveStatus?: 'ready' | 'failed' | 'pending' | undefined;
       deriveError?: string | undefined;
@@ -454,6 +458,10 @@ export function InvitationStudioView({
 
   // Dòng in thiệp đã có trong hợp đồng/phụ lục (nếu có). Chọn nguồn này để không bị tính tiền 2 lần.
   const [printSources, setPrintSources] = useState<readonly ContractedPrintSource[]>([]);
+  const [printSourcesError, setPrintSourcesError] = useState<FriendlyError | null>(null);
+  const [sourcesReady, setSourcesReady] = useState(
+    () => gateway.contractedPrintSources === undefined,
+  );
   const [printSourceIndex, setPrintSourceIndex] = useState(0);
   const printSourcesLoaded = React.useRef(false);
 
@@ -461,6 +469,7 @@ export function InvitationStudioView({
 
   const handleRequestPrint = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!sourcesReady || printSourcesError) return;
     if (!currentDesign) {
       setNotice({ type: 'error', text: 'Cần lưu thiết kế trước khi đặt in.' });
       return;
@@ -575,6 +584,32 @@ export function InvitationStudioView({
     }
   };
 
+  const retryMediaPreview = async (mediaAssetId: string) => {
+    if (previewingAssetId !== null) return;
+    setPreviewingAssetId(mediaAssetId);
+    try {
+      const preview = await browserSession.authorize((token) =>
+        gateway.getMediaPreview(token, bookingId, mediaAssetId),
+      );
+      setUploadedMediaList((current) =>
+        current.map((item) =>
+          item.mediaAssetId === mediaAssetId
+            ? { ...item, signedUrl: preview.signedUrl, previewError: undefined }
+            : item,
+        ),
+      );
+    } catch (error) {
+      const friendly = describeApiError(error);
+      setUploadedMediaList((current) =>
+        current.map((item) =>
+          item.mediaAssetId === mediaAssetId ? { ...item, previewError: friendly } : item,
+        ),
+      );
+    } finally {
+      setPreviewingAssetId(null);
+    }
+  };
+
   const handleUploadMedia = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile || !mediaAltText.trim() || isUploadingMedia) return;
@@ -596,11 +631,12 @@ export function InvitationStudioView({
         key,
       );
       let signedUrl: string | undefined;
+      let previewError: FriendlyError | undefined;
       try {
         const preview = await gateway.getMediaPreview(accessToken, bookingId, asset.mediaAssetId);
         signedUrl = preview.signedUrl;
-      } catch {
-        // Fallback if preview signed url cannot be fetched immediately
+      } catch (error) {
+        previewError = describeApiError(error);
       }
       let derivedId: string | undefined;
       let deriveStatus: 'ready' | 'failed' = 'failed';
@@ -629,6 +665,7 @@ export function InvitationStudioView({
           altText: mediaAltText.trim(),
           previewPath: asset.previewPath,
           signedUrl,
+          previewError,
           derivedAssetId: derivedId,
           deriveStatus,
           deriveError,
@@ -850,7 +887,7 @@ export function InvitationStudioView({
       types: ['print_order.updated', 'booking.updated'],
     },
   );
-  useLiveRefresh(
+  const printLive = useLiveRefresh(
     async (isCurrent) => {
       try {
         const loaded = await browserSession.authorize((token) =>
@@ -861,12 +898,15 @@ export function InvitationStudioView({
         setOrdersError(null);
         const loadSources = gateway.contractedPrintSources;
         if (loadSources) {
-          const sources = await browserSession
-            .authorize((token) => loadSources(token, bookingId))
-            .catch(() => null);
-          if (isCurrent() && sources) {
+          try {
+            const sources = await browserSession.authorize((token) =>
+              loadSources(token, bookingId),
+            );
+            if (!isCurrent()) return;
             const previous = printSources[printSourceIndex]?.offeringId;
             setPrintSources(sources);
+            setPrintSourcesError(null);
+            setSourcesReady(true);
             setPrintSourceIndex(
               Math.max(
                 0,
@@ -875,6 +915,11 @@ export function InvitationStudioView({
             );
             if (!printSourcesLoaded.current && sources[0]) setPrintQuantity(sources[0].quantity);
             printSourcesLoaded.current = true;
+          } catch (error) {
+            if (isCurrent()) {
+              setSourcesReady(false);
+              setPrintSourcesError(describeApiError(error));
+            }
           }
         }
       } catch (err) {
@@ -1197,7 +1242,10 @@ export function InvitationStudioView({
                   Thử khôi phục
                 </button>
               ) : null}
-              {aiJob.error ? <p role="alert">{aiJob.error}</p> : null}
+              <InlineError
+                error={aiJob.error}
+                onRetry={!aiJob.job ? aiJob.checkAgain : undefined}
+              />
               {restoredAiImage ? (
                 <p className="studio-hint" role="status">
                   Có ảnh AI đã tạo xong trước đó nhưng chưa dùng trong thiệp.{' '}
@@ -1302,6 +1350,23 @@ export function InvitationStudioView({
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={item.signedUrl}
+                          onError={() =>
+                            setUploadedMediaList((current) =>
+                              current.map((entry) =>
+                                entry.mediaAssetId === item.mediaAssetId
+                                  ? {
+                                      ...entry,
+                                      signedUrl: undefined,
+                                      previewError: {
+                                        message: 'Không tải được ảnh xem trước. Hãy thử lại.',
+                                        requestId: null,
+                                        code: null,
+                                      },
+                                    }
+                                  : entry,
+                              ),
+                            )
+                          }
                           alt={item.altText}
 
                           loading="lazy"
@@ -1311,6 +1376,17 @@ export function InvitationStudioView({
                       <div className="studio-media-thumb is-empty">Chưa có xem trước</div>
                     )}
                     <div>
+                      <InlineError
+                        error={item.previewError}
+                        onRetry={
+                          previewingAssetId === null
+                            ? () => void retryMediaPreview(item.mediaAssetId)
+                            : undefined
+                        }
+                      />
+                      {previewingAssetId === item.mediaAssetId ? (
+                        <p role="status">Đang tải ảnh xem trước…</p>
+                      ) : null}
                       <p className="studio-media-name" title={item.altText}>
                         {item.altText}
                       </p>
@@ -1507,6 +1583,10 @@ export function InvitationStudioView({
             <h2 id="print-heading" className="studio-title">
               Đặt In Thiệp Giấy Truyền Thống
             </h2>
+            <InlineError error={printSourcesError} onRetry={() => void printLive.refresh()} />
+            {!sourcesReady && !printSourcesError ? (
+              <p role="status">Đang tải lựa chọn in theo hợp đồng…</p>
+            ) : null}
             <form
               onSubmit={(e) => {
                 void handleRequestPrint(e);
@@ -1555,7 +1635,11 @@ export function InvitationStudioView({
                   className="studio-input"
                 />
               </div>
-              <button type="submit" disabled={isOrdering} className="studio-btn">
+              <button
+                type="submit"
+                disabled={isOrdering || !sourcesReady || printSourcesError !== null}
+                className="studio-btn"
+              >
                 {isOrdering ? 'Đang gửi...' : 'Gửi Yêu Cầu Báo Giá In'}
               </button>
             </form>

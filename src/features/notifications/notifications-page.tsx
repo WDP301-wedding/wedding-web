@@ -68,26 +68,31 @@ export function NotificationsPage() {
 
   useEffect(() => {
     let active = true;
-    void browserSession.restore().then(async (snapshot) => {
-      if (!active) return;
-      if (snapshot.status === 'anonymous') {
-        setState('anonymous');
-        return;
-      }
-      try {
-        const [page, prefs] = await browserSession.authorize((token) =>
-          Promise.all([notificationApi.inbox(token), notificationApi.preferences(token)]),
-        );
+    void browserSession
+      .restore()
+      .then(async (snapshot) => {
         if (!active) return;
-        setItems([...page.items]);
-        setCursor(page.nextCursor);
-        setPreferences(prefs);
-        setLoadError(null);
-        setState('ready');
-      } catch (error) {
+        if (snapshot.status === 'anonymous') {
+          setState('anonymous');
+          return;
+        }
+        try {
+          const [page, prefs] = await browserSession.authorize((token) =>
+            Promise.all([notificationApi.inbox(token), notificationApi.preferences(token)]),
+          );
+          if (!active) return;
+          setItems([...page.items]);
+          setCursor(page.nextCursor);
+          setPreferences(prefs);
+          setLoadError(null);
+          setState('ready');
+        } catch (error) {
+          if (active) setLoadError(describeApiError(error));
+        }
+      })
+      .catch((error: unknown) => {
         if (active) setLoadError(describeApiError(error));
-      }
-    });
+      });
     return () => {
       active = false;
     };

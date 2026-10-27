@@ -1,0 +1,35 @@
+.page {
+  min-block-size: 70dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
+}
+.panel {
+  inline-size: 100%;
+  max-inline-size: 44rem;
+  margin-inline: auto;
+  font-family: var(--font-body, system-ui, sans-serif);
+  line-height: 1.6;
+}
+.panel h1 {
+  font-family: inherit;
+  line-height: 1.3;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-block-start: 1.5rem;
+}
+.actions button,
+.actions a {
+  font: inherit;
+  color: inherit;
+  padding: 0.65rem 1rem;
+  border: 1px solid currentcolor;
+  border-radius: 0.5rem;
+  background: transparent;
+  text-decoration: none;
+  cursor: pointer;
+}

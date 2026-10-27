@@ -1,4 +1,5 @@
 'use client';
+import { describeApiError } from '../../lib/api/api-errors';
 import fieldStyles from './identity-field.module.css';
 
 import { type FormEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -91,11 +92,20 @@ export function IdentityExperience({
       };
     }
 
-    void session.restore().then((nextSnapshot) => {
-      if (!active) return;
-      setSnapshot(nextSnapshot);
-      setView(startView);
-    });
+    void session
+      .restore()
+      .then((nextSnapshot) => {
+        if (!active) return;
+        setSnapshot(nextSnapshot);
+        setView(startView);
+      })
+      .catch((caught: unknown) => {
+        if (active) {
+          setSnapshot(session.snapshot());
+          setView(startView);
+          setError(describeApiError(caught).message);
+        }
+      });
     return () => {
       active = false;
     };
@@ -448,7 +458,10 @@ function Field({
           name={name}
           aria-invalid={Boolean(error)}
           aria-describedby={errorId}
-          className={`${className ?? ''} ${password ? fieldStyles.passwordInput : ''} ${error ? fieldStyles.inputError : ''}`.trim() || undefined}
+          className={
+            `${className ?? ''} ${password ? fieldStyles.passwordInput : ''} ${error ? fieldStyles.inputError : ''}`.trim() ||
+            undefined
+          }
           required
         />
         {password ? (

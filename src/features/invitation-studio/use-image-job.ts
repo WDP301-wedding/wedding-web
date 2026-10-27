@@ -132,8 +132,8 @@ export function useImageJob({ gateway, accessToken, bookingId, onSucceeded }: Op
         if (latest?.status === 'RECOVERY_REQUIRED') setJob(latest);
         else if (latest?.status === 'SUCCEEDED') finish(latest, true);
       })
-      .catch(() => {
-        // Danh sách chỉ để theo dõi tiếp: lỗi thì bỏ qua, người dùng vẫn tạo ảnh mới được.
+      .catch((caught: unknown) => {
+        if (active) setError(imageJobErrorMessage(caught));
       });
     return () => {
       active = false;
@@ -195,8 +195,27 @@ export function useImageJob({ gateway, accessToken, bookingId, onSucceeded }: Op
 
   /** Sau khi ngừng hỏi vì chờ quá lâu: hỏi tiếp. */
   const checkAgain = useCallback(() => {
-    if (job && isActiveJob(job)) track(job);
-  }, [job, track]);
+    if (job && isActiveJob(job)) {
+      track(job);
+      return;
+    }
+    if (job) return;
+    setWaiting(true);
+    setError(null);
+    void gateway
+      .listImageJobs(accessToken, bookingId)
+      .then((jobs) => {
+        const running = jobs.find(isActiveJob);
+        if (running) track(running);
+        else {
+          const latest = jobs[0];
+          if (latest?.status === 'RECOVERY_REQUIRED') setJob(latest);
+          else if (latest?.status === 'SUCCEEDED') finish(latest, true);
+        }
+      })
+      .catch((caught: unknown) => setError(imageJobErrorMessage(caught)))
+      .finally(() => setWaiting(false));
+  }, [job, track, gateway, accessToken, bookingId, finish]);
 
   return {
     job,

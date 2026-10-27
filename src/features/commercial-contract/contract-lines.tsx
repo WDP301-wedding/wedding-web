@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { formatVnd } from '../couple-workspace/use-couple-workspace';
-import { describeApiError } from '../../lib/api/api-errors';
+import { InlineError } from '../../design-system/inline-error';
+import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import type { ContractPreview } from './contract-preview-api';
 import type { Catalog, ContractLine, ContractLineInput } from './contract-api';
 
@@ -124,7 +125,7 @@ export function LineSelector({
   );
   const [preview, setPreview] = useState<{ signature: string; data: ContractPreview } | null>(null);
   const [previewPending, setPreviewPending] = useState(false);
-  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<FriendlyError | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
   // Dòng cũ có sourceId không còn trong danh mục đang bán → báo để người dùng biết phải chọn lại.
@@ -244,7 +245,7 @@ export function LineSelector({
       if (sequence === requestSequence.current)
         setPreview({ signature: JSON.stringify(lines), data });
     } catch (error) {
-      if (sequence === requestSequence.current) setPreviewError(describeApiError(error).message);
+      if (sequence === requestSequence.current) setPreviewError(describeApiError(error));
     } finally {
       if (sequence === requestSequence.current) setPreviewPending(false);
     }
@@ -389,7 +390,7 @@ export function LineSelector({
                 : 'Chọn các hạng mục rồi bấm Xem trước chi phí.'}
             </p>
           )}
-          {previewError ? <p role="alert">{previewError}</p> : null}
+          <InlineError error={previewError} />
           <button
             className="button button-secondary"
             type="button"

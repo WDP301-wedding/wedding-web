@@ -1,3 +1,4 @@
+import { InlineError } from '../../design-system/inline-error';
 import { useCommand } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestPlan } from './guest-api';
 
@@ -12,9 +13,10 @@ export function PlanCard({
   maxGuests: number;
   onSaved: (nextPlan?: GuestPlan) => void;
 }>) {
-  const command = useCommand();
+  const command = useCommand({ errorPresentation: 'inline' });
   return (
     <section className="cw-card">
+      <InlineError error={command.error} />
       <h2>Số khách dự kiến</h2>
       <form
         className="cw-form"

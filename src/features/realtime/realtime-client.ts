@@ -233,6 +233,12 @@ export class CoupleRealtimeManager {
     this.activeSubscriptions.clear();
   }
 
+  retryConnection(token: string): void {
+    this.socket?.disconnect();
+    this.setStatus('connecting');
+    this.connect(token);
+  }
+
   requestBookingResync(bookingId: string): void {
     if (this.socket?.connected && this.activeSubscriptions.has(bookingId)) {
       this.socket.emit('subscribe:booking', { bookingId });

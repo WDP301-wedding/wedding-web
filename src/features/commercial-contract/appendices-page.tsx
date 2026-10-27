@@ -135,8 +135,9 @@ function AppendicesWorkspace({
   );
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [creating, setCreating] = useState(false);
+  const [catalogError, setCatalogError] = useState<FriendlyError | null>(null);
   const [loadError, setLoadError] = useState<FriendlyError | null>(null);
-  const command = useCommand();
+  const command = useCommand({ errorPresentation: creating ? 'inline' : 'toast' });
   const { confirm, dialog } = useConfirmDialog();
   const live = useLiveRefresh(
     async (isCurrent) => {
@@ -168,6 +169,15 @@ function AppendicesWorkspace({
     void live.refresh();
   };
 
+  const loadCatalog = async () => {
+    setCatalogError(null);
+    try {
+      setCatalog(await authorizedRead((token) => contractApi.catalog(token)));
+    } catch (error) {
+      setCatalogError(describeApiError(error));
+    }
+  };
+
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
   if (!data) return <Skeleton label="Đang tải phụ lục…" />;
 
@@ -189,6 +199,7 @@ function AppendicesWorkspace({
   return (
     <>
       <LiveUpdateNotice waiting={live.waiting} />
+      {creating && command.error ? <ErrorPanel error={command.error} /> : null}
       <section className="cw-card">
         <div className="cw-card-header">
           <h2>Thoả thuận đang hiệu lực</h2>
@@ -214,11 +225,9 @@ function AppendicesWorkspace({
               className="button"
               type="button"
               onClick={() => {
+                command.setError(null);
                 setCreating(true);
-                if (!catalog)
-                  void authorizedRead((token) => contractApi.catalog(token))
-                    .then(setCatalog)
-                    .catch((error: unknown) => command.setError(describeApiError(error)));
+                if (!catalog) void loadCatalog();
               }}
             >
               Tạo phụ lục thay đổi
@@ -236,7 +245,9 @@ function AppendicesWorkspace({
           </button>
         ) : null}
         {creating ? (
-          catalog ? (
+          catalogError ? (
+            <ErrorPanel error={catalogError} onRetry={() => void loadCatalog()} />
+          ) : catalog ? (
             <LineSelector
               catalog={catalog}
               initialLines={lines}

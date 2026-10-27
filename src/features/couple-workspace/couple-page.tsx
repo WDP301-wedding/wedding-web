@@ -1,5 +1,6 @@
 'use client';
 
+import { InlineError } from '../../design-system/inline-error';
 import { Illustration, type IllustrationName } from '../../design-system/illustrations';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -160,17 +161,7 @@ export function ErrorPanel({
   error,
   onRetry,
 }: Readonly<{ error: FriendlyError; onRetry?: () => void }>) {
-  return (
-    <div className="cw-alert" role="alert">
-      <p>{error.message}</p>
-      {error.requestId ? <small>Mã hỗ trợ: {error.requestId}</small> : null}
-      {onRetry ? (
-        <button className="button button-secondary" type="button" onClick={onRetry}>
-          Thử lại
-        </button>
-      ) : null}
-    </div>
-  );
+  return <InlineError error={error} onRetry={onRetry} />;
 }
 
 /** Hiển thị kết quả của lệnh ghi gần nhất (thành công hoặc lỗi). */

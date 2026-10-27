@@ -1,4 +1,6 @@
 'use client';
+import { InlineError } from '../../design-system/inline-error';
+import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { useLiveRefresh } from '../realtime/use-live-refresh';
 
 import Link from 'next/link';
@@ -186,33 +188,32 @@ function OverviewContent() {
   const { state, bookings, bookingId, reload } = useCoupleWorkspace();
   const { restaurant } = useSpaceExtras();
   const [latest, setLatest] = useState<readonly InboxItem[] | null>(null);
+  const [latestError, setLatestError] = useState<FriendlyError | null>(null);
   const [aliasModalOpen, setAliasModalOpen] = useState(false);
   const [aliasInput, setAliasInput] = useState('');
   const [savingAlias, setSavingAlias] = useState(false);
+  const [aliasError, setAliasError] = useState<FriendlyError | null>(null);
   const aliasDialog = useRef<HTMLDialogElement>(null);
   const aliasTrigger = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    let active = true;
-    browserSession
-      .authorize((token) => notificationApi.inbox(token))
-      .then((page) => active && setLatest(page.items.slice(0, 3)))
-      .catch(() => active && setLatest([]));
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useLiveRefresh(
+  const latestLive = useLiveRefresh(
     async (isCurrent) => {
       try {
         const page = await browserSession.authorize((token) => notificationApi.inbox(token));
-        if (isCurrent()) setLatest(page.items.slice(0, 3));
-      } catch {
-        /* Retain the last notifications during a transient read failure. */
+        if (isCurrent()) {
+          setLatest(page.items.slice(0, 3));
+          setLatestError(null);
+        }
+      } catch (error) {
+        if (isCurrent()) setLatestError(describeApiError(error));
       }
     },
-    { scope: 'overview-inbox', types: ['notification.received'] },
+    {
+      scope: 'overview-inbox',
+      enabled: state.status === 'ready',
+      initial: true,
+      types: ['notification.received'],
+    },
   );
 
   useEffect(() => {
@@ -244,6 +245,7 @@ function OverviewContent() {
 
   const openAliasModal = () => {
     setAliasInput(summary?.alias ?? '');
+    setAliasError(null);
     setAliasModalOpen(true);
   };
 
@@ -251,6 +253,7 @@ function OverviewContent() {
     e.preventDefault();
     if (savingAlias) return;
     setSavingAlias(true);
+    setAliasError(null);
     try {
       await browserSession.authorize((token) =>
         createExperienceGateway().updateBookingAlias(
@@ -263,8 +266,8 @@ function OverviewContent() {
       notify.success('Đã cập nhật tên gợi nhớ tiệc!');
       setAliasModalOpen(false);
       reload();
-    } catch {
-      notify.error('Không thể cập nhật tên tiệc. Vui lòng thử lại.');
+    } catch (error) {
+      setAliasError(describeApiError(error));
     } finally {
       setSavingAlias(false);
     }
@@ -402,7 +405,7 @@ function OverviewContent() {
                     <div>
                       <h3 className="hy-multi-card-title">{bookingDisplayName(b)}</h3>
                       <p className="hy-multi-card-hall">
-                        🏛️ {b.hallName} · {shiftLabel(b.shiftCode)}
+                        {b.hallName} · {shiftLabel(b.shiftCode)}
                       </p>
                     </div>
                     <span className={`hy-nav-chip is-${phaseTone}`}>
@@ -495,7 +498,8 @@ function OverviewContent() {
             <h2 id="latest-title">Thông báo mới</h2>
             <Link href={withBooking(routes.notifications, proposal.bookingId)}>Xem tất cả</Link>
           </header>
-          {latest === null ? (
+          <InlineError error={latestError} onRetry={() => void latestLive.refresh()} />
+          {latest === null && latestError ? null : latest === null ? (
             <p className="hy-muted" role="status">
               Đang tải thông báo…
             </p>
@@ -581,13 +585,16 @@ function OverviewContent() {
               placeholder="VD: Lễ thành hôn (Nhà gái), Tiệc báo hỷ..."
               value={aliasInput}
               disabled={savingAlias}
-              aria-describedby="alias-input-hint"
+              aria-describedby={
+                aliasError ? 'alias-input-hint alias-save-error' : 'alias-input-hint'
+              }
               onChange={(e) => setAliasInput(e.target.value)}
               autoFocus
             />
             <p id="alias-input-hint" className="hy-alias-hint">
               Để trống và lưu để dùng lại tên mặc định.
             </p>
+            <InlineError id="alias-save-error" error={aliasError} />
             <div className="hy-alias-form-actions">
               <button
                 type="button"

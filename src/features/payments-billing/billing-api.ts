@@ -116,9 +116,7 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
             headers: headers(token),
             cache: 'no-store',
           })
-          .then((response) => response.data?.data ?? null)
-          // Booking theo đề xuất cũ có thể không đọc được hợp đồng: coi như chưa có hợp đồng.
-          .catch(() => null),
+          .then((response) => required(response.data)),
       ]);
       const value = required(data);
       const revisions = contracts?.revisions ? Array.from(contracts.revisions) : [];

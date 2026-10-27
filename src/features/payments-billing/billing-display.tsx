@@ -32,7 +32,7 @@ export function billingMessage(error: unknown): string {
     BILLING_REFUND_LIMIT_EXCEEDED: 'Khoản hoàn vượt hạn mức đã duyệt hoặc số tiền còn được hoàn.',
     BILLING_REFUND_NOT_APPROVED: 'Chưa có quyết định hoàn tiền hợp lệ cho khoản thanh toán này.',
     DEPOSIT_NOT_ELIGIBLE:
-      'Hồ sơ chưa đủ điều kiện nhận cọc. Hãy kiểm tra lịch giữ chỗ và kịch bản đã duyệt.',
+      'Thời hạn giữ sảnh (15 phút) đã hết hoặc hợp đồng/kịch bản cần cả hai bên phê duyệt. Vui lòng liên hệ nhà hàng để gia hạn giữ sảnh trước khi mở thanh toán.',
     PAYMENT_OUTCOME_UNKNOWN:
       'Giao dịch chưa rõ kết quả. Hãy kiểm tra trạng thái, không tạo lần thanh toán mới.',
     REQUEST_IN_PROGRESS: 'Yêu cầu đang được xử lý. Hãy đợi rồi thử lại cùng nội dung.',

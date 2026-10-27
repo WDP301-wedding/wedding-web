@@ -105,7 +105,10 @@ const statusMessages: Record<number, string> = {
   409: 'Dữ liệu vừa thay đổi. Hãy tải lại rồi thử lại.',
   422: 'Dữ liệu chưa hợp lệ. Hãy kiểm tra lại các trường.',
   429: 'Bạn thao tác quá nhanh. Hãy đợi một lát rồi thử lại.',
+  500: 'Máy chủ đang gặp sự cố. Hãy thử lại sau hoặc gửi mã hỗ trợ cho nhà hàng.',
+  502: 'Chưa nhận được phản hồi hợp lệ từ máy chủ. Hãy thử lại sau.',
   503: 'Chức năng tạm thời chưa sẵn sàng. Hãy thử lại sau.',
+  504: 'Máy chủ phản hồi quá lâu. Hãy thử lại sau.',
 };
 
 export type FriendlyError = Readonly<{
@@ -118,17 +121,47 @@ export function describeApiError(
   error: unknown,
   overrides: Record<string, string> = {},
 ): FriendlyError {
+  // Some gateways add context with Error.cause; retain the original API code/requestId.
+  for (
+    let depth = 0;
+    depth < 3 && error instanceof Error && !(error instanceof ApiClientError);
+    depth++
+  ) {
+    if (!(error.cause instanceof Error) || error.cause === error) break;
+    error = error.cause;
+  }
   if (!(error instanceof ApiClientError)) {
     return {
       message:
-        error instanceof Error && error.message ? error.message : 'Đã có lỗi không mong muốn.',
+        error instanceof Error &&
+        !(error instanceof TypeError) &&
+        !(error instanceof SyntaxError) &&
+        error.name !== 'ZodError' &&
+        error.message
+          ? error.message
+          : 'Đã có lỗi không mong muốn. Hãy thử lại.',
       requestId: null,
       code: null,
     };
   }
+  if (error.kind === 'malformed-response')
+    return {
+      message: 'Máy chủ trả về dữ liệu chưa hợp lệ. Hãy thử lại hoặc gửi mã hỗ trợ cho nhà hàng.',
+      requestId: error.requestId,
+      code: error.code,
+    };
+  if (error.kind === 'aborted')
+    return {
+      message: 'Yêu cầu đã dừng. Bạn có thể thử lại khi sẵn sàng.',
+      requestId: error.requestId,
+      code: error.code,
+    };
   if (error.kind === 'network' || error.kind === 'timeout') {
     return {
-      message: 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại (thao tác sẽ không bị lặp).',
+      message:
+        error.kind === 'timeout'
+          ? 'Máy chủ phản hồi quá lâu. Hãy kiểm tra trạng thái trước khi gửi lại thao tác.'
+          : 'Không kết nối được máy chủ. Hãy kiểm tra mạng và trạng thái thao tác trước khi thử lại.',
       requestId: error.requestId,
       code: error.code,
     };

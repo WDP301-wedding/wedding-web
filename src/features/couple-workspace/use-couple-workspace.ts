@@ -271,7 +271,13 @@ export function useWorkspaceLoader(enabled = true): CoupleWorkspace {
  * - Kết quả thành công/lỗi hiện bằng toast (sonner). `notice`/`error` vẫn được trả về cho trang
  *   nào cần phản ứng theo kết quả (vd. sơ đồ tự tải lại khi gặp lỗi revision cũ).
  */
-export function useCommand() {
+export function useCommand({
+  errorPresentation = 'toast',
+}: Readonly<{ errorPresentation?: 'toast' | 'inline' }> = {}) {
+  const presentation = useRef(errorPresentation);
+  useEffect(() => {
+    presentation.current = errorPresentation;
+  }, [errorPresentation]);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<FriendlyError | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -302,7 +308,7 @@ export function useCommand() {
         const friendly = describeApiError(caught, overrides);
         setError(friendly);
         // Toast thay cho khối thông báo inline: không đẩy layout, luôn kèm mã hỗ trợ.
-        notify.error(friendly.message, friendly.requestId);
+        if (presentation.current === 'toast') notify.error(friendly.message, friendly.requestId);
         onError?.(friendly);
         return undefined;
       } finally {
