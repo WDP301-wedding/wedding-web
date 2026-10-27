@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { JourneyStepper, journeyIndex, journeySteps } from '../../design-system/journey-stepper';
 import { routes, withBooking } from '../../routes';
@@ -188,6 +188,8 @@ function OverviewContent() {
   const [aliasModalOpen, setAliasModalOpen] = useState(false);
   const [aliasInput, setAliasInput] = useState('');
   const [savingAlias, setSavingAlias] = useState(false);
+  const aliasDialog = useRef<HTMLDialogElement>(null);
+  const aliasTrigger = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -202,11 +204,17 @@ function OverviewContent() {
 
   useEffect(() => {
     if (!aliasModalOpen) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAliasModalOpen(false);
+    const dialog = aliasDialog.current;
+    if (!dialog) return;
+    const trigger = aliasTrigger.current;
+    dialog.showModal();
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      dialog.close();
+      document.body.style.overflow = overflow;
+      trigger?.focus();
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
   }, [aliasModalOpen]);
 
   if (state.status !== 'ready') return null;
@@ -228,6 +236,7 @@ function OverviewContent() {
 
   const handleSaveAlias = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingAlias) return;
     setSavingAlias(true);
     try {
       await browserSession.authorize((token) =>
@@ -262,16 +271,18 @@ function OverviewContent() {
           <h2>{summary ? bookingDisplayName(summary) : offer.hall.name}</h2>
           <button
             type="button"
-            className="button button-ghost hy-alias-edit-btn"
+            ref={aliasTrigger}
+            className="hy-alias-edit-btn"
+            aria-haspopup="dialog"
             onClick={openAliasModal}
             title="Đặt tên gợi nhớ cho tiệc này"
           >
-            ✏️ {summary?.alias ? 'Đổi tên gợi nhớ' : 'Đặt tên gợi nhớ'}
+            {summary?.alias ? 'Đổi tên gợi nhớ' : 'Đặt tên gợi nhớ'}
           </button>
         </div>
         {summary?.alias ? (
           <p className="hy-overview-booking-hall-sub">
-            🏛️ {summary.hallName} · {eventTypeLabel(summary.eventType)}
+            {summary.hallName} · {eventTypeLabel(summary.eventType)}
           </p>
         ) : null}
       </div>
@@ -329,7 +340,8 @@ function OverviewContent() {
                 Tất cả tiệc của hai bạn ({bookings.length})
               </h2>
               <p className="hy-muted">
-                Bạn đang quản lý đồng thời nhiều sự kiện. Bấm &quot;Chuyển tới tiệc này&quot; để đổi không gian thao tác.
+                Bạn đang quản lý đồng thời nhiều sự kiện. Bấm &quot;Chuyển tới tiệc này&quot; để đổi
+                không gian thao tác.
               </p>
             </div>
             <Link href={routes.consultation} className="button button-secondary hy-multi-add-btn">
@@ -339,7 +351,9 @@ function OverviewContent() {
 
           <div className="hy-multi-budget-summary">
             <div className="hy-multi-budget-item">
-              <span className="hy-multi-budget-label">Tổng chi phí dự kiến ({bookings.length} tiệc)</span>
+              <span className="hy-multi-budget-label">
+                Tổng chi phí dự kiến ({bookings.length} tiệc)
+              </span>
               <strong className="hy-multi-budget-value">{formatVnd(totalAllVnd)}</strong>
             </div>
             <div className="hy-multi-budget-divider" />
@@ -350,7 +364,9 @@ function OverviewContent() {
             <div className="hy-multi-budget-divider" />
             <div className="hy-multi-budget-item">
               <span className="hy-multi-budget-label">Còn lại cần thanh toán</span>
-              <strong className="hy-multi-budget-value is-remaining">{formatVnd(remainingAllVnd)}</strong>
+              <strong className="hy-multi-budget-value is-remaining">
+                {formatVnd(remainingAllVnd)}
+              </strong>
             </div>
           </div>
 
@@ -398,7 +414,8 @@ function OverviewContent() {
                         <strong>{formatVnd(b.totalVnd)}</strong>
                         {b.depositPaidVnd ? (
                           <span className="hy-multi-paid-sub">
-                            {' '}(đã cọc {formatVnd(b.depositPaidVnd)})
+                            {' '}
+                            (đã cọc {formatVnd(b.depositPaidVnd)})
                           </span>
                         ) : null}
                       </div>
@@ -504,66 +521,75 @@ function OverviewContent() {
       </div>
 
       {aliasModalOpen ? (
-        <div className="hy-space-sheet-backdrop" onClick={() => setAliasModalOpen(false)}>
-          <div
-            className="hy-space-sheet hy-alias-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="alias-modal-title"
-            onClick={(e) => e.stopPropagation()}
+        <dialog
+          ref={aliasDialog}
+          className="hy-alias-dialog"
+          aria-labelledby="alias-modal-title"
+          aria-describedby="alias-modal-description"
+          onCancel={(event) => {
+            event.preventDefault();
+            if (!savingAlias) setAliasModalOpen(false);
+          }}
+        >
+          <div className="hy-alias-dialog-header">
+            <div>
+              <h3 id="alias-modal-title">
+                {summary?.alias ? 'Đổi tên gợi nhớ' : 'Đặt tên gợi nhớ'}
+              </h3>
+              <p id="alias-modal-description">
+                Giúp hai bạn phân biệt các tiệc trong danh sách. Tên này không thay đổi thông tin
+                sảnh hay hợp đồng.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="hy-alias-close"
+              onClick={() => setAliasModalOpen(false)}
+              disabled={savingAlias}
+              aria-label="Đóng hộp thoại đặt tên"
+            >
+              Đóng
+            </button>
+          </div>
+          <form
+            onSubmit={(e) => {
+              void handleSaveAlias(e);
+            }}
+            className="hy-alias-form"
           >
-            <div className="hy-booking-sheet-header">
-              <div>
-                <h3 id="alias-modal-title">Đặt tên gợi nhớ cho tiệc</h3>
-                <p>
-                  Tên gợi nhớ giúp hai bạn dễ dàng phân biệt tiệc này trong danh sách quản lý
-                  và trên thông báo/email (VD: Lễ thành hôn nhà gái, Tiệc báo hỷ Sài Gòn...).
-                </p>
-              </div>
+            <label htmlFor="booking-alias-input" className="form-label">
+              Tên gợi nhớ (tối đa 120 ký tự)
+            </label>
+            <input
+              id="booking-alias-input"
+              type="text"
+              maxLength={120}
+              className="form-input"
+              placeholder="VD: Lễ thành hôn (Nhà gái), Tiệc báo hỷ..."
+              value={aliasInput}
+              disabled={savingAlias}
+              aria-describedby="alias-input-hint"
+              onChange={(e) => setAliasInput(e.target.value)}
+              autoFocus
+            />
+            <p id="alias-input-hint" className="hy-alias-hint">
+              Để trống và lưu để dùng lại tên mặc định.
+            </p>
+            <div className="hy-alias-form-actions">
               <button
                 type="button"
-                className="hy-sheet-close-btn"
+                className="button button-ghost"
                 onClick={() => setAliasModalOpen(false)}
-                aria-label="Đóng"
+                disabled={savingAlias}
               >
-                ✕
+                Hủy
+              </button>
+              <button type="submit" className="button" disabled={savingAlias}>
+                {savingAlias ? 'Đang lưu…' : 'Lưu tên gợi nhớ'}
               </button>
             </div>
-            <form
-              onSubmit={(e) => {
-                void handleSaveAlias(e);
-              }}
-              className="hy-alias-form"
-            >
-              <label htmlFor="booking-alias-input" className="form-label">
-                Tên gợi nhớ (tối đa 120 ký tự)
-              </label>
-              <input
-                id="booking-alias-input"
-                type="text"
-                maxLength={120}
-                className="form-input"
-                placeholder="VD: Lễ thành hôn (Nhà gái), Tiệc báo hỷ..."
-                value={aliasInput}
-                onChange={(e) => setAliasInput(e.target.value)}
-                autoFocus
-              />
-              <div className="hy-alias-form-actions">
-                <button
-                  type="button"
-                  className="button button-ghost"
-                  onClick={() => setAliasModalOpen(false)}
-                  disabled={savingAlias}
-                >
-                  Huỷ
-                </button>
-                <button type="submit" className="button" disabled={savingAlias}>
-                  {savingAlias ? 'Đang lưu…' : 'Lưu tên gợi nhớ'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </dialog>
       ) : null}
     </div>
   );

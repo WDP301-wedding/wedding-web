@@ -669,7 +669,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     fireEvent.change(altInput, { target: { value: 'Ảnh cần thử lại' } });
     fireEvent.submit(screen.getByText('Tải Lên Hình Ảnh').closest('form')!);
 
-    expect(await screen.findByText('⚠ Chưa sẵn sàng cho thiệp')).toBeInTheDocument();
+    expect(await screen.findByText('Chưa sẵn sàng cho thiệp')).toBeInTheDocument();
     const retryBtn = screen.getByText('Thử lại tạo ảnh cho thiệp');
     fireEvent.click(retryBtn);
 

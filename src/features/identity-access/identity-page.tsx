@@ -2,7 +2,6 @@
 import fieldStyles from './identity-field.module.css';
 
 import { type FormEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 
 import { PublicHeader } from '../public-website/public-shell';
 import { routes } from '../../routes';

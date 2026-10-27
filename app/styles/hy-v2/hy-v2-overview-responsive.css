@@ -384,9 +384,9 @@
 .hy-overview-booking-title-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px 16px;
 }
 
 .hy-overview-booking-title-row h2 {
@@ -395,17 +395,23 @@
   font-weight: 700;
   line-height: 1.3;
   color: var(--hy-ink);
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 
 .hy-alias-edit-btn {
   font-size: 13px;
-  padding: 4px 10px;
+  min-height: 44px;
+  padding: 8px 12px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  flex-shrink: 0;
   border-radius: var(--hy-radius-sm);
   border: 1px solid var(--hy-outline);
   background: var(--hy-surface);
-  color: var(--hy-ink-muted);
+  color: var(--hy-wine);
   cursor: pointer;
-  line-height: 1.3;
+  line-height: 1.4;
 }
 
 .hy-alias-edit-btn:hover {
@@ -514,7 +520,9 @@
   border-radius: var(--hy-radius-md);
   border: 1.5px solid var(--hy-outline);
   background: var(--hy-surface);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .hy-multi-card:hover {
@@ -601,10 +609,68 @@
   text-decoration: none;
 }
 
-.hy-alias-modal {
-  max-width: 480px;
-  width: 100%;
-  padding: 24px;
+.hy-alias-dialog {
+  box-sizing: border-box;
+  width: min(480px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: clamp(20px, 4vw, 28px);
+  overflow-y: auto;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-lg);
+  background: var(--hy-surface);
+  color: var(--hy-ink);
+  font-family: var(--font-body);
+  box-shadow: var(--hy-shadow-2);
+}
+
+.hy-alias-dialog::backdrop {
+  background: rgb(43 29 34 / 40%);
+}
+
+.hy-alias-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.hy-alias-dialog-header h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.hy-alias-dialog-header p,
+.hy-alias-hint {
+  margin: 0;
+  color: var(--hy-ink-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.hy-alias-close {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--hy-radius-sm);
+  background: transparent;
+  color: var(--hy-wine);
+  font: inherit;
+  cursor: pointer;
+}
+
+.hy-alias-edit-btn:focus-visible,
+.hy-alias-close:focus-visible {
+  outline: 2px solid var(--hy-wine);
+  outline-offset: 3px;
+}
+
+.hy-alias-close:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .hy-alias-form {
@@ -615,8 +681,8 @@
 
 .hy-alias-form-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 8px;
 }
-

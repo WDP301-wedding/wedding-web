@@ -236,7 +236,7 @@ describe('Public identity experience', () => {
     fireEvent.submit(invitationForm!);
 
     await waitFor(() => expect(api.acceptInvitation).toHaveBeenCalledTimes(1));
-    expect(await screen.findByText('Không gian tư vấn')).toBeVisible();
-    expect(screen.getByText(/quyền truy cập giới hạn/i)).toBeVisible();
+    expect(await screen.findByText('Đang mở không gian cưới…')).toBeVisible();
+    expect(session.snapshot().status).toBe('authenticated');
   });
 });

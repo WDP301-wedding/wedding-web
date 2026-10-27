@@ -9,7 +9,10 @@ import { browserSession } from '../identity-access/browser-session';
 import type { Proposal } from '../couple-workspace/use-couple-workspace';
 import { ApiClientError } from '../../lib/api/client';
 
-vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams() }));
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
+}));
 vi.mock('../identity-access/browser-session', () => ({
   browserSession: { authorize: vi.fn() },
 }));
