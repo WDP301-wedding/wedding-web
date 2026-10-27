@@ -524,8 +524,11 @@ export function CoupleBillingWorkspace({
     refreshBilling();
   }, [needsRefresh, view]);
   const { restaurant } = useSpaceExtras();
+  const isCheckoutActive =
+    checkout !== null &&
+    (Number.isNaN(Date.parse(checkout.expiresAt)) || Date.parse(checkout.expiresAt) > Date.now());
   const inFlight = attempt !== null && !completed(attempt);
-  const blocked = pending || intent !== null || checkout !== null || inFlight || needsAttemptStatus;
+  const blocked = pending || intent !== null || isCheckoutActive || inFlight || needsAttemptStatus;
   return (
     <div className="billing-shell billing-couple">
       {embedded ? null : (
@@ -653,7 +656,7 @@ export function CoupleBillingWorkspace({
               </p>
             )}
             {context.phase === 'DRAFT' || context.phase === 'AWAITING_DEPOSIT' ? (
-              checkout !== null || inFlight ? (
+              isCheckoutActive || inFlight ? (
                 <p>Giao dịch đang được xác minh. Kiểm tra trạng thái trước khi tiếp tục.</p>
               ) : (
                 <button
@@ -662,6 +665,11 @@ export function CoupleBillingWorkspace({
                   }
                   onClick={() => {
                     if (context.timelineRevisionId === null || context.contractRequired) return;
+                    if (checkout !== null && !isCheckoutActive) {
+                      setCheckout(null);
+                      setAttempt(null);
+                      setAttemptId('');
+                    }
                     setIntent({
                       kind: 'deposit',
                       body: {
@@ -810,6 +818,23 @@ export function CoupleBillingWorkspace({
                   ? attempt.status
                   : checkout.status
               }
+              onResetExpired={() => {
+                const currentAttemptId = checkout.paymentAttemptId;
+                setCheckout(null);
+                setAttempt(null);
+                setAttemptId('');
+                setIntent(null);
+                setRetry(false);
+                if (typeof window !== 'undefined') {
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete('attemptId');
+                  window.history.replaceState({}, '', url.toString());
+                }
+                if (context?.bookingId) {
+                  void intents.completeCheckout(`checkout:${context.bookingId}`, currentAttemptId);
+                  void run(() => load(context.bookingId));
+                }
+              }}
             />
           )}
           {/* Trong khung v2: chỉ hiện khi đã có giao dịch (tự nhớ từ URL / lần thanh toán trước),

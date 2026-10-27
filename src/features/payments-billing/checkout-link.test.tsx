@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CheckoutView } from './billing-api';
 import { CheckoutLinkPanel } from './checkout-link';
@@ -53,5 +53,23 @@ describe('CheckoutLinkPanel', () => {
     expect(link()).not.toBeInTheDocument();
     rerender(<CheckoutLinkPanel checkout={{ ...checkout, expiresAt: 'bad' }} status="PENDING" />);
     expect(link()).not.toBeInTheDocument();
+  });
+
+  it('calls onResetExpired when clicking retry button after expiry', async () => {
+    const onResetExpired = vi.fn();
+    render(
+      <CheckoutLinkPanel
+        checkout={checkout}
+        status="PENDING"
+        onResetExpired={onResetExpired}
+      />,
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(12 * 60_000);
+    });
+    const retryBtn = screen.getByRole('button', { name: /Thanh toán lại/ });
+    expect(retryBtn).toBeInTheDocument();
+    fireEvent.click(retryBtn);
+    expect(onResetExpired).toHaveBeenCalledTimes(1);
   });
 });

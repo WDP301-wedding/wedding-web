@@ -42,6 +42,21 @@ function useExpired(expiresAt: string): boolean {
   return Number.isNaN(expiry) || now >= expiry;
 }
 
+function useCountdown(expiresAt: string): string | null {
+  const expiry = Date.parse(expiresAt);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (Number.isNaN(expiry) || expiry <= Date.now()) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [expiry]);
+  if (Number.isNaN(expiry) || now >= expiry) return null;
+  const remainingSec = Math.max(0, Math.floor((expiry - now) / 1000));
+  const m = Math.floor(remainingSec / 60);
+  const s = remainingSec % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
 const timeFormat = (value: string) =>
   new Date(value).toLocaleString('vi-VN', {
     hour: '2-digit',
@@ -54,8 +69,14 @@ const timeFormat = (value: string) =>
 export function CheckoutLinkPanel({
   checkout,
   status,
-}: Readonly<{ checkout: CheckoutView; status: AttemptStatusCode }>) {
+  onResetExpired,
+}: Readonly<{
+  checkout: CheckoutView;
+  status: AttemptStatusCode;
+  onResetExpired?: () => void;
+}>) {
   const expired = useExpired(checkout.expiresAt);
+  const countdown = useCountdown(checkout.expiresAt);
   const canReopen = reopenableStatuses.has(status) && !expired;
   return (
     <section className="billing-panel">
@@ -67,7 +88,11 @@ export function CheckoutLinkPanel({
         <>
           <p>
             Chưa trả tiền hoặc lỡ đóng trang VNPay? Mở lại để quét mã QR — đường dẫn còn hiệu lực
-            đến <strong>{timeFormat(checkout.expiresAt)}</strong>. Mở lại không tạo giao dịch mới.
+            đến <strong>{timeFormat(checkout.expiresAt)}</strong>
+            {countdown ? (
+              <span> (còn <strong>{countdown}</strong>)</span>
+            ) : null}
+            . Mở lại không tạo giao dịch mới.
           </p>
           <a
             className="billing-primary-link"
@@ -79,11 +104,23 @@ export function CheckoutLinkPanel({
           </a>
         </>
       ) : expired && reopenableStatuses.has(status) ? (
-        <p role="status">
-          Đường dẫn đã hết hạn lúc {timeFormat(checkout.expiresAt)}. Nếu bạn đã trả tiền, hãy bấm
-          “Kiểm tra trạng thái” bên dưới. Nếu chưa trả, hãy liên hệ nhà hàng để được hỗ trợ — không
-          tạo lần thanh toán khác khi giao dịch này chưa có kết quả.
-        </p>
+        <div role="status">
+          <p>
+            Đường dẫn đã hết hạn lúc {timeFormat(checkout.expiresAt)}. Nếu bạn đã trả tiền, hãy bấm
+            “Kiểm tra trạng thái” bên dưới. Nếu chưa trả, bạn có thể bấm nút bên dưới để tạo phiên
+            thanh toán mới (15 phút) hoặc liên hệ nhà hàng để được hỗ trợ.
+          </p>
+          {onResetExpired && (
+            <button
+              type="button"
+              className="billing-secondary"
+              onClick={onResetExpired}
+              style={{ marginTop: '0.5rem' }}
+            >
+              Thanh toán lại (phiên 15 phút mới)
+            </button>
+          )}
+        </div>
       ) : (
         <p>Kiểm tra trạng thái đã xác minh trước khi tiếp tục thanh toán.</p>
       )}
