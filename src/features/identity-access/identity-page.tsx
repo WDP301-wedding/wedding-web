@@ -5,9 +5,9 @@ import { type FormEvent, useEffect, useLayoutEffect, useRef, useState } from 're
 import Link from 'next/link';
 
 import { PublicHeader } from '../public-website/public-shell';
+import { routes } from '../../routes';
 import { PasswordResetOtpForm } from './password-reset-otp-form';
 import { ApiClientError } from '../../lib/api/client';
-import { AccountSettings } from './account-settings';
 import { browserSession } from './browser-session';
 import {
   consumeCredentialFragment,
@@ -104,10 +104,16 @@ export function IdentityExperience({
 
   const authenticated = snapshot.status === 'authenticated';
   useEffect(() => {
-    if (authenticated) onAuthenticated?.();
+    if (authenticated) {
+      if (onAuthenticated) {
+        onAuthenticated();
+      } else if (typeof window !== 'undefined') {
+        window.location.assign(routes.space);
+      }
+    }
   }, [authenticated, onAuthenticated]);
 
-  if (snapshot.status === 'authenticated' && onAuthenticated) {
+  if (snapshot.status === 'authenticated') {
     return (
       <PublicShell session={session}>
         <div className="auth-panel">
@@ -116,35 +122,6 @@ export function IdentityExperience({
           </div>
         </div>
       </PublicShell>
-    );
-  }
-
-  if (snapshot.status === 'authenticated') {
-    return (
-      <AuthenticatedWorkspace
-        snapshot={snapshot}
-        session={session}
-        onSignedOut={() => {
-          setSnapshot(session.snapshot());
-          setView('login');
-          setNotice('Đã đổi mật khẩu. Hãy đăng nhập lại để tiếp tục.');
-        }}
-        pending={pending}
-        onLogout={() => {
-          setPending(true);
-          setError(null);
-          void session
-            .logout()
-            .catch(() =>
-              setError('Không thể kết nối máy chủ. Trạng thái trên thiết bị đã được xóa.'),
-            )
-            .finally(() => {
-              setSnapshot(session.snapshot());
-              setView('login');
-              setPending(false);
-            });
-        }}
-      />
     );
   }
 
@@ -495,68 +472,6 @@ function Field({
         </p>
       ) : null}
     </div>
-  );
-}
-
-function AuthenticatedWorkspace({
-  session,
-  onSignedOut,
-  onLogout,
-  pending,
-  snapshot,
-}: Readonly<{
-  session: WebIdentitySession;
-  onSignedOut: () => void;
-  onLogout: () => void;
-  pending: boolean;
-  snapshot: Extract<WebSessionSnapshot, { status: 'authenticated' }>;
-}>) {
-  const full = snapshot.access === 'full';
-  return (
-    <>
-      <a className="skip-link" href="#identity-content">
-        Đi đến nội dung chính
-      </a>
-      <PublicHeader
-        session={session}
-        restoreSession={false}
-        onLogout={onLogout}
-        pending={pending}
-      />
-      <main id="identity-content" className="workspace-page">
-        <section className="workspace-hero">
-          <span className="preview-label">{full ? 'Không gian cặp đôi' : 'Không gian tư vấn'}</span>
-          <p className="script-heading">Hành trình của hai bạn</p>
-          <h1>{full ? 'Kế hoạch ngày trọng đại' : 'Cùng hoàn thiện đề xuất'}</h1>
-          <p>
-            {full
-              ? 'Tài khoản của bạn đã có quyền truy cập đầy đủ vào kế hoạch cưới.'
-              : 'Bạn đang có quyền truy cập giới hạn để xem đề xuất và cùng cập nhật mốc tư vấn.'}
-          </p>
-          <Link className="primary-action workspace-entry" href="/khong-gian">
-            Mở kế hoạch của chúng tôi
-          </Link>
-        </section>
-        <AccountSettings session={session} onSignedOut={onSignedOut} />
-        <section className="access-summary" aria-label="Phạm vi truy cập hiện tại">
-          <article>
-            <span>Đang mở</span>
-            <strong>Đề xuất dịch vụ</strong>
-            <p>Xem nội dung đã được nhà hàng chuẩn bị cho buổi tư vấn.</p>
-          </article>
-          <article>
-            <span>Đang mở</span>
-            <strong>Dòng thời gian tư vấn</strong>
-            <p>Cùng theo dõi những bước cần thống nhất trước ngày đặt cọc.</p>
-          </article>
-          <article aria-disabled={!full} className={full ? '' : 'access-locked'}>
-            <span>Đang chuẩn bị</span>
-            <strong>Khách mời, thiệp và sơ đồ bàn</strong>
-            <p>Mọi thao tác vẫn được máy chủ kiểm tra quyền trước khi thực hiện.</p>
-          </article>
-        </section>
-      </main>
-    </>
   );
 }
 

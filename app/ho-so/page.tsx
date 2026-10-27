@@ -1,6 +1,6 @@
-import { PublicIdentityPage } from '../../src/features/identity-access/identity-page';
+import { ProfilePage } from '../../src/features/identity-access/profile-page';
 
-/** T4 · Hồ sơ & bảo mật (đổi mật khẩu, đăng xuất). Chưa đăng nhập thì hiện form đăng nhập. */
-export default function ProfilePage() {
-  return <PublicIdentityPage />;
+/** T4 · Hồ sơ & bảo mật tài khoản (đổi mật khẩu, cập nhật tên). */
+export default function Page() {
+  return <ProfilePage />;
 }

@@ -1,0 +1,220 @@
+/* Profile Page Styles - Enterprise Production Grade */
+.profilePageWrapper {
+  min-height: 100vh;
+  background-color: var(--hy-surface-warm, #fbf4ee);
+  color: var(--hy-ink, #2b1d22);
+  display: flex;
+  flex-direction: column;
+}
+
+.profileHeaderBar {
+  background: var(--hy-surface, #ffffff);
+  border-bottom: 1px solid var(--hy-outline, #eadfd6);
+  padding: 16px 32px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.headerInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--hy-radius-sm, 12px);
+  background: var(--hy-wine-soft, #f5e4e9);
+  color: var(--hy-wine, #7a1f3d);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.4;
+  text-decoration: none;
+  transition: all var(--hy-dur-fast, 150ms) ease;
+}
+
+.backLink:hover {
+  background: var(--hy-peach, #f4b9a7);
+  color: var(--hy-wine-pressed, #5c1430);
+}
+
+.logoutButton {
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: var(--hy-radius-sm, 12px);
+  border: 1px solid var(--hy-outline-strong, #9a877f);
+  background: transparent;
+  color: var(--hy-ink, #2b1d22);
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background var(--hy-dur-fast, 150ms) ease;
+}
+
+.logoutButton:hover {
+  background: var(--hy-outline, #eadfd6);
+}
+
+.profileMain {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--hy-ink-muted, #6e5d63);
+  margin-bottom: 24px;
+}
+
+.breadcrumb a {
+  color: var(--hy-wine, #7a1f3d);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.profileHeroCard {
+  background: var(--hy-surface, #ffffff);
+  border: 1px solid var(--hy-outline, #eadfd6);
+  border-radius: var(--hy-radius-md, 16px);
+  box-shadow: var(--hy-shadow-1, 0 1px 2px rgb(43 29 34 / 6%));
+  padding: 32px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.profileIdentity {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profileAvatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--hy-wine, #7a1f3d), var(--hy-wine-pressed, #5c1430));
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.25;
+  box-shadow: var(--hy-shadow-1, 0 2px 8px rgb(43 29 34 / 15%));
+}
+
+.profileMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kicker {
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--hy-champagne, #c9a46a);
+  letter-spacing: normal;
+}
+
+.profileTitle {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--hy-ink, #2b1d22);
+}
+
+.profileEmail {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--hy-ink-muted, #6e5d63);
+}
+
+.profileBadges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.verifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 500;
+  background: var(--hy-success-bg, #e7f1ea);
+  color: var(--hy-success, #2f6b4f);
+}
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 500;
+  background: var(--hy-wine-soft, #f5e4e9);
+  color: var(--hy-wine, #7a1f3d);
+}
+
+.settingsSection {
+  background: var(--hy-surface, #ffffff);
+  border: 1px solid var(--hy-outline, #eadfd6);
+  border-radius: var(--hy-radius-md, 16px);
+  box-shadow: var(--hy-shadow-1, 0 1px 2px rgb(43 29 34 / 6%));
+  padding: 36px;
+}
+
+@media (max-width: 768px) {
+  .profileHeaderBar {
+    padding: 12px 16px;
+  }
+
+  .profileMain {
+    padding: 24px 16px 48px;
+  }
+
+  .profileHeroCard {
+    padding: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settingsSection {
+    padding: 20px;
+  }
+}

@@ -1,10 +1,17 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useCallback } from 'react';
+
 import { PublicIdentityPage } from '../../src/features/identity-access/identity-page';
+import { routes } from '../../src/routes';
 
 /**
  * T3 · Nhận lời mời vào không gian cưới: `/loi-moi#invitationToken=…`.
- * Mã nằm trong #fragment (không gửi lên server, không lọt vào log), trang đọc rồi xoá ngay.
- * Prototype ghi `/loi-moi/[token]` nhưng đưa mã vào đường dẫn sẽ lộ trong log/Referer nên không làm.
+ * Sau khi khách xác nhận lời mời thành công, tự động chuyển thẳng vào Không gian cưới.
  */
 export default function InvitationPage() {
-  return <PublicIdentityPage />;
+  const router = useRouter();
+  const openSpace = useCallback(() => router.replace(routes.space), [router]);
+  return <PublicIdentityPage onAuthenticated={openSpace} />;
 }
