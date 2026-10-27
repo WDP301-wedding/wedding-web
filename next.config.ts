@@ -24,6 +24,11 @@ const backendHostname = (() => {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Socket.IO connects directly to the backend, independently of HTTP rewrites.
+  env: {
+    NEXT_PUBLIC_REALTIME_URL:
+      process.env.NEXT_PUBLIC_REALTIME_URL || (backendOrigin ? new URL(backendOrigin).origin : ''),
+  },
   // Route cũ → route v2 (308). Danh sách nằm trong src/routes.ts để dùng chung với test.
   redirects() {
     return Promise.resolve(legacyRedirects.map((rule) => ({ ...rule, permanent: true })));

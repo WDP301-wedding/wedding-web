@@ -152,6 +152,7 @@ export class WebIdentitySession {
             if (this.refreshRejected) return;
             this.accessToken = data.token;
             this.scheduleProactiveRefresh(data.expiresAt);
+            if (this.state.status === 'authenticated') sharedCoupleRealtime.connect(data.token);
           }
         };
       } catch {
@@ -288,6 +289,7 @@ export class WebIdentitySession {
             if (cached && isCoupleTokenFresh(cached.expiresAt)) {
               this.accessToken = cached.token;
               this.scheduleProactiveRefresh(cached.expiresAt);
+              sharedCoupleRealtime.updateToken(cached.token);
               return cached.token;
             }
             return await this.performSingleRefresh();
@@ -297,6 +299,7 @@ export class WebIdentitySession {
         if (cached && isCoupleTokenFresh(cached.expiresAt)) {
           this.accessToken = cached.token;
           this.scheduleProactiveRefresh(cached.expiresAt);
+          sharedCoupleRealtime.updateToken(cached.token);
           return cached.token;
         }
         return await this.performSingleRefresh();

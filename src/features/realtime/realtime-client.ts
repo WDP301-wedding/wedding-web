@@ -38,21 +38,23 @@ export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 export type TokenRefreshHandler = () => Promise<string | null>;
 
 export function resolveRealtimeSocketUrl(): string {
-  try {
-    if (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_REALTIME_URL) {
-      return new URL(process.env.NEXT_PUBLIC_REALTIME_URL).origin;
-    }
-    const apiBase = readPublicEnv().NEXT_PUBLIC_API_BASE_URL;
-    const parsed = new URL(apiBase);
-    // In local dev, if NEXT_PUBLIC_API_BASE_URL points to Next.js BFF (port 3000 or 3002),
-    // backend WebSocket is running on port 3001.
-    if (parsed.port === '3000' || parsed.port === '3002') {
-      return `${parsed.protocol}//${parsed.hostname}:3001`;
-    }
-    return parsed.origin;
-  } catch {
-    return 'http://127.0.0.1:3001';
+  const env = readPublicEnv();
+  if (env.NEXT_PUBLIC_REALTIME_URL) return new URL(env.NEXT_PUBLIC_REALTIME_URL).origin;
+  const api = new URL(env.NEXT_PUBLIC_API_BASE_URL);
+  const isLoopback = ['localhost', '127.0.0.1', '[::1]'].includes(api.hostname);
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    isLoopback &&
+    (api.port === '3000' || api.port === '3002')
+  ) {
+    api.port = '3001';
   }
+  if (typeof window !== 'undefined' && api.origin === window.location.origin && !isLoopback) {
+    throw new Error(
+      'Configure NEXT_PUBLIC_REALTIME_URL with the backend origin; the HTTP API proxy does not forward WebSocket connections.',
+    );
+  }
+  return api.origin;
 }
 
 export class CoupleRealtimeManager {
@@ -92,9 +94,17 @@ export class CoupleRealtimeManager {
       return;
     }
 
+    let socketUrl: string;
+    try {
+      socketUrl = resolveRealtimeSocketUrl();
+    } catch (error) {
+      this.setStatus('disconnected');
+      console.error('Realtime configuration is invalid.', error);
+      return;
+    }
     this.setStatus('connecting');
 
-    const socket = io(resolveRealtimeSocketUrl(), {
+    const socket = io(socketUrl, {
       path: '/realtime',
       transports: ['websocket'],
       auth: { token },
@@ -122,15 +132,18 @@ export class CoupleRealtimeManager {
     socket.on('disconnect', (reason) => {
       this.setStatus('disconnected');
       if (reason === 'io server disconnect' && this.token !== null && this.tokenRefreshHandler) {
-        void this.tokenRefreshHandler().then(renewed => {
-          if (renewed && this.socket === socket && this.token !== null) {
-            this.token = renewed;
-            socket.auth = { token: renewed };
-            socket.connect();
-          }
-        }).catch(() => { /* Session layer handles refresh denial. */ });
+        void this.tokenRefreshHandler()
+          .then((renewed) => {
+            if (renewed && this.socket === socket && this.token !== null) {
+              this.token = renewed;
+              socket.auth = { token: renewed };
+              socket.connect();
+            }
+          })
+          .catch(() => {
+            /* Session layer handles refresh denial. */
+          });
       }
-
     });
 
     socket.on('connect_error', async (err: unknown) => {
@@ -204,13 +217,7 @@ export class CoupleRealtimeManager {
   }
 
   updateToken(token: string): void {
-    this.token = token;
-    if (this.socket) {
-      this.socket.auth = { token };
-      if (this.socket.disconnected) {
-        this.socket.connect();
-      }
-    }
+    if (this.socket) this.connect(token);
   }
 
   disconnect(): void {
