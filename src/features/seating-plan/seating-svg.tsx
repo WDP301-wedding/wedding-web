@@ -141,7 +141,8 @@ export function SeatingSvg({
                   ry={table.height / 2}
                   fill={colorOf(table)}
                   stroke={isSelected ? '#7A1F3D' : '#6E5D63'}
-                  strokeWidth={isSelected ? 4 : 1.5}
+                  strokeWidth={isSelected ? 4 : 2}
+                  vectorEffect="non-scaling-stroke"
                 />
               ) : (
                 <rect
@@ -151,7 +152,8 @@ export function SeatingSvg({
                   height={table.height}
                   fill={colorOf(table)}
                   stroke={isSelected ? '#7A1F3D' : '#6E5D63'}
-                  strokeWidth={isSelected ? 4 : 1.5}
+                  strokeWidth={isSelected ? 4 : 2}
+                  vectorEffect="non-scaling-stroke"
                 />
               )}
 

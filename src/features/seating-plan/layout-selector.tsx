@@ -106,43 +106,86 @@ export function LayoutSelector({
                       role="img"
                       aria-label={'Xem trước mẫu ' + option.name}
                     >
-                      {option.tables.map((table) => (
-                        <g
-                          key={table.layoutTableId}
-                          transform={
-                            'translate(' +
-                            (table.x + table.width / 2) +
-                            ' ' +
-                            (table.y + table.height / 2) +
-                            ') rotate(' +
-                            table.rotationDegrees +
-                            ')'
-                          }
+                      <defs>
+                        <filter
+                          id={`table-shadow-${option.layoutTemplateVersionId}`}
+                          x="-20%"
+                          y="-20%"
+                          width="140%"
+                          height="140%"
                         >
-                          <title>
-                            {table.tableLabel} · {table.seatCapacity} ghế
-                          </title>
-                          {table.shape === 'ROUND' ? (
-                            <ellipse
-                              rx={table.width / 2}
-                              ry={table.height / 2}
-                              fill={isActive ? 'var(--hy-wine-soft, #f4e8ea)' : 'var(--paper, #fff)'}
-                              stroke={isActive ? 'var(--hy-wine, #7a1f3d)' : 'var(--hy-outline-strong, #888)'}
-                              strokeWidth={1.5}
-                            />
-                          ) : (
-                            <rect
-                              x={-table.width / 2}
-                              y={-table.height / 2}
-                              width={table.width}
-                              height={table.height}
-                              fill={isActive ? 'var(--hy-wine-soft, #f4e8ea)' : 'var(--paper, #fff)'}
-                              stroke={isActive ? 'var(--hy-wine, #7a1f3d)' : 'var(--hy-outline-strong, #888)'}
-                              strokeWidth={1.5}
-                            />
-                          )}
-                        </g>
-                      ))}
+                          <feDropShadow
+                            dx="0"
+                            dy="1.5"
+                            stdDeviation="1.5"
+                            floodColor="#2b1d22"
+                            floodOpacity="0.12"
+                          />
+                        </filter>
+                      </defs>
+                      {option.tables.map((table) => {
+                        const minDim = Math.min(table.width, table.height);
+                        const labelFontSize = Math.max(10, Math.min(22, minDim * 0.35));
+                        return (
+                          <g
+                            key={table.layoutTableId}
+                            transform={
+                              'translate(' +
+                              (table.x + table.width / 2) +
+                              ' ' +
+                              (table.y + table.height / 2) +
+                              ') rotate(' +
+                              table.rotationDegrees +
+                              ')'
+                            }
+                          >
+                            <title>
+                              {table.tableLabel} · {table.seatCapacity} ghế
+                            </title>
+                            {table.shape === 'ROUND' ? (
+                              <ellipse
+                                rx={table.width / 2}
+                                ry={table.height / 2}
+                                fill={isActive ? 'var(--hy-wine-soft, #f4e8ea)' : '#ffffff'}
+                                stroke={isActive ? 'var(--hy-wine, #7a1f3d)' : '#8b3d52'}
+                                strokeWidth={isActive ? 2.5 : 2}
+                                vectorEffect="non-scaling-stroke"
+                                filter={`url(#table-shadow-${option.layoutTemplateVersionId})`}
+                              />
+                            ) : (
+                              <rect
+                                x={-table.width / 2}
+                                y={-table.height / 2}
+                                width={table.width}
+                                height={table.height}
+                                rx={4}
+                                fill={isActive ? 'var(--hy-wine-soft, #f4e8ea)' : '#ffffff'}
+                                stroke={isActive ? 'var(--hy-wine, #7a1f3d)' : '#8b3d52'}
+                                strokeWidth={isActive ? 2.5 : 2}
+                                vectorEffect="non-scaling-stroke"
+                                filter={`url(#table-shadow-${option.layoutTemplateVersionId})`}
+                              />
+                            )}
+
+                            {table.tableLabel ? (
+                              <text
+                                transform={`rotate(${-table.rotationDegrees})`}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fontSize={labelFontSize}
+                                fontWeight={700}
+                                fill={isActive ? 'var(--hy-wine, #7a1f3d)' : '#7a1f3d'}
+                                stroke="#ffffff"
+                                strokeWidth={Math.max(1.5, labelFontSize * 0.16)}
+                                paintOrder="stroke"
+                                style={{ pointerEvents: 'none', userSelect: 'none' }}
+                              >
+                                {table.tableLabel}
+                              </text>
+                            ) : null}
+                          </g>
+                        );
+                      })}
                     </svg>
                   </div>
                 ) : (

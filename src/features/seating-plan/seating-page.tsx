@@ -8,6 +8,7 @@ import { Skeleton } from '../../design-system/skeleton';
 import { LayoutSelector } from './layout-selector';
 import { PlanEditor } from './plan-editor';
 import { useSeatingWorkspace } from './use-seating-workspace';
+import styles from './seating.module.css';
 
 export function SeatingPage() {
   return (
@@ -51,7 +52,7 @@ function SeatingWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   if (!options) return <Skeleton label="Đang tải sơ đồ…" />;
 
   return (
-    <>
+    <div className={styles.workspace}>
       {dialog}
       {refreshAvailable ? (
         <p role="status" className="cw-alert">
@@ -102,6 +103,6 @@ function SeatingWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
           onStale={requestRefresh}
         />
       ) : null}
-    </>
+    </div>
   );
 }

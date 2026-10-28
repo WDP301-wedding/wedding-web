@@ -1,0 +1,76 @@
+/* Local density rules: leave shared cards, forms and other pages unchanged. */
+.workspace {
+  container-type: inline-size;
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.workspace :global(.cw-card) {
+  padding: 16px;
+  gap: 12px;
+  align-content: start;
+}
+
+.workspace :global(.cw-card h2) {
+  font-size: 17px;
+}
+
+.workspace :global(.cw-card > p:not(.cw-note)) {
+  margin-block: 0;
+}
+
+.workspace :global(.cw-note) {
+  padding: 10px 12px;
+}
+
+.workspace :global(.cw-stats) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.workspace :global(.cw-stats > div) {
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.workspace :global(.cw-stats dd) {
+  overflow-wrap: anywhere;
+}
+
+.setupGrid,
+.settings {
+  display: grid;
+  align-items: start;
+  gap: 16px;
+  min-width: 0;
+}
+
+.workspace :global(.cw-form-row) {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 10px;
+}
+
+.workspace :global(.cw-form) {
+  gap: 10px;
+}
+
+@container (min-width: 640px) {
+  .workspace :global(.cw-stats) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .settings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 960px) {
+  .setupGrid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+  }
+
+  .settings {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

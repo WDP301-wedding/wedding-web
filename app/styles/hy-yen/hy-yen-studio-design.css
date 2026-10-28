@@ -76,10 +76,10 @@
   color: var(--hy-error);
 }
 
-/* Tab Thiết kế: cột mẫu · bản xem trước · trình chỉnh, khối AI bên dưới */
+/* Tab Thiết kế: bố cục 3 cột chuyên nghiệp chuẩn Enterprise */
 .v0-workspace .invitation-live .live-editor {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr) minmax(300px, 360px);
+  grid-template-columns: 180px minmax(360px, 460px) minmax(320px, 380px);
   gap: 20px;
   align-items: start;
   margin: 0;
@@ -87,6 +87,8 @@
 .v0-workspace .invitation-live .live-editor .template-rail {
   display: grid;
   gap: 10px;
+  position: sticky;
+  top: 16px;
 }
 .v0-workspace .invitation-live .template-rail .eyebrow {
   color: var(--hy-ink-muted);
@@ -106,6 +108,7 @@
   padding: 8px;
   border: 1px solid var(--hy-outline);
   border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface, #ffffff);
 }
 .v0-workspace .invitation-live .template-card.selected {
   border-color: var(--hy-wine);
@@ -116,79 +119,278 @@
   border-radius: 8px;
   background: linear-gradient(160deg, var(--hy-wine-soft), var(--hy-surface-warm));
   color: var(--hy-wine);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 .v0-workspace .invitation-live .template-preview.botanical span {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
+  line-height: 1.4;
 }
+
+/* Khung xem trước thiệp cưới dạng Phone Mockup cố định */
 .v0-workspace .invitation-live .invitation-preview {
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   margin: 0;
-  padding: 16px;
-  border: 0;
+  padding: 14px;
+  border: 1px solid var(--hy-outline);
   border-radius: var(--hy-radius-md);
   background:
-    radial-gradient(circle at 50% 0%, rgb(244 185 167 / 28%), transparent 60%),
+    radial-gradient(circle at 50% 0%, rgb(244 185 167 / 24%), transparent 60%),
     var(--hy-surface-warm);
+  position: sticky;
+  top: 16px;
 }
 .v0-workspace .invitation-live .preview-toolbar {
-  justify-self: stretch;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   padding: 0;
   color: var(--hy-ink-muted);
   font-size: 13px;
 }
-.v0-workspace .invitation-live .invite-paper {
+.v0-workspace .invitation-live .preview-toolbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.v0-workspace .invitation-live .preview-indicator {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--hy-wine);
+}
+.v0-workspace .invitation-live .preview-hint-text {
+  font-size: 11px;
+  color: var(--hy-ink-muted);
+}
+.v0-workspace .invitation-live .preview-viewport-controls {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px;
+  background: var(--hy-surface);
+  border-radius: 999px;
+  border: 1px solid var(--hy-outline);
+}
+.v0-workspace .invitation-live .preview-scale-btn {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--hy-ink-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--hy-dur-fast) var(--hy-ease-emphasized), color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .invitation-live .preview-scale-btn.is-active {
+  background: var(--hy-wine-soft);
+  color: var(--hy-wine);
+}
+.v0-workspace .invitation-live .preview-fullscreen-btn {
+  color: var(--hy-wine);
+}
+
+/* Thanh điều hướng nhanh các phân đoạn thiệp cưới (Section Stepper) */
+.v0-workspace .invitation-live .preview-stepper-bar {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  scrollbar-width: none;
+}
+.v0-workspace .invitation-live .preview-stepper-bar::-webkit-scrollbar {
+  display: none;
+}
+.v0-workspace .invitation-live .preview-step-pill {
+  min-height: 26px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--hy-outline);
+  background: var(--hy-surface);
+  color: var(--hy-ink-muted);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 120ms ease;
+}
+.v0-workspace .invitation-live .preview-step-pill:hover {
+  border-color: var(--hy-wine);
+  color: var(--hy-wine);
+}
+.v0-workspace .invitation-live .preview-step-pill.is-active {
+  background: var(--hy-wine);
+  color: #ffffff;
+  border-color: var(--hy-wine);
+}
+
+/* Khung điện thoại Phone Simulator */
+.v0-workspace .invitation-live .preview-phone-simulator {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.v0-workspace .invitation-live .preview-phone-bezel {
   width: 100%;
   max-width: 380px;
-  min-height: 520px;
-  padding: 72px 32px 48px;
-  border: 10px solid #ffffff;
-  border-radius: 6px;
-  outline: 1px solid var(--hy-champagne);
-  outline-offset: -20px;
+  height: clamp(480px, 64vh, 580px);
+  border: 7px solid #282124;
+  border-radius: 36px;
+  box-shadow:
+    0 16px 36px -8px rgba(43, 29, 34, 0.2),
+    0 0 0 1px rgba(201, 164, 106, 0.4);
+  position: relative;
+  display: flex;
+  flex-direction: column;
   background: #fffdfa;
+  overflow: hidden;
+}
+.v0-workspace .invitation-live .preview-phone-speaker {
+  width: 68px;
+  height: 12px;
+  background: #282124;
+  border-radius: 6px;
+  margin: 6px auto 4px;
+  flex-shrink: 0;
+  z-index: 5;
+}
+.v0-workspace .invitation-live .preview-phone-screen {
+  flex: 1;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  padding: 16px 14px 28px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(122, 31, 61, 0.25) transparent;
+}
+.v0-workspace .invitation-live .preview-phone-screen::-webkit-scrollbar {
+  width: 4px;
+}
+.v0-workspace .invitation-live .preview-phone-screen::-webkit-scrollbar-thumb {
+  background: rgba(122, 31, 61, 0.2);
+  border-radius: 4px;
+}
+.v0-workspace .invitation-live .preview-phone-screen.is-desktop-scale {
+  max-width: 520px;
+}
+.v0-workspace .invitation-live .invite-paper-inner {
+  width: 100%;
+  display: grid;
+  gap: 16px;
   color: var(--hy-ink);
-  box-shadow: var(--hy-shadow-2);
 }
-.v0-workspace .invitation-live .invite-overline {
-  color: var(--hy-ink-muted);
-  font-size: 13px;
-}
-.v0-workspace .invitation-live .invite-paper h2 {
-  margin: 18px 0;
+.v0-workspace .invitation-live .invite-paper-inner h1 {
+  font-size: clamp(22px, 2.8vw, 30px);
   color: var(--hy-wine);
-  font-size: clamp(30px, 3.4vw, 40px);
-  font-weight: 600;
+  margin: 8px 0;
   line-height: 1.3;
 }
-.v0-workspace .invitation-live .invite-line {
-  width: 48px;
-  height: 1px;
-  margin-bottom: 18px;
-  background: var(--hy-champagne);
+.v0-workspace .invitation-live .invite-paper-inner h2 {
+  font-size: clamp(16px, 2.2vw, 20px);
+  color: var(--hy-wine);
+  margin: 12px 0 6px;
 }
-.v0-workspace .invitation-live .invite-paper p {
-  color: var(--hy-ink);
-  font-size: 15px;
-  line-height: 1.7;
-}
-.v0-workspace .invitation-live .invite-paper small {
-  margin-top: 16px;
-  color: var(--hy-ink-muted);
-  font-size: 12px;
-}
-.v0-workspace .invitation-live .invite-paper img {
+.v0-workspace .invitation-live .invite-paper-inner img {
   width: 100%;
   max-height: 180px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   border-radius: 6px;
   object-fit: cover;
 }
+
+/* Modal toàn màn hình */
+.v0-workspace .invitation-live .preview-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 29, 34, 0.72);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.v0-workspace .invitation-live .preview-modal-content {
+  background: var(--hy-surface, #ffffff);
+  border-radius: var(--hy-radius-md, 16px);
+  padding: 16px 20px;
+  max-width: 440px;
+  width: 100%;
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--hy-shadow-2);
+}
+.v0-workspace .invitation-live .preview-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--hy-outline);
+  padding-bottom: 8px;
+}
+.v0-workspace .invitation-live .preview-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--hy-wine);
+}
+.v0-workspace .invitation-live .preview-modal-body {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+.v0-workspace .invitation-live .preview-phone-bezel.in-modal {
+  max-width: 380px;
+  height: min(640px, 76vh);
+  box-shadow: none;
+}
+
+/* Cột nhập liệu Form bên phải (Inspector) */
 .v0-workspace .invitation-live .live-editor .inspector {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  position: sticky;
+  top: 16px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(122, 31, 61, 0.2) transparent;
+}
+.v0-workspace .invitation-live .live-editor .inspector::-webkit-scrollbar {
+  width: 4px;
+}
+.v0-workspace .invitation-live .live-editor .inspector::-webkit-scrollbar-thumb {
+  background: rgba(122, 31, 61, 0.2);
+  border-radius: 4px;
+}
+.v0-workspace .invitation-live .inspector-head {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.v0-workspace .invitation-live .studio-form-actions {
+  position: sticky;
+  bottom: 0;
+  background: var(--hy-surface, #ffffff);
+  padding: 10px 0 4px;
+  border-top: 1px solid var(--hy-outline);
+  z-index: 5;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .v0-workspace .invitation-live .studio-assets {
   display: grid;
@@ -255,66 +457,6 @@
   color: var(--hy-wine);
   box-shadow: var(--hy-shadow-1);
 }
-.v0-workspace .invitation-live .preview-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.v0-workspace .invitation-live .preview-viewport-controls {
-  display: inline-flex;
-  gap: 4px;
-  padding: 3px;
-  background: var(--hy-surface);
-  border-radius: 999px;
-  border: 1px solid var(--hy-outline);
-}
-.v0-workspace .invitation-live .preview-scale-btn {
-  min-height: 28px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--hy-ink-muted);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color var(--hy-dur-fast) var(--hy-ease-emphasized), color var(--hy-dur-fast) var(--hy-ease-emphasized);
-}
-.v0-workspace .invitation-live .preview-scale-btn.is-active {
-  background: var(--hy-wine-soft);
-  color: var(--hy-wine);
-}
-.v0-workspace .invitation-live .invite-paper.is-desktop-scale {
-  max-width: 520px;
-}
-.v0-workspace .invitation-live .inspector-head {
-  display: grid;
-  gap: 4px;
-  margin-bottom: 12px;
-}
-.v0-workspace .invitation-live .studio-unsaved-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--hy-warning);
-  font-size: 13px;
-  font-weight: 600;
-}
-.v0-workspace .invitation-live .studio-asset-thumb {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  object-fit: cover;
-  border: 1px solid var(--hy-outline);
-}
-.v0-workspace .invitation-live .studio-asset-thumb.is-empty {
-  display: inline-grid;
-  place-items: center;
-  background: var(--hy-surface);
-  font-size: 14px;
-}
 .v0-workspace .invitation-live .ai-box-header {
   display: flex;
   flex-wrap: wrap;
@@ -325,12 +467,14 @@
 .v0-workspace .invitation-live .ai-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  padding: 3px 10px;
   border-radius: 999px;
   background: var(--hy-wine-soft);
   color: var(--hy-wine);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
 }
 .v0-workspace .invitation-live .ai-style-presets {
   display: flex;
@@ -365,4 +509,88 @@
   height: auto;
   border-radius: var(--hy-radius-md);
   box-shadow: var(--hy-shadow-1);
+}
+
+/* ==========================================================================
+   Responsive Breakpoints - Enterprise Quality
+   ========================================================================== */
+
+/* Laptop / Màn hình trung bình (<= 1200px) */
+@media (max-width: 1200px) {
+  .v0-workspace .invitation-live .live-editor {
+    grid-template-columns: 1fr minmax(320px, 380px);
+    gap: 16px;
+  }
+  .v0-workspace .invitation-live .live-editor .template-rail {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    position: static;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--hy-outline);
+    border-radius: var(--hy-radius-sm);
+    background: var(--hy-surface);
+  }
+  .v0-workspace .invitation-live .template-rail .eyebrow {
+    margin: 0;
+  }
+  .v0-workspace .invitation-live .template-rail .rail-label {
+    margin: 0 0 0 12px;
+  }
+}
+
+/* Tablet & Mobile (<= 992px) */
+@media (max-width: 992px) {
+  .v0-workspace .invitation-live .live-editor {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .v0-workspace .invitation-live .studio-mobile-mode-bar {
+    display: flex;
+  }
+  .v0-workspace .invitation-live .live-editor.mobile-show-preview .inspector {
+    display: none;
+  }
+  .v0-workspace .invitation-live .live-editor.mobile-show-editor .invitation-preview {
+    display: none;
+  }
+  .v0-workspace .invitation-live .invitation-preview {
+    position: static;
+    width: 100%;
+  }
+  .v0-workspace .invitation-live .live-editor .inspector {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+}
+
+/* Mobile nhỏ (<= 640px) */
+@media (max-width: 640px) {
+  .v0-workspace .invitation-live .preview-phone-bezel {
+    border-width: 5px;
+    border-radius: 24px;
+    height: 520px;
+  }
+  .v0-workspace .invitation-live .preview-phone-speaker {
+    width: 56px;
+    height: 10px;
+  }
+  .v0-workspace .invitation-live .preview-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .v0-workspace .invitation-live .preview-viewport-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .v0-workspace .invitation-live .preview-scale-btn {
+    flex: 1;
+    text-align: center;
+  }
+  .v0-workspace .invitation-live .preview-stepper-bar {
+    padding-bottom: 6px;
+  }
 }

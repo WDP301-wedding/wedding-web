@@ -69,13 +69,17 @@ export function InvitationContents({
     : null;
   return (
     <>
-      <header className="hy-invite-head">
+      <header id="hy-invite-sec-header" className="hy-invite-head">
         <p className="hy-invite-overline">Thiệp cưới báo hỷ</p>
         <h1>{title}</h1>
       </header>
       {recipientGreeting ? <p className="hy-invite-recipient">{recipientGreeting}</p> : null}
       {sections.map((section, index) => (
-        <section key={index} className={'hy-invite-' + section.kind.toLowerCase()}>
+        <section
+          key={index}
+          id={'hy-invite-sec-' + section.kind.toLowerCase()}
+          className={'hy-invite-' + section.kind.toLowerCase()}
+        >
           {section.imageUrl ? photo(section.imageUrl, 'image') : null}
           {section.textKey ? (
             <p style={{ whiteSpace: 'pre-wrap' }}>{text[section.textKey]}</p>

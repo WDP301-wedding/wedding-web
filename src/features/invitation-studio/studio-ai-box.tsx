@@ -22,11 +22,15 @@ export function StudioAiBox({
   return (
     <div className="studio-ai-box">
       <div className="studio-ai-box-head">
-        <div className="studio-ai-icon">✨</div>
         <div>
-          <h3 className="studio-subtitle">Tạo Ảnh Nền Thiệp Cưới Với AI</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span className="ai-badge">Trí tuệ nhân tạo</span>
+            <h3 className="studio-subtitle" style={{ margin: 0 }}>
+              Tạo Ảnh Nền Nghệ Thuật
+            </h3>
+          </div>
           <p className="studio-meta">
-            Mô tả ý tưởng trang trí (hoa phong lữ, phong cách tối giản...) để AI tạo hình minh hoạ độc bản.
+            Mô tả ý tưởng trang trí (hoa phong lữ, phong cách tối giản...) để tạo hình minh hoạ độc bản cho thiệp.
           </p>
         </div>
       </div>
@@ -49,7 +53,7 @@ export function StudioAiBox({
           type="button"
           disabled={aiJob.busy || !aiPrompt.trim()}
           onClick={handleAiGenerate}
-          className="studio-btn studio-btn-sparkle"
+          className="studio-btn"
         >
           {aiJob.busy ? 'Đang tạo...' : 'Tạo Ảnh'}
         </button>
