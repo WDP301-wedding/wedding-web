@@ -156,7 +156,7 @@ function OverviewContent() {
         ) : null}
       </div>
 
-      <header className="hy-hero">
+      <header className="hy-hero" style={{ position: 'relative', zIndex: 1 }}>
         <div className="hy-hero-countdown">
           {days > 0 ? (
             <>

@@ -59,7 +59,11 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
       <a className="skip-link" href="#space-content">
         Đi đến nội dung chính
       </a>
-      <aside className="hy-space-side" aria-label="Không gian cưới">
+      <aside
+        className="hy-space-side"
+        aria-label="Không gian cưới"
+        style={{ position: 'sticky', top: 0, zIndex: 100 }}
+      >
         <Link className="hy-space-brand" href={href(routes.space)} aria-label="Hỷ Yến — Tổng quan">
           <BrandMark compact />
         </Link>
@@ -147,8 +151,11 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
         <SupportCard phone={phone} />
       </aside>
 
-      <div className="hy-space-main">
-        <header className="hy-space-top">
+      <div className="hy-space-main" style={{ position: 'relative' }}>
+        <header
+          className="hy-space-top"
+          style={{ position: 'sticky', top: 0, zIndex: 100 }}
+        >
           <div className="hy-space-context">
             {summary ? (
               <>
