@@ -30,18 +30,15 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
   } = studio;
 
   return (
-    <section aria-labelledby="print-heading" className="studio-stack">
+    <section aria-labelledby="print-heading" className="studio-stack studio-print-layout">
       <div className="studio-card">
         <h2 id="print-heading" className="studio-title">
-          Đặt In Thiệp Giấy Truyền Thống
+          Yêu cầu in thiệp
         </h2>
-        <div className="studio-print-spec-banner">
-          <div className="studio-print-spec-icon">✉</div>
-          <div className="studio-print-spec-text">
-            <strong>Quy cách in ấn tiêu chuẩn:</strong> Giấy mỹ thuật Art Paper cao cấp 300gsm,
-            phong bì ép nhũ vàng sang trọng, in 2 mặt sắc nét, kèm thiệp báo hỷ & thiệp mời tiệc.
-          </div>
-        </div>
+        <p className="studio-hint">
+          Chọn mẫu trong hợp đồng và số lượng cần in. Quy cách và chi phí áp dụng theo hợp đồng hoặc
+          báo giá được nhà hàng xác nhận.
+        </p>
         <InlineError error={printSourcesError} onRetry={() => void printLive.refresh()} />
         {!sourcesReady && !printSourcesError ? (
           <p role="status">Đang tải lựa chọn in theo hợp đồng…</p>
@@ -50,7 +47,7 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
           onSubmit={(e) => {
             void handleRequestPrint(e);
           }}
-          className="studio-form studio-narrow"
+          className="studio-form"
         >
           {printSources.length > 0 ? (
             <div>
@@ -74,15 +71,15 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                 ))}
               </select>
               <p className="studio-meta">
-                Số bản trong hợp đồng đã được tính tiền, nhà hàng không thu lại. Muốn in thêm
-                hoặc đổi mẫu, hãy tạo phụ lục hợp đồng.
+                Số bản trong hợp đồng đã được tính tiền, nhà hàng không thu lại. Muốn in thêm hoặc
+                đổi mẫu, hãy tạo phụ lục hợp đồng.
               </p>
             </div>
           ) : null}
           <div>
             <div className="studio-quantity-head">
               <label htmlFor="print-quantity" className="studio-label">
-                Số Lượng Bản In (1 - 10.000 bản)
+                Số lượng (1–10.000 bản)
               </label>
               <div className="studio-quantity-presets" aria-label="Gợi ý số lượng bản in nhanh">
                 {[50, 100, 150, 200, 300, 500].map((num) => (
@@ -113,14 +110,14 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
             disabled={isOrdering || !sourcesReady || printSourcesError !== null}
             className="studio-btn"
           >
-            {isOrdering ? 'Đang gửi...' : 'Gửi Yêu Cầu Báo Giá In'}
+            {isOrdering ? 'Đang gửi...' : 'Gửi yêu cầu in'}
           </button>
         </form>
       </div>
 
       {/* Orders List */}
       <div className="studio-card">
-        <h3 className="studio-subtitle">Lịch Sử & Trạng Thái Đơn In</h3>
+        <h3 className="studio-subtitle">Đơn in của hai bạn</h3>
         {orders === null ? (
           ordersError ? (
             <p role="alert">{ordersError}</p>
@@ -142,102 +139,109 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                   </span>
                 </div>
 
-                {/* Production Stepper */}
-                <div className="studio-order-stepper" aria-label="Tiến trình sản xuất đơn in">
-                  {[
-                    { key: 'REQUESTED', label: '1. Gửi yêu cầu' },
-                    { key: 'QUOTED', label: '2. Đã báo giá' },
-                    { key: 'APPROVED', label: '3. Đã duyệt in' },
-                    { key: 'IN_PRODUCTION', label: '4. Đang in ấn' },
-                    { key: 'HANDED_OVER', label: '5. Bàn giao' },
-                  ].map((step, idx) => {
-                    const orderSteps = [
-                      'REQUESTED',
-                      'QUOTED',
-                      'APPROVED',
-                      'IN_PRODUCTION',
-                      'READY_FOR_HANDOVER',
-                      'HANDED_OVER',
-                    ];
-                    const currentIdx = orderSteps.indexOf(order.status);
-                    const stepIdx = idx <= 3 ? idx : 4;
-                    const isPast = currentIdx >= stepIdx;
-                    const isCurrent =
-                      order.status === step.key ||
-                      (step.key === 'HANDED_OVER' &&
-                        (order.status === 'READY_FOR_HANDOVER' ||
-                          order.status === 'HANDED_OVER'));
-                    return (
-                      <div
-                        key={step.key}
-                        className={`studio-step-item ${isPast ? 'is-done' : ''} ${isCurrent ? 'is-active' : ''}`}
-                      >
-                        <span className="studio-step-dot" />
-                        <span className="studio-step-label">{step.label}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {order.currentCommercialRevision && (
-                  <div className="studio-order-summary">
-                    <p>
-                      Tổng tiền:{' '}
-                      <strong>
-                        {Number(order.currentCommercialRevision.orderTotalVnd).toLocaleString(
+                <p className="studio-order-brief">
+                  <span>{order.lines.reduce((total, line) => total + line.quantity, 0)} bản</span>
+                  <strong>
+                    {order.currentCommercialRevision
+                      ? Number(order.currentCommercialRevision.orderTotalVnd).toLocaleString(
                           'vi-VN',
-                        )}{' '}
-                        VND
-                      </strong>
-                    </p>
-                    {order.lines?.[0]?.quantity ? (
-                      <p className="studio-meta">
-                        Số lượng: {order.lines[0].quantity} bản (Ước tính ~
-                        {Math.round(
-                          Number(order.currentCommercialRevision.orderTotalVnd) /
-                            order.lines[0].quantity,
-                        ).toLocaleString('vi-VN')}{' '}
-                        đ/bản)
-                      </p>
-                    ) : null}
-                    <p className="studio-meta">
-                      Hạn báo giá:{' '}
-                      {new Date(order.currentCommercialRevision.expiresAt).toLocaleDateString(
-                        'vi-VN',
-                      )}
-                    </p>
+                        ) + ' đ'
+                      : 'Chưa có báo giá'}
+                  </strong>
+                </p>
+                <details className="studio-disclosure" open={order.status === 'QUOTED'}>
+                  <summary>Tiến trình và chi tiết báo giá</summary>
+                  {/* Production Stepper */}
+                  <div className="studio-order-stepper" aria-label="Tiến trình sản xuất đơn in">
+                    {[
+                      { key: 'REQUESTED', label: '1. Gửi yêu cầu' },
+                      { key: 'QUOTED', label: '2. Đã báo giá' },
+                      { key: 'APPROVED', label: '3. Đã duyệt in' },
+                      { key: 'IN_PRODUCTION', label: '4. Đang in ấn' },
+                      { key: 'READY_FOR_HANDOVER', label: '5. Sẵn sàng bàn giao' },
+                      { key: 'HANDED_OVER', label: '6. Đã bàn giao' },
+                    ].map((step, idx) => {
+                      const orderSteps = [
+                        'REQUESTED',
+                        'QUOTED',
+                        'APPROVED',
+                        'IN_PRODUCTION',
+                        'READY_FOR_HANDOVER',
+                        'HANDED_OVER',
+                      ];
+                      const currentIdx = orderSteps.indexOf(order.status);
+                      const stepIdx = idx;
+                      const isPast = currentIdx >= stepIdx;
+                      const isCurrent = order.status === step.key;
+                      return (
+                        <div
+                          key={step.key}
+                          className={`studio-step-item ${isPast ? 'is-done' : ''} ${isCurrent ? 'is-active' : ''}`}
+                        >
+                          <span className="studio-step-dot" />
+                          <span className="studio-step-label">{step.label}</span>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
 
+                  {order.currentCommercialRevision && (
+                    <div className="studio-order-summary">
+                      <p>
+                        Tổng tiền:{' '}
+                        <strong>
+                          {Number(order.currentCommercialRevision.orderTotalVnd).toLocaleString(
+                            'vi-VN',
+                          )}{' '}
+                          VND
+                        </strong>
+                      </p>
+                      {order.lines?.[0]?.quantity ? (
+                        <p className="studio-meta">
+                          Số lượng: {order.lines[0].quantity} bản (Ước tính ~
+                          {Math.round(
+                            Number(order.currentCommercialRevision.orderTotalVnd) /
+                              order.lines[0].quantity,
+                          ).toLocaleString('vi-VN')}{' '}
+                          đ/bản)
+                        </p>
+                      ) : null}
+                      <p className="studio-meta">
+                        Hạn báo giá:{' '}
+                        {new Date(order.currentCommercialRevision.expiresAt).toLocaleDateString(
+                          'vi-VN',
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </details>
                 <div className="studio-actions">
                   {order.status === 'QUOTED' && order.currentCommercialRevision && (
                     <button
                       type="button"
                       disabled={
-                        approvingOrderId === order.orderId ||
-                        cancellingOrderId === order.orderId
+                        approvingOrderId === order.orderId || cancellingOrderId === order.orderId
                       }
                       onClick={() => {
                         void handleApproveQuote(order);
                       }}
                       className="studio-btn"
                     >
-                      {approvingOrderId === order.orderId ? 'Đang duyệt...' : 'Duyệt Báo Giá'}
+                      {approvingOrderId === order.orderId ? 'Đang duyệt...' : 'Duyệt báo giá'}
                     </button>
                   )}
                   {(order.status === 'REQUESTED' || order.status === 'QUOTED') && (
                     <button
                       type="button"
                       disabled={
-                        approvingOrderId === order.orderId ||
-                        cancellingOrderId === order.orderId
+                        approvingOrderId === order.orderId || cancellingOrderId === order.orderId
                       }
                       onClick={() => {
                         void handleCancelOrder(order);
                       }}
                       className="studio-btn is-danger-outline"
                     >
-                      {cancellingOrderId === order.orderId ? 'Đang hủy...' : 'Hủy Đơn'}
+                      {cancellingOrderId === order.orderId ? 'Đang hủy...' : 'Hủy đơn'}
                     </button>
                   )}
                 </div>

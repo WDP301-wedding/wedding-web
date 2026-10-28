@@ -7,6 +7,7 @@ import { StudioDesignTab } from './studio-design-tab';
 import { StudioMediaTab } from './studio-media-tab';
 import { StudioPublishTab } from './studio-publish-tab';
 import { StudioPrintTab } from './studio-print-tab';
+import styles from './studio-workspace.module.css';
 
 export type InvitationStudioViewProps = UseInvitationStudioOptions;
 
@@ -27,7 +28,7 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
 
   return (
     <div
-      className="invitation-live"
+      className={`invitation-live ${styles.workspace}`}
       onChangeCapture={() => {
         if (activeTab === 'design') setDesignDirty(true);
       }}
@@ -60,22 +61,21 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
 
       {/* Header */}
       <header className="page-heading">
-        <h1>Studio Thiệp Cưới & In Ấn</h1>
+        <h1>Thiệp & in</h1>
         <p className="studio-lead">
-          Thiết kế thiệp cưới sang trọng, tạo ảnh AI độc bản, chia sẻ mã QR và đặt in thiệp giấy
-          truyền thống.
+          Chỉnh nội dung, thêm hình ảnh, chia sẻ thiệp và theo dõi đơn in của hai bạn.
         </p>
       </header>
 
       {/* Navigation Tabs */}
-      <nav aria-label="Studio Tabs" className="studio-tabs">
+      <nav aria-label="Các mục thiệp và in" className="studio-tabs">
         <button
           type="button"
           onClick={() => selectTab('design')}
           aria-pressed={activeTab === 'design'}
           className="studio-tab"
         >
-          Thiết Kế & AI
+          Nội dung thiệp
         </button>
         <button
           type="button"
@@ -83,7 +83,7 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
           aria-pressed={activeTab === 'media'}
           className="studio-tab"
         >
-          Bộ Sưu Tập Ảnh
+          Hình ảnh
         </button>
         <button
           type="button"
@@ -91,7 +91,7 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
           aria-pressed={activeTab === 'publish'}
           className="studio-tab"
         >
-          Xuất Bản & Mã QR
+          Chia sẻ
         </button>
         <button
           type="button"
@@ -99,7 +99,7 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
           aria-pressed={activeTab === 'print'}
           className="studio-tab"
         >
-          {orders ? `Đặt In Thiệp Giấy (${orders.length})` : 'Đặt In Thiệp Giấy'}
+          {orders ? `Đặt in (${orders.length})` : 'Đặt in'}
         </button>
       </nav>
 

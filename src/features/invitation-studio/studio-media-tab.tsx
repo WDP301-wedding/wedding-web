@@ -33,10 +33,10 @@ export function StudioMediaTab({ studio }: StudioMediaTabProps) {
   } = studio;
 
   return (
-    <section aria-labelledby="media-heading" className="studio-stack">
+    <section aria-labelledby="media-heading" className="studio-stack studio-media-layout">
       <div className="studio-card">
         <h2 id="media-heading" className="studio-title">
-          Bộ Sưu Tập Hình Ảnh Cưới
+          Hình ảnh cho thiệp
         </h2>
         <p className="studio-hint">
           Hạn ngạch: Tối đa 100 ảnh hoặc 1 GiB mỗi tiệc cưới. Hạn chót tải ảnh: 72 giờ trước giờ
@@ -44,8 +44,8 @@ export function StudioMediaTab({ studio }: StudioMediaTabProps) {
         </p>
         {mediaLikelyLocked && (
           <p className="studio-hint studio-hint-warning" role="note">
-            Theo lịch tiệc, hạn chỉnh sửa ảnh (72 giờ trước giờ khai tiệc) đã qua nên nhiều khả năng không
-            tạo/tải ảnh mới được nữa. Nếu cần, hãy liên hệ nhà hàng để được gia hạn.
+            Theo lịch tiệc, hạn chỉnh sửa ảnh (72 giờ trước giờ khai tiệc) đã qua nên nhiều khả năng
+            không tạo/tải ảnh mới được nữa. Nếu cần, hãy liên hệ nhà hàng để được gia hạn.
           </p>
         )}
 
@@ -74,7 +74,7 @@ export function StudioMediaTab({ studio }: StudioMediaTabProps) {
         >
           <div className="studio-dropzone">
             <label htmlFor="media-file-input" className="studio-label">
-              Chọn Tệp Hình Ảnh
+              Chọn ảnh
             </label>
             <input
               id="media-file-input"
@@ -119,11 +119,12 @@ export function StudioMediaTab({ studio }: StudioMediaTabProps) {
             disabled={isUploadingMedia || !selectedFile || !mediaAltText.trim()}
             className="studio-btn"
           >
-            {isUploadingMedia ? 'Đang tải lên...' : 'Tải Lên Hình Ảnh'}
+            {isUploadingMedia ? 'Đang tải lên...' : 'Tải ảnh lên'}
           </button>
         </form>
-
-        <h3 className="studio-subtitle">Hình Ảnh Đã Tải Lên Trong Phiên</h3>
+      </div>
+      <div className="studio-card">
+        <h3 className="studio-subtitle">Ảnh trong phiên làm việc ({uploadedMediaList.length})</h3>
         {uploadedMediaList.length === 0 ? (
           <p className="studio-empty">Chưa có ảnh nào được tải lên trong phiên làm việc này.</p>
         ) : (
@@ -183,14 +184,18 @@ export function StudioMediaTab({ studio }: StudioMediaTabProps) {
                 <div className="studio-media-status">
                   {item.deriveStatus === 'ready' && item.derivedAssetId ? (
                     <div className="studio-media-state">
-                      <span className="hy-chip is-success">✓ Đã chuẩn bị cho thiệp</span>
+                      <span className="hy-chip is-success">
+                        {derivedAssetIds.includes(item.derivedAssetId)
+                          ? 'Đang dùng trên thiệp'
+                          : 'Chưa dùng trên thiệp'}
+                      </span>
                       {derivedAssetIds.includes(item.derivedAssetId) ? (
                         <button
                           type="button"
                           onClick={() => handleRemoveImageFromDesign(item.derivedAssetId!)}
                           className="studio-btn is-small is-ghost"
                         >
-                          ✕ Bỏ ảnh khỏi thiệp
+                          Bỏ khỏi thiệp
                         </button>
                       ) : (
                         <button
@@ -198,7 +203,7 @@ export function StudioMediaTab({ studio }: StudioMediaTabProps) {
                           onClick={() => handleInsertImageIntoDesign(item.derivedAssetId!)}
                           className="studio-btn is-small"
                         >
-                          + Chèn vào thiệp cưới
+                          Thêm vào thiệp
                         </button>
                       )}
                     </div>

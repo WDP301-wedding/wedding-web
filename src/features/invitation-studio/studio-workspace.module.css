@@ -1,0 +1,244 @@
+/* Scope every override to this private workspace; public invitations keep their design. */
+.workspace {
+  min-width: 0;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) {
+  display: grid;
+  gap: 16px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.page-heading) {
+  padding: 0;
+  margin: 0;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.page-heading h1) {
+  font-size: clamp(24px, 3vw, 30px);
+  margin: 0 0 6px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-tabs) {
+  gap: 4px;
+  max-width: 100%;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-tab) {
+  padding-inline: 12px;
+  flex: 1 0 auto;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-card),
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.live-editor .inspector) {
+  padding: 16px;
+  min-width: 0;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-stack) {
+  gap: 16px;
+  min-width: 0;
+  align-items: start;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-title) {
+  font-size: 18px;
+  line-height: 1.35;
+  margin: 0 0 8px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-form) {
+  gap: 12px;
+  min-width: 0;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-input),
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-textarea) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-form > div),
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-field-row > div) {
+  min-width: 0;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.live-editor) {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-design-meta) {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+:global(.v0-workspace)
+  .workspace:global(.invitation-live)
+  :global(.studio-design-meta .studio-title) {
+  margin-bottom: 4px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-design-meta > div) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.live-editor .inspector) {
+  position: static;
+  max-height: none;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.invitation-preview) {
+  position: static;
+  min-width: 0;
+  padding: 12px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-mobile-mode-bar) {
+  display: flex;
+  grid-column: 1 / -1;
+}
+
+:global(.v0-workspace)
+  .workspace:global(.invitation-live)
+  :global(.mobile-show-editor .invitation-preview),
+:global(.v0-workspace)
+  .workspace:global(.invitation-live)
+  :global(.mobile-show-preview .inspector) {
+  display: none;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-form-actions) {
+  flex-wrap: wrap;
+  bottom: 12px;
+  padding: 12px 0;
+  margin-top: 0;
+  gap: 8px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-disclosure) {
+  border-top: 1px solid var(--hy-outline);
+  padding-top: 10px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-disclosure > summary) {
+  cursor: pointer;
+  color: var(--hy-wine);
+  font-weight: 600;
+  font-size: 14px;
+  min-height: 36px;
+  padding-block: 8px;
+}
+
+:global(.v0-workspace)
+  .workspace:global(.invitation-live)
+  :global(.studio-disclosure > summary:focus-visible) {
+  outline: 2px solid var(--hy-wine);
+  outline-offset: 3px;
+}
+
+:global(.v0-workspace)
+  .workspace:global(.invitation-live)
+  :global(.studio-disclosure[open] > summary) {
+  margin-bottom: 8px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-ai-prompt-row) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-ai-prompt-row input) {
+  flex: 1 1 200px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-upload) {
+  padding: 12px;
+  max-width: none;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-media-grid) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  gap: 12px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-media-item) {
+  padding: 12px;
+  min-width: 0;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-media-thumb) {
+  height: 140px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-media-name),
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-link) {
+  overflow-wrap: anywhere;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-order) {
+  padding: 12px;
+  gap: 10px;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-order-brief) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-order-brief strong) {
+  color: var(--hy-wine);
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-publication-state) {
+  padding: 10px 12px;
+  margin: 0 0 12px;
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface-warm);
+}
+
+:global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-og-preview) {
+  margin-top: 12px;
+}
+
+@media (min-width: 1200px) {
+  :global(.v0-workspace) .workspace:global(.invitation-live) :global(.live-editor) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  :global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-mobile-mode-bar) {
+    display: none;
+  }
+
+  :global(.v0-workspace) .workspace:global(.invitation-live) :global(.live-editor .inspector),
+  :global(.v0-workspace)
+    .workspace:global(.invitation-live)
+    :global(.live-editor .invitation-preview) {
+    display: flex;
+  }
+
+  :global(.v0-workspace) .workspace:global(.invitation-live) :global(.invitation-preview) {
+    position: sticky;
+    top: 16px;
+  }
+
+  :global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-print-layout),
+  :global(.v0-workspace) .workspace:global(.invitation-live) :global(.studio-media-layout) {
+    grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.4fr);
+  }
+}

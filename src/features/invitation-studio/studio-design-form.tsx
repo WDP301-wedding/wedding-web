@@ -40,7 +40,7 @@ export function StudioDesignForm({
     >
       <div>
         <label htmlFor="invitation-title" className="studio-label">
-          Tiêu Đề Thiệp Cưới
+          Tên thiệp
         </label>
         <input
           id="invitation-title"
@@ -56,7 +56,7 @@ export function StudioDesignForm({
       <div className="studio-field-row">
         <div>
           <label htmlFor="groom-name" className="studio-label">
-            Tên Chú Rể
+            Tên chú rể
           </label>
           <input
             id="groom-name"
@@ -69,7 +69,7 @@ export function StudioDesignForm({
         </div>
         <div>
           <label htmlFor="bride-name" className="studio-label">
-            Tên Cô Dâu
+            Tên cô dâu
           </label>
           <input
             id="bride-name"
@@ -84,7 +84,7 @@ export function StudioDesignForm({
 
       <div>
         <label htmlFor="invitation-greeting" className="studio-label">
-          Lời Mời Đầu Thiệp
+          Lời mời đầu thiệp
         </label>
         <input
           id="invitation-greeting"
@@ -98,7 +98,7 @@ export function StudioDesignForm({
 
       <div>
         <label htmlFor="invitation-message" className="studio-label">
-          Nội Dung Lời Nhắn
+          Lời nhắn
         </label>
         <textarea
           id="invitation-message"
@@ -112,7 +112,7 @@ export function StudioDesignForm({
 
       <div>
         <label htmlFor="invitation-footer" className="studio-label">
-          Chân Thiệp (Ghi Chú Chung)
+          Ghi chú cuối thiệp
         </label>
         <input
           id="invitation-footer"
@@ -127,9 +127,7 @@ export function StudioDesignForm({
       {/* Attached Images Chips */}
       {derivedAssetIds.length > 0 && (
         <div className="studio-attached-images">
-          <label className="studio-label">
-            Hình Ảnh Đính Kèm Trong Thiệp ({derivedAssetIds.length})
-          </label>
+          <label className="studio-label">Ảnh trên thiệp ({derivedAssetIds.length})</label>
           <div className="studio-chip-group">
             {derivedAssetIds.map((id) => {
               const mediaItem = uploadedMediaList.find((m) => m.derivedAssetId === id);
@@ -166,11 +164,10 @@ export function StudioDesignForm({
 
       <div className="studio-form-actions">
         <button type="submit" disabled={saving} className="studio-btn">
-          {saving ? 'Đang lưu...' : 'Lưu Bản Thiết Kế'}
+          {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
         </button>
-        {designDirty && <span className="studio-unsaved-badge">● Có thay đổi chưa lưu</span>}
+        {designDirty && <span className="studio-unsaved-badge">Có thay đổi chưa lưu</span>}
       </div>
     </form>
   );
 }
-

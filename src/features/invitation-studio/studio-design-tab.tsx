@@ -1,79 +1,56 @@
 'use client';
 
-import React from 'react';
 import type { InvitationStudioState } from './use-invitation-studio';
 import { StudioDesignForm } from './studio-design-form';
 import { StudioAiBox } from './studio-ai-box';
 import { StudioDesignPreview } from './studio-design-preview';
 
-export type StudioDesignTabProps = Readonly<{
-  studio: InvitationStudioState;
-}>;
+export type StudioDesignTabProps = Readonly<{ studio: InvitationStudioState }>;
 
 export function StudioDesignTab({ studio }: StudioDesignTabProps) {
-  const {
-    currentDesign,
-    title,
-    brideName,
-    groomName,
-    mobileViewMode,
-    setMobileViewMode,
-  } = studio;
-
+  const { currentDesign, title, mobileViewMode, setMobileViewMode } = studio;
   return (
     <section
       aria-labelledby="design-heading"
       className={`live-editor ${mobileViewMode === 'preview' ? 'mobile-show-preview' : 'mobile-show-editor'}`}
     >
-      <div className="studio-mobile-mode-bar" role="group" aria-label="Chế độ xem Studio">
+      <header className="studio-design-meta">
+        <div>
+          <h2 id="design-heading" className="studio-title">
+            Nội dung thiệp
+          </h2>
+          <p className="studio-meta">{title || 'Thiệp chưa đặt tên'}</p>
+        </div>
+        <span className="hy-chip">
+          {currentDesign ? 'Bản lưu ' + currentDesign.revisionNumber : 'Thiết kế mới'}
+        </span>
+      </header>
+      <div className="studio-mobile-mode-bar" role="group" aria-label="Chế độ xem thiệp">
         <button
           type="button"
           className={`studio-mobile-mode-btn ${mobileViewMode === 'editor' ? 'is-active' : ''}`}
+          aria-pressed={mobileViewMode === 'editor'}
           onClick={() => setMobileViewMode('editor')}
         >
-          Chỉnh sửa nội dung
+          Chỉnh nội dung
         </button>
         <button
           type="button"
           className={`studio-mobile-mode-btn ${mobileViewMode === 'preview' ? 'is-active' : ''}`}
+          aria-pressed={mobileViewMode === 'preview'}
           onClick={() => setMobileViewMode('preview')}
         >
-          Xem trước thiệp
+          Xem trước
         </button>
       </div>
-
-      <aside className="template-rail">
-        <div className="eyebrow">Thiết kế đang chọn</div>
-        <div className="template-card selected">
-          <div className="template-preview botanical">
-            <span>
-              {groomName || 'Chú rể'}
-              <br />
-              &amp;
-              <br />
-              {brideName || 'Cô dâu'}
-            </span>
-          </div>
-          <strong>{title}</strong>
-          <small>
-            {currentDesign ? 'Phiên bản ' + currentDesign.revisionNumber : 'Thiết kế mới'}
-          </small>
-        </div>
-        <div className="eyebrow rail-label">Các phần</div>
-        <p className="muted">Lời mời · Hình ảnh · Nội dung tiệc</p>
-      </aside>
-
-      <StudioDesignPreview studio={studio} />
-
       <div className="inspector">
-        <div className="inspector-head">
-          <h2 id="design-heading" className="studio-title">
-            Cấu Trúc Nội Dung Thiệp Cưới
-          </h2>
-        </div>
         <StudioDesignForm studio={studio} />
-        <StudioAiBox studio={studio} />
+        <details className="studio-disclosure">
+          <summary>Tạo ảnh bằng AI{studio.aiJob.busy ? ' · Đang xử lý' : ''}</summary>
+          <StudioAiBox studio={studio} />
+        </details>
       </div>
+      <StudioDesignPreview studio={studio} />
     </section>
   );
 }
