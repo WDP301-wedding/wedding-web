@@ -1,6 +1,7 @@
 import { createApiClient, type ApiClient } from '../../lib/api/client';
 import type { components, operations } from '../../lib/api/generated/schema';
 import { paymentStatusFetch } from './payment-status-fetch';
+import type { ContractRevision } from '../commercial-contract/contract-api';
 import { coupleApi, type Proposal } from '../couple-workspace/use-couple-workspace';
 
 type BillingResponseData = components['schemas']['BookingBillingResponse']['data'];
@@ -26,6 +27,14 @@ export type BillingContext = Readonly<{
   accessLevel: 'RESTRICTED' | 'FULL';
   phase: components['schemas']['BookingProposalResponse']['data']['phase'];
   depositAmountVnd: number;
+  /** Display snapshots from the existing reads; never a source for client-calculated charges. */
+  depositDetails?: Readonly<{
+    proposal: Pick<Proposal, 'eventDate' | 'planningHeadcount' | 'proposal'>;
+    approvedContract: Readonly<{
+      revisionNumber: number;
+      document: Omit<ContractRevision['document'], 'timeline'>;
+    }> | null;
+  }>;
   timelineRevisionId: string | null;
   /**
    * Hợp đồng FULL_CONTRACT_V1 đã duyệt kép (nếu có). Khi có, khoản cọc là 30% tổng hợp đồng và
@@ -139,6 +148,20 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
                 documentDigest: approved.documentDigest,
                 eligibleForDeposit: contracts?.eligibleForDeposit ?? false,
               },
+        depositDetails: {
+          proposal: {
+            eventDate: value.eventDate,
+            planningHeadcount: value.planningHeadcount,
+            proposal: { ...value.proposal, menus: Array.from(value.proposal.menus ?? []) },
+          },
+          approvedContract:
+            approved === null
+              ? null
+              : {
+                  revisionNumber: approved.revisionNumber,
+                  document: { ...approved.document, lines: Array.from(approved.document.lines) },
+                },
+        },
         contractRequired: contracts?.modelVersion === 'FULL_CONTRACT_V1' && approved === null,
       };
     },

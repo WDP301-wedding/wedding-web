@@ -7,21 +7,14 @@ import { type FriendlyError, describeApiError } from '../../lib/api/api-errors';
 import { browserSession } from '../identity-access/browser-session';
 import type { WebIdentitySession, WebSessionSnapshot } from '../identity-access/session';
 import { CoupleWorkspaceContext, type Proposal } from '../couple-workspace/use-couple-workspace';
-import {
-  createCoupleBillingGateway,
-  type CoupleBillingGateway,
-} from './billing-api';
+import { createCoupleBillingGateway, type CoupleBillingGateway } from './billing-api';
 import { type createBillingIntents } from './billing-intents';
 import { CheckoutLinkPanel } from './checkout-link';
 import { BillingDepositSection } from './billing-deposit-section';
 import { BillingBalanceSection } from './billing-balance-section';
 import { BillingConfirmSection } from './billing-confirm-section';
 import { BillingAttemptPanel } from './billing-attempt-panel';
-import {
-  BillingHeaderNav,
-  BillingIntroSection,
-  BillingLookupForm,
-} from './billing-header-section';
+import { BillingHeaderNav, BillingIntroSection, BillingLookupForm } from './billing-header-section';
 import {
   type Authorize,
   completed,
@@ -235,6 +228,11 @@ export function CoupleBillingWorkspace({
           </div>
           <BillingDepositSection
             context={context}
+            intent={intent?.kind === 'deposit' ? intent : null}
+            pending={pending}
+            retry={retry}
+            onConfirm={() => void start()}
+            onCancel={() => setIntent(null)}
             blocked={blocked}
             isCheckoutActive={isCheckoutActive}
             inFlight={inFlight}
@@ -242,6 +240,7 @@ export function CoupleBillingWorkspace({
               if (context.timelineRevisionId === null || context.contractRequired) return;
               setIntent({
                 kind: 'deposit',
+                displayContext: context,
                 body: {
                   timelineRevisionId: context.timelineRevisionId,
                   ...(context.contract
@@ -290,7 +289,7 @@ export function CoupleBillingWorkspace({
               }}
             />
           )}
-          {intent !== null && (
+          {intent?.kind === 'balance' && (
             <BillingConfirmSection
               intent={intent}
               pending={pending}

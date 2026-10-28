@@ -16,7 +16,12 @@ import type { createBillingIntents } from './billing-intents';
 export type Authorize = <T>(operation: (token: string) => Promise<T>) => Promise<T>;
 
 export type CheckoutIntent =
-  | Readonly<{ kind: 'deposit'; body: DepositBody; amountVnd: number | null }>
+  | Readonly<{
+      kind: 'deposit';
+      body: DepositBody;
+      amountVnd: number | null;
+      displayContext?: BillingContext;
+    }>
   | Readonly<{ kind: 'balance'; body: BalanceBody; amountVnd: number | null }>;
 
 import {
@@ -64,9 +69,7 @@ export function buildRecoveryIntent(
         ...(saved.contractRevisionId === undefined
           ? {}
           : { contractRevisionId: saved.contractRevisionId }),
-        ...(saved.documentDigest === undefined
-          ? {}
-          : { documentDigest: saved.documentDigest }),
+        ...(saved.documentDigest === undefined ? {} : { documentDigest: saved.documentDigest }),
       },
       amountVnd: null,
     };
@@ -187,9 +190,9 @@ export async function executeRefreshCompletedAttempt({
   return { context: refreshed, view: refreshedView };
 }
 
-export async function loadAvailableBookings(authorize: Authorize): Promise<
-  readonly { bookingId: string; label: string }[]
-> {
+export async function loadAvailableBookings(
+  authorize: Authorize,
+): Promise<readonly { bookingId: string; label: string }[]> {
   const expGateway = createExperienceGateway();
   const overview = await authorize((token) => expGateway.overview(token));
   if (!overview?.data) return [];
@@ -268,5 +271,3 @@ export async function executeLoadBilling({
     recoveryIntent,
   };
 }
-
-

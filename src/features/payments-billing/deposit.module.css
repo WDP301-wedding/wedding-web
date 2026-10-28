@@ -1,0 +1,155 @@
+.workspace:global(.billing-deposit) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  min-width: 0;
+}
+
+.breakdown {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  align-content: start;
+}
+
+.workspace .breakdown h3,
+.workspace .payment h2 {
+  font-size: 18px;
+  margin: 0 0 8px;
+}
+
+.workspace .venue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--hy-wine);
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
+
+.event {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin: 0;
+}
+
+.event dt {
+  font-size: 12px;
+  color: var(--hy-ink-muted);
+}
+
+.event dd {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 2px 0 0;
+}
+
+.payment {
+  padding: 16px;
+  border: 1px solid var(--hy-outline);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface-warm);
+  align-self: start;
+  min-width: 0;
+}
+
+.workspace .amount {
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin: 8px 0 12px;
+  color: var(--hy-wine);
+}
+
+.workspace .note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--hy-ink-muted);
+  margin-block: 8px;
+}
+
+.payment > a {
+  display: inline-block;
+  margin-block: 12px 4px;
+  font-weight: 600;
+}
+
+.tableScroll,
+.breakdown :global(.cw-table-wrap) {
+  overflow-x: auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.costTable {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 480px;
+  font-size: 13px;
+}
+
+.costTable caption {
+  text-align: left;
+  padding-bottom: 8px;
+  color: var(--hy-ink-muted);
+}
+
+.costTable th,
+.costTable td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--hy-outline);
+  text-align: right;
+  vertical-align: top;
+  font-variant-numeric: tabular-nums;
+}
+
+.costTable th:first-child {
+  text-align: left;
+}
+
+.costTable tfoot {
+  color: var(--hy-wine);
+  font-weight: 700;
+}
+
+.workspace .payment :global(.billing-confirm) {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.workspace :global(.billing-confirm-actions) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.conditions {
+  border-top: 1px solid var(--hy-outline);
+  margin-top: 12px;
+  padding-top: 8px;
+  font-size: 13px;
+}
+
+.conditions > summary {
+  cursor: pointer;
+  padding-block: 8px;
+  font-weight: 600;
+}
+
+.conditions > summary:focus-visible {
+  outline: 2px solid var(--hy-wine);
+  outline-offset: 3px;
+}
+
+@media (min-width: 1200px) {
+  .workspace:global(.billing-deposit) {
+    grid-template-columns: minmax(0, 1.5fr) minmax(290px, 1fr);
+    align-items: start;
+  }
+}
