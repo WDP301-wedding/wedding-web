@@ -1,77 +1,19 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-
+import React from 'react';
 import { formatVnd } from '../couple-workspace/use-couple-workspace';
-import { InlineError } from '../../design-system/inline-error';
-import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import type { ContractPreview } from './contract-preview-api';
 import type { Catalog, ContractLine, ContractLineInput } from './contract-api';
+import {
+  categoryLabels,
+  ContractLinesTable,
+  unitLabel,
+} from './contract-lines-table';
+import { SelectorTable } from './line-selector-table';
+import { LineSelectorPreview } from './line-selector-preview';
+import { keyOf, useLineSelector } from './use-line-selector';
 
-export const categoryLabels: Record<ContractLine['category'], string> = {
-  MENU: 'Thực đơn',
-  PRINT: 'In thiệp',
-  SERVICE: 'Dịch vụ',
-};
-
-const unitLabels: Record<string, string> = { table: 'bàn', copy: 'bản' };
-export const unitLabel = (unit: string) => unitLabels[unit] ?? unit;
-
-/** Bảng các dòng hợp đồng/phụ lục. Thành tiền và tổng lấy NGUYÊN từ backend. */
-export function ContractLinesTable({
-  lines,
-  totalVnd,
-  totalLabel = 'Tổng hợp đồng',
-}: Readonly<{ lines: readonly ContractLine[]; totalVnd: number; totalLabel?: string }>) {
-  return (
-    <div className="cw-table-wrap">
-      <table className="cw-table">
-        <thead>
-          <tr>
-            <th scope="col">Hạng mục</th>
-            <th scope="col">Tên</th>
-            <th scope="col" className="num">
-              Số lượng
-            </th>
-            <th scope="col" className="num">
-              Đơn giá
-            </th>
-            <th scope="col" className="num">
-              Thành tiền
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {lines.map((line) => (
-            <tr key={`${line.category}:${line.sourceId}`}>
-              <td>{categoryLabels[line.category]}</td>
-              <td>
-                <strong>{line.name}</strong>
-                {line.description ? <p className="muted">{line.description}</p> : null}
-              </td>
-              <td className="num">
-                {line.quantity} {unitLabel(line.unit)}
-              </td>
-              <td className="num">{formatVnd(line.unitPriceVnd)}</td>
-              <td className="num">{formatVnd(line.lineTotalVnd)}</td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colSpan={4}>{totalLabel}</td>
-            <td className="num">{formatVnd(totalVnd)}</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-  );
-}
-
-type Selection = Record<string, number>; // key = `${category}:${sourceId}` → số lượng (0 = không chọn)
-
-const keyOf = (category: ContractLineInput['category'], sourceId: string) =>
-  `${category}:${sourceId}`;
+export { categoryLabels, ContractLinesTable, unitLabel };
 
 /**
  * Bộ chọn hạng mục cho hợp đồng/phụ lục.
@@ -111,44 +53,27 @@ export function LineSelector({
   onSubmit: (lines: ContractLineInput[], form: FormData) => void;
   onPreview?: (lines: ContractLineInput[]) => Promise<ContractPreview>;
 }>) {
-  const [selection, setSelection] = useState<Selection>(() =>
-    Object.fromEntries(
-      initialLines.map((line) => [keyOf(line.category, line.sourceId), line.quantity]),
-    ),
-  );
-  const requestSequence = useRef(0);
-  useEffect(
-    () => () => {
-      requestSequence.current++;
-    },
-    [],
-  );
-  const [preview, setPreview] = useState<{ signature: string; data: ContractPreview } | null>(null);
-  const [previewPending, setPreviewPending] = useState(false);
-  const [previewError, setPreviewError] = useState<FriendlyError | null>(null);
-  const [localError, setLocalError] = useState<string | null>(null);
-
-  // Dòng cũ có sourceId không còn trong danh mục đang bán → báo để người dùng biết phải chọn lại.
-  const sellable = new Set([
-    ...catalog.menus.map((item) => keyOf('MENU', item.id)),
-    ...catalog.services.map((item) => keyOf('SERVICE', item.serviceId)),
-    ...catalog.prints.map((item) => keyOf('PRINT', item.offeringId)),
-  ]);
-  const missing = frozenLines
-    ? []
-    : initialLines.filter((line) => !sellable.has(keyOf(line.category, line.sourceId)));
-  const frozen = new Map(
-    (frozenLines ?? []).map((line) => [keyOf(line.category, line.sourceId), line]),
-  );
-  const frozenOnly = (frozenLines ?? []).filter(
-    (line) => !sellable.has(keyOf(line.category, line.sourceId)),
-  );
-  /** Ưu tiên phiên bản giá đã chốt (phụ lục), nếu không thì dùng phiên bản đang bán. */
-  const revisionFor = (
-    category: ContractLineInput['category'],
-    sourceId: string,
-    current: string,
-  ) => frozen.get(keyOf(category, sourceId))?.sourceRevisionId ?? current;
+  const {
+    selection,
+    setItemQuantity,
+    frozen,
+    frozenOnly,
+    missing,
+    tableCount,
+    preview,
+    previewCurrent,
+    previewPending,
+    previewError,
+    localError,
+    requestPreview,
+    handleSubmit,
+  } = useLineSelector({
+    catalog,
+    initialLines,
+    frozenLines,
+    onPreview,
+    onSubmit,
+  });
 
   const quantityInput = (
     category: ContractLineInput['category'],
@@ -167,108 +92,14 @@ export function LineSelector({
         value={selection[key] ?? 0}
         onChange={(event) => {
           const value = Number.parseInt(event.target.value || '0', 10);
-          setSelection((previous) => ({
-            ...previous,
-            [key]: Number.isNaN(value) ? 0 : Math.max(0, value),
-          }));
+          setItemQuantity(key, value);
         }}
       />
     );
   };
 
-  const buildLines = (): ContractLineInput[] => {
-    const lines: ContractLineInput[] = [];
-    for (const menu of catalog.menus) {
-      const quantity = selection[keyOf('MENU', menu.id)] ?? 0;
-      if (quantity > 0)
-        lines.push({
-          category: 'MENU',
-          sourceId: menu.id,
-          sourceRevisionId: revisionFor('MENU', menu.id, menu.versionId),
-          quantity,
-        });
-    }
-    for (const service of catalog.services) {
-      const quantity = selection[keyOf('SERVICE', service.serviceId)] ?? 0;
-      if (quantity > 0)
-        lines.push({
-          category: 'SERVICE',
-          sourceId: service.serviceId,
-          sourceRevisionId: revisionFor('SERVICE', service.serviceId, service.sourceRevisionId),
-          quantity,
-        });
-    }
-    for (const print of catalog.prints) {
-      const quantity = selection[keyOf('PRINT', print.offeringId)] ?? 0;
-      if (quantity > 0)
-        lines.push({
-          category: 'PRINT',
-          sourceId: print.offeringId,
-          sourceRevisionId: revisionFor('PRINT', print.offeringId, print.sourceRevisionId),
-          quantity,
-        });
-    }
-    for (const line of frozenOnly) {
-      const quantity = selection[keyOf(line.category, line.sourceId)] ?? 0;
-      if (quantity > 0)
-        lines.push({
-          category: line.category,
-          sourceId: line.sourceId,
-          sourceRevisionId: line.sourceRevisionId,
-          quantity,
-        });
-    }
-    return lines;
-  };
-
-  const tableCount =
-    catalog.menus.reduce((sum, menu) => sum + (selection[keyOf('MENU', menu.id)] ?? 0), 0) +
-    frozenOnly
-      .filter((line) => line.category === 'MENU')
-      .reduce((sum, line) => sum + (selection[keyOf('MENU', line.sourceId)] ?? 0), 0);
-
-  const selectionSignature = JSON.stringify(buildLines());
-  const previewCurrent = preview?.signature === selectionSignature;
-  const requestPreview = async () => {
-    if (!onPreview || previewPending) return;
-    const lines = buildLines();
-    if (!lines.some((line) => line.category === 'MENU')) {
-      setLocalError('Chọn ít nhất một thực đơn trước khi xem chi phí.');
-      return;
-    }
-    const sequence = ++requestSequence.current;
-    setPreviewPending(true);
-    setPreviewError(null);
-    setLocalError(null);
-    try {
-      const data = await onPreview(lines);
-      if (sequence === requestSequence.current)
-        setPreview({ signature: JSON.stringify(lines), data });
-    } catch (error) {
-      if (sequence === requestSequence.current) setPreviewError(describeApiError(error));
-    } finally {
-      if (sequence === requestSequence.current) setPreviewPending(false);
-    }
-  };
   return (
-    <form
-      className="cw-form"
-      onSubmit={(event) => {
-        event.preventDefault();
-        const lines = buildLines();
-        // Kiểm tra nhanh ở client để báo sớm; backend vẫn kiểm tra lại đầy đủ (sức chứa, giá…).
-        if (!lines.some((line) => line.category === 'MENU')) {
-          setLocalError('Cần chọn ít nhất một thực đơn (số bàn > 0).');
-          return;
-        }
-        if (tableCount > 500) {
-          setLocalError('Tổng số bàn tối đa là 500.');
-          return;
-        }
-        setLocalError(null);
-        onSubmit(lines, new FormData(event.currentTarget));
-      }}
-    >
+    <form className="cw-form" onSubmit={handleSubmit}>
       <p className="cw-note">
         Sảnh chứa tối đa {maxGuests} khách · số khách dự kiến hiện tại {planningHeadcount}. Đơn giá
         lấy theo danh mục đang bán; thành tiền và tổng do hệ thống tính sau khi lưu.
@@ -359,52 +190,18 @@ export function LineSelector({
       {frozenLines ? (
         <p className="cw-note">Hạng mục đã có trong thoả thuận được giữ nguyên đơn giá đã chốt.</p>
       ) : null}
+
       {onPreview ? (
-        <section className="cw-card" aria-label="Xem trước chi phí" aria-busy={previewPending}>
-          <h3>Xem trước chi phí chưa lưu</h3>
-          <p>
-            Tính từ giá chính thức trên máy chủ. Không tạo bản hợp đồng, không gửi duyệt và không
-            ghi nhận thanh toán.
-          </p>
-          {preview && previewCurrent ? (
-            <>
-              <ContractLinesTable
-                lines={preview.data.document.lines}
-                totalVnd={preview.data.document.contractTotalVnd}
-                totalLabel="Tổng dự kiến cho lựa chọn này"
-              />
-              <p>
-                Tiền cọc theo hợp đồng:{' '}
-                <strong>{formatVnd(preview.data.document.depositAmountVnd)}</strong>
-              </p>
-              <p>{preview.data.document.incidentalClause}</p>
-              <p className="muted">
-                Giá, quyền và revision được kiểm tra lại khi lưu. Phát sinh tương lai chưa ghi nhận
-                không nằm trong tổng này.
-              </p>
-            </>
-          ) : (
-            <p role="status">
-              {preview
-                ? 'Lựa chọn đã thay đổi. Bấm tính lại để xem tổng mới.'
-                : 'Chọn các hạng mục rồi bấm Xem trước chi phí.'}
-            </p>
-          )}
-          <InlineError error={previewError} />
-          <button
-            className="button button-secondary"
-            type="button"
-            disabled={pending || previewPending}
-            onClick={() => void requestPreview()}
-          >
-            {previewPending
-              ? 'Đang tính chi phí…'
-              : preview
-                ? 'Tính lại chi phí'
-                : 'Xem trước chi phí'}
-          </button>
-        </section>
+        <LineSelectorPreview
+          preview={preview}
+          previewCurrent={previewCurrent}
+          previewPending={previewPending}
+          previewError={previewError}
+          pending={pending}
+          onRequestPreview={() => void requestPreview()}
+        />
       ) : null}
+
       {extraFields}
       {localError ? (
         <p className="cw-alert" role="alert">
@@ -417,39 +214,5 @@ export function LineSelector({
         </button>
       </div>
     </form>
-  );
-}
-
-function SelectorTable({
-  title,
-  emptyText,
-  children,
-}: Readonly<{ title: string; emptyText: string; children: React.ReactNode[] }>) {
-  return (
-    <fieldset className="cw-card" style={{ padding: 16 }}>
-      <legend>
-        <strong>{title}</strong>
-      </legend>
-      {children.length === 0 ? (
-        <p className="cw-note">{emptyText}</p>
-      ) : (
-        <div className="cw-table-wrap">
-          <table className="cw-table">
-            <thead>
-              <tr>
-                <th scope="col">Hạng mục</th>
-                <th scope="col" className="num">
-                  Đơn giá
-                </th>
-                <th scope="col" className="num">
-                  Số lượng
-                </th>
-              </tr>
-            </thead>
-            <tbody>{children}</tbody>
-          </table>
-        </div>
-      )}
-    </fieldset>
   );
 }

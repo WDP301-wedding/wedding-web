@@ -14,102 +14,12 @@ import {
   formatEventDate,
   shiftLabel,
   useCoupleWorkspace,
-  type BookingSummary,
-  type Proposal,
 } from './use-couple-workspace';
+import { Icon, SupportCard } from './space-icons';
+import { isActive, mainNav, navChips } from './space-nav-config';
+import { SpaceBookingSwitcherSheet, SpaceMoreSheet } from './space-mobile-sheets';
 
-type Chip = Readonly<{ label: string; tone: 'wait' | 'lock' | 'done' | 'off' }>;
-type NavItem = Readonly<{
-  id: string;
-  label: string;
-  href: string;
-  icon: IconName;
-  /** Các đường dẫn con được coi là "đang ở mục này". */
-  match: string;
-  children?: readonly { label: string; href: string }[];
-}>;
-
-const mainNav: readonly NavItem[] = [
-  { id: 'overview', label: 'Tổng quan', href: routes.space, icon: 'home', match: routes.space },
-  {
-    id: 'agreement',
-    label: 'Thoả thuận',
-    href: routes.script,
-    icon: 'handshake',
-    match: '/khong-gian/thoa-thuan',
-    children: [
-      { label: 'Kịch bản', href: routes.script },
-      { label: 'Tên cô dâu chú rể', href: routes.names },
-      { label: 'Hợp đồng', href: routes.contract },
-    ],
-  },
-  {
-    id: 'payment',
-    label: 'Thanh toán',
-    href: routes.payment,
-    icon: 'wallet',
-    match: '/khong-gian/thanh-toan',
-  },
-  {
-    id: 'prepare',
-    label: 'Chuẩn bị',
-    href: routes.guests,
-    icon: 'checklist',
-    match: '/khong-gian/chuan-bi',
-    children: [
-      { label: 'Khách & sơ đồ', href: routes.guests },
-      { label: 'Thiệp & in', href: routes.card },
-      { label: 'Phụ lục', href: routes.addendum },
-    ],
-  },
-  {
-    id: 'settle',
-    label: 'Quyết toán',
-    href: routes.settle,
-    icon: 'receipt',
-    match: '/khong-gian/quyet-toan',
-  },
-];
-
-/**
- * Chip trạng thái của từng mục sidebar, suy ra từ dữ liệu backend (không tự đoán nghiệp vụ):
- * - Thoả thuận "Chờ bạn": có kịch bản, nhà hàng đã duyệt, hai bạn chưa duyệt.
- * - Thanh toán "Cần đặt cọc": phase AWAITING_DEPOSIT.
- * - Chuẩn bị / Quyết toán khoá cho tới khi backend trả quyền FULL (sau cọc).
- */
-export function navChips(
-  summary: BookingSummary | undefined,
-  proposal: Proposal | undefined,
-): Record<string, Chip | undefined> {
-  const phase = proposal?.phase ?? summary?.phase;
-  if (!phase) return {};
-  if (phase === 'CANCELLED')
-    return {
-      prepare: { label: 'Đã huỷ', tone: 'off' },
-      settle: { label: 'Đã huỷ', tone: 'off' },
-    };
-  const full = (proposal?.capabilities.accessLevel ?? summary?.accessLevel) === 'FULL';
-  const waitingCouple =
-    summary !== undefined &&
-    summary.hasTimeline &&
-    summary.managerApproved &&
-    !summary.coupleApproved &&
-    phase === 'DRAFT';
-  return {
-    agreement: waitingCouple
-      ? { label: 'Chờ bạn', tone: 'wait' }
-      : phase === 'DRAFT'
-        ? undefined
-        : { label: 'Đã xong', tone: 'done' },
-    payment: phase === 'AWAITING_DEPOSIT' ? { label: 'Cần đặt cọc', tone: 'wait' } : undefined,
-    prepare: full ? undefined : { label: 'Mở sau đặt cọc', tone: 'lock' },
-    settle: full ? undefined : { label: 'Mở sau đặt cọc', tone: 'lock' },
-  };
-}
-
-function isActive(pathname: string, item: NavItem): boolean {
-  return item.match === routes.space ? pathname === routes.space : pathname.startsWith(item.match);
-}
+export { navChips } from './space-nav-config';
 
 /**
  * Khung "Không gian cưới" v2 (C1): sidebar 5 mục theo hành trình + chip trạng thái,
@@ -136,6 +46,7 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [moreOpen, switcherOpen]);
+
   const proposal = state.status === 'ready' ? state.proposal : undefined;
   const summary = bookings.find((booking) => booking.bookingId === effectiveBookingId);
   const chips = navChips(summary, proposal);
@@ -341,183 +252,23 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
           {unread ? <span className="hy-nav-dot" aria-hidden="true" /> : null}
         </button>
       </nav>
-      {moreOpen ? (
-        <div className="hy-space-sheet-backdrop" onClick={() => setMoreOpen(false)}>
-          <div
-            id="space-more-sheet"
-            className="hy-space-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Thêm"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <Link prefetch={false} href={href(routes.settle)} onClick={() => setMoreOpen(false)}>
-              <Icon name="receipt" /> Quyết toán
-              {chips.settle ? (
-                <span className={`hy-nav-chip is-${chips.settle.tone}`}>{chips.settle.label}</span>
-              ) : null}
-            </Link>
-            <Link
-              prefetch={false}
-              href={href(routes.notifications)}
-              onClick={() => setMoreOpen(false)}
-            >
-              <Icon name="bell" /> Thông báo
-              {unread ? <span className="hy-nav-count">{unread}</span> : null}
-            </Link>
-            <Link href={routes.profile} onClick={() => setMoreOpen(false)}>
-              <Icon name="person" /> Hồ sơ
-            </Link>
-            <Link href={routes.home} onClick={() => setMoreOpen(false)}>
-              <Icon name="back" /> Trang chủ
-            </Link>
-            <SupportCard phone={phone} />
-          </div>
-        </div>
-      ) : null}
-      {switcherOpen ? (
-        <div className="hy-space-sheet-backdrop" onClick={() => setSwitcherOpen(false)}>
-          <div
-            id="booking-switch-sheet"
-            className="hy-space-sheet hy-booking-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Danh sách tiệc cưới"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="hy-booking-sheet-header">
-              <div>
-                <h3>Danh sách tiệc của bạn</h3>
-                <p>
-                  Bạn có {bookings.length} tiệc đang được quản lý. Chạm vào tiệc để chuyển không
-                  gian làm việc.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="hy-sheet-close-btn"
-                onClick={() => setSwitcherOpen(false)}
-                aria-label="Đóng"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="hy-booking-sheet-list">
-              {bookings.map((b) => {
-                const isCurrent = b.bookingId === bookingId;
-                return (
-                  <button
-                    key={b.bookingId}
-                    type="button"
-                    className={`hy-booking-sheet-item ${isCurrent ? 'is-selected' : ''}`}
-                    onClick={() => {
-                      router.push(withBooking(pathname, b.bookingId));
-                      setSwitcherOpen(false);
-                    }}
-                  >
-                    <div className="hy-booking-sheet-item-header">
-                      <strong className="hy-booking-sheet-title">{bookingDisplayName(b)}</strong>
-                      <span
-                        className={`hy-nav-chip is-${
-                          b.phase === 'CONFIRMED' || b.phase === 'COMPLETED'
-                            ? 'done'
-                            : b.phase === 'CANCELLED'
-                              ? 'off'
-                              : 'wait'
-                        }`}
-                      >
-                        {bookingPhaseLabel(b.phase)}
-                      </span>
-                    </div>
-                    <div className="hy-booking-sheet-details">
-                      <span>{b.hallName}</span>
-                      <span>
-                        {formatEventDate(b.eventDate)} ({shiftLabel(b.shiftCode)})
-                      </span>
-                    </div>
-                    {isCurrent ? (
-                      <span className="hy-booking-sheet-current-tag">✓ Đang hiển thị tiệc này</span>
-                    ) : (
-                      <span className="hy-booking-sheet-switch-tag">Chuyển sang tiệc này →</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="hy-booking-sheet-footer">
-              <Link
-                href={routes.consultation}
-                className="hy-booking-sheet-add-btn"
-                onClick={() => setSwitcherOpen(false)}
-              >
-                + Đăng ký đặt thêm tiệc mới
-              </Link>
-            </div>
-          </div>
-        </div>
-      ) : null}
+
+      <SpaceMoreSheet
+        chips={chips}
+        href={href}
+        moreOpen={moreOpen}
+        onClose={() => setMoreOpen(false)}
+        phone={phone}
+        unread={unread}
+      />
+
+      <SpaceBookingSwitcherSheet
+        bookingId={bookingId}
+        bookings={bookings}
+        onClose={() => setSwitcherOpen(false)}
+        onSelectBooking={(bId) => router.push(withBooking(pathname, bId))}
+        switcherOpen={switcherOpen}
+      />
     </div>
-  );
-}
-
-function SupportCard({ phone }: Readonly<{ phone: string | null }>) {
-  return (
-    <div className="hy-support">
-      <Icon name="call" />
-      <div>
-        <strong>Cần hỗ trợ? Gọi nhà hàng</strong>
-        {phone ? (
-          <a href={`tel:${phone.replace(/[^+\d]/gu, '')}`}>{phone}</a>
-        ) : (
-          <Link href={routes.consultation}>Gửi lời nhắn</Link>
-        )}
-      </div>
-    </div>
-  );
-}
-
-type IconName =
-  | 'home'
-  | 'handshake'
-  | 'wallet'
-  | 'checklist'
-  | 'receipt'
-  | 'bell'
-  | 'person'
-  | 'lock'
-  | 'call'
-  | 'back'
-  | 'more';
-
-const iconPaths: Record<IconName, string> = {
-  home: 'M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z',
-  handshake: 'M5 4h10l4 4v12H5ZM14 4v5h5M8 13h8m-8 4h5',
-  wallet: 'M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H3ZM3 7V6a2 2 0 0 1 2-2h11M16 13.5h.01',
-  checklist: 'M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2',
-  receipt: 'M6 3h12v18l-3-2-3 2-3-2-3 2ZM9 8h6m-6 4h6m-6 4h3',
-  bell: 'M6 16V11a6 6 0 1 1 12 0v5l2 2H4ZM10 20a2 2 0 0 0 4 0',
-  person: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9a7 7 0 0 1 14 0',
-  lock: 'M6 11h12v10H6ZM8 11V8a4 4 0 1 1 8 0v3',
-  call: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z',
-  back: 'M10 6 4 12l6 6M4 12h16',
-  more: 'M5 12h.01M12 12h.01M19 12h.01',
-};
-
-function Icon({ name }: Readonly<{ name: IconName }>) {
-  return (
-    <svg
-      className="hy-icon"
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={name === 'more' ? 3 : 1.6}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d={iconPaths[name]} />
-    </svg>
   );
 }

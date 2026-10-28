@@ -1,124 +1,22 @@
-import type { components } from '../../lib/api/generated/schema';
-import { ApiClientError, createApiClient, type ApiClient } from '../../lib/api/client';
+import { ApiClientError } from '../../lib/api/client';
 import { sharedCoupleRealtime } from '../realtime/realtime-client';
+import {
+  type IdentityApi,
+  type SessionCredential,
+  type WebSessionSnapshot,
+  anonymousSnapshot,
+} from './session-types';
+import {
+  COUPLE_AUTH_CHANNEL,
+  COUPLE_REFRESH_LOCK,
+  clearCachedCoupleToken,
+  isCoupleTokenFresh,
+  readCachedCoupleToken,
+  saveCachedCoupleToken,
+} from './session-token-cache';
 
-type Role = components['schemas']['AccountSummary']['roles'][number];
-
-export type BootstrapCredential = Readonly<{
-  kind: 'invitation' | 'reset';
-  token: string;
-}>;
-
-export type CurrentActor = Readonly<{
-  accountId: string;
-  displayEmail: string;
-  roles: readonly Role[];
-  sessionId: string;
-}>;
-
-type SessionCredential = Readonly<{
-  accessToken: string;
-  accessExpiresAt: string;
-  sessionId: string;
-}>;
-
-type IssuedSession = SessionCredential &
-  Readonly<{
-    account: Omit<CurrentActor, 'sessionId'>;
-  }>;
-
-export interface IdentityApi {
-  acceptInvitation(this: void, token: string, password: string): Promise<IssuedSession>;
-  createSession(this: void, email: string, password: string): Promise<IssuedSession>;
-  getCurrentUser(this: void, accessToken: string): Promise<CurrentActor>;
-  logout(this: void, accessToken: string): Promise<void>;
-  refreshSession(this: void): Promise<SessionCredential>;
-}
-
-export type WebSessionSnapshot =
-  | Readonly<{ status: 'anonymous'; denial: null }>
-  | Readonly<{
-      status: 'authenticated';
-      access: 'restricted' | 'full';
-      actor: CurrentActor;
-      denial: 'forbidden' | 'not-found' | null;
-    }>;
-
-const anonymousSnapshot = { status: 'anonymous', denial: null } as const;
-const invitationPattern = /^wii_[A-Za-z0-9_-]{43}$/u;
-const resetPattern = /^wip_[A-Za-z0-9_-]{43}$/u;
-
-export function consumeCredentialFragment(
-  href: string,
-  replaceHistory: (safePath: string) => void,
-): BootstrapCredential | null {
-  const url = new URL(href);
-  const fragment = new URLSearchParams(url.hash.slice(1));
-  const raw = url.hash.slice(1);
-  const invitationToken =
-    fragment.get('invitationToken') ?? (invitationPattern.test(raw) ? raw : null);
-  const resetToken = fragment.get('resetToken') ?? (resetPattern.test(raw) ? raw : null);
-  replaceHistory(`${url.pathname}${url.search}`);
-
-  if (invitationToken !== null && invitationPattern.test(invitationToken)) {
-    return { kind: 'invitation', token: invitationToken };
-  }
-  if (resetToken !== null && resetPattern.test(resetToken)) {
-    return { kind: 'reset', token: resetToken };
-  }
-  return null;
-}
-
-const COUPLE_STORAGE_KEY = 'wedding_couple_token_meta';
-const COUPLE_AUTH_CHANNEL = 'wedding_couple_auth_channel';
-const COUPLE_REFRESH_LOCK = 'wedding_couple_refresh_lock';
-
-interface CachedCoupleToken {
-  token: string;
-  expiresAt: string;
-  savedAt: number;
-}
-
-function readCachedCoupleToken(): CachedCoupleToken | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = window.sessionStorage.getItem(COUPLE_STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as CachedCoupleToken;
-  } catch {
-    return null;
-  }
-}
-
-function saveCachedCoupleToken(token: string, expiresAt: string): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const record: CachedCoupleToken = { token, expiresAt, savedAt: Date.now() };
-    window.sessionStorage.setItem(COUPLE_STORAGE_KEY, JSON.stringify(record));
-    if (typeof BroadcastChannel !== 'undefined') {
-      const channel = new BroadcastChannel(COUPLE_AUTH_CHANNEL);
-      channel.postMessage({ type: 'COUPLE_TOKEN_REFRESHED', token, expiresAt });
-      channel.close();
-    }
-  } catch {
-    // Storage or BroadcastChannel may be restricted in private browsing mode
-  }
-}
-
-function clearCachedCoupleToken(): void {
-  if (typeof window === 'undefined') return;
-  try {
-    window.sessionStorage.removeItem(COUPLE_STORAGE_KEY);
-  } catch {
-    // Ignore storage clearing error in restricted contexts
-  }
-}
-
-function isCoupleTokenFresh(expiresAtStr: string): boolean {
-  const expiry = new Date(expiresAtStr).getTime();
-  if (isNaN(expiry)) return false;
-  return expiry > Date.now() + 30_000;
-}
+export * from './session-types';
+export { createIdentityApi } from './identity-api';
 
 export class WebIdentitySession {
   private accessToken: string | null = null;
@@ -399,81 +297,4 @@ export class WebIdentitySession {
     sharedCoupleRealtime.disconnect();
     this.updateSnapshot(anonymousSnapshot);
   }
-}
-
-function requireData<T>(data: T | undefined): T {
-  if (data === undefined) throw new Error('The identity response did not include data.');
-  return data;
-}
-
-export function createIdentityApi(client?: ApiClient): IdentityApi {
-  let resolvedClient = client;
-  const api = () => (resolvedClient ??= createApiClient());
-
-  return {
-    async acceptInvitation(token, password) {
-      const { data } = await api().POST('/workspace-invitation-acceptances', {
-        body: { invitationToken: token, password },
-        credentials: 'include',
-      });
-      return normalizeIssuedSession(requireData(data).data);
-    },
-    async createSession(email, password) {
-      const { data } = await api().POST('/auth/web-sessions', {
-        body: { email, password },
-        credentials: 'include',
-      });
-      return normalizeIssuedSession(requireData(data).data);
-    },
-    async getCurrentUser(accessToken) {
-      const { data } = await api().GET('/auth/me', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      return normalizeActor(requireData(data).data);
-    },
-    async logout(accessToken) {
-      await api().DELETE('/auth/sessions/current', {
-        credentials: 'include',
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-    },
-    async refreshSession() {
-      const { data } = await api().POST('/auth/web-session-refreshes', {
-        body: {},
-        credentials: 'include',
-        params: { cookie: { '__Host-wedding-refresh': '' } },
-      });
-      return requireData(data).data;
-    },
-  };
-}
-
-function normalizeActor(
-  actor: Readonly<{
-    accountId: string;
-    displayEmail: string;
-    roles: ArrayLike<Role>;
-    sessionId: string;
-  }>,
-): CurrentActor {
-  return { ...actor, roles: Array.from(actor.roles) };
-}
-
-function normalizeIssuedSession(
-  session: Readonly<{
-    accessExpiresAt: string;
-    accessToken: string;
-    account: Readonly<{ accountId: string; displayEmail: string; roles: ArrayLike<Role> }>;
-    sessionId: string;
-  }>,
-): IssuedSession {
-  return {
-    accessExpiresAt: session.accessExpiresAt,
-    accessToken: session.accessToken,
-    account: {
-      ...session.account,
-      roles: Array.from(session.account.roles),
-    },
-    sessionId: session.sessionId,
-  };
 }

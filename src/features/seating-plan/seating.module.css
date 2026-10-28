@@ -1,47 +1,254 @@
-/* Dedicated styles for seating plan */
+/* Dedicated styles for seating plan - Enterprise Quality */
+
 .tableInteractive {
   cursor: pointer;
   outline: none;
+  transition: transform 120ms ease;
+}
+
+.tableInteractive:hover {
+  filter: brightness(0.96);
 }
 
 .tableInteractive:focus-visible {
-  outline: 2px solid var(--gold, #c9a46a);
+  outline: 2px solid var(--hy-gold, #c9a46a);
   outline-offset: 2px;
 }
 
-.legendList {
+/* ---------- 2-Column Split Layout for PlanEditor ---------- */
+.editorLayout {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) 1fr;
+  gap: 24px;
+  align-items: start;
+  margin-top: 16px;
+}
+
+@media (max-width: 992px) {
+  .editorLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.editorSidebar {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.editorCanvas {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  padding: 0;
-  margin: 12px 0;
-  list-style: none;
+  min-width: 0;
 }
 
-.legendItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+/* ---------- Assignment Toolbar & Chips ---------- */
+.assignmentToolbar {
+  border: 1px solid var(--hy-outline, #e5e5e5);
+  border-radius: var(--hy-radius-md, 8px);
+  padding: 16px;
+  background: var(--hy-surface, #fff);
+  margin: 0;
+}
+
+.assignmentToolbar legend {
+  font-weight: 600;
   font-size: 14px;
+  padding: 0 8px;
+  color: var(--hy-wine, #7a1f3d);
 }
 
+.groupChipList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.groupChipButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--hy-outline-strong, #d1d5db);
+  border-radius: var(--hy-radius-sm, 6px);
+  background: var(--hy-surface, #fff);
+  color: var(--hy-ink, #2b1d22);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 150ms ease;
+}
+
+.groupChipButton:hover {
+  background: var(--hy-surface-warm, #f9f6f3);
+}
+
+.groupChipButton[aria-pressed='true'] {
+  background: var(--hy-wine, #7a1f3d);
+  color: #fff;
+  border-color: var(--hy-wine, #7a1f3d);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgb(122 31 61 / 25%);
+}
+
+.groupChipCount {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgb(0 0 0 / 8%);
+  font-variant-numeric: tabular-nums;
+}
+
+.groupChipButton[aria-pressed='true'] .groupChipCount {
+  background: rgb(255 255 255 / 25%);
+  color: #fff;
+}
+
+/* ---------- Zoom & Canvas Toolbar ---------- */
 .zoomToolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 8px 12px;
+  padding: 8px 12px;
+  background: var(--hy-surface-warm, #f9f6f3);
+  border: 1px solid var(--hy-outline, #e5e5e5);
+  border-radius: var(--hy-radius-sm, 6px);
 }
 
 .zoomValue {
-  min-width: 44px;
+  min-width: 48px;
   text-align: center;
   font-variant-numeric: tabular-nums;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 14px;
 }
 
-.assignmentToolbar button[aria-pressed='true'] {
-  background: var(--hy-wine, var(--ink));
-  color: var(--hy-surface, var(--paper));
-  outline: 2px solid var(--hy-wine, var(--ink));
-  outline-offset: 2px;
+.zoomHint {
+  color: var(--hy-ink-muted, #6e5d63);
+  font-size: 12px;
+  margin-left: auto;
+}
+
+/* ---------- Sticky Action Bar ---------- */
+.stickyActionBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 24px;
+  margin-top: 24px;
+  margin-left: -24px;
+  margin-right: -24px;
+  margin-bottom: 0;
+  background: var(--hy-surface, #fff);
+  border-top: 2px solid var(--hy-champagne, #c9a46a);
+  box-shadow: 0 -4px 16px rgb(0 0 0 / 8%);
+}
+
+.actionBarStatus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.actionBarButtons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* ---------- Fullscreen Mode ---------- */
+.fullscreenContainer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--hy-surface, #fff);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.fullscreenContainer .cw-seating {
+  flex: 1;
+  min-height: calc(100vh - 120px);
+}
+
+/* ---------- Layout Selector Grid Cards ---------- */
+.layoutGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.layoutCard {
+  border: 1px solid var(--hy-outline, #e5e5e5);
+  border-radius: var(--hy-radius-md, 8px);
+  padding: 16px;
+  background: var(--hy-surface, #fff);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 150ms ease;
+}
+
+.layoutCard:hover {
+  border-color: var(--hy-champagne, #c9a46a);
+  box-shadow: var(--hy-shadow-1, 0 2px 8px rgb(0 0 0 / 6%));
+}
+
+.layoutCardActive {
+  border: 2px solid var(--hy-wine, #7a1f3d);
+  background: var(--hy-surface-warm, #fdfaf8);
+}
+
+.layoutCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.layoutCardTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--hy-wine, #7a1f3d);
+  margin: 0;
+}
+
+.layoutThumbnailWrap {
+  background: var(--hy-surface-warm, #faf6f2);
+  border: 1px solid var(--hy-outline, #e5e5e5);
+  border-radius: var(--hy-radius-sm, 6px);
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 160px;
+}
+
+.layoutCardSpecs {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--hy-ink-muted, #6e5d63);
+  padding: 8px 0;
+  border-block: 1px solid var(--hy-outline, #f0ece9);
 }

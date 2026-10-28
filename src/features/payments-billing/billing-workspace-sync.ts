@@ -2,6 +2,7 @@
 
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import type { Proposal } from '../couple-workspace/use-couple-workspace';
+import { useRealtimeSubscription } from '../realtime/use-realtime';
 import type { balanceGate } from './balance-eligibility';
 import type { BillingContext, BillingView } from './billing-api';
 import { type Authorize, loadAvailableBookings } from './billing-workspace.helpers';
@@ -99,3 +100,37 @@ export function useWorkspaceSync({
     refreshBilling();
   }, [needsRefresh, view]);
 }
+
+export function useBillingRealtimeSync({
+  bookingId,
+  embedded,
+  run,
+  load,
+}: {
+  bookingId: string;
+  embedded: boolean;
+  run: (operation: () => Promise<void>) => Promise<void>;
+  load: (bookingId: string) => Promise<void>;
+}) {
+  useRealtimeSubscription({
+    bookingId: bookingId || undefined,
+    enabled: Boolean(bookingId) && !embedded,
+    onEvent: (event) => {
+      if (!event.scope.bookingId || event.scope.bookingId === bookingId) {
+        if (
+          event.type === 'billing.updated' ||
+          event.type === 'deposit.received' ||
+          event.type === 'contract.updated'
+        ) {
+          void run(() => load(bookingId));
+        }
+      }
+    },
+    onResync: () => {
+      if (bookingId) {
+        void run(() => load(bookingId));
+      }
+    },
+  });
+}
+

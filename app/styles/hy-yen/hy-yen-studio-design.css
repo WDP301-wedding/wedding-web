@@ -227,6 +227,139 @@
   flex: 1;
   min-width: 0;
 }
+.v0-workspace .invitation-live .studio-mobile-mode-bar {
+  display: none;
+  grid-column: 1 / -1;
+  gap: 8px;
+  padding: 6px;
+  background: var(--hy-surface-warm);
+  border-radius: var(--hy-radius-md);
+  border: 1px solid var(--hy-outline);
+}
+.v0-workspace .invitation-live .studio-mobile-mode-btn {
+  flex: 1;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--hy-radius-sm);
+  background: transparent;
+  color: var(--hy-ink-muted);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--hy-dur-fast) var(--hy-ease-emphasized), color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .invitation-live .studio-mobile-mode-btn.is-active {
+  background: #ffffff;
+  color: var(--hy-wine);
+  box-shadow: var(--hy-shadow-1);
+}
+.v0-workspace .invitation-live .preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.v0-workspace .invitation-live .preview-viewport-controls {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--hy-surface);
+  border-radius: 999px;
+  border: 1px solid var(--hy-outline);
+}
+.v0-workspace .invitation-live .preview-scale-btn {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--hy-ink-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--hy-dur-fast) var(--hy-ease-emphasized), color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .invitation-live .preview-scale-btn.is-active {
+  background: var(--hy-wine-soft);
+  color: var(--hy-wine);
+}
+.v0-workspace .invitation-live .invite-paper.is-desktop-scale {
+  max-width: 520px;
+}
+.v0-workspace .invitation-live .inspector-head {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.v0-workspace .invitation-live .studio-unsaved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--hy-warning);
+  font-size: 13px;
+  font-weight: 600;
+}
+.v0-workspace .invitation-live .studio-asset-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--hy-outline);
+}
+.v0-workspace .invitation-live .studio-asset-thumb.is-empty {
+  display: inline-grid;
+  place-items: center;
+  background: var(--hy-surface);
+  font-size: 14px;
+}
+.v0-workspace .invitation-live .ai-box-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.v0-workspace .invitation-live .ai-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--hy-wine-soft);
+  color: var(--hy-wine);
+  font-size: 12px;
+  font-weight: 600;
+}
+.v0-workspace .invitation-live .ai-style-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+.v0-workspace .invitation-live .ai-presets-label {
+  color: var(--hy-ink-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.v0-workspace .invitation-live .ai-preset-chip {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--hy-outline);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--hy-ink);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color var(--hy-dur-fast) var(--hy-ease-emphasized), color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .invitation-live .ai-preset-chip:hover {
+  border-color: var(--hy-wine);
+  color: var(--hy-wine);
+}
 .v0-workspace .invitation-live .studio-generated {
   width: min(100%, 360px);
   height: auto;

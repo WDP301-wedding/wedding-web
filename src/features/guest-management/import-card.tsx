@@ -49,6 +49,7 @@ export function ImportCard({
       if (url) URL.revokeObjectURL(url);
     }
   };
+
   const readFile = async (file: File | undefined) => {
     const sequence = ++readSequence.current;
     setRows(null);
@@ -73,6 +74,8 @@ export function ImportCard({
     }
   };
 
+  const groupMap = new Map(groups.map((g) => [g.guestGroupId, g.name]));
+
   return (
     <section className="cw-card">
       <InlineError error={command.error} />
@@ -83,33 +86,44 @@ export function ImportCard({
         <code>so_dien_thoai</code>, <code>ghi_chu</code>. Tối đa 1.000 dòng mỗi lần; có lỗi ở bất kỳ
         dòng nào thì không dòng nào được nhập.
       </p>
-      <div className="cw-actions">
+
+      <div className="cw-actions" style={{ flexWrap: 'wrap', gap: 12 }}>
         <button className="button button-secondary" type="button" onClick={downloadTemplate}>
-          Tải file mẫu
+          📥 Tải file mẫu CSV
         </button>
-        <input
-          aria-label="Chọn file CSV"
-          type="file"
-          accept=".csv,text/csv"
-          onChange={(event) => {
-            void readFile(event.target.files?.[0]);
-          }}
-        />
-        <label>
+
+        <label className="button button-secondary" style={{ cursor: 'pointer', margin: 0 }}>
+          <span>📂 Chọn file CSV từ máy</span>
+          <input
+            aria-label="Chọn file CSV"
+            type="file"
+            accept=".csv,text/csv"
+            style={{ display: 'none' }}
+            onChange={(event) => {
+              void readFile(event.target.files?.[0]);
+            }}
+          />
+        </label>
+
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, margin: 0 }}>
           <input
             type="checkbox"
             checked={allowUpdates}
             onChange={(event) => setAllowUpdates(event.target.checked)}
           />{' '}
-          Cho phép cập nhật khách đã nhập trước (cùng mã)
+          Cho phép cập nhật khách đã nhập trước (nếu trùng mã)
         </label>
       </div>
-      {reading ? <p role="status">Đang đọc file CSV…</p> : null}
+
+      {reading ? <p role="status" style={{ margin: '12px 0' }}>Đang đọc dữ liệu file CSV…</p> : null}
       <InlineError error={fileError} />
+
       {errors.length > 0 ? (
-        <div className="cw-alert" role="alert">
-          <p>File có {errors.length} dòng lỗi, hãy sửa rồi chọn lại:</p>
-          <ul>
+        <div className="cw-alert" role="alert" style={{ marginTop: 14 }}>
+          <p>
+            <strong>File có {errors.length} dòng lỗi</strong>. Hãy sửa lại trong file rồi chọn lại:
+          </p>
+          <ul style={{ maxHeight: 180, overflowY: 'auto', paddingLeft: 20 }}>
             {errors.slice(0, 20).map((error) => (
               <li key={error.line}>
                 Dòng {error.line}: {error.message}
@@ -118,55 +132,105 @@ export function ImportCard({
           </ul>
         </div>
       ) : null}
+
+      {/* Bảng xem trước 5 dòng đầu tiên */}
       {rows && errors.length === 0 ? (
-        <div className="cw-actions">
-          <span>{rows.length} dòng hợp lệ.</span>
-          <button
-            className="button"
-            type="button"
-            disabled={command.pending || rows.length === 0}
-            onClick={() =>
-              void command
-                .run((token, key) =>
-                  guestApi.previewImport(token, key, bookingId, rows, allowUpdates),
-                )
-                .then((result) => result && setPreview(result))
-            }
-          >
-            Xem trước
-          </button>
+        <div style={{ marginTop: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <span style={{ fontWeight: 600, color: 'var(--hy-wine)' }}>
+              ✓ Đã đọc {rows.length} dòng hợp lệ. Xem trước dữ liệu:
+            </span>
+            <button
+              className="button"
+              type="button"
+              disabled={command.pending || rows.length === 0}
+              onClick={() =>
+                void command
+                  .run((token, key) =>
+                    guestApi.previewImport(token, key, bookingId, rows, allowUpdates),
+                  )
+                  .then((result) => result && setPreview(result))
+              }
+            >
+              Xem trước đối chiếu
+            </button>
+          </div>
+
+          <div className="cw-table-wrap">
+            <table className="cw-table">
+              <thead>
+                <tr>
+                  <th scope="col">Mã</th>
+                  <th scope="col">Họ tên</th>
+                  <th scope="col">Nhóm</th>
+                  <th scope="col">Điện thoại</th>
+                  <th scope="col">Ghi chú</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.slice(0, 5).map((row) => (
+                  <tr key={row.externalRowKey}>
+                    <td>
+                      <code>{row.externalRowKey}</code>
+                    </td>
+                    <td>
+                      <strong>{row.name}</strong>
+                    </td>
+                    <td>{groupMap.get(row.guestGroupId) ?? row.guestGroupId}</td>
+                    <td>{row.phone ?? '—'}</td>
+                    <td>{row.operationalNote ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {rows.length > 5 ? (
+            <small className="muted" style={{ display: 'block', marginTop: 4 }}>
+              Và {rows.length - 5} khách khác sẽ được nhập cùng đợt này.
+            </small>
+          ) : null}
         </div>
       ) : null}
+
       {preview ? (
-        <div className="cw-note">
+        <div className="cw-note" style={{ marginTop: 16 }}>
           <p>
-            Sẽ thêm <strong>{preview.createdCount}</strong>, cập nhật{' '}
-            <strong>{preview.updatedCount}</strong>, giữ nguyên{' '}
-            <strong>{preview.unchangedCount}</strong>. Bản xem trước hết hạn lúc{' '}
+            Kết quả đối chiếu: Sẽ thêm mới <strong>{preview.createdCount} khách</strong>, cập nhật{' '}
+            <strong>{preview.updatedCount} khách</strong>, giữ nguyên{' '}
+            <strong>{preview.unchangedCount} khách</strong>. Bản xem trước có hiệu lực đến{' '}
             {formatDateTime(preview.expiresAt)}.
           </p>
-          <button
-            className="button"
-            type="button"
-            disabled={command.pending}
-            onClick={() =>
-              void command
-                .run(
-                  (token, key) =>
-                    guestApi.commitImport(token, key, bookingId, preview.previewId, preview.digest),
-                  'Đã nhập danh sách khách.',
-                )
-                .then((result) => {
-                  if (result) {
-                    setPreview(null);
-                    setRows(null);
-                    onImported();
-                  }
-                })
-            }
-          >
-            Xác nhận nhập
-          </button>
+          <div className="cw-actions" style={{ marginTop: 10 }}>
+            <button
+              className="button"
+              type="button"
+              disabled={command.pending}
+              onClick={() =>
+                void command
+                  .run(
+                    (token, key) =>
+                      guestApi.commitImport(token, key, bookingId, preview.previewId, preview.digest),
+                    'Đã nhập danh sách khách thành công.',
+                  )
+                  .then((result) => {
+                    if (result) {
+                      setPreview(null);
+                      setRows(null);
+                      onImported();
+                    }
+                  })
+              }
+            >
+              Xác nhận nhập danh sách
+            </button>
+            <button
+              className="button button-secondary"
+              type="button"
+              onClick={() => setPreview(null)}
+            >
+              Hủy
+            </button>
+          </div>
         </div>
       ) : null}
     </section>

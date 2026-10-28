@@ -1,10 +1,11 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { maxZoom, minZoom } from './seating-api';
 
 export function useSeatingPan() {
   const [view, setView] = useState({ zoom: 1, x: 0, y: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const panned = useRef(false);
   const drag = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(
@@ -39,19 +40,45 @@ export function useSeatingPan() {
     drag.current = null;
   };
 
-  const zoomIn = () => setView((v) => ({ ...v, zoom: Math.min(maxZoom, v.zoom * 1.5) }));
-  const zoomOut = () => setView((v) => ({ ...v, zoom: Math.max(minZoom, v.zoom / 1.5) }));
-  const resetZoom = () => setView({ zoom: 1, x: 0, y: 0 });
+  const zoomIn = useCallback(
+    () => setView((v) => ({ ...v, zoom: Math.min(maxZoom, Number((v.zoom * 1.25).toFixed(2))) })),
+    [],
+  );
+  const zoomOut = useCallback(
+    () => setView((v) => ({ ...v, zoom: Math.max(minZoom, Number((v.zoom / 1.25).toFixed(2))) })),
+    [],
+  );
+  const resetZoom = useCallback(() => setView({ zoom: 1, x: 0, y: 0 }), []);
+
+  /** Hỗ trợ cuộn chuột (Mouse Wheel Zoom) khi rê trên sơ đồ. */
+  const onWheel = useCallback((event: React.WheelEvent<SVGSVGElement>) => {
+    // Nếu giữ Ctrl hoặc đang ở chế độ zoom/fullscreen, ưu tiên thu phóng sơ đồ
+    if (event.ctrlKey || event.metaKey) {
+      event.preventDefault();
+      if (event.deltaY < 0) {
+        setView((v) => ({ ...v, zoom: Math.min(maxZoom, Number((v.zoom * 1.15).toFixed(2))) }));
+      } else {
+        setView((v) => ({ ...v, zoom: Math.max(minZoom, Number((v.zoom / 1.15).toFixed(2))) }));
+      }
+    }
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    setIsFullscreen((prev) => !prev);
+  }, []);
 
   return {
     view,
     svgRef,
     panned,
+    isFullscreen,
     startPan,
     movePan,
     endPan,
     zoomIn,
     zoomOut,
     resetZoom,
+    onWheel,
+    toggleFullscreen,
   };
 }

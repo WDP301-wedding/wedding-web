@@ -2,6 +2,14 @@
 
 import React, { useId, useMemo, useRef, useState, useEffect } from 'react';
 import styles from './date-picker.module.css';
+import {
+  computeCalendarGrid,
+  parseDateParts,
+  toIsoString,
+  toVnString,
+  type DateParts,
+} from './date-picker-utils';
+import { DatePickerCalendar } from './date-picker-calendar';
 
 export interface DatePickerProps {
   name?: string | undefined;
@@ -21,66 +29,6 @@ export interface DatePickerProps {
   ariaLabel?: string | undefined;
   onChange?: ((isoDate: string) => void) | undefined;
 }
-
-interface DateParts {
-  year: number;
-  month: number; // 1-12
-  day: number; // 1-31
-}
-
-function isValidDate(year: number, month: number, day: number): boolean {
-  if (year < 1900 || year > 2150 || month < 1 || month > 12 || day < 1 || day > 31) {
-    return false;
-  }
-  const date = new Date(year, month - 1, day);
-  return (
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day
-  );
-}
-
-function parseDateParts(val?: string | null): DateParts | null {
-  if (!val) return null;
-  const trimmed = val.trim();
-  // Format YYYY-MM-DD
-  const isoMatch = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(trimmed);
-  if (isoMatch) {
-    const year = Number(isoMatch[1]);
-    const month = Number(isoMatch[2]);
-    const day = Number(isoMatch[3]);
-    if (isValidDate(year, month, day)) {
-      return { year, month, day };
-    }
-  }
-  // Format DD/MM/YYYY
-  const vnMatch = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(trimmed);
-  if (vnMatch) {
-    const day = Number(vnMatch[1]);
-    const month = Number(vnMatch[2]);
-    const year = Number(vnMatch[3]);
-    if (isValidDate(year, month, day)) {
-      return { year, month, day };
-    }
-  }
-  return null;
-}
-
-function toIsoString(parts: DateParts): string {
-  const y = String(parts.year).padStart(4, '0');
-  const m = String(parts.month).padStart(2, '0');
-  const d = String(parts.day).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-function toVnString(parts: DateParts): string {
-  const y = String(parts.year).padStart(4, '0');
-  const m = String(parts.month).padStart(2, '0');
-  const d = String(parts.day).padStart(2, '0');
-  return `${d}/${m}/${y}`;
-}
-
-const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'] as const;
 
 export function DatePicker({
   name,
@@ -283,40 +231,7 @@ export function DatePicker({
 
   // Calendar math
   const { emptyCells, dayCells } = useMemo(() => {
-    // 0 = Monday, 6 = Sunday
-    const firstDayIndex = (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7;
-    const totalDays = new Date(viewYear, viewMonth + 1, 0).getDate();
-
-    const today = new Date();
-    const todayIso = toIsoString({
-      year: today.getFullYear(),
-      month: today.getMonth() + 1,
-      day: today.getDate(),
-    });
-
-    const minIso = min ? (parseDateParts(min) ? toIsoString(parseDateParts(min)!) : min) : null;
-    const maxIso = max ? (parseDateParts(max) ? toIsoString(parseDateParts(max)!) : max) : null;
-
-    const days = [];
-    for (let day = 1; day <= totalDays; day++) {
-      const currentIso = toIsoString({ year: viewYear, month: viewMonth + 1, day });
-      const isDisabled = (minIso !== null && currentIso < minIso) || (maxIso !== null && currentIso > maxIso);
-      const isSelected = selectedIso === currentIso;
-      const isToday = todayIso === currentIso;
-
-      days.push({
-        day,
-        iso: currentIso,
-        isDisabled,
-        isSelected,
-        isToday,
-      });
-    }
-
-    return {
-      emptyCells: Array.from({ length: firstDayIndex }),
-      dayCells: days,
-    };
+    return computeCalendarGrid(viewYear, viewMonth, selectedIso, min, max);
   }, [viewYear, viewMonth, selectedIso, min, max]);
 
   return (
@@ -377,121 +292,17 @@ export function DatePicker({
       </div>
 
       {isOpen && (
-        <div
-          role="dialog"
-          aria-modal="false"
-          aria-label="Chọn ngày"
-          className={styles.popover}
-        >
-          <div className={styles.header}>
-            <span className={styles.monthTitle}>
-              Tháng {viewMonth + 1}/{viewYear}
-            </span>
-            <div className={styles.navGroup}>
-              <button
-                type="button"
-                aria-label="Tháng trước"
-                className={styles.navBtn}
-                onClick={handlePrevMonth}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                aria-label="Tháng sau"
-                className={styles.navBtn}
-                onClick={handleNextMonth}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <div className={styles.weekdaysGrid}>
-            {WEEKDAYS.map((w) => (
-              <span key={w} className={styles.weekday}>
-                {w}
-              </span>
-            ))}
-          </div>
-
-          <div className={styles.daysGrid}>
-            {emptyCells.map((_, i) => (
-              <div key={`empty-${i}`} className={styles.dayEmpty} />
-            ))}
-            {dayCells.map((cell) => {
-              const classNames = [styles.dayBtn];
-              if (cell.isSelected) classNames.push(styles.selectedDay);
-              if (cell.isToday) classNames.push(styles.todayDay);
-              if (cell.isDisabled) classNames.push(styles.disabledDay);
-
-              return (
-                <button
-                  key={cell.iso}
-                  type="button"
-                  disabled={cell.isDisabled}
-                  className={classNames.join(' ')}
-                  onClick={() => handleDaySelect(cell.day)}
-                  aria-label={`${cell.day}/${viewMonth + 1}/${viewYear}`}
-                >
-                  {cell.day}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className={styles.legend}>
-            <div className={styles.legendItem}>
-              <span className={styles.selectedDot} />
-              <span>Đã chọn</span>
-            </div>
-            <div className={styles.legendItem}>
-              <span className={styles.disabledText}>12</span>
-              <span>Không khả dụng</span>
-            </div>
-          </div>
-
-          <div className={styles.footer}>
-            <button
-              type="button"
-              className={styles.cancelBtn}
-              onClick={handleClear}
-            >
-              Xoá
-            </button>
-            <button
-              type="button"
-              className={styles.confirmBtn}
-              onClick={() => setIsOpen(false)}
-            >
-              Đóng
-            </button>
-          </div>
-        </div>
+        <DatePickerCalendar
+          viewMonth={viewMonth}
+          viewYear={viewYear}
+          emptyCells={emptyCells}
+          dayCells={dayCells}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
+          onSelectDay={handleDaySelect}
+          onClear={handleClear}
+          onClose={() => setIsOpen(false)}
+        />
       )}
     </div>
   );

@@ -143,6 +143,183 @@
   color: var(--hy-wine);
 }
 
+.v0-workspace .invitation-live .studio-dropzone {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+  border: 2px dashed var(--hy-outline-strong);
+  border-radius: var(--hy-radius-md);
+  background: var(--hy-surface-warm);
+  text-align: center;
+  transition: border-color var(--hy-dur-fast) var(--hy-ease-emphasized), background-color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .invitation-live .studio-upload.is-dragover .studio-dropzone {
+  border-color: var(--hy-wine);
+  background: var(--hy-wine-soft);
+}
+.v0-workspace .invitation-live .studio-dropzone-hint {
+  margin: 0;
+  color: var(--hy-ink-muted);
+  font-size: 13px;
+}
+.v0-workspace .invitation-live .studio-qr-block {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+.v0-workspace .invitation-live .studio-published-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.v0-workspace .invitation-live .studio-share-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+.v0-workspace .invitation-live .studio-zalo-btn {
+  border-color: #0068ff;
+  color: #0068ff;
+}
+.v0-workspace .invitation-live .studio-zalo-btn:hover:not(:disabled) {
+  background: #ebf3ff;
+  border-color: #0068ff;
+  color: #0068ff;
+}
+.v0-workspace .invitation-live .studio-og-preview {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hy-outline);
+}
+.v0-workspace .invitation-live .studio-og-label {
+  margin-bottom: 8px;
+  color: var(--hy-ink-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.v0-workspace .invitation-live .studio-og-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--hy-outline);
+  border-left: 4px solid var(--hy-wine);
+  border-radius: var(--hy-radius-sm);
+  background: #ffffff;
+  box-shadow: var(--hy-shadow-1);
+}
+.v0-workspace .invitation-live .studio-og-badge {
+  color: var(--hy-wine);
+  font-size: 11px;
+  font-weight: 700;
+}
+.v0-workspace .invitation-live .studio-og-title {
+  color: var(--hy-ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+.v0-workspace .invitation-live .studio-og-subtitle {
+  color: var(--hy-wine);
+  font-size: 14px;
+  font-weight: 600;
+}
+.v0-workspace .invitation-live .studio-og-meta {
+  color: var(--hy-ink-muted);
+  font-size: 12px;
+}
+.v0-workspace .invitation-live .studio-og-link {
+  color: var(--hy-outline-strong);
+  font-size: 11px;
+}
+.v0-workspace .invitation-live .studio-print-spec-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--hy-champagne);
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface-warm);
+  color: var(--hy-ink);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.v0-workspace .invitation-live .studio-print-spec-icon {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--hy-wine);
+}
+.v0-workspace .invitation-live .studio-quantity-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.v0-workspace .invitation-live .studio-quantity-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.v0-workspace .invitation-live .studio-qty-chip {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--hy-outline);
+  border-radius: 999px;
+  background: var(--hy-surface);
+  color: var(--hy-ink);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--hy-dur-fast) var(--hy-ease-emphasized), background-color var(--hy-dur-fast) var(--hy-ease-emphasized);
+}
+.v0-workspace .invitation-live .studio-qty-chip.is-active,
+.v0-workspace .invitation-live .studio-qty-chip:hover {
+  border-color: var(--hy-wine);
+  background: var(--hy-wine-soft);
+  color: var(--hy-wine);
+}
+.v0-workspace .invitation-live .studio-order-stepper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--hy-radius-sm);
+  background: var(--hy-surface-warm);
+}
+.v0-workspace .invitation-live .studio-step-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--hy-ink-muted);
+  font-size: 12px;
+}
+.v0-workspace .invitation-live .studio-step-item.is-done {
+  color: var(--hy-ink);
+  font-weight: 600;
+}
+.v0-workspace .invitation-live .studio-step-item.is-active {
+  color: var(--hy-wine);
+  font-weight: 700;
+}
+.v0-workspace .invitation-live .studio-step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--hy-outline-strong);
+  flex-shrink: 0;
+}
+.v0-workspace .invitation-live .studio-step-item.is-done .studio-step-dot {
+  background: var(--hy-success);
+}
+.v0-workspace .invitation-live .studio-step-item.is-active .studio-step-dot {
+  background: var(--hy-wine);
+  box-shadow: 0 0 0 3px var(--hy-wine-soft);
+}
+
 @media (max-width: 1320px) {
   .v0-workspace .invitation-live .live-editor {
     grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
@@ -178,8 +355,35 @@
   .v0-workspace .invitation-live .live-editor {
     grid-template-columns: minmax(0, 1fr);
   }
+  .v0-workspace .invitation-live .studio-mobile-mode-bar {
+    display: flex;
+  }
+  .v0-workspace .invitation-live .live-editor.mobile-show-editor .invitation-preview {
+    display: none;
+  }
+  .v0-workspace .invitation-live .live-editor.mobile-show-preview .inspector {
+    display: none;
+  }
+  .v0-workspace .invitation-live .live-editor.mobile-show-preview .template-rail {
+    display: none;
+  }
 }
 @media (max-width: 760px) {
+  .v0-workspace .invitation-live .studio-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .v0-workspace .invitation-live .studio-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .v0-workspace .invitation-live .studio-tab {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 0 14px;
+  }
   .v0-workspace .invitation-live .invite-paper {
     min-height: 0;
     padding: 56px 24px 40px;
@@ -187,8 +391,9 @@
   .v0-workspace .invitation-live .studio-inline {
     flex-direction: column;
   }
-  .v0-workspace .invitation-live .studio-tab {
-    padding: 0 14px;
+  .v0-workspace .invitation-live .studio-order-stepper {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 }
 

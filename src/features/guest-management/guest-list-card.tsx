@@ -1,15 +1,14 @@
 'use client';
 
-import { CopyButton } from '../../design-system/copy-button';
-import { useMemo, useState } from 'react';
-import { formText, formatDateTime } from '../couple-workspace/use-couple-workspace';
+import React from 'react';
 import { guestApi, type Guest, type GuestGroup } from './guest-api';
-import { normalizePhone } from './guest-csv';
-import { GuestFields } from './guest-fields';
-import { usePersonalInvitationLink } from './use-personal-invitation-link';
-import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import { Illustration } from '../../design-system/illustrations';
+import { GuestModal } from './guest-modal';
+import { GuestLinkModal } from './guest-link-modal';
 import type { GuestStatusFilter } from './use-guests-workspace';
+import { useGuestListCard } from './use-guest-list-card';
+import { GuestTableView } from './guest-table-view';
+import { GuestCardList } from './guest-card-list';
 import styles from './guests.module.css';
 
 export function GuestListCard({
@@ -27,57 +26,116 @@ export function GuestListCard({
   onStatusChange: (status: GuestStatusFilter) => void;
   onChanged: (guest?: Guest, action?: 'create' | 'update') => void;
 }>) {
-  const { confirm, prompt, dialog } = useConfirmDialog();
-  const { command, link, issueLink, sendLink, clearLink } = usePersonalInvitationLink(
+  const {
+    searchQuery,
+    setSearchQuery,
+    groupFilter,
+    setGroupFilter,
+    modalState,
+    setModalState,
+    selectedIds,
+    setSelectedIds,
+    activeGroups,
+    groupMap,
+    visible,
+    allVisibleSelected,
+    someVisibleSelected,
+    toggleSelectAll,
+    toggleSelectOne,
+    linkGuest,
+    setLinkGuest,
+    command,
+    link,
+    issueLink,
+    sendLink,
+    clearLink,
+    handleBulkMoveGroup,
+    handleBulkToggleStatus,
+    handleToggleGuestStatus,
+    dialog,
+  } = useGuestListCard({
     bookingId,
-    (guestName) =>
-      prompt({
-        title: 'Gửi thiệp riêng qua email',
-        label: `Email người nhận thiệp của ${guestName}`,
-        type: 'email',
-        placeholder: 'ten@vidu.com',
-        confirmLabel: 'Gửi email',
-      }),
-  );
-  const [groupFilter, setGroupFilter] = useState('');
-  const [editing, setEditing] = useState<string | null>(null);
-
-  const activeGroups = groups.filter((group) => group.status === 'ACTIVE');
-  const groupName = useMemo(
-    () => new Map(groups.map((group) => [group.guestGroupId, group])),
-    [groups],
-  );
-  const visible = groupFilter
-    ? guests.filter((guest) => guest.guestGroupId === groupFilter)
-    : guests;
-
-  const readPhone = (raw: FormDataEntryValue | null) => {
-    try {
-      return normalizePhone(typeof raw === 'string' ? raw : '');
-    } catch {
-      throw new Error('Số điện thoại không hợp lệ (ví dụ 0901234567 hoặc +84901234567).');
-    }
-  };
+    groups,
+    guests,
+    status,
+    onChanged,
+  });
 
   return (
     <section className="cw-card">
       <div className="cw-card-header">
-        <h2>Danh sách tên khách (tùy chọn)</h2>
+        <div>
+          <h2>Danh sách tên khách</h2>
+          <span className={styles.guestCountBadge}>
+            Hiển thị {visible.length} / {guests.length} khách
+            {status === 'ARCHIVED' ? ' (Đã lưu trữ)' : ''}
+          </span>
+        </div>
         <div className="cw-actions">
+          {status === 'ACTIVE' ? (
+            <button
+              className="button"
+              type="button"
+              disabled={command.pending || activeGroups.length === 0}
+              onClick={() => setModalState({ open: true, guest: null })}
+            >
+              + Thêm khách
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      {/* Toolbar Tìm kiếm & Lọc */}
+      <div className={styles.toolbar}>
+        <div className={styles.searchWrap}>
+          <input
+            type="search"
+            className={styles.searchInput}
+            placeholder="Tìm theo tên, SĐT, ghi chú…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Tìm kiếm khách mời"
+          />
+          {searchQuery ? (
+            <button
+              type="button"
+              className={styles.clearSearch}
+              onClick={() => setSearchQuery('')}
+              aria-label="Xoá tìm kiếm"
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
+
+        <div className={styles.filterRow}>
           <label>
-            <span className="muted">Trạng thái </span>
+            <span className="muted" style={{ marginRight: 6 }}>
+              Trạng thái
+            </span>
             <select
+              className={styles.filterSelect}
               value={status}
-              onChange={(event) => onStatusChange(event.target.value as GuestStatusFilter)}
+              onChange={(e) => {
+                onStatusChange(e.target.value as GuestStatusFilter);
+                setSelectedIds(new Set());
+              }}
             >
               <option value="ACTIVE">Đang mời</option>
               <option value="ARCHIVED">Đã lưu trữ</option>
             </select>
           </label>
+
           <label>
-            <span className="muted">Nhóm </span>
-            <select value={groupFilter} onChange={(event) => setGroupFilter(event.target.value)}>
-              <option value="">Tất cả</option>
+            <span className="muted" style={{ marginRight: 6 }}>
+              Nhóm
+            </span>
+            <select
+              className={styles.filterSelect}
+              value={groupFilter}
+              onChange={(e) => setGroupFilter(e.target.value)}
+            >
+              <option value="">Tất cả các nhóm</option>
               {groups.map((group) => (
                 <option key={group.guestGroupId} value={group.guestGroupId}>
                   {group.name}
@@ -88,215 +146,172 @@ export function GuestListCard({
         </div>
       </div>
 
-      {link ? (
-        <div className="cw-note" role="status">
-          <p>
-            Liên kết riêng cho <strong>{link.guestName}</strong> (hết hạn{' '}
-            {formatDateTime(link.expiresAt)}). Liên kết chỉ hiển thị <strong>một lần</strong> — hãy
-            sao chép ngay. Cấp lại sẽ vô hiệu hoá liên kết cũ.
-          </p>
-          <div className={`cw-copy ${styles.copyRow}`}>
-            <code className={styles.copyCode}>{link.url}</code>
-            <CopyButton className="button button-secondary" text={link.url} />
-          </div>
-          <button className="cw-text-button" type="button" onClick={clearLink}>
-            Đã sao chép, ẩn liên kết
-          </button>
-        </div>
-      ) : null}
-
+      {/* Bảng Danh sách Desktop & Thẻ Mobile */}
       {visible.length === 0 ? (
         <p className="cw-note cw-note-illustrated">
-          {status === 'ACTIVE' ? <Illustration name="empty-khach" size={64} /> : null}
-          {status === 'ACTIVE'
-            ? 'Chưa có tên khách nào. Bạn vẫn dùng được nhóm, sơ đồ bàn, thiệp và in mà không cần danh sách tên.'
-            : 'Không có khách đã lưu trữ.'}
+          {status === 'ACTIVE' && !searchQuery && !groupFilter ? (
+            <Illustration name="empty-khach" size={64} />
+          ) : null}
+          {searchQuery || groupFilter
+            ? 'Không tìm thấy khách nào khớp với bộ lọc.'
+            : status === 'ACTIVE'
+              ? 'Chưa có tên khách nào. Bạn vẫn dùng được nhóm, sơ đồ bàn, thiệp và in mà không cần danh sách tên.'
+              : 'Không có khách đã lưu trữ.'}
         </p>
       ) : (
-        <div className="cw-table-wrap">
-          <table className="cw-table">
-            <thead>
-              <tr>
-                <th scope="col">Họ tên</th>
-                <th scope="col">Nhóm</th>
-                <th scope="col">Điện thoại</th>
-                <th scope="col">Ghi chú</th>
-                <th scope="col">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((guest) =>
-                editing === guest.guestId ? (
-                  <tr key={guest.guestId}>
-                    <td colSpan={5}>
-                      <form
-                        className="cw-form"
-                        onSubmit={(event) => {
-                          event.preventDefault();
-                          const data = new FormData(event.currentTarget);
-                          void command
-                            .run(
-                              (token, key) =>
-                                guestApi.updateGuest(token, key, bookingId, guest.guestId, {
-                                  expectedRevision: guest.revision,
-                                  name: formText(data, 'name'),
-                                  guestGroupId: formText(data, 'guestGroupId'),
-                                  phone: readPhone(data.get('phone')),
-                                  operationalNote: formText(data, 'note') || null,
-                                }),
-                              'Đã lưu thông tin khách.',
-                            )
-                            .then((result) => {
-                              if (result) {
-                                setEditing(null);
-                                onChanged(result, 'update');
-                              }
-                            });
-                        }}
-                      >
-                        <GuestFields groups={activeGroups} guest={guest} />
-                        <div className="cw-actions">
-                          <button className="button" type="submit" disabled={command.pending}>
-                            Lưu
-                          </button>
-                          <button
-                            className="button button-secondary"
-                            type="button"
-                            onClick={() => setEditing(null)}
-                          >
-                            Huỷ
-                          </button>
-                        </div>
-                      </form>
-                    </td>
-                  </tr>
-                ) : (
-                  <tr key={guest.guestId}>
-                    <td>{guest.name}</td>
-                    <td>
-                      <span
-                        className={`cw-swatch ${styles.swatch}`}
-                        style={{ background: groupName.get(guest.guestGroupId)?.color }}
-                        aria-hidden="true"
-                      />
-                      {groupName.get(guest.guestGroupId)?.name ?? '—'}
-                    </td>
-                    <td>{guest.phone ?? '—'}</td>
-                    <td>{guest.operationalNote ?? ''}</td>
-                    <td>
-                      <div className="cw-actions">
-                        {guest.status === 'ACTIVE' ? (
-                          <>
-                            <button
-                              className="cw-text-button"
-                              type="button"
-                              disabled={command.pending}
-                              onClick={() => setEditing(guest.guestId)}
-                            >
-                              Sửa
-                            </button>
-                            <button
-                              className="cw-text-button"
-                              type="button"
-                              disabled={command.pending}
-                              onClick={() => void issueLink(guest)}
-                            >
-                              Lấy liên kết
-                            </button>
-                            <button
-                              className="cw-text-button"
-                              type="button"
-                              disabled={command.pending}
-                              onClick={() => void sendLink(guest)}
-                            >
-                              Gửi email
-                            </button>
-                          </>
-                        ) : null}
-                        <button
-                          className="cw-text-button"
-                          type="button"
-                          disabled={command.pending}
-                          onClick={() =>
-                            void (async () => {
-                              if (
-                                guest.status === 'ACTIVE' &&
-                                !(await confirm({
-                                  title: `Lưu trữ khách “${guest.name}”?`,
-                                  description:
-                                    'Khách sẽ bị ẩn khỏi danh sách đang dùng và liên kết thiệp riêng đã gửi sẽ bị thu hồi. Bạn có thể khôi phục lại sau.',
-                                  confirmLabel: 'Lưu trữ khách',
-                                  tone: 'danger',
-                                }))
-                              )
-                                return;
-                              const result = await command.run(
-                                (token, key) =>
-                                  guestApi.updateGuest(token, key, bookingId, guest.guestId, {
-                                    expectedRevision: guest.revision,
-                                    status: guest.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE',
-                                  }),
-                                guest.status === 'ACTIVE'
-                                  ? 'Đã lưu trữ khách (liên kết riêng bị thu hồi).'
-                                  : 'Đã khôi phục khách.',
-                              );
-                              if (result) onChanged(result, 'update');
-                            })()
-                          }
-                        >
-                          {guest.status === 'ACTIVE' ? 'Lưu trữ' : 'Khôi phục'}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ),
-              )}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <GuestTableView
+            visible={visible}
+            selectedIds={selectedIds}
+            allVisibleSelected={allVisibleSelected}
+            someVisibleSelected={someVisibleSelected}
+            groupMap={groupMap}
+            pending={command.pending}
+            onToggleSelectAll={toggleSelectAll}
+            onToggleSelectOne={toggleSelectOne}
+            onEdit={(guest) => setModalState({ open: true, guest })}
+            onIssueLink={(guest) => {
+              setLinkGuest(guest);
+              void issueLink(guest);
+            }}
+            onSendEmail={(guest) => void sendLink(guest)}
+            onToggleStatus={(guest) => {
+              void handleToggleGuestStatus(guest);
+            }}
+          />
+
+          <GuestCardList
+            visible={visible}
+            selectedIds={selectedIds}
+            groupMap={groupMap}
+            pending={command.pending}
+            onToggleSelectOne={toggleSelectOne}
+            onEdit={(guest) => setModalState({ open: true, guest })}
+            onIssueLink={(guest) => {
+              setLinkGuest(guest);
+              void issueLink(guest);
+            }}
+            onSendEmail={(guest) => void sendLink(guest)}
+            onToggleStatus={(guest) => {
+              void handleToggleGuestStatus(guest);
+            }}
+          />
+        </>
       )}
 
-      {status === 'ACTIVE' ? (
-        <details>
-          <summary>Thêm một khách</summary>
-          <form
-            className="cw-form"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const form = event.currentTarget;
-              const data = new FormData(form);
-              void command
-                .run(
-                  (token, key) =>
-                    guestApi.createGuest(token, key, bookingId, {
-                      name: formText(data, 'name'),
-                      guestGroupId: formText(data, 'guestGroupId'),
-                      phone: readPhone(data.get('phone')),
-                      operationalNote: formText(data, 'note') || null,
-                    }),
-                  'Đã thêm khách.',
-                )
-                .then((result) => {
-                  if (result) {
-                    form.reset();
-                    onChanged(result, 'create');
-                  }
-                });
-            }}
-          >
-            <GuestFields groups={activeGroups} />
-            <div className="cw-actions">
-              <button
-                className="button"
-                type="submit"
-                disabled={command.pending || activeGroups.length === 0}
-              >
-                Thêm khách
-              </button>
-            </div>
-          </form>
-        </details>
+      {/* Thanh Thao tác hàng loạt (Bulk Bar) khi có chọn */}
+      {selectedIds.size > 0 ? (
+        <div className={styles.bulkBar} role="region" aria-label="Thao tác hàng loạt">
+          <div className={styles.bulkInfo}>Đã chọn {selectedIds.size} khách mời</div>
+          <div className={styles.bulkActions}>
+            {status === 'ACTIVE' ? (
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, margin: 0 }}>
+                <span style={{ fontSize: 13, color: 'var(--hy-ink-muted)' }}>Chuyển sang:</span>
+                <select
+                  className={styles.filterSelect}
+                  style={{ height: 32, fontSize: 13 }}
+                  defaultValue=""
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      void handleBulkMoveGroup(e.target.value);
+                      e.target.value = '';
+                    }
+                  }}
+                >
+                  <option value="" disabled>
+                    Chọn nhóm đích…
+                  </option>
+                  {activeGroups.map((g) => (
+                    <option key={g.guestGroupId} value={g.guestGroupId}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+
+            <button
+              className="button button-secondary"
+              style={{ padding: '6px 12px', fontSize: 13 }}
+              type="button"
+              disabled={command.pending}
+              onClick={() => void handleBulkToggleStatus()}
+            >
+              {status === 'ACTIVE' ? 'Lưu trữ đã chọn' : 'Khôi phục đã chọn'}
+            </button>
+
+            <button
+              className="cw-text-button"
+              type="button"
+              style={{ fontSize: 13 }}
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Bỏ chọn
+            </button>
+          </div>
+        </div>
       ) : null}
+
+      {/* Modal Thêm / Chỉnh sửa khách */}
+      <GuestModal
+        isOpen={modalState.open}
+        {...(modalState.guest ? { guest: modalState.guest } : {})}
+        groups={activeGroups}
+        pending={command.pending}
+        onClose={() => setModalState({ open: false, guest: null })}
+        onSubmit={async (data) => {
+          if (modalState.guest) {
+            const target = modalState.guest;
+            const res = await command.run(
+              (token, key) =>
+                guestApi.updateGuest(token, key, bookingId, target.guestId, {
+                  expectedRevision: target.revision,
+                  name: data.name,
+                  guestGroupId: data.guestGroupId,
+                  phone: data.phone,
+                  operationalNote: data.note,
+                }),
+              'Đã lưu thông tin khách.',
+            );
+            if (res) {
+              setModalState({ open: false, guest: null });
+              onChanged(res, 'update');
+            }
+          } else {
+            const res = await command.run(
+              (token, key) =>
+                guestApi.createGuest(token, key, bookingId, {
+                  name: data.name,
+                  guestGroupId: data.guestGroupId,
+                  phone: data.phone,
+                  operationalNote: data.note,
+                }),
+              'Đã thêm khách mời mới.',
+            );
+            if (res) {
+              setModalState({ open: false, guest: null });
+              onChanged(res, 'create');
+            }
+          }
+        }}
+      />
+
+      {/* Modal hiển thị Liên kết thiệp riêng */}
+      <GuestLinkModal
+        link={link}
+        onClose={() => {
+          clearLink();
+          setLinkGuest(null);
+        }}
+        onSendEmail={
+          linkGuest
+            ? () => {
+                void sendLink(linkGuest);
+              }
+            : undefined
+        }
+      />
+
       {dialog}
     </section>
   );

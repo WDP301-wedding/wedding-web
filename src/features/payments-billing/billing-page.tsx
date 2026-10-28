@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useContext, useEffect, useState } from 'react';
 import { InlineError } from '../../design-system/inline-error';
 import { type FriendlyError, describeApiError } from '../../lib/api/api-errors';
-import { BrandMark } from '../../design-system/brand-mark';
 import { browserSession } from '../identity-access/browser-session';
 import type { WebIdentitySession, WebSessionSnapshot } from '../identity-access/session';
 import { CoupleWorkspaceContext, type Proposal } from '../couple-workspace/use-couple-workspace';
@@ -18,6 +17,11 @@ import { BillingDepositSection } from './billing-deposit-section';
 import { BillingBalanceSection } from './billing-balance-section';
 import { BillingConfirmSection } from './billing-confirm-section';
 import { BillingAttemptPanel } from './billing-attempt-panel';
+import {
+  BillingHeaderNav,
+  BillingIntroSection,
+  BillingLookupForm,
+} from './billing-header-section';
 import {
   type Authorize,
   completed,
@@ -45,6 +49,7 @@ export function CoupleBillingPage({
   const [snapshot, setSnapshot] = useState<WebSessionSnapshot | null>(null);
   const [restoreError, setRestoreError] = useState<FriendlyError | null>(null);
   const [restoreKey, setRestoreKey] = useState(0);
+
   useEffect(() => {
     let active = true;
     void session
@@ -62,6 +67,7 @@ export function CoupleBillingPage({
       active = false;
     };
   }, [session, restoreKey]);
+
   if (restoreError)
     return (
       <InlineError
@@ -72,6 +78,7 @@ export function CoupleBillingPage({
         }}
       />
     );
+
   if (snapshot === null)
     return (
       <div className="billing-shell">
@@ -79,6 +86,7 @@ export function CoupleBillingPage({
         <p role="status">Đang kiểm tra phiên đăng nhập.</p>
       </div>
     );
+
   if (snapshot.status === 'anonymous')
     return (
       <div className="billing-shell">
@@ -87,6 +95,7 @@ export function CoupleBillingPage({
         <Link href="/dang-nhap">Về trang đăng nhập</Link>
       </div>
     );
+
   return (
     <CoupleBillingWorkspace
       key={snapshot.actor.accountId}
@@ -159,89 +168,50 @@ export function CoupleBillingWorkspace({
     initialProposal,
   });
 
+  const handleSelectBooking = (selectedId: string) => {
+    identifierEditedRef.current = true;
+    setBookingId(selectedId);
+    setContext(null);
+    setView(null);
+    setAttemptId('');
+    setNeedsAttemptStatus(false);
+    setError(null);
+    void run(() => load(selectedId));
+  };
+
+  const handleLookup = (id: string) => {
+    setContext(null);
+    setView(null);
+    void run(() => load(id));
+  };
+
+  const handleBookingIdInput = (value: string) => {
+    identifierEditedRef.current = true;
+    setBookingId(value);
+    setContext(null);
+    setView(null);
+    setAttemptId('');
+    setNeedsAttemptStatus(false);
+    setError(null);
+  };
+
   return (
     <div className="billing-shell billing-couple">
-      {embedded ? null : (
-        <header className="billing-header">
-          <Link className="billing-wordmark" href="/" aria-label="Hỷ Yến — Trang chủ">
-            <BrandMark compact />
-          </Link>
-          <nav aria-label="Không gian cặp đôi">
-            <Link href="/khong-gian/thoa-thuan/kich-ban">Đề xuất và kịch bản</Link>
-            <Link href="/khong-gian/thanh-toan" aria-current="page">
-              Thanh toán
-            </Link>
-          </nav>
-        </header>
-      )}
-      <section className="billing-intro">
-        <h1>Thanh toán cho ngày trọng đại</h1>
-        <p>Xem khoản cọc, số dư và trạng thái đã được nhà hàng xác minh.</p>
-
-        {!embedded && availableBookings.length > 0 && (
-          <div className="billing-booking-select-wrapper mb-3 text-left">
-            <label htmlFor="billing-booking-select" className="block text-sm font-medium mb-1">
-              Chọn hồ sơ tiệc cưới của bạn:
-            </label>
-            <select
-              id="billing-booking-select"
-              value={context?.bookingId ?? bookingId}
-              disabled={blocked}
-              onChange={(e) => {
-                const selectedId = e.target.value;
-                if (selectedId) {
-                  identifierEditedRef.current = true;
-                  setBookingId(selectedId);
-                  setContext(null);
-                  setView(null);
-                  setAttemptId('');
-                  setNeedsAttemptStatus(false);
-                  setError(null);
-                  void run(() => load(selectedId));
-                }
-              }}
-              className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883] bg-white text-sm"
-            >
-              <option value="">-- Danh sách tiệc cưới đã lưu --</option>
-              {availableBookings.map((b) => (
-                <option key={b.bookingId} value={b.bookingId}>
-                  {b.label} (#{b.bookingId.slice(0, 8)})
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-      </section>
-      {embedded ? null : (
-        <form
-          className="billing-lookup"
-          onSubmit={(event) => {
-            event.preventDefault();
-            setContext(null);
-            setView(null);
-            void run(() => load(bookingId.trim()));
-          }}
-        >
-          <label>
-            Mã hồ sơ đặt tiệc
-            <input
-              required
-              value={bookingId}
-              disabled={blocked}
-              onChange={(event) => {
-                if (blocked) return;
-                identifierEditedRef.current = true;
-                setBookingId(event.target.value);
-                setContext(null);
-                setView(null);
-                setAttemptId('');
-                setNeedsAttemptStatus(false);
-                setError(null);
-              }}
-            />
-          </label>
-          <button disabled={blocked}>Mở thanh toán</button>
-        </form>
+      {!embedded && <BillingHeaderNav />}
+      <BillingIntroSection
+        embedded={embedded}
+        availableBookings={availableBookings}
+        currentBookingId={context?.bookingId ?? bookingId}
+        blocked={blocked}
+        onSelectBooking={handleSelectBooking}
+      />
+      {!embedded && (
+        <BillingLookupForm
+          bookingId={bookingId}
+          blocked={blocked}
+          onBookingIdChange={handleBookingIdInput}
+          onSubmit={handleLookup}
+        />
       )}
       <div aria-live="polite" className="billing-live">
         {pending && <p role="status">Đang kiểm tra với máy chủ…</p>}

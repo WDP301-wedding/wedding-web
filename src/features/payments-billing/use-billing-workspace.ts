@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { ApiClientError } from '../../lib/api/client';
 import { useSpaceExtras } from '../couple-workspace/space-provider';
 import type { Proposal } from '../couple-workspace/use-couple-workspace';
-import { useRealtimeSubscription } from '../realtime/use-realtime';
 import { balanceGate } from './balance-eligibility';
 import type {
   AttemptView,
@@ -19,18 +18,22 @@ import {
   type Authorize,
   type CheckoutIntent,
   applyAttemptDisplayState,
-  buildRecoveryIntent,
+  applyStartedCheckout,
   completed,
   executeFetchRestoredAttempt,
+  executeLoadBilling,
   executeRefreshCompletedAttempt,
   executeStartCheckout,
   lastCheckoutKey,
   rememberCheckout,
   resetExpiredCheckoutState,
-  resolveRestoreAttemptId,
   syncUrlParams,
 } from './billing-workspace.helpers';
-import { useAvailableBookings, useWorkspaceSync } from './billing-workspace-sync';
+import {
+  useAvailableBookings,
+  useBillingRealtimeSync,
+  useWorkspaceSync,
+} from './billing-workspace-sync';
 import { useExpired } from './checkout-link';
 
 export {
@@ -145,74 +148,61 @@ export function useBillingWorkspace({
     setNeedsAttemptStatus(true);
     const seed = contextSeedRef.current;
     contextSeedRef.current = undefined;
-    const value = await authorize((token) => gateway.loadContext(token, id, seed));
+
+    const loaded = await executeLoadBilling({
+      id,
+      contextSeed: seed,
+      gateway,
+      authorize,
+      intents,
+      currentContext: context,
+      currentAttempt: attempt,
+      currentCheckout: checkout,
+      attemptId,
+    });
     if (activeRequestIdRef.current !== requestId) return;
-    if (value.bookingId !== id) throw new Error('Booking mismatch');
-    const hideBalanceAttempt =
-      value.accessLevel !== 'FULL' &&
-      (attempt?.purpose === 'BALANCE' || (checkout !== null && context?.accessLevel === 'FULL'));
-    if (value.accessLevel !== 'FULL') {
+
+    if (loaded.value.accessLevel !== 'FULL') {
       setView(null);
-      if (hideBalanceAttempt) {
+      if (loaded.hideBalanceAttempt) {
         setAttempt(null);
         setAttemptId('');
         setCheckout(null);
       }
     }
-    const saved = await intents.pending(`checkout:${id}`);
-    const savedAllowed = saved?.timelineRevisionId !== undefined || value.accessLevel === 'FULL';
-    const active = await authorize((token) => gateway.loadActiveAttempts(token, id));
-    if (activeRequestIdRef.current !== requestId) return;
-    const discovered = active.find(
-      (item) => value.accessLevel === 'FULL' || item.purpose === 'DEPOSIT',
-    );
-    const isSameBooking =
-      context?.bookingId === id ||
-      new URLSearchParams(window.location.search).get('bookingId') === id;
-    const restoreAttemptId = resolveRestoreAttemptId(
-      discovered,
-      savedAllowed,
-      saved?.checkoutAttemptId,
-      hideBalanceAttempt,
-      isSameBooking,
-      attemptId,
-    );
-    const result =
-      value.accessLevel === 'FULL' ? await authorize((token) => gateway.load(token, id)) : null;
-    if (activeRequestIdRef.current !== requestId) return;
-    if (result !== null && result.bookingId !== id) throw new Error('Billing mismatch');
-    setContext(value);
-    setView(result);
+
+    setContext(loaded.value);
+    setView(loaded.result);
     setBookingId(id);
     syncUrlParams(id);
     onBookingChange?.(id);
-    const recoveryIntent = buildRecoveryIntent(saved, value.accessLevel);
-    setIntent(recoveryIntent);
-    setRetry(recoveryIntent !== null);
-    if (restoreAttemptId !== '') {
-      setAttemptId(restoreAttemptId);
+    setIntent(loaded.recoveryIntent);
+    setRetry(loaded.recoveryIntent !== null);
+
+    if (loaded.restoreAttemptId !== '') {
+      setAttemptId(loaded.restoreAttemptId);
       setIntent(null);
       setRetry(false);
       const restored = await executeFetchRestoredAttempt({
         gateway,
         authorize,
         id,
-        restoreAttemptId,
-        discovered,
-        accessLevel: value.accessLevel,
+        restoreAttemptId: loaded.restoreAttemptId,
+        discovered: loaded.discovered,
+        accessLevel: loaded.value.accessLevel,
       });
       if (activeRequestIdRef.current !== requestId) return;
-      await intents.rememberAttempt(`checkout:${id}`, restoreAttemptId);
+      await intents.rememberAttempt(`checkout:${id}`, loaded.restoreAttemptId);
       await displayAttempt(id, restored);
       if (
-        discovered === undefined &&
-        recoveryIntent !== null &&
+        loaded.discovered === undefined &&
+        loaded.recoveryIntent !== null &&
         restored.checkoutUrl === undefined &&
         restored.status !== 'SUCCEEDED' &&
         restored.status !== 'FAILED' &&
         Date.parse(restored.expiresAt) > Date.now()
       ) {
-        setIntent(recoveryIntent);
+        setIntent(loaded.recoveryIntent);
         setRetry(true);
       }
       if (completed(restored)) {
@@ -226,26 +216,7 @@ export function useBillingWorkspace({
     } else setNeedsAttemptStatus(false);
   };
 
-  useRealtimeSubscription({
-    bookingId: bookingId || undefined,
-    enabled: Boolean(bookingId) && !embedded,
-    onEvent: (event) => {
-      if (!event.scope.bookingId || event.scope.bookingId === bookingId) {
-        if (
-          event.type === 'billing.updated' ||
-          event.type === 'deposit.received' ||
-          event.type === 'contract.updated'
-        ) {
-          void run(() => load(bookingId));
-        }
-      }
-    },
-    onResync: () => {
-      if (bookingId) {
-        void run(() => load(bookingId));
-      }
-    },
-  });
+  useBillingRealtimeSync({ bookingId, embedded, run, load });
 
   const start = async () => {
     if (
@@ -266,17 +237,15 @@ export function useBillingWorkspace({
         intents,
         authorize,
       });
-      setCheckout(value);
-      rememberCheckout(context.bookingId, value.paymentAttemptId);
-      setAttemptId(value.paymentAttemptId);
-      setAttempt(null);
-      setIntent(null);
-      setRetry(false);
-      const query = new URLSearchParams({
+      applyStartedCheckout({
+        value,
         bookingId: context.bookingId,
-        attemptId: value.paymentAttemptId,
+        setCheckout,
+        setAttemptId,
+        setAttempt,
+        setIntent,
+        setRetry,
       });
-      window.history.replaceState({}, '', `/khong-gian/thanh-toan?${query.toString()}`);
     } catch (caught) {
       fail(caught);
       const unknown = unresolved(caught);

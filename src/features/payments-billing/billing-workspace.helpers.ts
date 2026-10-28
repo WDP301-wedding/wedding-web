@@ -1,6 +1,7 @@
 'use client';
 
 import { createExperienceGateway } from '../identity-access/experience-api';
+import type { Proposal } from '../couple-workspace/use-couple-workspace';
 import type {
   AttemptView,
   BalanceBody,
@@ -18,17 +19,21 @@ export type CheckoutIntent =
   | Readonly<{ kind: 'deposit'; body: DepositBody; amountVnd: number | null }>
   | Readonly<{ kind: 'balance'; body: BalanceBody; amountVnd: number | null }>;
 
-export const lastCheckoutKey = 'wedding.lastCheckout';
+import {
+  lastCheckoutKey,
+  rememberCheckout,
+  executeStartCheckout,
+  applyStartedCheckout,
+  resetExpiredCheckoutState,
+} from './billing-checkout.helpers';
 
-export function rememberCheckout(bookingId: string, attemptId: string) {
-  try {
-    const payload = JSON.stringify({ bookingId, attemptId });
-    localStorage.setItem(lastCheckoutKey, payload);
-    localStorage.setItem(`${lastCheckoutKey}.${attemptId}`, payload);
-  } catch {
-    // Trình duyệt chặn storage: người dùng vẫn mở được trạng thái từ trang Thanh toán.
-  }
-}
+export {
+  lastCheckoutKey,
+  rememberCheckout,
+  executeStartCheckout,
+  applyStartedCheckout,
+  resetExpiredCheckoutState,
+};
 
 export const completed = (value: AttemptView) =>
   value.status === 'FAILED' ||
@@ -198,69 +203,70 @@ export async function loadAvailableBookings(authorize: Authorize): Promise<
   });
 }
 
-export async function executeStartCheckout({
-  context,
-  intent,
+export async function executeLoadBilling({
+  id,
+  contextSeed,
   gateway,
-  intents,
   authorize,
+  intents,
+  currentContext,
+  currentAttempt,
+  currentCheckout,
+  attemptId,
 }: {
-  context: BillingContext;
-  intent: CheckoutIntent;
+  id: string;
+  contextSeed: Proposal | undefined;
   gateway: CoupleBillingGateway;
-  intents: ReturnType<typeof createBillingIntents>;
   authorize: Authorize;
-}): Promise<CheckoutView> {
-  return intents.run(
-    `checkout:${context.bookingId}`,
-    intent.body,
-    (key, stableBody) =>
-      authorize((token) =>
-        intent.kind === 'deposit'
-          ? gateway.startDeposit(token, context.bookingId, stableBody as DepositBody, key)
-          : gateway.startBalance(token, context.bookingId, stableBody as BalanceBody, key),
-      ),
-    true,
+  intents: ReturnType<typeof createBillingIntents>;
+  currentContext: BillingContext | null;
+  currentAttempt: AttemptView | null;
+  currentCheckout: CheckoutView | null;
+  attemptId: string;
+}) {
+  const value = await authorize((token) => gateway.loadContext(token, id, contextSeed));
+  if (value.bookingId !== id) throw new Error('Booking mismatch');
+
+  const hideBalanceAttempt =
+    value.accessLevel !== 'FULL' &&
+    (currentAttempt?.purpose === 'BALANCE' ||
+      (currentCheckout !== null && currentContext?.accessLevel === 'FULL'));
+
+  const saved = await intents.pending(`checkout:${id}`);
+  const savedAllowed = saved?.timelineRevisionId !== undefined || value.accessLevel === 'FULL';
+  const active = await authorize((token) => gateway.loadActiveAttempts(token, id));
+
+  const discovered = active.find(
+    (item) => value.accessLevel === 'FULL' || item.purpose === 'DEPOSIT',
   );
+  const isSameBooking =
+    currentContext?.bookingId === id ||
+    (typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('bookingId') === id);
+
+  const restoreAttemptId = resolveRestoreAttemptId(
+    discovered,
+    savedAllowed,
+    saved?.checkoutAttemptId,
+    hideBalanceAttempt,
+    isSameBooking,
+    attemptId,
+  );
+
+  const result =
+    value.accessLevel === 'FULL' ? await authorize((token) => gateway.load(token, id)) : null;
+  if (result !== null && result.bookingId !== id) throw new Error('Billing mismatch');
+
+  const recoveryIntent = buildRecoveryIntent(saved, value.accessLevel);
+
+  return {
+    value,
+    result,
+    hideBalanceAttempt,
+    restoreAttemptId,
+    discovered,
+    recoveryIntent,
+  };
 }
 
-export function resetExpiredCheckoutState({
-  checkout,
-  setCheckout,
-  setAttempt,
-  setAttemptId,
-  setIntent,
-  setRetry,
-  context,
-  intents,
-  run,
-  load,
-}: {
-  checkout: CheckoutView | null;
-  setCheckout: (v: CheckoutView | null) => void;
-  setAttempt: (v: AttemptView | null) => void;
-  setAttemptId: (v: string) => void;
-  setIntent: (v: CheckoutIntent | null) => void;
-  setRetry: (v: boolean) => void;
-  context: BillingContext | null;
-  intents: ReturnType<typeof createBillingIntents>;
-  run: (op: () => Promise<void>) => Promise<void>;
-  load: (id: string) => Promise<void>;
-}) {
-  if (!checkout) return;
-  const currentAttemptId = checkout.paymentAttemptId;
-  setCheckout(null);
-  setAttempt(null);
-  setAttemptId('');
-  setIntent(null);
-  setRetry(false);
-  if (typeof window !== 'undefined') {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('attemptId');
-    window.history.replaceState({}, '', url.toString());
-  }
-  if (context?.bookingId) {
-    void intents.completeCheckout(`checkout:${context.bookingId}`, currentAttemptId);
-    void run(() => load(context.bookingId));
-  }
-}
+

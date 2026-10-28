@@ -16,16 +16,30 @@ export function SeatingSvg({
   selected,
   onSelectTable,
   colorOf,
+  groupNameOf,
 }: Readonly<{
   plan: SeatingPlan;
   selected: string | null;
   onSelectTable: (tableId: string) => void;
   colorOf: (table: SeatingTable) => string;
+  groupNameOf?: (table: SeatingTable) => string | undefined;
 }>) {
-  const { view, svgRef, panned, startPan, movePan, endPan, zoomIn, zoomOut, resetZoom } =
-    useSeatingPan();
+  const {
+    view,
+    svgRef,
+    panned,
+    isFullscreen,
+    startPan,
+    movePan,
+    endPan,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    onWheel,
+    toggleFullscreen,
+  } = useSeatingPan();
 
-  return (
+  const content = (
     <>
       <div
         className={`hy-zoom-bar ${styles.zoomToolbar}`}
@@ -56,7 +70,17 @@ export function SeatingSvg({
         <button type="button" className="cw-text-button" onClick={resetZoom}>
           Vừa khung
         </button>
-        <small>Kéo để di chuyển khi đã phóng to.</small>
+        <button
+          type="button"
+          className="button button-secondary"
+          style={{ padding: '4px 10px', fontSize: 13 }}
+          onClick={toggleFullscreen}
+        >
+          {isFullscreen ? 'Thu nhỏ cửa sổ' : '⛶ Toàn màn hình'}
+        </button>
+        <small className={styles.zoomHint}>
+          Kéo để di chuyển · Giữ Ctrl + cuộn chuột để thu phóng
+        </small>
       </div>
 
       <svg
@@ -67,6 +91,7 @@ export function SeatingSvg({
         onPointerMove={movePan}
         onPointerUp={endPan}
         onPointerCancel={endPan}
+        onWheel={onWheel}
         role="img"
         aria-label={`Sơ đồ ${plan.renderSnapshot.length} bàn. Chọn một bàn để gắn nhóm.`}
       >
@@ -74,13 +99,21 @@ export function SeatingSvg({
           const cx = table.x + table.width / 2;
           const cy = table.y + table.height / 2;
           const isSelected = table.layoutTableId === selected;
+          const groupName = groupNameOf?.(table);
+          const hasGroup = Boolean(groupName);
+
+          // Tính toán kích thước font chữ phù hợp với mặt bàn
+          const minDim = Math.min(table.width, table.height);
+          const labelFontSize = Math.max(10, Math.min(18, minDim / (hasGroup ? 4.2 : 3.5)));
+          const groupFontSize = Math.max(8, Math.min(12, minDim / 6.2));
+
           return (
             <g
               key={table.layoutTableId}
               transform={`translate(${cx} ${cy}) rotate(${table.rotationDegrees})`}
               tabIndex={0}
               role="button"
-              aria-label={`Bàn ${table.tableLabel}`}
+              aria-label={`Bàn ${table.tableLabel}${groupName ? `, Nhóm: ${groupName}` : ''}`}
               className={styles.tableInteractive}
               onClick={() => {
                 if (panned.current) {
@@ -96,6 +129,12 @@ export function SeatingSvg({
                 }
               }}
             >
+              <title>
+                {`Bàn ${table.tableLabel}${
+                  groupName ? ` · Nhóm: ${groupName}` : ' · (Chưa gán nhóm)'
+                }`}
+              </title>
+
               {table.shape === 'ROUND' ? (
                 <ellipse
                   rx={table.width / 2}
@@ -115,11 +154,15 @@ export function SeatingSvg({
                   strokeWidth={isSelected ? 4 : 1.5}
                 />
               )}
+
+              {/* Nhãn số bàn */}
               <text
                 transform={`rotate(${-table.rotationDegrees})`}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fontSize={Math.max(10, Math.min(table.width, table.height) / 5)}
+                y={hasGroup ? -labelFontSize * 0.45 : 0}
+                fontSize={labelFontSize}
+                fontWeight={700}
                 fill="#2B1D22"
                 stroke="#ffffff"
                 strokeWidth={3}
@@ -127,10 +170,34 @@ export function SeatingSvg({
               >
                 {table.tableLabel}
               </text>
+
+              {/* Nhãn tên nhóm trên mặt bàn (nếu đã gán nhóm) */}
+              {hasGroup ? (
+                <text
+                  transform={`rotate(${-table.rotationDegrees})`}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  y={labelFontSize * 0.75}
+                  fontSize={groupFontSize}
+                  fontWeight={600}
+                  fill="#4A353D"
+                  stroke="#ffffff"
+                  strokeWidth={2.5}
+                  paintOrder="stroke"
+                >
+                  {groupName && groupName.length > 12 ? `${groupName.slice(0, 11)}…` : groupName}
+                </text>
+              ) : null}
             </g>
           );
         })}
       </svg>
     </>
   );
+
+  if (isFullscreen) {
+    return <div className={styles.fullscreenContainer}>{content}</div>;
+  }
+
+  return content;
 }
