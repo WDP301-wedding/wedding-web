@@ -6,6 +6,11 @@ import { previewAssetId } from './invitation-api';
 import { useImageJob, type SucceededImageJob } from './use-image-job';
 import { getOrGenerateKey, invitationErrorMessage } from './invitation-studio-utils';
 import { notify } from '../../design-system/toast';
+import {
+  type CardThemeId,
+  type GeneratedInvitationDesign,
+  inferThemeFromContent,
+} from './ai-invitation-generator';
 
 export interface UseInvitationDesignOptions {
   bookingId: string;
@@ -40,6 +45,36 @@ export function useInvitationDesign({
   const [saving, setSaving] = useState(false);
   const [designDirty, setDesignDirty] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
+  const [cardTheme, setCardTheme] = useState<CardThemeId>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(`invitation-theme:${bookingId}`);
+      if (saved) return saved as CardThemeId;
+    }
+    return inferThemeFromContent(initialDesigns[0]?.title, initialDesigns[0]?.textFields?.message);
+  });
+
+  const handleSetCardTheme = (theme: CardThemeId) => {
+    setCardTheme(theme);
+    setDesignDirty(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`invitation-theme:${bookingId}`, theme);
+    }
+  };
+
+  const applyAiDesign = (generated: GeneratedInvitationDesign) => {
+    setTitle(generated.title);
+    if (generated.brideName) setBrideName(generated.brideName);
+    if (generated.groomName) setGroomName(generated.groomName);
+    setGreeting(generated.greeting);
+    setMessageText(generated.message);
+    setFooter(generated.footer);
+    setCardTheme(generated.theme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`invitation-theme:${bookingId}`, generated.theme);
+    }
+    setDesignDirty(true);
+    notify.success(`Đã áp dụng thiết kế "${generated.themeName}"! Xem thiệp trực quan ở khung bên phải.`);
+  };
 
   const saveKeyRef = useRef<{ signature: string; key: string } | null>(null);
 
@@ -190,5 +225,8 @@ export function useInvitationDesign({
     handleAiGenerate,
     restoredAiImage,
     applyRestoredAiImage,
+    cardTheme,
+    setCardTheme: handleSetCardTheme,
+    applyAiDesign,
   };
 }

@@ -52,6 +52,7 @@ export function StudioDesignPreview({
           : null,
       })),
       assets: studioAssets,
+      theme: studio.cardTheme,
     }),
     [
       title,
@@ -65,6 +66,7 @@ export function StudioDesignPreview({
       currentDesign?.sections,
       assetPreviewMap,
       studioAssets,
+      studio.cardTheme,
     ],
   );
 

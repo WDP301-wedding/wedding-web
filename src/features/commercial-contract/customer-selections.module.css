@@ -1,0 +1,35 @@
+.catalog {
+  overflow: auto;
+  max-height: 420px;
+  margin-block: 16px;
+}
+.catalog td {
+  vertical-align: top;
+}
+.catalog td small {
+  display: block;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.catalog input {
+  width: 6rem;
+  min-width: 4rem;
+}
+.catalog button {
+  display: block;
+  margin-top: 8px;
+}
+.changes {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.changes h3 {
+  margin-top: 0;
+  line-height: 1.4;
+}
+.changes li {
+  margin-block: 8px;
+  line-height: 1.5;
+}

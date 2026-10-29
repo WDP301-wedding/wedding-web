@@ -1,13 +1,17 @@
 import { z } from 'zod';
+import { customerSelectionSchema, selectionLineSchema } from './selection-wire';
 import type { ApiBody, ApiData } from '../../lib/api/types';
 import { fetchPrivateFile } from '../../lib/api/download';
 import { bearer, coupleApi, unwrap } from '../couple-workspace/use-couple-workspace';
 
 export type CoupleProfile = ApiData<'/consultations/{consultationId}/couple-profile', 'get'>;
 const capabilityEnvelope = z.object({
+  customerSelection: customerSelectionSchema.optional(),
+  draftSeed: z.array(selectionLineSchema).optional(),
   capabilities: z
     .object({
       canManageDraft: z.boolean(),
+      canEditSelections: z.boolean().optional(),
       canApprove: z.boolean(),
       canWithdrawApproval: z.boolean(),
     })

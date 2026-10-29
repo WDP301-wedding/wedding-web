@@ -44,11 +44,16 @@ export function StudioDesignTab({ studio }: StudioDesignTabProps) {
         </button>
       </div>
       <div className="inspector">
+        <StudioAiBox studio={studio} />
+        <div className="studio-form-divider-title" style={{ marginTop: 8 }}>
+          <h4 style={{ margin: '8px 0 4px', fontSize: 15, color: 'var(--hy-wine, #7a1f3d)' }}>
+            Chi tiết nội dung &amp; câu chữ
+          </h4>
+          <p className="studio-meta" style={{ margin: '0 0 12px' }}>
+            Bạn có thể xem trước ở khung bên phải hoặc tùy ý sửa tay các trường chữ dưới đây:
+          </p>
+        </div>
         <StudioDesignForm studio={studio} />
-        <details className="studio-disclosure">
-          <summary>Tạo ảnh bằng AI{studio.aiJob.busy ? ' · Đang xử lý' : ''}</summary>
-          <StudioAiBox studio={studio} />
-        </details>
       </div>
       <StudioDesignPreview studio={studio} />
     </section>

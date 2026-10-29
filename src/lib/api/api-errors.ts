@@ -8,6 +8,9 @@ import { ApiClientError } from './client';
  * để khi báo lỗi cho nhóm backend, họ tra log được ngay.
  */
 const codeMessages: Record<string, string> = {
+  CUSTOMER_SELECTION_REQUIRED: 'Cần khách lưu và gửi lựa chọn trước khi lập hợp đồng.',
+  CUSTOMER_SELECTION_LOCKED:
+    'Lựa chọn đã gửi hoặc hợp đồng đã được nhà hàng soạn. Bạn không thể tự sửa; vui lòng liên hệ nhà hàng.',
   TIMELINE_APPROVAL_WITHDRAWAL_REQUIRED:
     'Kịch bản đã được hai bên duyệt. Rút phê duyệt trước khi chuẩn bị phiên bản mới.',
   // Chung

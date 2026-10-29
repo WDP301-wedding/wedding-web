@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { inferThemeFromContent } from './ai-invitation-generator';
 
 export type InvitationEvent = Readonly<{
   eventDate: string;
@@ -30,6 +31,7 @@ export type InvitationContent = Readonly<{
   }>[];
   sections?: readonly InvitationSection[];
   assets: readonly Readonly<{ url: string; width: number; height: number }>[];
+  theme?: string;
 }>;
 
 /** Shared renderer for editable preview and the immutable published response. */
@@ -38,7 +40,10 @@ export function InvitationContents({
   apiBase,
   recipientGreeting,
 }: Readonly<{ invitation: InvitationContent; apiBase: string; recipientGreeting?: string }>) {
-  const { title, textFields: text, event, timeline, assets } = invitation;
+  const { title, textFields: text, event, timeline, assets, theme } = invitation;
+  const currentTheme = theme || inferThemeFromContent(title, text.message);
+  const groomInitial = Array.from(text.groomName?.trim() || 'H')[0]?.toUpperCase() ?? 'H';
+  const brideInitial = Array.from(text.brideName?.trim() || 'Y')[0]?.toUpperCase() ?? 'Y';
   const configured = invitation.sections ?? [];
   const kinds = ['HERO', 'MESSAGE', 'EVENT', 'TIMELINE', 'FOOTER'] as const;
   const sections: readonly InvitationSection[] = [
@@ -68,13 +73,28 @@ export function InvitationContents({
       )
     : null;
   return (
-    <>
-      <header id="hy-invite-sec-header" className="hy-invite-head">
-        <p className="hy-invite-overline">Thiệp cưới báo hỷ</p>
-        <h1>{title}</h1>
-      </header>
-      {recipientGreeting ? <p className="hy-invite-recipient">{recipientGreeting}</p> : null}
-      {sections.map((section, index) => (
+    <div className={`hy-invite-card-canvas hy-theme-${currentTheme}`}>
+      <div className="hy-card-border-outer">
+        <div className="hy-card-border-inner">
+          {/* Decorative Corner Ornaments */}
+          <span className="hy-corner hy-corner-tl" aria-hidden="true">✦</span>
+          <span className="hy-corner hy-corner-tr" aria-hidden="true">✦</span>
+          <span className="hy-corner hy-corner-bl" aria-hidden="true">✦</span>
+          <span className="hy-corner hy-corner-br" aria-hidden="true">✦</span>
+
+          {/* Monogram Wedding Seal */}
+          <div className="hy-invite-monogram" aria-hidden="true">
+            <span className="hy-monogram-circle">
+              {groomInitial} &amp; {brideInitial}
+            </span>
+          </div>
+
+          <header id="hy-invite-sec-header" className="hy-invite-head">
+            <p className="hy-invite-overline">Thiệp cưới báo hỷ</p>
+            <h1>{title}</h1>
+          </header>
+          {recipientGreeting ? <p className="hy-invite-recipient">{recipientGreeting}</p> : null}
+          {sections.map((section, index) => (
         <section
           key={index}
           id={'hy-invite-sec-' + section.kind.toLowerCase()}
@@ -152,9 +172,15 @@ export function InvitationContents({
           ) : null}
         </section>
       ))}
-      {assets
-        .filter((asset) => !assigned.has(asset.url))
-        .map((asset) => photo(asset.url, asset.url))}
-    </>
+          {assets
+            .filter((asset) => !assigned.has(asset.url))
+            .map((asset) => photo(asset.url, asset.url))}
+
+          <div className="hy-card-end-flourish" aria-hidden="true">
+            <span>❧ ❖ ☙</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

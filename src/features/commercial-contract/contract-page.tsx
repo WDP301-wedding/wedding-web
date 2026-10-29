@@ -10,6 +10,7 @@ import { contractApi, type ContractList, type CoupleProfile } from './contract-a
 import { Skeleton } from '../../design-system/skeleton';
 import { routes, withBooking } from '../../routes';
 import { CoupleNamesCard } from './couple-names-card';
+import { CustomerSelections } from './customer-selections';
 import { ContractCard } from './contract-card';
 import { HistoryCard } from './contract-history-card';
 
@@ -61,6 +62,7 @@ function ContractWorkspace({
   const [contracts, setContracts] = useState<ContractList | null>(null);
   const [profile, setProfile] = useState<CoupleProfile | null>(null);
   const [loadError, setLoadError] = useState<FriendlyError | null>(null);
+  const [editing, setEditing] = useState(false);
   const [writing, setWriting] = useState(false);
   const live = useLiveRefresh(
     async (isCurrent) => {
@@ -82,7 +84,7 @@ function ContractWorkspace({
       bookingId: proposal.bookingId,
       types: ['contract.updated', 'booking.updated', 'timeline.updated'],
       initial: true,
-      blocked: writing,
+      blocked: writing || editing,
       invalidateOnBlock: true,
     },
   );
@@ -114,6 +116,18 @@ function ContractWorkspace({
             Tiếp tục tới Hợp đồng
           </Link>
         </div>
+      ) : null}
+      {showContract ? (
+        <CustomerSelections
+          contracts={contracts}
+          bookingId={proposal.bookingId}
+          onDirtyChange={setEditing}
+          onWritingChange={setWriting}
+          onChanged={() => {
+            reload();
+            reloadBooking();
+          }}
+        />
       ) : null}
       {showContract ? (
         <ContractCard
