@@ -246,10 +246,9 @@
   display: none;
 }
 
-/* Thanh 3 bước Thoả thuận & tab Khách/Sơ đồ */
+/* Thanh các bước Thoả thuận & tab Khách/Sơ đồ */
 .hy-steps ol {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
   gap: 8px;
   margin: 0 0 20px;
   padding: 6px;
@@ -258,10 +257,16 @@
   background: var(--hy-surface);
   list-style: none;
 }
+.hy-steps li {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+}
 .hy-steps a {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   min-height: 52px;
   padding: 8px 12px;
   border-radius: var(--hy-radius-sm);

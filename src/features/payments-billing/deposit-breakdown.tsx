@@ -77,7 +77,7 @@ export function DepositBreakdown({ context }: Readonly<{ context: BillingContext
             <tbody>
               {menus.map((menu) => (
                 <tr key={`${menu.packageId}:${menu.versionId}`}>
-                  <th scope="row">{menu.name}</th>
+                  <td>{menu.name}</td>
                   <td>{menu.tableCount}</td>
                   <td>{money(menu.priceVndPerTable)}</td>
                   <td>{money(menu.lineTotalVnd)}</td>
@@ -86,9 +86,9 @@ export function DepositBreakdown({ context }: Readonly<{ context: BillingContext
             </tbody>
             <tfoot>
               <tr>
-                <th scope="row" colSpan={3}>
+                <td colSpan={3}>
                   Tổng theo đề xuất
-                </th>
+                </td>
                 <td>{money(proposal.proposal.baseChargeVnd)}</td>
               </tr>
             </tfoot>

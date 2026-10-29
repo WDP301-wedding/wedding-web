@@ -24,7 +24,6 @@ export const mainNav: readonly NavItem[] = [
     match: '/khong-gian/thoa-thuan',
     children: [
       { label: 'Kịch bản', href: routes.script },
-      { label: 'Tên cô dâu chú rể', href: routes.names },
       { label: 'Hợp đồng', href: routes.contract },
     ],
   },

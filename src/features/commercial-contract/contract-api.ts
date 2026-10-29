@@ -1,9 +1,20 @@
+import { z } from 'zod';
 import type { ApiBody, ApiData } from '../../lib/api/types';
 import { fetchPrivateFile } from '../../lib/api/download';
 import { bearer, coupleApi, unwrap } from '../couple-workspace/use-couple-workspace';
 
 export type CoupleProfile = ApiData<'/consultations/{consultationId}/couple-profile', 'get'>;
-export type ContractList = ApiData<'/bookings/{bookingId}/contracts', 'get'>;
+const capabilityEnvelope = z.object({
+  capabilities: z
+    .object({
+      canManageDraft: z.boolean(),
+      canApprove: z.boolean(),
+      canWithdrawApproval: z.boolean(),
+    })
+    .optional(),
+});
+export type ContractList = ApiData<'/bookings/{bookingId}/contracts', 'get'> &
+  z.infer<typeof capabilityEnvelope>;
 export type ContractRevision = ContractList['revisions'][number];
 export type ContractLine = ContractRevision['document']['lines'][number];
 export type ContractLineInput = ApiBody<'/bookings/{bookingId}/contracts', 'post'>['lines'][number];
@@ -49,42 +60,14 @@ export const contractApi = {
     );
   },
   async list(token: string, bookingId: string) {
-    return unwrap<ContractList>(
+    const data = unwrap<ContractList>(
       await coupleApi().GET('/bookings/{bookingId}/contracts', {
         headers: bearer(token),
         params: { path: { bookingId } },
         cache: 'no-store',
       }),
     );
-  },
-  async createDraft(
-    token: string,
-    key: string,
-    bookingId: string,
-    body: ApiBody<'/bookings/{bookingId}/contracts', 'post'>,
-  ) {
-    return unwrap<ContractCommandResult>(
-      await coupleApi().POST('/bookings/{bookingId}/contracts', {
-        headers: bearer(token),
-        params: { path: { bookingId }, header: idem(key) },
-        body,
-      }),
-    );
-  },
-  async submit(
-    token: string,
-    key: string,
-    bookingId: string,
-    revisionId: string,
-    expectedRevision: number,
-  ) {
-    return unwrap<ContractCommandResult>(
-      await coupleApi().POST('/bookings/{bookingId}/contracts/{revisionId}/submissions', {
-        headers: bearer(token),
-        params: { path: { bookingId, revisionId }, header: idem(key) },
-        body: { expectedRevision },
-      }),
-    );
+    return { ...data, ...capabilityEnvelope.parse(data) };
   },
   async approve(
     token: string,

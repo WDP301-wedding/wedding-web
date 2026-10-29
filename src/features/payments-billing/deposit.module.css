@@ -86,32 +86,117 @@
 .costTable {
   border-collapse: collapse;
   width: 100%;
-  min-width: 480px;
+  min-width: 0 !important;
   font-size: 13px;
+  background: var(--hy-surface, #ffffff);
+  border: 1px solid var(--hy-outline, #eadfd6);
+  border-radius: var(--hy-radius-sm, 8px);
+  overflow: hidden;
 }
 
 .costTable caption {
   text-align: left;
   padding-bottom: 8px;
-  color: var(--hy-ink-muted);
+  color: var(--hy-ink-muted, #6e5d63);
+  font-weight: 600;
+  font-size: 13px;
 }
 
-.costTable th,
-.costTable td {
+.costTable thead th {
+  background: var(--hy-surface-warm, #fbf4ee) !important;
+  color: var(--hy-ink, #2b1d22);
+  font-weight: 600;
+  font-size: 12.5px;
   padding: 10px 8px;
-  border-bottom: 1px solid var(--hy-outline);
+  border-bottom: 1px solid var(--hy-outline, #eadfd6);
   text-align: right;
-  vertical-align: top;
-  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.costTable th:first-child {
+.costTable thead th:first-child {
   text-align: left;
+  padding-left: 12px;
 }
 
-.costTable tfoot {
-  color: var(--hy-wine);
+.costTable thead th:nth-child(2) {
+  text-align: center;
+}
+
+.costTable thead th:last-child {
+  padding-right: 12px;
+}
+
+.costTable tbody tr {
+  background: #ffffff;
+  transition: background-color 0.15s ease;
+}
+
+.costTable tbody tr:hover {
+  background: var(--hy-surface-warm, #fbf4ee);
+}
+
+.costTable tbody td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--hy-outline, #eadfd6);
+  background: transparent !important;
+  color: var(--hy-ink, #2b1d22);
+  vertical-align: middle;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.costTable tbody td:first-child {
+  text-align: left;
+  padding-left: 12px;
+  font-weight: 600;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.costTable tbody td:nth-child(2) {
+  text-align: center;
+  color: var(--hy-ink-muted, #6e5d63);
+}
+
+.costTable tbody td:nth-child(3) {
+  color: var(--hy-ink-muted, #6e5d63);
+}
+
+.costTable tbody td:last-child {
+  padding-right: 12px;
+  font-weight: 600;
+  color: var(--hy-wine, #7a1f3d);
+}
+
+.costTable tfoot tr {
+  background: var(--hy-surface-warm, #fbf4ee);
+}
+
+.costTable tfoot td {
+  padding: 11px 8px;
+  background: var(--hy-surface-warm, #fbf4ee) !important;
+  color: var(--hy-wine, #7a1f3d);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  border-bottom: none;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.costTable tfoot td:first-child {
+  text-align: left;
+  padding-left: 12px;
+}
+
+.costTable tfoot td:last-child {
+  padding-right: 12px;
+  font-size: 14px;
+}
+
+.breakdown :global(.cw-table) {
+  min-width: 0 !important;
 }
 
 .workspace .payment :global(.billing-confirm) {

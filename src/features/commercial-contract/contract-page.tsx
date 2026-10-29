@@ -5,15 +5,8 @@ import { useState } from 'react';
 import { useLiveRefresh, LiveUpdateNotice } from '../realtime/use-live-refresh';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
-import {
-  authorizedRead,
-  type Proposal,
-} from '../couple-workspace/use-couple-workspace';
-import {
-  contractApi,
-  type ContractList,
-  type CoupleProfile,
-} from './contract-api';
+import { authorizedRead, type Proposal } from '../couple-workspace/use-couple-workspace';
+import { contractApi, type ContractList, type CoupleProfile } from './contract-api';
 import { Skeleton } from '../../design-system/skeleton';
 import { routes, withBooking } from '../../routes';
 import { CoupleNamesCard } from './couple-names-card';
@@ -27,7 +20,7 @@ const sectionCopy: Record<ContractSection, { title: string; description: string 
   all: {
     title: 'Hợp đồng tiệc cưới',
     description:
-      'Chọn thực đơn, dịch vụ và thiệp in; hai bên cùng duyệt một phiên bản trước khi đặt cọc.',
+      'Thông tin cô dâu & chú rể, thực đơn, dịch vụ và thiệp in; hai bên cùng duyệt một phiên bản trước khi đặt cọc.',
   },
   names: {
     title: 'Tên cô dâu & chú rể',
@@ -35,7 +28,8 @@ const sectionCopy: Record<ContractSection, { title: string; description: string 
   },
   contract: {
     title: 'Hợp đồng tiệc cưới',
-    description: 'Hai bên cùng duyệt một phiên bản hợp đồng trước khi đặt cọc.',
+    description:
+      'Thông tin cô dâu & chú rể, thực đơn, dịch vụ và thiệp in; hai bên cùng duyệt một phiên bản trước khi đặt cọc.',
   },
 };
 
@@ -67,7 +61,6 @@ function ContractWorkspace({
   const [contracts, setContracts] = useState<ContractList | null>(null);
   const [profile, setProfile] = useState<CoupleProfile | null>(null);
   const [loadError, setLoadError] = useState<FriendlyError | null>(null);
-  const [editing, setEditing] = useState(false);
   const [writing, setWriting] = useState(false);
   const live = useLiveRefresh(
     async (isCurrent) => {
@@ -89,7 +82,7 @@ function ContractWorkspace({
       bookingId: proposal.bookingId,
       types: ['contract.updated', 'booking.updated', 'timeline.updated'],
       initial: true,
-      blocked: editing || writing,
+      blocked: writing,
       invalidateOnBlock: true,
     },
   );
@@ -100,9 +93,9 @@ function ContractWorkspace({
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
   if (!contracts || !profile) return <Skeleton label="Đang tải hợp đồng…" />;
 
-  const showNames = section !== 'contract';
-  const showContract = section !== 'names';
   const namesMissing = !profile.brideName || !profile.groomName;
+  const showNames = section !== 'contract' || namesMissing;
+  const showContract = section !== 'names';
   return (
     <>
       <LiveUpdateNotice waiting={live.waiting} />
@@ -122,20 +115,11 @@ function ContractWorkspace({
           </Link>
         </div>
       ) : null}
-      {section === 'contract' && namesMissing ? (
-        <p className="cw-next-step" role="note">
-          Hợp đồng cần tên cô dâu và chú rể.{' '}
-          <Link href={withBooking(routes.names, proposal.bookingId)}>Nhập tên →</Link>
-        </p>
-      ) : null}
       {showContract ? (
         <ContractCard
           proposal={proposal}
           contracts={contracts}
-          editing={editing}
-          setEditing={setEditing}
           onWritingChange={setWriting}
-          profile={profile}
           onChanged={() => {
             // Mỗi lệnh hợp đồng làm tăng revision của Booking → nạp lại cả booking lẫn hợp đồng.
             reload();

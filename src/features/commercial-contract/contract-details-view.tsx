@@ -6,14 +6,13 @@ import { Celebrate } from '../../design-system/celebrate';
 import { openBlob } from '../../lib/api/download';
 import { formatVnd, type useCommand } from '../couple-workspace/use-couple-workspace';
 import { contractApi } from './contract-api';
-import type { currentRevision, ContractList, CoupleProfile } from './contract-api';
+import type { currentRevision, ContractList } from './contract-api';
 import { ContractLinesTable } from './contract-lines';
 import { WithdrawForm } from './contract-withdraw-form';
 
 export function ContractDetailsView({
   current,
   contracts,
-  profile,
   bookingId,
   expectedRevision,
   managerApproved,
@@ -21,12 +20,10 @@ export function ContractDetailsView({
   isPostDeposit,
   command,
   confirm,
-  openEditor,
   after,
 }: Readonly<{
   current: NonNullable<ReturnType<typeof currentRevision>>;
   contracts: ContractList;
-  profile: CoupleProfile;
   bookingId: string;
   expectedRevision: number;
   managerApproved: boolean;
@@ -38,7 +35,6 @@ export function ContractDetailsView({
     description: string;
     confirmLabel?: string;
   }) => Promise<boolean>;
-  openEditor: () => void;
   after: (result: unknown) => void;
 }>) {
   return (
@@ -50,7 +46,7 @@ export function ContractDetailsView({
       <p className="cw-note">
         Tổng dưới đây do nhà hàng tính trên máy chủ cho đúng phiên bản đang xem. Bao gồm các hạng
         mục trong bảng; chi phí phát sinh chưa ghi nhận không nằm trong tổng này. Kiểm tra toàn bộ
-        trước khi gửi hoặc xác nhận duyệt.
+        trước khi xác nhận duyệt.
       </p>
       <dl className="cw-stats">
         <div>
@@ -92,36 +88,15 @@ export function ContractDetailsView({
         </button>
 
         {current.state === 'DRAFT' ? (
-          <button
-            className="button"
-            type="button"
-            disabled={command.pending || !profile.brideName || !profile.groomName}
-            title={
-              !profile.brideName || !profile.groomName
-                ? 'Cần nhập đủ tên cô dâu và chú rể'
-                : undefined
-            }
-            onClick={() =>
-              void command
-                .run(
-                  (token, key) =>
-                    contractApi.submit(
-                      token,
-                      key,
-                      bookingId,
-                      current.revisionId,
-                      expectedRevision,
-                    ),
-                  'Đã gửi hợp đồng để hai bên duyệt.',
-                )
-                .then(after)
-            }
-          >
-            Gửi duyệt
-          </button>
+          <p className="cw-note">
+            Nhà hàng đang soạn bản nháp. Hai bạn có thể xem trước; nút duyệt sẽ mở sau khi nhà hàng
+            gửi hợp đồng.
+          </p>
         ) : null}
 
-        {current.state === 'AWAITING_APPROVAL' && !coupleApproved ? (
+        {current.state === 'AWAITING_APPROVAL' &&
+        !coupleApproved &&
+        contracts.capabilities?.canApprove ? (
           <button
             className="button"
             type="button"
@@ -164,18 +139,6 @@ export function ContractDetailsView({
           </Link>
         ) : null}
 
-        {!isPostDeposit &&
-        (current.state === 'DRAFT' || current.state === 'AWAITING_APPROVAL') ? (
-          <button
-            className="button button-secondary"
-            type="button"
-            disabled={command.pending}
-            onClick={openEditor}
-          >
-            Chỉnh sửa (tạo bản mới)
-          </button>
-        ) : null}
-
         {isPostDeposit ? (
           <Link
             className="button button-secondary"
@@ -193,9 +156,8 @@ export function ContractDetailsView({
         </p>
       ) : null}
 
-      {(current.state === 'AWAITING_APPROVAL' && coupleApproved) ||
-      current.state === 'APPROVED' ? (
-        !isPostDeposit ? (
+      {(current.state === 'AWAITING_APPROVAL' && coupleApproved) || current.state === 'APPROVED' ? (
+        !isPostDeposit && contracts.capabilities?.canWithdrawApproval ? (
           <WithdrawForm
             pending={command.pending}
             onSubmit={(reason) =>
@@ -210,7 +172,7 @@ export function ContractDetailsView({
                       expectedRevision,
                       reason,
                     ),
-                  'Đã rút duyệt. Hệ thống tạo bản nháp mới để chỉnh sửa.',
+                  'Đã rút duyệt và gửi lý do cho nhà hàng chuẩn bị lại hợp đồng.',
                 )
                 .then(after)
             }
@@ -220,4 +182,3 @@ export function ContractDetailsView({
     </>
   );
 }
-

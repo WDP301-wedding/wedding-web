@@ -59,7 +59,7 @@ export function nextTasks(
           {
             title: 'Điền tên cô dâu chú rể',
             detail: 'Tên dùng cho hợp đồng và thiệp cưới.',
-            href: withBooking(routes.names, id),
+            href: withBooking(routes.contract, id),
             action: 'Nhập tên',
             status: 'info',
           },

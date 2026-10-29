@@ -8,12 +8,11 @@ import { useCoupleWorkspace } from './use-couple-workspace';
 
 const steps = [
   { href: routes.script, label: 'Kịch bản' },
-  { href: routes.names, label: 'Tên cô dâu chú rể' },
   { href: routes.contract, label: 'Hợp đồng' },
 ] as const;
 
 /**
- * Thanh 3 bước của "Thoả thuận" (prototype B2). Đây là điều hướng giữa 3 trang con,
+ * Thanh 2 bước của "Thoả thuận" (Kịch bản → Hợp đồng). Đây là điều hướng giữa 2 trang con,
  * nên dùng <nav> + `aria-current="step"` thay vì tablist (mỗi bước là một URL riêng,
  * mở tab mới / chia sẻ link được).
  */

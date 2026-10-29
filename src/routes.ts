@@ -66,6 +66,7 @@ export const legacyRedirects: readonly { source: string; destination: string }[]
   { source: '/appendices', destination: routes.addendum },
   { source: '/invoices', destination: routes.settle },
   { source: '/notifications', destination: routes.notifications },
+  { source: '/khong-gian/thoa-thuan/ten', destination: routes.contract },
   { source: '/invitation/personal', destination: routes.personalCard },
   { source: '/invitation/:slug', destination: '/t/:slug' },
 ];

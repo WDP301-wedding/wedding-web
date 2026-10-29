@@ -114,35 +114,48 @@ export function ProposalWorkspace({
             </ol>
           )}
           {/* Form sửa chỉ mở khi cần, để trang gọn; mở sẵn khi chưa có mốc nào. */}
-          <details className="collab-edit" open={timeline === null || timeline.items.length === 0}>
-            <summary>{confirmed ? 'Đề xuất thay đổi kịch bản' : 'Chỉnh sửa kịch bản'}</summary>
-            <p className="collab-hint">
-              Giờ bắt đầu mỗi mốc phải từ {proposal.proposal.shift.startTime} đến trước{' '}
-              {proposal.proposal.shift.endTime} theo ca tiệc đã chọn.
-              {confirmed ? ' Tiệc đã cọc nên thay đổi cần nhà hàng duyệt.' : ''}
-            </p>
-            <TimelineEditor
-              key={proposal.bookingId + ':' + (timeline?.revisionId ?? 'empty')}
-              disabled={pending || !proposal.capabilities.canEditTimeline}
-              initialItems={timeline?.items ?? []}
-              needsReason={confirmed}
-              onSave={(items, reason) => {
-                const input = {
-                  bookingId: proposal.bookingId,
-                  expectedRevision: proposal.revision,
-                  predecessorRevisionId: timeline?.revisionId ?? null,
-                  items,
-                };
-                return command(
-                  (token) =>
+          {proposal.capabilities.canEditTimeline ? (
+            <details
+              className="collab-edit"
+              open={timeline === null || timeline.items.length === 0}
+            >
+              <summary>{confirmed ? 'Đề xuất thay đổi kịch bản' : 'Chỉnh sửa kịch bản'}</summary>
+              <p className="collab-hint">
+                Giờ bắt đầu mỗi mốc phải từ {proposal.proposal.shift.startTime} đến trước{' '}
+                {proposal.proposal.shift.endTime} theo ca tiệc đã chọn.
+                {confirmed ? ' Tiệc đã cọc nên thay đổi cần nhà hàng duyệt.' : ''}
+              </p>
+              <TimelineEditor
+                key={proposal.bookingId + ':' + (timeline?.revisionId ?? 'empty')}
+                disabled={pending || !proposal.capabilities.canEditTimeline}
+                initialItems={timeline?.items ?? []}
+                needsReason={confirmed}
+                onSave={(items, reason) => {
+                  const input = {
+                    bookingId: proposal.bookingId,
+                    expectedRevision: proposal.revision,
+                    predecessorRevisionId: timeline?.revisionId ?? null,
+                    items,
+                  };
+                  return command(
+                    (token) =>
+                      confirmed
+                        ? gateway.requestChange(token, { ...input, reason })
+                        : gateway.saveTimeline(token, input),
                     confirmed
-                      ? gateway.requestChange(token, { ...input, reason })
-                      : gateway.saveTimeline(token, input),
-                  confirmed ? 'Đã gửi yêu cầu thay đổi kịch bản.' : 'Đã lưu revision kịch bản mới.',
-                );
-              }}
-            />
-          </details>
+                      ? 'Đã gửi yêu cầu thay đổi kịch bản.'
+                      : 'Đã lưu revision kịch bản mới.',
+                  );
+                }}
+              />
+            </details>
+          ) : (
+            <p className="collab-hint">
+              Kịch bản đã được duyệt hoặc có giao dịch cọc đang xử lý. Nếu muốn thay đổi trước cọc,
+              rút phê duyệt ở mục Quyết định của hai bên. Giao dịch chưa rõ kết quả cần được xác
+              minh trước.
+            </p>
+          )}
         </article>
       </div>
 

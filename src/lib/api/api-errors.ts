@@ -8,6 +8,8 @@ import { ApiClientError } from './client';
  * để khi báo lỗi cho nhóm backend, họ tra log được ngay.
  */
 const codeMessages: Record<string, string> = {
+  TIMELINE_APPROVAL_WITHDRAWAL_REQUIRED:
+    'Kịch bản đã được hai bên duyệt. Rút phê duyệt trước khi chuẩn bị phiên bản mới.',
   // Chung
   AUTHENTICATION_REQUIRED: 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.',
   IDEMPOTENCY_KEY_REUSED:

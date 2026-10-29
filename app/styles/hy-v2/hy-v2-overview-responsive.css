@@ -320,7 +320,7 @@
     text-decoration: none;
   }
   .hy-steps ol {
-    grid-template-columns: minmax(0, 1fr);
+    flex-direction: column;
   }
   .hy-estimator-row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
