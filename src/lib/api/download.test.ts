@@ -88,7 +88,7 @@ describe('describeApiError fallbacks', () => {
     expect(describeApiError(new Error('Số điện thoại không hợp lệ')).message).toBe(
       'Số điện thoại không hợp lệ',
     );
-    expect(describeApiError('boom').message).toBe('Đã có lỗi không mong muốn.');
+    expect(describeApiError('boom').message).toBe('Đã có lỗi không mong muốn. Hãy thử lại.');
     const unknownStatus = new ApiClientError({
       kind: 'api',
       code: 'X',
@@ -111,7 +111,9 @@ describe('describeApiError fallbacks', () => {
       message: 'm',
       requestId: 'r',
     });
-    expect(describeApiError(noStatus).message).toBe('Máy chủ từ chối yêu cầu.');
+    expect(describeApiError(noStatus).message).toBe(
+      'Máy chủ trả về dữ liệu chưa hợp lệ. Hãy thử lại hoặc gửi mã hỗ trợ cho nhà hàng.',
+    );
     const conflict = new ApiClientError({
       kind: 'api',
       code: 'X',

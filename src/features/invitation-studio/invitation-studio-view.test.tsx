@@ -142,11 +142,11 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    expect(screen.getByText('Studio Thiệp Cưới & In Ấn')).toBeInTheDocument();
-    expect(screen.getByText('Cấu Trúc Nội Dung Thiệp Cưới')).toBeInTheDocument();
+    expect(screen.getByText('Thiệp & in')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Đặt In Thiệp Giấy (1)'));
-    expect(screen.getByText('Đặt In Thiệp Giấy Truyền Thống')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Đặt in (1)'));
+    expect(screen.getByText('Yêu cầu in thiệp')).toBeInTheDocument();
     expect(screen.getByText('Đơn hàng #o-1')).toBeInTheDocument();
   });
 
@@ -160,9 +160,9 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    const input = screen.getByLabelText('Tiêu Đề Thiệp Cưới');
+    const input = screen.getByLabelText('Tên thiệp');
     fireEvent.change(input, { target: { value: 'Tiêu đề mới' } });
-    fireEvent.click(screen.getByText('Lưu Bản Thiết Kế'));
+    fireEvent.click(screen.getByText('Lưu thay đổi'));
 
     await waitFor(() => {
       expect(mockGateway.reviseDesign).toHaveBeenCalledWith(
@@ -259,7 +259,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     );
     vi.useRealTimers();
 
-    fireEvent.click(screen.getByText('Lưu Bản Thiết Kế'));
+    fireEvent.click(screen.getByText('Lưu thay đổi'));
     await waitFor(() => {
       const content = reviseDesign.mock.calls[0]?.[3]?.content;
       expect(content?.derivedAssetIds).toEqual(['derived-png']);
@@ -347,9 +347,10 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     const listImageJobs = vi.fn().mockResolvedValue([{ ...queuedJob, status: 'RUNNING' }]);
     const enqueueImageJob = vi.fn();
     renderStudio({ listImageJobs, enqueueImageJob });
+    fireEvent.click(screen.getByRole('button', { name: /Vẽ thêm hình minh họa bằng AI/ }));
 
-    expect(await screen.findByText('Đang tạo ảnh…')).toBeInTheDocument();
-    expect(screen.getByText('Đang tạo ảnh...')).toBeDisabled();
+    expect(await screen.findByText('Tiến trình: Đang tạo ảnh…')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Đang vẽ...' })).toBeDisabled();
     expect(enqueueImageJob).not.toHaveBeenCalled();
   });
 
@@ -359,9 +360,10 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       .fn<InvitationGateway['reviseDesign']>()
       .mockResolvedValue(initialDesign);
     renderStudio({ listImageJobs, reviseDesign });
+    fireEvent.click(screen.getByRole('button', { name: /Vẽ thêm hình minh họa bằng AI/ }));
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Dùng ảnh này' }));
-    fireEvent.click(screen.getByText('Lưu Bản Thiết Kế'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Dùng ảnh này trên thiệp' }));
+    fireEvent.click(screen.getByText('Lưu thay đổi'));
 
     await waitFor(() =>
       expect(reviseDesign.mock.calls[0]?.[3]?.content?.derivedAssetIds).toEqual([
@@ -381,8 +383,8 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Đặt In Thiệp Giấy (1)'));
-    const approveBtn = screen.getByText('Duyệt Báo Giá');
+    fireEvent.click(screen.getByText('Đặt in (1)'));
+    const approveBtn = screen.getByText('Duyệt báo giá');
     fireEvent.click(approveBtn);
     await confirmInDialog('Duyệt báo giá');
 
@@ -415,13 +417,13 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Bộ Sưu Tập Ảnh'));
+    fireEvent.click(screen.getByRole('button', { name: 'Hình ảnh' }));
     expect(onTabChange).toHaveBeenCalledWith('media');
 
-    fireEvent.click(screen.getByText('Xuất Bản & Mã QR'));
+    fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
     expect(onTabChange).toHaveBeenCalledWith('publish');
 
-    fireEvent.click(screen.getByText('Đặt In Thiệp Giấy (1)'));
+    fireEvent.click(screen.getByText('Đặt in (1)'));
     expect(onTabChange).toHaveBeenCalledWith('print');
   });
 
@@ -435,10 +437,10 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Xuất Bản & Mã QR'));
-    expect(screen.getByText('Xuất Bản Trực Tuyến & Mã QR Chung')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
+    expect(screen.getByText('Chia sẻ thiệp')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Xuất Bản Thiệp Ngay'));
+    fireEvent.click(screen.getByText('Xuất bản thiệp'));
 
     await waitFor(() => {
       expect(mockGateway.publishDesign).toHaveBeenCalledWith(
@@ -456,7 +458,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     expect(screen.getByText('/t/cuoi-lan-tung')).toBeInTheDocument();
 
     // Unpublish
-    fireEvent.click(screen.getByText('Hủy Xuất Bản'));
+    fireEvent.click(screen.getByText('Ngừng chia sẻ'));
     await confirmInDialog('Huỷ xuất bản');
     await waitFor(() => {
       expect(mockGateway.unpublishDesign).toHaveBeenCalledWith(
@@ -486,8 +488,8 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Xuất Bản & Mã QR'));
-    expect(await screen.findByText('Hủy Xuất Bản')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
+    expect(await screen.findByText('Ngừng chia sẻ')).toBeInTheDocument();
     expect(screen.getByText('/t/cuoi-lan-tung')).toBeInTheDocument();
 
     unmount();
@@ -504,17 +506,17 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Bộ Sưu Tập Ảnh'));
-    expect(screen.getByText('Bộ Sưu Tập Hình Ảnh Cưới')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Hình ảnh' }));
+    expect(screen.getByText('Hình ảnh cho thiệp')).toBeInTheDocument();
 
-    const fileInput = screen.getByLabelText('Chọn Tệp Hình Ảnh');
+    const fileInput = screen.getByLabelText('Chọn ảnh');
     const altInput = screen.getByLabelText(/Mô Tả Hình Ảnh/);
 
     const dummyFile = new File(['dummy-content'], 'wedding-photo.jpg', { type: 'image/jpeg' });
     fireEvent.change(fileInput, { target: { files: [dummyFile] } });
     fireEvent.change(altInput, { target: { value: 'Ảnh cưới chụp sân vườn' } });
 
-    fireEvent.submit(screen.getByText('Tải Lên Hình Ảnh').closest('form')!);
+    fireEvent.submit(screen.getByText('Tải ảnh lên').closest('form')!);
 
     await waitFor(() => {
       expect(mockGateway.uploadMedia).toHaveBeenCalledWith(
@@ -561,8 +563,8 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Xuất Bản & Mã QR'));
-    fireEvent.click(screen.getByText('Xuất Bản Thiệp Ngay'));
+    fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
+    fireEvent.click(screen.getByText('Xuất bản thiệp'));
 
     await waitFor(() => {
       expect(mockGateway.publishDesign).toHaveBeenCalledWith(
@@ -575,7 +577,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
         expect.any(String),
       );
     });
-    expect(await screen.findByText('Thiệp Cưới Đã Xuất Bản')).toBeInTheDocument();
+    expect(await screen.findByText('Thiệp đang được chia sẻ')).toBeInTheDocument();
     unmount1();
 
     // 2. Reload: component remounts with cached published state
@@ -588,11 +590,11 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Xuất Bản & Mã QR'));
-    expect(await screen.findByText('Hủy Xuất Bản')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
+    expect(await screen.findByText('Ngừng chia sẻ')).toBeInTheDocument();
 
     // 3. Unpublish: calls unpublish with revision 1, gets next publicationRevision: 2
-    fireEvent.click(screen.getByText('Hủy Xuất Bản'));
+    fireEvent.click(screen.getByText('Ngừng chia sẻ'));
     await confirmInDialog('Huỷ xuất bản');
     await waitFor(() => {
       expect(mockGateway.unpublishDesign).toHaveBeenCalledWith(
@@ -604,7 +606,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       );
     });
     expect(await screen.findByText('Đã hủy xuất bản thiệp cưới.')).toBeInTheDocument();
-    expect(screen.getByText(/Trạng Thái: Đã Hủy Xuất Bản/)).toBeInTheDocument();
+    expect(screen.getByText('Thiệp chưa được chia sẻ')).toBeInTheDocument();
     unmount2();
 
     // 4. Reload after unpublish: remounts, reads localStorage with published: false, next revision: 2
@@ -617,12 +619,11 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Xuất Bản & Mã QR'));
-    expect(await screen.findByText(/Trạng Thái: Đã Hủy Xuất Bản/)).toBeInTheDocument();
-    expect(screen.getByText(/Phiên bản xuất bản tiếp theo sẵn sàng: #2/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
+    expect(await screen.findByText('Thiệp chưa được chia sẻ')).toBeInTheDocument();
 
     // 5. Republish: must send publicationRevision: 2, not 0!
-    fireEvent.click(screen.getByText('Xuất Bản Thiệp Ngay'));
+    fireEvent.click(screen.getByText('Xuất bản thiệp'));
     await waitFor(() => {
       expect(mockGateway.publishDesign).toHaveBeenCalledWith(
         accessToken,
@@ -661,13 +662,13 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Bộ Sưu Tập Ảnh'));
-    const fileInput = screen.getByLabelText('Chọn Tệp Hình Ảnh');
+    fireEvent.click(screen.getByRole('button', { name: 'Hình ảnh' }));
+    const fileInput = screen.getByLabelText('Chọn ảnh');
     const altInput = screen.getByLabelText(/Mô Tả Hình Ảnh/);
     const dummyFile = new File(['content'], 'retry-photo.jpg', { type: 'image/jpeg' });
     fireEvent.change(fileInput, { target: { files: [dummyFile] } });
     fireEvent.change(altInput, { target: { value: 'Ảnh cần thử lại' } });
-    fireEvent.submit(screen.getByText('Tải Lên Hình Ảnh').closest('form')!);
+    fireEvent.submit(screen.getByText('Tải ảnh lên').closest('form')!);
 
     expect(await screen.findByText('Chưa sẵn sàng cho thiệp')).toBeInTheDocument();
     const retryBtn = screen.getByText('Thử lại tạo ảnh cho thiệp');
@@ -676,8 +677,8 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     await waitFor(() => {
       expect(failingGateway.deriveAsset).toHaveBeenCalledTimes(2);
     });
-    expect(await screen.findByText('✓ Đã chuẩn bị cho thiệp')).toBeInTheDocument();
-    expect(screen.getByText('✕ Bỏ ảnh khỏi thiệp')).toBeInTheDocument();
+    expect(await screen.findByText('Đang dùng trên thiệp')).toBeInTheDocument();
+    expect(screen.getByText('Bỏ khỏi thiệp')).toBeInTheDocument();
   });
 
   it('removes image from design draft and sanitizes design sections on save', async () => {
@@ -697,8 +698,8 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     );
 
     // Initial state has active image in design tab
-    expect(screen.getByText(/Hình ảnh đang dùng trong thiệp/)).toBeInTheDocument();
-    const removeBtn = screen.getByText('Bỏ khỏi thiệp');
+    expect(screen.getByText(/Ảnh trên thiệp/)).toBeInTheDocument();
+    const removeBtn = screen.getByTitle('Bỏ ảnh này khỏi thiệp');
     fireEvent.click(removeBtn);
 
     expect(
@@ -708,7 +709,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     ).toBeInTheDocument();
 
     // Now save design: reviseDesign should be called with empty derivedAssetIds and empty sections!
-    fireEvent.click(screen.getByText('Lưu Bản Thiết Kế'));
+    fireEvent.click(screen.getByText('Lưu thay đổi'));
     await waitFor(() => {
       expect(mockGateway.reviseDesign).toHaveBeenCalled();
     });
@@ -733,8 +734,8 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Đặt In Thiệp Giấy (1)'));
-    const cancelBtn = screen.getByText('Hủy Đơn');
+    fireEvent.click(screen.getByText('Đặt in (1)'));
+    const cancelBtn = screen.getByText('Hủy đơn');
     fireEvent.click(cancelBtn);
     await confirmInDialog('Huỷ đơn in');
 

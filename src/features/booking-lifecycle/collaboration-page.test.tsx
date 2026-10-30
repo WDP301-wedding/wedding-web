@@ -318,7 +318,8 @@ describe('Booking collaboration workspace', () => {
         canWithdrawApproval: false,
       },
     });
-    expect(screen.getByRole('button', { name: 'Lưu kịch bản mới' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Lưu kịch bản mới' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Kịch bản đã được duyệt hoặc có giao dịch cọc đang xử lý/)).toBeVisible();
     expect(screen.getByRole('button', { name: 'Phê duyệt revision này' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Rút phê duyệt' })).toBeDisabled();
   });
@@ -403,7 +404,8 @@ describe('Booking collaboration workspace', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Phê duyệt revision này' }));
     await waitFor(() => expect(onProposalUpdated).toHaveBeenCalledTimes(1));
-    expect(gateway.load).toHaveBeenCalledTimes(1);
+    // Khi nhúng, trang cha làm mới qua onProposalUpdated; trang không tự tải lại đề xuất.
+    expect(gateway.load).not.toHaveBeenCalled();
   });
 
   it('renders a restricted proposal and exact timeline from the server', async () => {
