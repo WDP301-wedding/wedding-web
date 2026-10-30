@@ -69,7 +69,7 @@ const intents = {
 async function load() {
   fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), { target: { value: 'booking' } });
   fireEvent.click(screen.getByRole('button', { name: 'Mở thanh toán' }));
-  await screen.findByText('Khoản cọc theo đề xuất');
+  await screen.findByRole('region', { name: 'Chi tiết đặt cọc tiệc cưới' });
   await waitFor(() =>
     expect(screen.queryByText('Đang kiểm tra với máy chủ…')).not.toBeInTheDocument(),
   );
@@ -118,7 +118,7 @@ describe('Couple billing experience', () => {
         mount(api);
         await load();
       }
-      const buttonName = purpose === 'DEPOSIT' ? 'Đặt cọc qua VNPay' : 'Thanh toán còn lại';
+      const buttonName = purpose === 'DEPOSIT' ? 'Tiếp tục thanh toán' : 'Thanh toán còn lại';
       expect(screen.getByRole('button', { name: buttonName })).toBeEnabled();
       vi.mocked(api.loadActiveAttempts).mockRejectedValueOnce(error('UNAVAILABLE', 503));
       fireEvent.click(screen.getByRole('button', { name: 'Làm mới hồ sơ' }));
@@ -128,7 +128,7 @@ describe('Couple billing experience', () => {
       );
       expect(screen.getByRole('button', { name: buttonName })).toBeDisabled();
       fireEvent.click(screen.getByRole('button', { name: buttonName }));
-      expect(screen.queryByRole('button', { name: 'Xác nhận mở VNPay' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Tạo giao dịch VNPay' })).not.toBeInTheDocument();
       expect(api.startDeposit).not.toHaveBeenCalled();
       expect(api.startBalance).not.toHaveBeenCalled();
       fireEvent.click(screen.getByRole('button', { name: 'Làm mới hồ sơ' }));
@@ -171,7 +171,7 @@ describe('Couple billing experience', () => {
         expect(screen.getByText('Chưa rõ kết quả · đang kiểm tra')).toBeInTheDocument();
         if (purpose === 'DEPOSIT') {
           expect(
-            screen.queryByRole('button', { name: 'Đặt cọc qua VNPay' }),
+            screen.queryByRole('button', { name: 'Tiếp tục thanh toán' }),
           ).not.toBeInTheDocument();
           expect(api.load).not.toHaveBeenCalled();
         } else expect(screen.getByRole('button', { name: 'Thanh toán còn lại' })).toBeDisabled();
@@ -207,10 +207,10 @@ describe('Couple billing experience', () => {
       vi.mocked(start).mockRejectedValue(error('PAYMENT_ATTEMPT_ACTIVE'));
       fireEvent.click(
         screen.getByRole('button', {
-          name: purpose === 'DEPOSIT' ? 'Đặt cọc qua VNPay' : 'Thanh toán còn lại',
+          name: purpose === 'DEPOSIT' ? 'Tiếp tục thanh toán' : 'Thanh toán còn lại',
         }),
       );
-      fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
       expect(await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' })).toHaveAttribute(
         'href',
         existing.checkoutUrl,
@@ -242,8 +242,8 @@ describe('Couple billing experience', () => {
     expect(await screen.findByText('Thanh toán không thành công')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Tiếp tục trên VNPay' })).not.toBeInTheDocument();
     expect(completeCheckout).toHaveBeenCalledWith('checkout:booking', 'failed-attempt');
-    fireEvent.click(screen.getByRole('button', { name: 'Đặt cọc qua VNPay' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
     expect(api.startDeposit).toHaveBeenCalledTimes(1);
     expect(screen.getByLabelText('Mã giao dịch thanh toán')).toHaveValue('attempt');
@@ -307,8 +307,8 @@ describe('Couple billing experience', () => {
     await load();
     expect(await screen.findByText('Thanh toán không thành công')).toBeInTheDocument();
     expect(await journal.pending('checkout:booking')).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Đặt cọc qua VNPay' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
     expect(vi.mocked(api.startDeposit).mock.calls[0]![3]).not.toBe(oldKey);
   });
@@ -321,7 +321,7 @@ describe('Couple billing experience', () => {
       target: { value: 'another-booking' },
     });
     expect(screen.queryByText('Còn phải thanh toán')).not.toBeInTheDocument();
-    expect(screen.queryByText('Khoản cọc theo đề xuất')).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Chi tiết đặt cọc tiệc cưới' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Thanh toán còn lại' })).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Mã giao dịch thanh toán')).not.toBeInTheDocument();
     expect(api.startDeposit).not.toHaveBeenCalled();
@@ -329,7 +329,7 @@ describe('Couple billing experience', () => {
     expect(api.loadContext).toHaveBeenCalledTimes(1);
     vi.mocked(api.loadContext).mockResolvedValue({ ...context, bookingId: 'another-booking' });
     fireEvent.click(screen.getByRole('button', { name: 'Mở thanh toán' }));
-    await screen.findByText('Khoản cọc theo đề xuất');
+    await screen.findByRole('region', { name: 'Chi tiết đặt cọc tiệc cưới' });
     expect(api.loadContext).toHaveBeenLastCalledWith('token', 'another-booking');
   });
   it('recovers the same checkout after success and reload before opening VNPay', async () => {
@@ -377,8 +377,8 @@ describe('Couple billing experience', () => {
       />,
     );
     await load();
-    fireEvent.click(screen.getByRole('button', { name: 'Đặt cọc qua VNPay' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
     const originalKey = vi.mocked(api.startDeposit).mock.calls[0]![3];
     first.unmount();
@@ -412,7 +412,7 @@ describe('Couple billing experience', () => {
     await screen.findByText('Đã xác minh nhận tiền');
     expect(records.size).toBe(1);
     expect(screen.queryByRole('link', { name: 'Tiếp tục trên VNPay' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Đặt cọc qua VNPay' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Tiếp tục thanh toán' })).not.toBeInTheDocument();
     vi.mocked(api.loadAttempt).mockResolvedValue({
       paymentAttemptId,
       status: 'SUCCEEDED',
@@ -576,7 +576,7 @@ describe('Couple billing experience', () => {
     expect(api.startBalance).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Thanh toán còn lại' }));
     vi.mocked(api.startBalance).mockRejectedValue(error('STALE_BILLING_REVISION'));
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await screen.findByRole('alert');
     expect(screen.getByRole('button', { name: 'Thanh toán còn lại' })).toBeEnabled();
     expect(screen.queryByText('private provider message')).not.toBeInTheDocument();
@@ -612,8 +612,8 @@ describe('Couple billing experience', () => {
     const api = gateway();
     mount(api);
     await load();
-    fireEvent.click(screen.getByRole('button', { name: 'Đặt cọc qua VNPay' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra trạng thái' }));
     await screen.findByText('Chưa rõ kết quả · đang kiểm tra');
@@ -629,8 +629,8 @@ describe('Couple billing experience', () => {
       const api = gateway();
       mount(api);
       await load();
-      fireEvent.click(screen.getByRole('button', { name: 'Đặt cọc qua VNPay' }));
-      fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
       await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
       vi.mocked(api.loadAttempt).mockResolvedValue({
         paymentAttemptId: 'attempt',
@@ -650,12 +650,12 @@ describe('Couple billing experience', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Làm mới hồ sơ' }));
       if (status === 'FAILED')
         await waitFor(() =>
-          expect(screen.getByRole('button', { name: 'Đặt cọc qua VNPay' })).toBeEnabled(),
+          expect(screen.getByRole('button', { name: 'Tiếp tục thanh toán' })).toBeEnabled(),
         );
       else
         await waitFor(() =>
           expect(
-            screen.queryByRole('button', { name: 'Đặt cọc qua VNPay' }),
+            screen.queryByRole('button', { name: 'Tiếp tục thanh toán' }),
           ).not.toBeInTheDocument(),
         );
     },
@@ -685,9 +685,9 @@ describe('Couple billing experience', () => {
     await load();
     expect(api.load).not.toHaveBeenCalled();
     expect(screen.queryByText('Còn phải thanh toán')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Đặt cọc qua VNPay' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
     expect(api.startDeposit).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await waitFor(() =>
       expect(api.startDeposit).toHaveBeenCalledWith(
         'token',
@@ -700,7 +700,7 @@ describe('Couple billing experience', () => {
       'rel',
       'noopener noreferrer',
     );
-    expect(screen.queryByRole('button', { name: 'Đặt cọc qua VNPay' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Tiếp tục thanh toán' })).not.toBeInTheDocument();
   });
   it('uses the FULL booking grant and exact backend balance rather than account role math', async () => {
     const api = gateway();
@@ -726,7 +726,7 @@ describe('Couple billing experience', () => {
     await load();
     expect(screen.getByText('Còn phải thanh toán')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Thanh toán còn lại' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await waitFor(() =>
       expect(api.startBalance).toHaveBeenCalledWith(
         'token',
@@ -763,8 +763,8 @@ describe('Couple billing experience', () => {
       />,
     );
     await load();
-    fireEvent.click(screen.getByRole('button', { name: 'Đặt cọc qua VNPay' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     const retryButton = await screen.findByRole('button', { name: 'Thử lại cùng yêu cầu' });
     expect(screen.getByLabelText('Mã hồ sơ đặt tiệc')).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {
@@ -796,7 +796,7 @@ describe('Couple billing experience', () => {
       />,
     );
     await load();
-    expect(screen.getByRole('button', { name: 'Đặt cọc qua VNPay' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Tiếp tục thanh toán' })).toBeDisabled();
     vi.mocked(api.loadContext).mockRejectedValueOnce(
       new ApiClientError({
         kind: 'api',
@@ -808,7 +808,7 @@ describe('Couple billing experience', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Làm mới hồ sơ' }));
     await waitFor(() =>
-      expect(screen.queryByText('Khoản cọc theo đề xuất')).not.toBeInTheDocument(),
+      expect(screen.queryByRole('region', { name: 'Chi tiết đặt cọc tiệc cưới' })).not.toBeInTheDocument(),
     );
     expect(screen.getByRole('alert')).toHaveTextContent('quyền');
   });
@@ -850,7 +850,7 @@ describe('Couple billing inside Không gian cưới (embedded)', () => {
         embedded
       />,
     );
-    expect(await screen.findByText('Khoản cọc theo đề xuất')).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Chi tiết đặt cọc tiệc cưới' })).toBeInTheDocument();
     expect(api.loadContext).toHaveBeenCalledWith('token', 'booking');
     expect(screen.queryByLabelText('Mã hồ sơ đặt tiệc')).not.toBeInTheDocument();
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
@@ -879,7 +879,7 @@ describe('Balance payment eligibility (BE PR #76)', () => {
     expect(button).toBeDisabled();
     expect(screen.getByText(/Nhà hàng chưa chốt hoá đơn cuối/)).toBeInTheDocument();
     fireEvent.click(button);
-    expect(screen.queryByRole('button', { name: 'Xác nhận mở VNPay' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Tạo giao dịch VNPay' })).not.toBeInTheDocument();
     expect(api.startBalance).not.toHaveBeenCalled();
   });
 
@@ -922,7 +922,7 @@ describe('Balance payment eligibility (BE PR #76)', () => {
       ...blocked('INVOICE_FINALIZATION_REQUIRED', 'WAIT_FOR_FINAL_INVOICE'),
     });
     fireEvent.click(screen.getByRole('button', { name: 'Thanh toán còn lại' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận mở VNPay' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('chưa chốt hoá đơn cuối');
     await waitFor(() => expect(api.load).toHaveBeenCalledTimes(loadsBefore + 1));
     await waitFor(() =>

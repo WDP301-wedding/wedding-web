@@ -77,7 +77,7 @@ describe('seating confirmation capacity', () => {
     expect(screen.getByRole('status')).toHaveTextContent('70 khách');
     expect(screen.getByRole('status')).toHaveTextContent('50 ghế');
     expect(screen.getByRole('status')).toHaveTextContent('thiếu 20 chỗ');
-    expect(screen.getByText('Không đủ chỗ')).toBeInTheDocument();
+    expect(screen.getByText(/vượt số ghế của mẫu/)).toBeInTheDocument();
     expect(
       screen.getByText(/Sảnh hiện chưa có mẫu phù hợp với 70 khách dự kiến/),
     ).toBeInTheDocument();
@@ -148,7 +148,7 @@ describe('seating confirmation capacity', () => {
     render(<SeatingPage />);
     expect(await screen.findByRole('button', { name: 'Xác nhận sơ đồ' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'Đổi sang mẫu này' }));
-    await screen.findByText('Mẫu đang dùng: Mẫu đủ chỗ');
+    await screen.findByText('Mẫu sơ đồ sảnh: Mẫu đủ chỗ');
     expect(screen.queryByText(/thiếu 20 chỗ/)).not.toBeInTheDocument();
     const button = screen.getByRole('button', { name: 'Xác nhận sơ đồ' });
     expect(button).toBeEnabled();
@@ -238,7 +238,7 @@ describe('seating confirmation capacity', () => {
       .mockResolvedValue({ ...roomy, status: 'CONFIRMED', revisionNumber: 5 });
     render(<SeatingPage />);
     fireEvent.click(await screen.findByRole('button', { name: 'Xác nhận sơ đồ' }));
-    expect(await screen.findByText(/Đã tải lại sơ đồ mới nhất/)).toBeInTheDocument();
+    expect(await screen.findByText(/Thông tin tiệc hoặc sơ đồ vừa thay đổi/)).toBeInTheDocument();
     await waitFor(() => expect(current).toHaveBeenCalledTimes(2));
     // Bấm lại: lần này gửi đúng revision tiệc mới (14) nên thành công.
     fireEvent.click(await screen.findByRole('button', { name: 'Xác nhận sơ đồ' }));
@@ -283,6 +283,6 @@ describe('seating confirmation capacity', () => {
     await waitFor(() =>
       expect(create).toHaveBeenCalledWith('token', expect.any(String), 'booking', 'layout-80', 15),
     );
-    expect(await screen.findByText('Mẫu đang dùng: Mẫu đủ chỗ')).toBeInTheDocument();
+    expect(await screen.findByText('Mẫu sơ đồ sảnh: Mẫu đủ chỗ')).toBeInTheDocument();
   });
 });

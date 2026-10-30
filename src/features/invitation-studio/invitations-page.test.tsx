@@ -80,8 +80,8 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     render(<Page />);
 
-    expect(await screen.findByText('Bộ Sưu Tập Hình Ảnh Cưới')).toBeInTheDocument();
-    expect(screen.getByText('Chọn Tệp Hình Ảnh')).toBeInTheDocument();
+    expect(await screen.findByText('Hình ảnh cho thiệp')).toBeInTheDocument();
+    expect(screen.getByText('Chọn ảnh')).toBeInTheDocument();
   });
 
   it('applies initial ?tab=publish directly from URL', async () => {
@@ -90,8 +90,8 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     render(<Page />);
 
-    expect(await screen.findByText('Xuất Bản Trực Tuyến & Mã QR Chung')).toBeInTheDocument();
-    expect(screen.getByText('Xuất Bản Thiệp Ngay')).toBeInTheDocument();
+    expect(await screen.findByText('Chia sẻ thiệp')).toBeInTheDocument();
+    expect(screen.getByText('Xuất bản thiệp')).toBeInTheDocument();
   });
 
   it('applies initial ?tab=print directly from URL', async () => {
@@ -100,8 +100,8 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     render(<Page />);
 
-    expect(await screen.findByText('Đặt In Thiệp Giấy Truyền Thống')).toBeInTheDocument();
-    expect(screen.getByText('Gửi Yêu Cầu Báo Giá In')).toBeInTheDocument();
+    expect(await screen.findByText('Yêu cầu in thiệp')).toBeInTheDocument();
+    expect(screen.getByText('Gửi yêu cầu in')).toBeInTheDocument();
   });
 
   it('loads print orders and contracted print sources only after the print tab is opened', async () => {
@@ -112,20 +112,22 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     render(<Page />);
 
-    expect(await screen.findByText('Cấu Trúc Nội Dung Thiệp Cưới')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
     expect(mockGateway.listPrintOrders).not.toHaveBeenCalled();
     expect(contractedPrintSources).not.toHaveBeenCalled();
 
-    mockGateway.listPrintOrders.mockResolvedValue([{ orderId: 'order-1', status: 'REQUESTED' }]);
-    fireEvent.click(screen.getByText('Đặt In Thiệp Giấy'));
+    mockGateway.listPrintOrders.mockResolvedValue([
+      { orderId: 'order-1', status: 'REQUESTED', lines: [] },
+    ]);
+    fireEvent.click(screen.getByRole('button', { name: 'Đặt in' }));
 
-    expect(await screen.findByText('Đặt In Thiệp Giấy (1)')).toBeInTheDocument();
+    expect(await screen.findByText('Đặt in (1)')).toBeInTheDocument();
     expect(mockGateway.listPrintOrders).toHaveBeenCalledWith('test-token', bookingId);
     expect(contractedPrintSources).toHaveBeenCalledWith('test-token', bookingId);
 
     // Quay lại tab thiết kế rồi mở lại tab in: không tải lại.
-    fireEvent.click(screen.getByText('Thiết Kế & AI'));
-    fireEvent.click(screen.getByText('Đặt In Thiệp Giấy (1)'));
+    fireEvent.click(screen.getByRole('button', { name: 'Nội dung thiệp' }));
+    fireEvent.click(screen.getByText('Đặt in (1)'));
     expect(mockGateway.listPrintOrders).toHaveBeenCalledTimes(1);
     Reflect.deleteProperty(mockGateway, 'contractedPrintSources');
   });
@@ -153,7 +155,7 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
 
-    expect(await screen.findByText('Cấu Trúc Nội Dung Thiệp Cưới')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
     expect(mockGateway.listDesigns).toHaveBeenCalledTimes(2);
   });
 
@@ -163,8 +165,8 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     render(<Page />);
 
-    expect(await screen.findByText('Cấu Trúc Nội Dung Thiệp Cưới')).toBeInTheDocument();
-    expect(screen.getByText('Tiêu Đề Thiệp Cưới')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
+    expect(screen.getByText('Tên thiệp')).toBeInTheDocument();
   });
 
   it('updates tab when browser back/forward triggers popstate', async () => {
@@ -173,7 +175,7 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     render(<Page />);
 
-    expect(await screen.findByText('Cấu Trúc Nội Dung Thiệp Cưới')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
 
     // Simulate browser navigation to ?tab=media
     window.history.pushState({}, '', `?bookingId=${bookingId}&tab=media`);
@@ -181,7 +183,7 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
       window.dispatchEvent(new PopStateEvent('popstate'));
     });
 
-    expect(await screen.findByText('Bộ Sưu Tập Hình Ảnh Cưới')).toBeInTheDocument();
+    expect(await screen.findByText('Hình ảnh cho thiệp')).toBeInTheDocument();
   });
 
   it('preserves draft input when switching tabs on the same booking', async () => {
@@ -191,19 +193,19 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
     render(<Page />);
 
     // Type custom text into design input
-    const titleInput = await screen.findByLabelText('Tiêu Đề Thiệp Cưới');
+    const titleInput = await screen.findByLabelText('Tên thiệp');
     fireEvent.change(titleInput, { target: { value: 'Thiệp Cưới Bản Nháp Đặc Biệt' } });
     expect(titleInput).toHaveValue('Thiệp Cưới Bản Nháp Đặc Biệt');
 
     // Switch to Media tab via Studio Tab navigation
-    fireEvent.click(screen.getByText('Bộ Sưu Tập Ảnh'));
-    expect(await screen.findByText('Bộ Sưu Tập Hình Ảnh Cưới')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Hình ảnh' }));
+    expect(await screen.findByText('Hình ảnh cho thiệp')).toBeInTheDocument();
 
     // Switch back to Design tab via Studio Tab navigation
-    fireEvent.click(screen.getByText('Thiết Kế & AI'));
-    expect(await screen.findByText('Cấu Trúc Nội Dung Thiệp Cưới')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Nội dung thiệp' }));
+    expect(await screen.findByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
 
     // Value should NOT be wiped or reset
-    expect(screen.getByLabelText('Tiêu Đề Thiệp Cưới')).toHaveValue('Thiệp Cưới Bản Nháp Đặc Biệt');
+    expect(screen.getByLabelText('Tên thiệp')).toHaveValue('Thiệp Cưới Bản Nháp Đặc Biệt');
   });
 });

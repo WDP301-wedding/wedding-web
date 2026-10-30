@@ -58,7 +58,7 @@ describe('describeApiError', () => {
       message: 'x',
       requestId: 'r',
     });
-    expect(describeApiError(error).message).toContain('không bị lặp');
+    expect(describeApiError(error).message).toContain('trạng thái thao tác trước khi thử lại');
   });
 });
 
