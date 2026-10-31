@@ -4,6 +4,7 @@ import { InlineError } from '../../design-system/inline-error';
 import { formatVnd } from '../couple-workspace/use-couple-workspace';
 import { currentRevision, type ContractList } from './contract-api';
 import type { CustomerSelection } from './selection-wire';
+import { SelectionAccessNotice } from './selection-access-notice';
 import { ContractLinesTable, categoryLabels, unitLabel } from './contract-lines-table';
 import { useSelectionCatalog } from './use-selection-catalog';
 import { selectionKey, useCustomerSelection } from './use-customer-selection';
@@ -17,7 +18,10 @@ type Props = {
   onWritingChange: (value: boolean) => void;
 };
 export function CustomerSelections(props: Readonly<Props>) {
-  const catalog = useSelectionCatalog(Boolean(props.contracts.capabilities?.canEditSelections));
+  const canEdit =
+    props.contracts.selectionAccess?.canEdit === true &&
+    props.contracts.capabilities?.canEditSelections === true;
+  const catalog = useSelectionCatalog(canEdit);
   const selection = props.contracts.customerSelection;
   if (!selection) return null;
   const current = currentRevision(props.contracts);
@@ -34,14 +38,16 @@ export function CustomerSelections(props: Readonly<Props>) {
             ? 'Đã gửi nhà hàng'
             : selection.status === 'DRAFT'
               ? 'Bản nháp của bạn'
-              : 'Chưa gửi lựa chọn'}
+              : canEdit
+                ? 'Chưa gửi lựa chọn'
+                : 'Chỉ xem'}
         </span>
       </div>
       <p>
         Lựa chọn này giúp nhà hàng chuẩn bị hợp đồng. Gửi lựa chọn chưa phải là duyệt hợp đồng hay
         thanh toán.
       </p>
-      {props.contracts.capabilities?.canEditSelections ? (
+      {canEdit ? (
         <SelectionEditor
           key={selection.revisionId ?? 'initial'}
           {...props}
@@ -59,13 +65,11 @@ export function CustomerSelections(props: Readonly<Props>) {
                 : 'Tổng theo đề xuất ban đầu'
             }
           />
-          <p className="cw-note">
-            {selection.status === 'SUBMITTED'
-              ? 'Bạn đã gửi lựa chọn nên không thể tự chỉnh sửa. Nếu cần thay đổi, liên hệ nhà hàng; nội dung hợp đồng do nhà hàng cập nhật được hiển thị phía dưới để bạn kiểm tra lại.'
-              : current
-                ? 'Nhà hàng đã soạn hợp đồng. Xem nội dung và chi phí hiện tại ở phần Hợp đồng bên dưới.'
-                : 'Hồ sơ hiện không cho phép chỉnh sửa lựa chọn. Xem trạng thái hồ sơ hoặc liên hệ nhà hàng để được hỗ trợ.'}
-          </p>
+          <SelectionAccessNotice
+            access={props.contracts.selectionAccess}
+            bookingId={props.bookingId}
+            onRefresh={props.onChanged}
+          />
         </>
       )}
       {changes.length ? (
@@ -147,7 +151,7 @@ function SelectionEditor(
     bookingRevision: props.contracts.bookingRevision,
   });
   const { confirm, dialog } = useConfirmDialog();
-  const busy = state.command.pending || state.waitingRefresh;
+  const busy = state.command.pending || state.waitingRefresh || Boolean(state.blockedAccess);
   return (
     <>
       <ContractLinesTable
@@ -159,6 +163,28 @@ function SelectionEditor(
       />
       {state.previewPending ? <p role="status">Đang tính lại chi phí trên máy chủ…</p> : null}
       <InlineError error={state.command.error} />
+      {state.blockedAccess ? (
+        <SelectionAccessNotice
+          access={state.blockedAccess}
+          bookingId={props.bookingId}
+          hideNavigation={state.dirty}
+          onRefresh={() =>
+            void (async () => {
+              if (
+                state.dirty &&
+                !(await confirm({
+                  title: 'Bỏ thay đổi chưa lưu và cập nhật?',
+                  description:
+                    'Các lựa chọn chưa lưu trên màn hình sẽ bị bỏ. Nội dung đã lưu trên máy chủ được giữ nguyên.',
+                  confirmLabel: 'Bỏ thay đổi & cập nhật',
+                }))
+              )
+                return;
+              state.discard();
+            })()
+          }
+        />
+      ) : null}
       <InlineError error={state.previewError} />
       {state.previewError ? (
         <button

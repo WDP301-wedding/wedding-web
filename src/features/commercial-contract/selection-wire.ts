@@ -24,3 +24,48 @@ export const selectionResultSchema = z.object({
 });
 export type CustomerSelection = z.infer<typeof customerSelectionSchema>;
 export type SelectionResult = z.infer<typeof selectionResultSchema>;
+
+export const selectionBlockReasonSchema = z.enum([
+  'NOT_CUSTOMER',
+  'BOOKING_CLOSED',
+  'BOOKING_NOT_EDITABLE',
+  'CUSTOMER_SELECTION_SUBMITTED',
+  'CONTRACT_DRAFT_EXISTS',
+  'CONTRACT_APPROVED',
+  'DEPOSIT_SETTLED',
+  'DEPOSIT_IN_PROGRESS',
+  'PAYMENT_OUTCOME_UNKNOWN',
+  'LEGACY_COMMERCIAL_CONVERSION_BLOCKED',
+  'FINANCIAL_REVIEW_REQUIRED',
+]);
+export const selectionAccessSchema = z.object({
+  canEdit: z.boolean(),
+  blockReason: selectionBlockReasonSchema.nullable(),
+  nextAction: z.enum([
+    'EDIT_SELECTIONS',
+    'WAIT_FOR_RESTAURANT',
+    'VIEW_CONTRACT',
+    'VIEW_PAYMENTS',
+    'VIEW_APPENDICES',
+    'CONTACT_RESTAURANT',
+    'VIEW_BOOKING',
+  ]),
+});
+export type SelectionAccess = z.infer<typeof selectionAccessSchema>;
+
+export const selectionRecoveryActions: Record<
+  NonNullable<SelectionAccess['blockReason']>,
+  SelectionAccess['nextAction']
+> = {
+  NOT_CUSTOMER: 'VIEW_CONTRACT',
+  BOOKING_CLOSED: 'VIEW_BOOKING',
+  BOOKING_NOT_EDITABLE: 'CONTACT_RESTAURANT',
+  CUSTOMER_SELECTION_SUBMITTED: 'WAIT_FOR_RESTAURANT',
+  CONTRACT_DRAFT_EXISTS: 'VIEW_CONTRACT',
+  CONTRACT_APPROVED: 'VIEW_CONTRACT',
+  DEPOSIT_SETTLED: 'VIEW_PAYMENTS',
+  DEPOSIT_IN_PROGRESS: 'VIEW_PAYMENTS',
+  PAYMENT_OUTCOME_UNKNOWN: 'VIEW_PAYMENTS',
+  LEGACY_COMMERCIAL_CONVERSION_BLOCKED: 'CONTACT_RESTAURANT',
+  FINANCIAL_REVIEW_REQUIRED: 'CONTACT_RESTAURANT',
+};

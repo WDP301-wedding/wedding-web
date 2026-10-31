@@ -8,6 +8,26 @@ import { ApiClientError } from './client';
  * để khi báo lỗi cho nhóm backend, họ tra log được ngay.
  */
 const codeMessages: Record<string, string> = {
+  LEGACY_COMMERCIAL_CONVERSION_BLOCKED:
+    'Tiệc theo thỏa thuận cũ đã có chứng từ hoặc giao dịch cọc. Nhà hàng cần đối soát trước khi thay đổi mô hình hợp đồng.',
+  FINANCIAL_REVIEW_REQUIRED:
+    'Hồ sơ có chứng từ tài chính cần nhà hàng đối soát trước khi mở lại lựa chọn.',
+  DEPOSIT_IN_PROGRESS:
+    'Đang có giao dịch đặt cọc chưa hoàn tất. Xem trạng thái tại Thanh toán & công nợ.',
+  PAYMENT_OUTCOME_UNKNOWN:
+    'Chưa xác định được kết quả giao dịch cọc. Kiểm tra thanh toán trước khi thay đổi nội dung.',
+  DEPOSIT_SETTLED:
+    'Tiệc đã có thanh toán được xác nhận. Không thể sửa lựa chọn ban đầu; xem thỏa thuận hiện hành và phụ lục.',
+  BOOKING_NOT_EDITABLE:
+    'Hồ sơ không ở bước chỉnh sửa lựa chọn. Liên hệ nhà hàng để kiểm tra tiến trình hiện tại.',
+  BOOKING_CLOSED: 'Tiệc đã kết thúc hoặc bị hủy. Không thể sửa lựa chọn ban đầu.',
+  CUSTOMER_SELECTION_SUBMITTED:
+    'Lựa chọn đã được gửi nhà hàng. Liên hệ nhà hàng nếu cần điều chỉnh.',
+  CONTRACT_DRAFT_EXISTS:
+    'Nhà hàng đã soạn hợp đồng. Kiểm tra nội dung hợp đồng hiện tại thay vì sửa lựa chọn ban đầu.',
+  CONTRACT_APPROVED:
+    'Nội dung đã được chốt theo tiến trình tiệc. Xem hợp đồng hoặc liên hệ nhà hàng.',
+
   CUSTOMER_SELECTION_REQUIRED: 'Cần khách lưu và gửi lựa chọn trước khi lập hợp đồng.',
   CUSTOMER_SELECTION_LOCKED:
     'Lựa chọn đã gửi hoặc hợp đồng đã được nhà hàng soạn. Bạn không thể tự sửa; vui lòng liên hệ nhà hàng.',

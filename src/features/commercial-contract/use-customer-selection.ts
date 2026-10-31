@@ -6,7 +6,13 @@ import { selectionApi } from './selection-api';
 import type { SelectionChoice } from './selection-catalog';
 import type { useSelectionCatalog } from './use-selection-catalog';
 import type { ContractLineInput } from './contract-api';
-import type { CustomerSelection, SelectionResult } from './selection-wire';
+import {
+  selectionBlockReasonSchema,
+  selectionRecoveryActions,
+  type SelectionAccess,
+  type CustomerSelection,
+  type SelectionResult,
+} from './selection-wire';
 export const selectionKey = (line: Pick<ContractLineInput, 'category' | 'sourceId'>) =>
   line.category + ':' + line.sourceId.toLowerCase();
 const PREVIEW_DELAY_MS = 400;
@@ -89,7 +95,11 @@ export function useCustomerSelection({
   const signature = JSON.stringify(body);
   const priced = preview?.signature === signature ? preview.data : null;
   const priceError = previewError?.signature === signature ? previewError.error : null;
-  const eligible = !invalid && !command.pending && !waitingRefresh;
+  const block = selectionBlockReasonSchema.safeParse(command.error?.code ?? priceError?.code);
+  const blockedAccess: SelectionAccess | null = block.success
+    ? { canEdit: false, blockReason: block.data, nextAction: selectionRecoveryActions[block.data] }
+    : null;
+  const eligible = !invalid && !command.pending && !waitingRefresh && !blockedAccess;
   const previewPending = eligible && !priced && !priceError;
   useEffect(() => {
     if (!eligible || priced || priceError) return;
@@ -113,6 +123,7 @@ export function useCustomerSelection({
     };
   }, [eligible, priced, priceError, bookingId, body, signature]);
   const update = (choice: SelectionChoice, quantity: number) => {
+    if (blockedAccess) return;
     setLines((prev) => [
       ...prev.filter((line) => selectionKey(line) !== selectionKey(choice)),
       ...(quantity > 0
@@ -130,7 +141,8 @@ export function useCustomerSelection({
     command.setError(null);
   };
   async function save() {
-    if (invalid || !priced || previewPending || priceError || waitingRefresh) return;
+    if (blockedAccess || invalid || !priced || previewPending || priceError || waitingRefresh)
+      return;
     const identity = 'save:' + signature;
     if (attempt.current?.signature !== identity)
       attempt.current = { signature: identity, key: crypto.randomUUID() };
@@ -148,6 +160,7 @@ export function useCustomerSelection({
   }
   async function submit() {
     if (
+      blockedAccess ||
       waitingRefresh ||
       priceError ||
       dirty ||
@@ -175,10 +188,12 @@ export function useCustomerSelection({
     }
   }
   return {
+    blockedAccess,
     waitingRefresh,
     discard: () => {
       setLines(initial);
       setPreview(null);
+      setPreviewError(null);
       command.setError(null);
       onDirtyChange(false);
       onChanged();
@@ -197,8 +212,10 @@ export function useCustomerSelection({
     command,
     dirty,
     update,
-    remove: (line: ContractLineInput) =>
-      setLines((prev) => prev.filter((value) => selectionKey(value) !== selectionKey(line))),
+    remove: (line: ContractLineInput) => {
+      if (!blockedAccess)
+        setLines((prev) => prev.filter((value) => selectionKey(value) !== selectionKey(line)));
+    },
     save,
     submit,
   };

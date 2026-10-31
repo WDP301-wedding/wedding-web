@@ -10,6 +10,7 @@ import { contractApi, type ContractList, type CoupleProfile } from './contract-a
 import { Skeleton } from '../../design-system/skeleton';
 import { routes, withBooking } from '../../routes';
 import { CoupleNamesCard } from './couple-names-card';
+import { ContractProgress } from './contract-progress';
 import { CustomerSelections } from './customer-selections';
 import { ContractCard } from './contract-card';
 import { HistoryCard } from './contract-history-card';
@@ -117,6 +118,7 @@ function ContractWorkspace({
           </Link>
         </div>
       ) : null}
+      {showContract ? <ContractProgress contracts={contracts} phase={proposal.phase} /> : null}
       {showContract ? (
         <CustomerSelections
           contracts={contracts}

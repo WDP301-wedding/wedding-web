@@ -45,13 +45,30 @@ export function ContractCard({
       </section>
     );
   }
+  const selectionReason = contracts.selectionAccess?.blockReason;
+  if (
+    !current &&
+    (proposal.phase === 'CANCELLED' ||
+      [
+        'LEGACY_COMMERCIAL_CONVERSION_BLOCKED',
+        'FINANCIAL_REVIEW_REQUIRED',
+        'DEPOSIT_IN_PROGRESS',
+        'PAYMENT_OUTCOME_UNKNOWN',
+        'DEPOSIT_SETTLED',
+        'BOOKING_NOT_EDITABLE',
+        'BOOKING_CLOSED',
+      ].includes(selectionReason ?? ''))
+  )
+    return null;
   return (
     <section className="cw-card" aria-labelledby="contract-heading">
       <div className="cw-card-header">
         <h2 id="contract-heading">
           {current
             ? 'Hợp đồng · bản số ' + current.revisionNumber
-            : 'Nhà hàng đang chuẩn bị hợp đồng'}
+            : contracts.customerSelection?.status === 'SUBMITTED'
+              ? 'Nhà hàng đang chuẩn bị hợp đồng'
+              : 'Hợp đồng được lập sau khi chốt lựa chọn'}
         </h2>
         {current ? (
           <span className="status status-champagne">{stateLabels[current.state]}</span>
@@ -80,9 +97,9 @@ export function ContractCard({
         />
       ) : (
         <p>
-          Nhà hàng sẽ lập hợp đồng từ đề xuất đã thống nhất, gồm thực đơn, số bàn và các hạng mục đi
-          kèm. Khi nhà hàng gửi duyệt, hai bạn xem chi tiết và xác nhận tại đây; không cần nhập lại
-          thông tin đặt tiệc.
+          {contracts.customerSelection?.status === 'SUBMITTED'
+            ? 'Nhà hàng sẽ soạn hợp đồng từ lựa chọn đã gửi. Khi có bản hợp đồng, hai bạn kiểm tra nội dung, chi phí và các điều chỉnh trước khi duyệt.'
+            : 'Hoàn thiện lựa chọn thực đơn và dịch vụ ở trên, lưu nháp để kiểm tra, sau đó gửi cho nhà hàng. Hợp đồng sẽ được soạn từ lựa chọn đã chốt; bạn không cần nhập lại thông tin đặt tiệc.'}
         </p>
       )}
       {dialog}
