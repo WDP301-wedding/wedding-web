@@ -5,7 +5,7 @@ import { buttonVariants } from '../../components/ui/button';
  * Ô nhập trong `form` được tạo kiểu qua selector con để không phải gắn class cho từng nhãn.
  */
 export const cx = {
-  card: 'flex flex-col gap-4 rounded-xl border border-border bg-card p-5 sm:p-6',
+  card: 'flex flex-col gap-4 rounded-xl border border-border bg-card p-5 sm:p-6 [&>h2]:text-lg [&>h2]:font-bold [&>h3]:text-base [&>h3]:font-bold',
   cardHeader:
     'flex flex-wrap items-center justify-between gap-3 [&_h2]:text-lg [&_h2]:font-bold [&_h3]:text-base [&_h3]:font-bold',
   note: 'text-sm text-muted-foreground',

@@ -96,8 +96,9 @@ export const ix = {
   speaker: 'z-[5] mx-auto mt-1.5 mb-1 h-3 w-[68px] shrink-0 rounded-md bg-[#282124]',
   screen:
     'flex-1 scroll-smooth overflow-y-auto px-3.5 pt-4 pb-7 [scrollbar-color:rgb(122_31_61/25%)_transparent] [scrollbar-width:thin]',
+  // Cỡ chữ thiệp trong CSS tính theo vw của cửa sổ; trong khung điện thoại dùng đúng cỡ khách thấy trên điện thoại.
   paper:
-    'grid w-full gap-4 text-foreground [&_img]:max-h-[180px] [&_img]:w-full [&_img]:rounded-md [&_img]:object-cover',
+    'grid w-full gap-4 text-foreground [&_.hy-invite-card-canvas]:text-[14px] [&_.hy-invite-couple]:text-[20px] [&_.hy-invite-head_h1]:text-[20px] [&_img]:max-h-[180px] [&_img]:w-full [&_img]:rounded-md [&_img]:object-cover',
   previewNote: 'mt-6 mb-2 text-xs text-muted-foreground',
   modalBackdrop:
     'fixed inset-0 z-[9999] flex items-center justify-center bg-hy-ink/70 p-4 backdrop-blur-sm animate-in duration-150 fade-in motion-reduce:animate-none',

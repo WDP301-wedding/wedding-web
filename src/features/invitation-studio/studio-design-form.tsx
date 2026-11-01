@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { X } from 'lucide-react';
 import type { InvitationStudioState } from './use-invitation-studio';
 import { px } from './studio-panel-classes';
 import { ix } from './studio-classes';
@@ -154,8 +155,9 @@ export function StudioDesignForm({
                     onClick={() => handleRemoveImageFromDesign(id)}
                     className={px.chipRemove}
                     title="Bỏ ảnh này khỏi thiệp"
+                    aria-label="Bỏ ảnh này khỏi thiệp"
                   >
-                    ✕
+                    <X className="size-3.5" aria-hidden="true" />
                   </button>
                 </span>
               );

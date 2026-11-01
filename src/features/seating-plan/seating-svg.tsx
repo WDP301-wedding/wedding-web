@@ -94,10 +94,11 @@ export function SeatingSvg({
           const groupName = groupNameOf?.(table);
           const hasGroup = Boolean(groupName);
 
-          // Tính toán kích thước font chữ phù hợp với mặt bàn
+          // Cỡ chữ theo mặt bàn; mẫu vẽ bằng đơn vị lớn (vd. bàn 1000) thì nới giới hạn theo tỉ lệ k.
           const minDim = Math.min(table.width, table.height);
-          const labelFontSize = Math.max(10, Math.min(18, minDim / (hasGroup ? 4.2 : 3.5)));
-          const groupFontSize = Math.max(8, Math.min(12, minDim / 6.2));
+          const k = Math.max(1, minDim / 100);
+          const labelFontSize = Math.max(10 * k, Math.min(18 * k, minDim / (hasGroup ? 4.2 : 3.5)));
+          const groupFontSize = Math.max(8 * k, Math.min(12 * k, minDim / 6.2));
 
           return (
             <g
@@ -159,7 +160,7 @@ export function SeatingSvg({
                 fontWeight={700}
                 fill="#2B1D22"
                 stroke="#ffffff"
-                strokeWidth={3}
+                strokeWidth={3 * k}
                 paintOrder="stroke"
               >
                 {table.tableLabel}
@@ -176,7 +177,7 @@ export function SeatingSvg({
                   fontWeight={600}
                   fill="#4A353D"
                   stroke="#ffffff"
-                  strokeWidth={2.5}
+                  strokeWidth={2.5 * k}
                   paintOrder="stroke"
                 >
                   {groupName && groupName.length > 12 ? `${groupName.slice(0, 11)}…` : groupName}

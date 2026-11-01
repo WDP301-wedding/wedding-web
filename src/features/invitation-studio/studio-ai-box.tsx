@@ -101,7 +101,7 @@ export function StudioAiBox({
             disabled={isGeneratingCard || !customPrompt.trim()}
             className={ix.btn}
           >
-            {isGeneratingCard ? 'Đang thiết kế...' : '✨ Tạo thiết kế'}
+            {isGeneratingCard ? 'Đang thiết kế...' : 'Tạo thiết kế'}
           </button>
         </div>
 
@@ -116,7 +116,7 @@ export function StudioAiBox({
               );
             }}
           >
-            🏮 Á Đông truyền thống
+            Á Đông truyền thống
           </button>
           <button
             type="button"
@@ -127,7 +127,7 @@ export function StudioAiBox({
               );
             }}
           >
-            ✨ Dạ tiệc ánh sao
+            Dạ tiệc ánh sao
           </button>
           <button
             type="button"
@@ -136,7 +136,7 @@ export function StudioAiBox({
               setCustomPrompt('Thiệp cưới phong cách Champagne thanh lịch tone vàng ánh kim ấm áp');
             }}
           >
-            🥂 Champagne ấm áp
+            Champagne ấm áp
           </button>
         </div>
       </form>

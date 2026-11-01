@@ -120,7 +120,8 @@ export function LayoutSelector({
                       </defs>
                       {option.tables.map((table) => {
                         const minDim = Math.min(table.width, table.height);
-                        const labelFontSize = Math.max(10, Math.min(22, minDim * 0.35));
+                        const k = Math.max(1, minDim / 100);
+                        const labelFontSize = Math.max(10 * k, Math.min(22 * k, minDim * 0.35));
                         return (
                           <g
                             key={table.layoutTableId}

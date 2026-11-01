@@ -4,16 +4,17 @@
  */
 export const gx = {
   // Bố cục theo bề rộng vùng nội dung (container query), không theo màn hình.
-  workspace: '@container grid min-w-0 gap-4',
+  // grid-cols-1 = minmax(0,1fr): cột không nở theo bảng rộng bên trong (bảng tự cuộn ngang).
+  workspace: '@container grid min-w-0 grid-cols-1 gap-4',
   setupGrid:
-    'grid min-w-0 items-start gap-4 @min-[960px]:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)]',
-  settings: 'grid min-w-0 items-start gap-4 @min-[640px]:grid-cols-2 @min-[960px]:grid-cols-1',
+    'grid min-w-0 grid-cols-1 items-start gap-4 @min-[960px]:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)]',
+  settings:
+    'grid min-w-0 grid-cols-1 items-start gap-4 @min-[640px]:grid-cols-2 @min-[960px]:grid-cols-1',
   stats:
     'grid grid-cols-2 gap-2 @min-[640px]:grid-cols-4 [&>div]:min-w-0 [&>div]:rounded-lg [&>div]:bg-muted [&>div]:px-3 [&>div]:py-2.5 [&_dt]:text-xs [&_dt]:text-muted-foreground [&_dd]:mt-1 [&_dd]:text-xl [&_dd]:font-bold [&_dd]:text-primary [&_dd]:tabular-nums [&_dd]:wrap-anywhere',
   swatch: 'mr-1.5 inline-block size-3.5 shrink-0 rounded-full align-middle ring-1 ring-black/10',
   copyRow: 'my-2 flex flex-wrap items-center gap-2',
-  copyCode:
-    'max-w-full rounded-lg border border-border bg-muted px-2.5 py-1.5 text-xs break-all',
+  copyCode: 'max-w-full rounded-lg border border-border bg-muted px-2.5 py-1.5 text-xs break-all',
   colorPicker: 'h-8 w-9 cursor-pointer rounded-lg border border-input bg-transparent p-0.5',
   noteIllustrated: 'flex items-center gap-3 text-sm text-muted-foreground [&_svg]:flex-none',
   toolbar: 'mb-4 flex flex-wrap items-center justify-between gap-3',

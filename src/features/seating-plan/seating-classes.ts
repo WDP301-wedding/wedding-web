@@ -56,9 +56,11 @@ export const sx = {
     'cursor-pointer outline-none hover:brightness-[.96] [&_ellipse]:transition-[fill] [&_ellipse]:duration-250 [&_rect]:transition-[fill] [&_rect]:duration-250 focus-visible:[&_ellipse]:stroke-hy-wine focus-visible:[&_ellipse]:stroke-4 focus-visible:[&_rect]:stroke-hy-wine focus-visible:[&_rect]:stroke-4',
   fullscreen: 'fixed inset-0 z-[9999] flex flex-col overflow-auto bg-card p-5',
 
-  // Thanh lưu bám đáy thẻ
+  // Thanh lưu bám đáy thẻ; dưới lg bám trên thanh điều hướng dưới (cao 4rem) thay vì bị nó che.
   stickyActionBar:
-    'sticky bottom-0 z-50 -mx-5 mt-6 flex flex-wrap items-center justify-between gap-3 border-t-2 border-hy-champagne bg-card px-5 py-3.5 shadow-[0_-4px_16px_rgb(0_0_0/8%)] sm:-mx-6 sm:px-6',
+    'sticky bottom-16 z-50 -mx-5 mt-6 flex flex-wrap items-center justify-between gap-3 border-t-2 border-hy-champagne bg-card px-5 py-3.5 shadow-[0_-4px_16px_rgb(0_0_0/8%)] sm:-mx-6 sm:px-6 lg:bottom-0',
   actionBarStatus: 'flex flex-wrap items-center gap-2.5 text-xs',
-  actionBarButtons: 'ml-auto flex flex-wrap items-center gap-2.5',
+  // Điện thoại: 4 nút xếp 2×2 cho thanh thấp; từ sm trở lên nằm một hàng.
+  actionBarButtons:
+    'grid w-full grid-cols-2 gap-2 max-sm:[&_button]:px-2 max-sm:[&_button]:text-xs sm:ml-auto sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:gap-2.5',
 } as const;

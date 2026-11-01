@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import React from 'react';
 import { Celebrate } from '../../design-system/celebrate';
 import { openBlob } from '../../lib/api/download';
@@ -145,7 +146,9 @@ export function ContractDetailsView({
             className={cx.buttonOutline}
             href={`/khong-gian/chuan-bi/phu-luc?bookingId=${bookingId}`}
           >
-            Thay đổi sau cọc → Phụ lục
+            Thay đổi sau cọc
+            <ArrowRight aria-hidden="true" />
+            Phụ lục
           </Link>
         ) : null}
       </div>
