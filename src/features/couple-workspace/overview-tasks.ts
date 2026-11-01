@@ -1,9 +1,5 @@
 import { routes, withBooking } from '../../routes';
-import {
-  formatVnd,
-  type BookingSummary,
-  type Proposal,
-} from './use-couple-workspace';
+import { formatVnd, type BookingSummary, type Proposal } from './use-couple-workspace';
 
 /** Số ngày còn lại tới ngày cưới, tính theo lịch Việt Nam (không phụ thuộc múi giờ máy). */
 export function daysUntil(eventDate: string, now = new Date()): number {

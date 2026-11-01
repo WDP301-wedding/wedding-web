@@ -1,8 +1,12 @@
 'use client';
 
+import { Check } from 'lucide-react';
 import Link from 'next/link';
-import React from 'react';
+import { cn } from 'cn';
+
 import { routes, withBooking } from '../../routes';
+import { daysUntil } from './overview-tasks';
+import { chipClass, panel, panelTitle } from './space-classes';
 import {
   bookingDisplayName,
   bookingPhaseLabel,
@@ -12,7 +16,6 @@ import {
   type BookingSummary,
   type Proposal,
 } from './use-couple-workspace';
-import { daysUntil } from './overview-tasks';
 
 export interface OverviewMultiBookingsProps {
   bookings: readonly BookingSummary[];
@@ -25,43 +28,37 @@ export function OverviewMultiBookings({ bookings, proposal }: OverviewMultiBooki
   const totalAllVnd = bookings.reduce((sum, b) => sum + (b.totalVnd ?? 0), 0);
   const depositAllVnd = bookings.reduce((sum, b) => sum + (b.depositPaidVnd ?? 0), 0);
   const remainingAllVnd = Math.max(0, totalAllVnd - depositAllVnd);
+  const totals = [
+    { label: 'Tổng ngân sách các tiệc', value: totalAllVnd, tone: '' },
+    { label: 'Đã đặt cọc', value: depositAllVnd, tone: 'text-hy-success' },
+    { label: 'Còn lại cần thanh toán', value: remainingAllVnd, tone: 'text-primary' },
+  ];
 
   return (
-    <section className="hy-multi-bookings-section" aria-labelledby="multi-bookings-heading">
-      <div className="hy-multi-bookings-head">
-        <div>
-          <h2 id="multi-bookings-heading">Các sự kiện tiệc của hai bạn</h2>
-          <p className="hy-muted">
-            Tài khoản đang quản lý {bookings.length} tiệc cưới/báo hỷ. Bấm để chuyển đổi không
-            gian.
-          </p>
-        </div>
+    <section className={cn(panel, 'flex flex-col gap-4')} aria-labelledby="multi-bookings-heading">
+      <div className="flex flex-col gap-1">
+        <h2 id="multi-bookings-heading" className={panelTitle}>
+          Các sự kiện tiệc của hai bạn
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          Tài khoản đang quản lý {bookings.length} tiệc cưới/báo hỷ. Bấm để chuyển đổi không gian.
+        </p>
       </div>
-
-      <div className="hy-multi-budget-summary">
-        <div className="hy-multi-budget-item">
-          <span className="hy-multi-budget-label">Tổng ngân sách các tiệc</span>
-          <strong className="hy-multi-budget-value">{formatVnd(totalAllVnd)}</strong>
-        </div>
-        <div className="hy-multi-budget-divider" />
-        <div className="hy-multi-budget-item">
-          <span className="hy-multi-budget-label">Đã đặt cọc</span>
-          <strong className="hy-multi-budget-value is-paid">{formatVnd(depositAllVnd)}</strong>
-        </div>
-        <div className="hy-multi-budget-divider" />
-        <div className="hy-multi-budget-item">
-          <span className="hy-multi-budget-label">Còn lại cần thanh toán</span>
-          <strong className="hy-multi-budget-value is-remaining">
-            {formatVnd(remainingAllVnd)}
-          </strong>
-        </div>
-      </div>
-
-      <div className="hy-multi-grid">
+      <dl className="grid divide-border rounded-lg bg-muted max-sm:divide-y sm:grid-cols-3 sm:divide-x">
+        {totals.map((item) => (
+          <div key={item.label} className="flex flex-col gap-0.5 px-4 py-3">
+            <dt className="text-xs text-muted-foreground">{item.label}</dt>
+            <dd className={cn('text-base font-bold tabular-nums', item.tone)}>
+              {formatVnd(item.value)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <div className="grid gap-3 md:grid-cols-2">
         {bookings.map((b) => {
           const isCurrent = b.bookingId === proposal.bookingId;
           const bDays = daysUntil(b.eventDate);
-          const phaseTone =
+          const tone =
             b.phase === 'CONFIRMED' || b.phase === 'COMPLETED'
               ? 'done'
               : b.phase === 'CANCELLED'
@@ -70,57 +67,53 @@ export function OverviewMultiBookings({ bookings, proposal }: OverviewMultiBooki
           return (
             <article
               key={b.bookingId}
-              className={`hy-multi-card ${isCurrent ? 'is-active' : ''}`}
+              className={cn(
+                'flex flex-col gap-3 rounded-lg border p-4',
+                isCurrent ? 'border-primary bg-accent/40' : 'border-border',
+              )}
             >
-              <div className="hy-multi-card-top">
-                <div>
-                  <h3 className="hy-multi-card-title">{bookingDisplayName(b)}</h3>
-                  <p className="hy-multi-card-hall">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 flex-col">
+                  <h3 className="truncate text-sm font-bold">{bookingDisplayName(b)}</h3>
+                  <p className="text-xs text-muted-foreground">
                     {b.hallName} · {shiftLabel(b.shiftCode)}
                   </p>
                 </div>
-                <span className={`hy-nav-chip is-${phaseTone}`}>
-                  {bookingPhaseLabel(b.phase)}
-                </span>
+                <span className={chipClass(tone)}>{bookingPhaseLabel(b.phase)}</span>
               </div>
-
-              <div className="hy-multi-card-meta">
-                <div>
-                  <span className="hy-muted">Ngày tổ chức:</span>{' '}
-                  <strong>{formatEventDate(b.eventDate)}</strong>
-                </div>
-                <div>
-                  <span className="hy-muted">Thời gian:</span>{' '}
-                  <span className="hy-multi-countdown-pill">
-                    {bDays > 0 ? `Còn ${bDays} ngày` : bDays === 0 ? 'Hôm nay' : 'Đã diễn ra'}
-                  </span>
-                </div>
+              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs tabular-nums">
+                <dt className="text-muted-foreground">Ngày tổ chức:</dt>
+                <dd className="font-semibold">{formatEventDate(b.eventDate)}</dd>
+                <dt className="text-muted-foreground">Thời gian:</dt>
+                <dd>{bDays > 0 ? `Còn ${bDays} ngày` : bDays === 0 ? 'Hôm nay' : 'Đã diễn ra'}</dd>
                 {b.totalVnd !== undefined ? (
-                  <div>
-                    <span className="hy-muted">Chi phí tiệc:</span>{' '}
-                    <strong>{formatVnd(b.totalVnd)}</strong>
-                    {b.depositPaidVnd ? (
-                      <span className="hy-multi-paid-sub">
-                        {' '}
-                        (đã cọc {formatVnd(b.depositPaidVnd)})
-                      </span>
-                    ) : null}
-                  </div>
+                  <>
+                    <dt className="text-muted-foreground">Chi phí tiệc:</dt>
+                    <dd>
+                      <strong>{formatVnd(b.totalVnd)}</strong>
+                      {b.depositPaidVnd ? (
+                        <span className="text-muted-foreground">
+                          {' '}
+                          (đã cọc {formatVnd(b.depositPaidVnd)})
+                        </span>
+                      ) : null}
+                    </dd>
+                  </>
                 ) : null}
-              </div>
-
-              <div className="hy-multi-card-actions">
-                {isCurrent ? (
-                  <span className="hy-multi-current-badge">✓ Đang thao tác tiệc này</span>
-                ) : (
-                  <Link
-                    href={withBooking(routes.space, b.bookingId)}
-                    className="button button-secondary hy-multi-switch-link"
-                  >
-                    Chuyển tới tiệc này →
-                  </Link>
-                )}
-              </div>
+              </dl>
+              {isCurrent ? (
+                <span className="flex items-center gap-1 text-xs font-semibold text-hy-success">
+                  <Check className="size-3.5" aria-hidden="true" />
+                  Đang thao tác tiệc này
+                </span>
+              ) : (
+                <Link
+                  href={withBooking(routes.space, b.bookingId)}
+                  className="self-start text-xs font-semibold text-primary hover:underline"
+                >
+                  Chuyển tới tiệc này
+                </Link>
+              )}
             </article>
           );
         })}

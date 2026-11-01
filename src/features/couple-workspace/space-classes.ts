@@ -2,6 +2,9 @@ import type { Chip } from './space-nav-config';
 
 /** Lớp Tailwind dùng chung cho khung Không gian cưới (Hỷ Yến v3). */
 
+export const panel = 'rounded-xl border border-border bg-card p-5 sm:p-6';
+export const panelTitle = 'text-lg font-bold';
+
 export const navLink =
   'flex h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary data-[active=true]:bg-accent data-[active=true]:font-semibold data-[active=true]:text-primary';
 export const subNavLink =

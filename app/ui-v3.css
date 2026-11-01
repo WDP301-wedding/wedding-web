@@ -13,6 +13,7 @@
 @source '../src/features/public-website';
 @source '../src/features/identity-access';
 @source '../src/features/couple-workspace';
+@source '../src/design-system/journey-stepper.tsx';
 
 /* Sản phẩm chỉ có giao diện sáng: khoá biến thể dark: vào class .dark không bao giờ được gắn. */
 @custom-variant dark (&:is(.dark *));
@@ -209,5 +210,18 @@
 @keyframes hy-draw {
   to {
     stroke-dashoffset: 0;
+  }
+}
+
+/* Thanh tiến trình lấp đầy từ trái sang (hành trình cưới); trễ từng bước đặt inline. */
+@media (prefers-reduced-motion: no-preference) {
+  .hy-grow-x {
+    transform-origin: left;
+    animation: hy-grow-x 500ms var(--hy-ease-decelerate) backwards;
+  }
+}
+@keyframes hy-grow-x {
+  from {
+    transform: scaleX(0);
   }
 }
