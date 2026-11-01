@@ -4,7 +4,6 @@ import React, { useState, type FormEvent } from 'react';
 import { cn } from 'cn';
 
 import { Button } from '../../components/ui/button';
-import { PageTransition } from '../../design-system/page-transition';
 import { control, field, fieldError } from '../public-website/public-classes';
 import { PublicHeader } from '../public-website/public-shell';
 import type { WebIdentitySession } from './session';
@@ -126,9 +125,9 @@ export function PublicShell({
           />
         </div>
         <section className="flex flex-col justify-center bg-card px-4 py-10 sm:px-12 lg:px-16">
-          <PageTransition>
-            <div className="mx-auto flex w-full max-w-md flex-col gap-4">{children}</div>
-          </PageTransition>
+          <div className="mx-auto flex w-full max-w-md animate-in duration-300 ease-hy-decelerate fade-in fill-mode-backwards slide-in-from-bottom-2 motion-reduce:animate-none flex-col gap-4">
+            {children}
+          </div>
         </section>
       </main>
     </div>

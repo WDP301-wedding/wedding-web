@@ -167,40 +167,6 @@
   }
 }
 
-/* Chuyển trang bằng React <ViewTransition> của Next 16 (design-system/page-transition.tsx):
-   trang cũ mờ nhanh, trang mới hiện dần và nhích lên 8px; header nằm ngoài nên đứng yên. */
-::view-transition {
-  pointer-events: none;
-}
-::view-transition-old(.hy-page-out) {
-  animation: 120ms var(--hy-ease-accelerate) both hy-fade-out;
-}
-::view-transition-new(.hy-page-in) {
-  animation: 200ms var(--hy-ease-decelerate) both hy-rise-in;
-}
-@keyframes hy-fade-out {
-  to {
-    opacity: 0;
-  }
-}
-@keyframes hy-rise-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
-@keyframes hy-fade-in {
-  from {
-    opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  /* Giữ hiện dần (cho biết nội dung đã đổi), bỏ dịch chuyển. */
-  ::view-transition-new(.hy-page-in) {
-    animation-name: hy-fade-in;
-  }
-}
-
 /* Dấu tích tự vẽ nét: gửi yêu cầu tư vấn thành công. */
 @media (prefers-reduced-motion: no-preference) {
   .hy-draw-check path {

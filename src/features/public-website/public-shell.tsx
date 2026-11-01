@@ -3,7 +3,6 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { cn } from 'cn';
 
-import { PageTransition } from '../../design-system/page-transition';
 import type { Restaurant } from './public-api';
 import { container } from './public-classes';
 import { PublicHeader } from './public-header';
@@ -31,8 +30,11 @@ export function PublicShell({
         Đi đến nội dung chính
       </a>
       <PublicHeader showOffers={showOffers} />
-      <main id="public-content" className="flex-1">
-        <PageTransition>{children}</PageTransition>
+      <main
+        id="public-content"
+        className="flex-1 animate-in duration-300 ease-hy-decelerate fade-in fill-mode-backwards slide-in-from-bottom-2 motion-reduce:animate-none"
+      >
+        {children}
       </main>
       {/* Chừa chỗ cho thanh "Mở lại bảng ước tính" cố định ở đáy khi nó đang hiện. */}
       <footer className="bg-hy-ink text-sm text-white/80 [body:has([data-estimate-banner])_&]:pb-16">

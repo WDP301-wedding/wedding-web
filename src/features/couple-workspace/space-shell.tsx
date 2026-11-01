@@ -4,7 +4,6 @@ import { ConnectionFeedback } from '../realtime/connection-feedback';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 
-import { PageTransition } from '../../design-system/page-transition';
 import { withBooking } from '../../routes';
 import { useSpaceExtras } from './space-provider';
 import { useCoupleWorkspace } from './use-couple-workspace';
@@ -79,8 +78,14 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
           {state.status !== 'loading' && state.status !== 'anonymous' ? (
             <ConnectionFeedback />
           ) : null}
-          {/* key theo đường dẫn: mỗi trang là một lần vào/ra của ViewTransition (khung đứng yên). */}
-          <PageTransition key={pathname}>{children}</PageTransition>
+          {/* Hiệu ứng vào bằng CSS, key theo đường dẫn. Không dùng <ViewTransition> ở layout này:
+              Suspense của loading.tsx bên trong sẽ chỉ hiện nội dung khi view transition chạy xong. */}
+          <div
+            key={pathname}
+            className="animate-in duration-300 ease-hy-decelerate fade-in fill-mode-backwards slide-in-from-bottom-2 motion-reduce:animate-none"
+          >
+            {children}
+          </div>
         </main>
       </div>
 
