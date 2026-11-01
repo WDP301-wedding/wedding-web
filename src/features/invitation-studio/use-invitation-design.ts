@@ -73,7 +73,9 @@ export function useInvitationDesign({
       localStorage.setItem(`invitation-theme:${bookingId}`, generated.theme);
     }
     setDesignDirty(true);
-    notify.success(`Đã áp dụng thiết kế "${generated.themeName}"! Xem thiệp trực quan ở khung bên phải.`);
+    notify.success(
+      `Đã áp dụng thiết kế "${generated.themeName}"! Xem thiệp trực quan ở khung bên phải.`,
+    );
   };
 
   const saveKeyRef = useRef<{ signature: string; key: string } | null>(null);

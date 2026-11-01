@@ -2,6 +2,8 @@
 @layer theme, base, legacy, components, utilities;
 
 @import './ui-v3.css';
+@import './styles/invitation-card.css' layer(components);
+@import './styles/invitation-card-themes.css' layer(components);
 @import './styles/globals/tokens-base.css' layer(legacy);
 @import './styles/globals/invitation-layout.css' layer(legacy);
 @import './styles/globals/workspace-responsive.css' layer(legacy);

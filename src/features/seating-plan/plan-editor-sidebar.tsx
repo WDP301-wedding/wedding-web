@@ -80,9 +80,7 @@ export function PlanEditorSidebar({
         <h3 className={sx.selectedTitle}>2. Bàn đang chọn</h3>
         {selectedTable ? (
           <div className="grid gap-2.5">
-            <div className={sx.selectedName}>
-              Bàn {selectedTable.tableLabel}
-            </div>
+            <div className={sx.selectedName}>Bàn {selectedTable.tableLabel}</div>
             <label className={sx.selectedField}>
               Nhóm khách cho bàn này:
               <select
@@ -110,4 +108,3 @@ export function PlanEditorSidebar({
     </aside>
   );
 }
-

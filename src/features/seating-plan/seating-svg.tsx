@@ -42,11 +42,7 @@ export function SeatingSvg({
 
   const content = (
     <>
-      <div
-        className={sx.zoomBar}
-        role="group"
-        aria-label="Thu phóng sơ đồ"
-      >
+      <div className={sx.zoomBar} role="group" aria-label="Thu phóng sơ đồ">
         <button
           type="button"
           className={sx.zoomButton}
@@ -71,17 +67,11 @@ export function SeatingSvg({
         <button type="button" className={sx.textButton} onClick={resetZoom}>
           Vừa khung
         </button>
-        <button
-          type="button"
-          className={sx.fullscreenButton}
-          onClick={toggleFullscreen}
-        >
+        <button type="button" className={sx.fullscreenButton} onClick={toggleFullscreen}>
           {isFullscreen ? <Minimize2 aria-hidden="true" /> : <Maximize2 aria-hidden="true" />}
           {isFullscreen ? 'Thu nhỏ cửa sổ' : 'Toàn màn hình'}
         </button>
-        <small className={sx.zoomHint}>
-          Kéo để di chuyển · Giữ Ctrl + cuộn chuột để thu phóng
-        </small>
+        <small className={sx.zoomHint}>Kéo để di chuyển · Giữ Ctrl + cuộn chuột để thu phóng</small>
       </div>
 
       <svg

@@ -35,7 +35,9 @@ export function LayoutSelector({
     <section className={cx.card}>
       <div className={cx.cardHeader}>
         <div>
-          <h2>{plan ? `Mẫu sơ đồ sảnh: ${plan.layoutName}` : 'Chọn mẫu bố trí không gian bàn tiệc'}</h2>
+          <h2>
+            {plan ? `Mẫu sơ đồ sảnh: ${plan.layoutName}` : 'Chọn mẫu bố trí không gian bàn tiệc'}
+          </h2>
           <span className={cx.muted}>
             Số khách dự kiến: <strong>{options.planningHeadcount} khách</strong>
           </span>
@@ -44,8 +46,8 @@ export function LayoutSelector({
 
       {disabled ? (
         <p className={cx.alert} role="status">
-          Bạn đang có thay đổi chưa lưu trên sơ đồ hiện tại. Hãy bấm <strong>Lưu nhãn bàn</strong> hoặc{' '}
-          <strong>Khôi phục</strong> ở phía dưới trước khi chuyển sang mẫu khác.
+          Bạn đang có thay đổi chưa lưu trên sơ đồ hiện tại. Hãy bấm <strong>Lưu nhãn bàn</strong>{' '}
+          hoặc <strong>Khôi phục</strong> ở phía dưới trước khi chuyển sang mẫu khác.
         </p>
       ) : null}
 
@@ -77,11 +79,7 @@ export function LayoutSelector({
                   </span>
                 </div>
 
-                {option.description ? (
-                  <p className={cx.muted}>
-                    {option.description}
-                  </p>
-                ) : null}
+                {option.description ? <p className={cx.muted}>{option.description}</p> : null}
 
                 {/* Khung hình xem trước sơ đồ */}
                 {option.tables ? (
@@ -187,9 +185,7 @@ export function LayoutSelector({
                   </div>
                 ) : (
                   <div className={sx.layoutThumbnailWrap}>
-                    <p className={cx.muted}>
-                      Bản xem trước chưa được máy chủ cung cấp.
-                    </p>
+                    <p className={cx.muted}>Bản xem trước chưa được máy chủ cung cấp.</p>
                   </div>
                 )}
 
@@ -202,7 +198,10 @@ export function LayoutSelector({
                     <strong>{option.totalSeatCapacity}</strong> ghế
                   </div>
                   <div>
-                    Khoảng khách: <strong>{option.minGuests}–{option.maxGuests}</strong>
+                    Khoảng khách:{' '}
+                    <strong>
+                      {option.minGuests}–{option.maxGuests}
+                    </strong>
                   </div>
                 </div>
 

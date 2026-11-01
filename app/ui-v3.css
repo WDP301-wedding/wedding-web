@@ -22,6 +22,7 @@
 @source '../src/features/guest-management';
 @source './khong-gian/chuan-bi/khach';
 @source '../src/features/seating-plan';
+@source '../src/features/invitation-studio';
 @source '../src/design-system/dialog-classes.ts';
 @source '../src/design-system/confirm-dialog.tsx';
 @source './khong-gian/thanh-toan/ket-qua';

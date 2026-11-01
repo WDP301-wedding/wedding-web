@@ -38,11 +38,7 @@ export function GuestLinkModal({
   if (!link) return null;
 
   return createPortal(
-    <div
-      className={dialog.backdrop}
-      onMouseDown={onClose}
-      onClick={(e) => e.stopPropagation()}
-    >
+    <div className={dialog.backdrop} onMouseDown={onClose} onClick={(e) => e.stopPropagation()}>
       <div
         ref={panelRef}
         className={dialog.panel}
@@ -62,7 +58,8 @@ export function GuestLinkModal({
         <div className={dialog.description}>
           <p>
             Liên kết chỉ hiển thị <strong>một lần</strong> để bảo mật. Hãy sao chép và gửi trực tiếp
-            cho khách qua Zalo, Messenger hoặc Email. Cấp lại liên kết mới sẽ vô hiệu hoá liên kết cũ.
+            cho khách qua Zalo, Messenger hoặc Email. Cấp lại liên kết mới sẽ vô hiệu hoá liên kết
+            cũ.
           </p>
           <p className="text-xs">
             Thời hạn sử dụng: <strong>{formatDateTime(link.expiresAt)}</strong>

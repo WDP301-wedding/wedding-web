@@ -95,11 +95,7 @@ export function GuestModal({
   };
 
   return createPortal(
-    <div
-      className={dialog.backdrop}
-      onMouseDown={onClose}
-      onClick={(e) => e.stopPropagation()}
-    >
+    <div className={dialog.backdrop} onMouseDown={onClose} onClick={(e) => e.stopPropagation()}>
       <div
         ref={panelRef}
         className={dialog.panel}
@@ -134,12 +130,7 @@ export function GuestModal({
           <GuestFields groups={groups} {...(guest ? { guest } : {})} />
 
           <div className={dialog.actions}>
-            <button
-              type="button"
-              className={cx.buttonOutline}
-              disabled={pending}
-              onClick={onClose}
-            >
+            <button type="button" className={cx.buttonOutline} disabled={pending} onClick={onClose}>
               Hủy
             </button>
             <button type="submit" className={cx.button} disabled={pending || groups.length === 0}>

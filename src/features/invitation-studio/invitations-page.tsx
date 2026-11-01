@@ -14,6 +14,7 @@ import { describeApiError } from '../../lib/api/api-errors';
 import { createInvitationGateway, type DesignView } from './invitation-api';
 import { estimateMediaCutoff } from './media-cutoff';
 import { useCoupleWorkspace } from '../couple-workspace/use-couple-workspace';
+import { cx } from '../commercial-contract/contract-classes';
 
 /**
  * Studio thiệp (~1.500 dòng: trình biên tập, xuất bản, đặt in) được tách thành chunk riêng bằng
@@ -155,9 +156,11 @@ export function CoupleInvitationsPage() {
   if (error)
     return (
       <WorkspaceShell active={tab} bookingId={bookingId ?? undefined}>
-        <div className="invitation-page">
-          <p role="alert">{error}</p>
-          <button type="button" onClick={retry}>
+        <div data-ui-v3 className={`${cx.card} items-start`}>
+          <p className={cx.alert} role="alert">
+            {error}
+          </p>
+          <button type="button" className={cx.buttonOutline} onClick={retry}>
             Thử lại
           </button>
         </div>
@@ -167,13 +170,13 @@ export function CoupleInvitationsPage() {
   if (state === 'anonymous' || !token) {
     return (
       <WorkspaceShell active={tab} bookingId={bookingId ?? undefined}>
-        <section className="cw-card cw-empty">
+        <section data-ui-v3 className={cx.empty}>
           <h2>Mở sau khi đặt cọc</h2>
           <p>
             Thiệp cưới dành cho tiệc đã được xác nhận. Sau khi khoản cọc được nhà hàng ghi nhận,
             Studio thiệp sẽ tự mở.
           </p>
-          <Link className="button" href={routes.payment}>
+          <Link className={cx.button} href={routes.payment}>
             Đi tới Thanh toán
           </Link>
         </section>
@@ -201,29 +204,27 @@ export function CoupleInvitationsPage() {
 
   return (
     <WorkspaceShell active={tab} bookingId={bookingId ?? undefined}>
-      <div className="invitation-page">
-        <InvitationStudioView
-          event={
-            proposal
-              ? {
-                  eventDate: proposal.eventDate,
-                  hallName: proposal.proposal.hall.name,
-                  shiftCode: proposal.proposal.shift.code,
-                  startTime: proposal.proposal.shift.startTime,
-                }
-              : null
-          }
-          timeline={proposal?.timeline?.items ?? []}
-          mediaCutoffEstimate={mediaCutoffEstimate}
-          bookingId={bookingId}
-          accessToken={token}
-          gateway={gateway}
-          initialDesigns={designs}
-          initialTab={tab}
-          onTabChange={handleTabChange}
-          key={bookingId}
-        />
-      </div>
+      <InvitationStudioView
+        event={
+          proposal
+            ? {
+                eventDate: proposal.eventDate,
+                hallName: proposal.proposal.hall.name,
+                shiftCode: proposal.proposal.shift.code,
+                startTime: proposal.proposal.shift.startTime,
+              }
+            : null
+        }
+        timeline={proposal?.timeline?.items ?? []}
+        mediaCutoffEstimate={mediaCutoffEstimate}
+        bookingId={bookingId}
+        accessToken={token}
+        gateway={gateway}
+        initialDesigns={designs}
+        initialTab={tab}
+        onTabChange={handleTabChange}
+        key={bookingId}
+      />
     </WorkspaceShell>
   );
 }

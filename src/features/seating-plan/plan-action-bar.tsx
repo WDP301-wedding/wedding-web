@@ -37,9 +37,7 @@ export function PlanActionBar({
             Có thay đổi chưa lưu
           </span>
         ) : (
-          <span className="text-muted-foreground">
-            Đã đồng bộ với hệ thống
-          </span>
+          <span className="text-muted-foreground">Đã đồng bộ với hệ thống</span>
         )}
       </div>
 
@@ -86,4 +84,3 @@ export function PlanActionBar({
     </div>
   );
 }
-

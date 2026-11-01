@@ -217,4 +217,3 @@ export interface InvitationGateway {
   ): Promise<DerivedAssetView>;
   getPublicInvitation(this: void, slug: string): Promise<PublicInvitationView>;
 }
-

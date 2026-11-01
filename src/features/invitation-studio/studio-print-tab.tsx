@@ -4,6 +4,8 @@ import React from 'react';
 import { InlineError } from '../../design-system/inline-error';
 import { orderStatusMap } from './invitation-studio-utils';
 import type { InvitationStudioState } from './use-invitation-studio';
+import { px } from './studio-panel-classes';
+import { ix } from './studio-classes';
 
 export type StudioPrintTabProps = Readonly<{
   studio: InvitationStudioState;
@@ -30,12 +32,12 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
   } = studio;
 
   return (
-    <section aria-labelledby="print-heading" className="studio-stack studio-print-layout">
-      <div className="studio-card">
-        <h2 id="print-heading" className="studio-title">
+    <section aria-labelledby="print-heading" className={ix.stackSplit}>
+      <div className={ix.card}>
+        <h2 id="print-heading" className={ix.title}>
           Yêu cầu in thiệp
         </h2>
-        <p className="studio-hint">
+        <p className={ix.hint}>
           Chọn mẫu trong hợp đồng và số lượng cần in. Quy cách và chi phí áp dụng theo hợp đồng hoặc
           báo giá được nhà hàng xác nhận.
         </p>
@@ -47,11 +49,11 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
           onSubmit={(e) => {
             void handleRequestPrint(e);
           }}
-          className="studio-form"
+          className={ix.form}
         >
           {printSources.length > 0 ? (
             <div>
-              <label htmlFor="print-source" className="studio-label">
+              <label htmlFor="print-source" className={ix.label}>
                 Mẫu in theo hợp đồng
               </label>
               <select
@@ -62,7 +64,7 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                   setPrintSourceIndex(index);
                   setPrintQuantity(printSources[index]?.quantity ?? printQuantity);
                 }}
-                className="studio-input"
+                className={ix.input}
               >
                 {printSources.map((source, index) => (
                   <option key={source.offeringId} value={index}>
@@ -70,23 +72,24 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                   </option>
                 ))}
               </select>
-              <p className="studio-meta">
+              <p className={ix.meta}>
                 Số bản trong hợp đồng đã được tính tiền, nhà hàng không thu lại. Muốn in thêm hoặc
                 đổi mẫu, hãy tạo phụ lục hợp đồng.
               </p>
             </div>
           ) : null}
           <div>
-            <div className="studio-quantity-head">
-              <label htmlFor="print-quantity" className="studio-label">
+            <div className={px.quantityHead}>
+              <label htmlFor="print-quantity" className={ix.label}>
                 Số lượng (1–10.000 bản)
               </label>
-              <div className="studio-quantity-presets" aria-label="Gợi ý số lượng bản in nhanh">
+              <div className={px.quantityPresets} aria-label="Gợi ý số lượng bản in nhanh">
                 {[50, 100, 150, 200, 300, 500].map((num) => (
                   <button
                     key={num}
                     type="button"
-                    className={`studio-qty-chip ${printQuantity === num ? 'is-active' : ''}`}
+                    className={px.chipButton}
+                    data-active={printQuantity === num}
                     onClick={() => setPrintQuantity(num)}
                   >
                     {num} bản
@@ -102,13 +105,13 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
               value={printQuantity}
               onChange={(e) => setPrintQuantity(Number(e.target.value))}
               required
-              className="studio-input"
+              className={ix.input}
             />
           </div>
           <button
             type="submit"
             disabled={isOrdering || !sourcesReady || printSourcesError !== null}
-            className="studio-btn"
+            className={ix.btn}
           >
             {isOrdering ? 'Đang gửi...' : 'Gửi yêu cầu in'}
           </button>
@@ -116,30 +119,30 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
       </div>
 
       {/* Orders List */}
-      <div className="studio-card">
-        <h3 className="studio-subtitle">Đơn in của hai bạn</h3>
+      <div className={ix.card}>
+        <h3 className={ix.subtitle}>Đơn in của hai bạn</h3>
         {orders === null ? (
           ordersError ? (
             <p role="alert">{ordersError}</p>
           ) : (
-            <p className="studio-empty" role="status">
+            <p className={ix.empty} role="status">
               Đang tải đơn in…
             </p>
           )
         ) : orders.length === 0 ? (
-          <p className="studio-empty">Chưa có đơn in thiệp nào.</p>
+          <p className={ix.empty}>Chưa có đơn in thiệp nào.</p>
         ) : (
-          <div className="studio-orders">
+          <div className={px.orders}>
             {orders.map((order) => (
-              <div key={order.orderId} className="studio-order">
-                <div className="studio-order-head">
-                  <span className="studio-order-id">Đơn hàng #{order.orderId.slice(0, 8)}</span>
-                  <span className={`hy-chip ${orderStatusMap[order.status]?.className ?? ''}`}>
+              <div key={order.orderId} className={px.order}>
+                <div className={px.orderHead}>
+                  <span className={px.orderId}>Đơn hàng #{order.orderId.slice(0, 8)}</span>
+                  <span className={orderStatusMap[order.status]?.className ?? ix.chip}>
                     {orderStatusMap[order.status]?.label ?? order.status}
                   </span>
                 </div>
 
-                <p className="studio-order-brief">
+                <p className={px.orderBrief}>
                   <span>{order.lines.reduce((total, line) => total + line.quantity, 0)} bản</span>
                   <strong>
                     {order.currentCommercialRevision
@@ -149,10 +152,10 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                       : 'Chưa có báo giá'}
                   </strong>
                 </p>
-                <details className="studio-disclosure" open={order.status === 'QUOTED'}>
+                <details className={ix.disclosure} open={order.status === 'QUOTED'}>
                   <summary>Tiến trình và chi tiết báo giá</summary>
                   {/* Production Stepper */}
-                  <div className="studio-order-stepper" aria-label="Tiến trình sản xuất đơn in">
+                  <div className={px.orderStepper} aria-label="Tiến trình sản xuất đơn in">
                     {[
                       { key: 'REQUESTED', label: '1. Gửi yêu cầu' },
                       { key: 'QUOTED', label: '2. Đã báo giá' },
@@ -176,17 +179,18 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                       return (
                         <div
                           key={step.key}
-                          className={`studio-step-item ${isPast ? 'is-done' : ''} ${isCurrent ? 'is-active' : ''}`}
+                          className={px.orderStep}
+                          data-state={isCurrent ? 'current' : isPast ? 'done' : 'todo'}
                         >
-                          <span className="studio-step-dot" />
-                          <span className="studio-step-label">{step.label}</span>
+                          <span className={px.orderStepBar} aria-hidden="true" />
+                          <span>{step.label}</span>
                         </div>
                       );
                     })}
                   </div>
 
                   {order.currentCommercialRevision && (
-                    <div className="studio-order-summary">
+                    <div className={px.orderSummary}>
                       <p>
                         Tổng tiền:{' '}
                         <strong>
@@ -197,7 +201,7 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                         </strong>
                       </p>
                       {order.lines?.[0]?.quantity ? (
-                        <p className="studio-meta">
+                        <p className={ix.meta}>
                           Số lượng: {order.lines[0].quantity} bản (Ước tính ~
                           {Math.round(
                             Number(order.currentCommercialRevision.orderTotalVnd) /
@@ -206,7 +210,7 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                           đ/bản)
                         </p>
                       ) : null}
-                      <p className="studio-meta">
+                      <p className={ix.meta}>
                         Hạn báo giá:{' '}
                         {new Date(order.currentCommercialRevision.expiresAt).toLocaleDateString(
                           'vi-VN',
@@ -215,7 +219,7 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                     </div>
                   )}
                 </details>
-                <div className="studio-actions">
+                <div className={ix.actions}>
                   {order.status === 'QUOTED' && order.currentCommercialRevision && (
                     <button
                       type="button"
@@ -225,7 +229,7 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                       onClick={() => {
                         void handleApproveQuote(order);
                       }}
-                      className="studio-btn"
+                      className={ix.btn}
                     >
                       {approvingOrderId === order.orderId ? 'Đang duyệt...' : 'Duyệt báo giá'}
                     </button>
@@ -239,7 +243,7 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                       onClick={() => {
                         void handleCancelOrder(order);
                       }}
-                      className="studio-btn is-danger-outline"
+                      className={ix.btnDanger}
                     >
                       {cancellingOrderId === order.orderId ? 'Đang hủy...' : 'Hủy đơn'}
                     </button>

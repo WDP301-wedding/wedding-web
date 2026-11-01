@@ -34,11 +34,7 @@ export function GuestCardList({
         const isSelected = selectedIds.has(guest.guestId);
         const grp = groupMap.get(guest.guestGroupId);
         return (
-          <div
-            key={guest.guestId}
-            className={gx.guestCard}
-            data-selected={isSelected}
-          >
+          <div key={guest.guestId} className={gx.guestCard} data-selected={isSelected}>
             <div className={gx.guestCardHeader}>
               <label className={gx.checkboxLabel}>
                 <input
@@ -50,11 +46,7 @@ export function GuestCardList({
                 <span className={gx.guestCardName}>{guest.name}</span>
               </label>
               <span className={gx.guestCardGroup}>
-                <span
-                  className={gx.swatch}
-                  style={{ background: grp?.color }}
-                  aria-hidden="true"
-                />
+                <span className={gx.swatch} style={{ background: grp?.color }} aria-hidden="true" />
                 {grp?.name ?? '—'}
               </span>
             </div>

@@ -59,7 +59,8 @@ export function PlanEditorHeader({
 
       {plan.droppedTableIds.length > 0 ? (
         <p className={cx.note}>
-          {plan.droppedTableIds.length} nhãn không giữ được khi đổi mẫu; hãy gán lại cho các bàn mới.
+          {plan.droppedTableIds.length} nhãn không giữ được khi đổi mẫu; hãy gán lại cho các bàn
+          mới.
         </p>
       ) : null}
 
@@ -71,4 +72,3 @@ export function PlanEditorHeader({
     </>
   );
 }
-

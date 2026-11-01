@@ -64,10 +64,7 @@ export function GuestTableView({
             const isSelected = selectedIds.has(guest.guestId);
             const grp = groupMap.get(guest.guestGroupId);
             return (
-              <tr
-                key={guest.guestId}
-                className={isSelected ? 'bg-muted' : undefined}
-              >
+              <tr key={guest.guestId} className={isSelected ? 'bg-muted' : undefined}>
                 <td className="text-center">
                   <input
                     type="checkbox"

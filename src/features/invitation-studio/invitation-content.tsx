@@ -77,10 +77,18 @@ export function InvitationContents({
       <div className="hy-card-border-outer">
         <div className="hy-card-border-inner">
           {/* Decorative Corner Ornaments */}
-          <span className="hy-corner hy-corner-tl" aria-hidden="true">✦</span>
-          <span className="hy-corner hy-corner-tr" aria-hidden="true">✦</span>
-          <span className="hy-corner hy-corner-bl" aria-hidden="true">✦</span>
-          <span className="hy-corner hy-corner-br" aria-hidden="true">✦</span>
+          <span className="hy-corner hy-corner-tl" aria-hidden="true">
+            ✦
+          </span>
+          <span className="hy-corner hy-corner-tr" aria-hidden="true">
+            ✦
+          </span>
+          <span className="hy-corner hy-corner-bl" aria-hidden="true">
+            ✦
+          </span>
+          <span className="hy-corner hy-corner-br" aria-hidden="true">
+            ✦
+          </span>
 
           {/* Monogram Wedding Seal */}
           <div className="hy-invite-monogram" aria-hidden="true">
@@ -95,83 +103,83 @@ export function InvitationContents({
           </header>
           {recipientGreeting ? <p className="hy-invite-recipient">{recipientGreeting}</p> : null}
           {sections.map((section, index) => (
-        <section
-          key={index}
-          id={'hy-invite-sec-' + section.kind.toLowerCase()}
-          className={'hy-invite-' + section.kind.toLowerCase()}
-        >
-          {section.imageUrl ? photo(section.imageUrl, 'image') : null}
-          {section.textKey ? (
-            <p style={{ whiteSpace: 'pre-wrap' }}>{text[section.textKey]}</p>
-          ) : null}
-          {section.kind === 'HERO' &&
-          sections.findIndex((item) => item.kind === 'HERO') === index ? (
-            <>
-              {section.textKey !== 'greeting' ? <p>{text.greeting}</p> : null}
-              <p className="hy-invite-couple">
-                <span>{text.groomName || 'Chưa bổ sung tên chú rể'}</span>
-                <span aria-hidden="true"> &amp; </span>
-                <span>{text.brideName || 'Chưa bổ sung tên cô dâu'}</span>
-              </p>
-            </>
-          ) : null}
-          {section.kind === 'MESSAGE' && section.textKey !== 'message' ? (
-            <p style={{ whiteSpace: 'pre-wrap' }}>{text.message}</p>
-          ) : null}
-          {section.kind === 'EVENT' ? (
-            <>
-              <h2>Thời gian và địa điểm</h2>
-              {event ? (
-                <dl>
-                  <div>
-                    <dt>Ngày tổ chức</dt>
-                    <dd>{date}</dd>
-                  </div>
-                  <div>
-                    <dt>Sảnh tiệc</dt>
-                    <dd>{event.hallName}</dd>
-                  </div>
-                  <div>
-                    <dt>Buổi tiệc</dt>
-                    <dd>
-                      {event.shiftCode === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối'}
-                      {event.startTime ? ' · ' + event.startTime : ''}
-                    </dd>
-                  </div>
-                </dl>
-              ) : (
-                <p>Đang chờ thông tin tiệc từ hồ sơ.</p>
-              )}
-            </>
-          ) : null}
-          {section.kind === 'TIMELINE' && timeline.length ? (
-            <>
-              <h2>Chương trình tiệc cưới</h2>
-              <ol>
-                {[...timeline]
-                  .sort((a, b) => a.order - b.order)
-                  .map((item) => (
-                    <li key={item.order}>
-                      <time>{item.startTime}</time> {item.title}
-                      {item.description ? (
-                        <p style={{ whiteSpace: 'pre-wrap' }}>{item.description}</p>
-                      ) : null}
-                    </li>
-                  ))}
-              </ol>
-            </>
-          ) : null}
-          {section.kind === 'SEATING' && !section.imageUrl ? (
-            <p>
-              Sơ đồ bàn chưa có hình ảnh trong nội dung xuất bản này. Vui lòng liên hệ người tổ chức
-              để được hướng dẫn chỗ ngồi.
-            </p>
-          ) : null}
-          {section.kind === 'FOOTER' && section.textKey !== 'footer' && text.footer ? (
-            <footer style={{ whiteSpace: 'pre-wrap' }}>{text.footer}</footer>
-          ) : null}
-        </section>
-      ))}
+            <section
+              key={index}
+              id={'hy-invite-sec-' + section.kind.toLowerCase()}
+              className={'hy-invite-' + section.kind.toLowerCase()}
+            >
+              {section.imageUrl ? photo(section.imageUrl, 'image') : null}
+              {section.textKey ? (
+                <p style={{ whiteSpace: 'pre-wrap' }}>{text[section.textKey]}</p>
+              ) : null}
+              {section.kind === 'HERO' &&
+              sections.findIndex((item) => item.kind === 'HERO') === index ? (
+                <>
+                  {section.textKey !== 'greeting' ? <p>{text.greeting}</p> : null}
+                  <p className="hy-invite-couple">
+                    <span>{text.groomName || 'Chưa bổ sung tên chú rể'}</span>
+                    <span aria-hidden="true"> &amp; </span>
+                    <span>{text.brideName || 'Chưa bổ sung tên cô dâu'}</span>
+                  </p>
+                </>
+              ) : null}
+              {section.kind === 'MESSAGE' && section.textKey !== 'message' ? (
+                <p style={{ whiteSpace: 'pre-wrap' }}>{text.message}</p>
+              ) : null}
+              {section.kind === 'EVENT' ? (
+                <>
+                  <h2>Thời gian và địa điểm</h2>
+                  {event ? (
+                    <dl>
+                      <div>
+                        <dt>Ngày tổ chức</dt>
+                        <dd>{date}</dd>
+                      </div>
+                      <div>
+                        <dt>Sảnh tiệc</dt>
+                        <dd>{event.hallName}</dd>
+                      </div>
+                      <div>
+                        <dt>Buổi tiệc</dt>
+                        <dd>
+                          {event.shiftCode === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối'}
+                          {event.startTime ? ' · ' + event.startTime : ''}
+                        </dd>
+                      </div>
+                    </dl>
+                  ) : (
+                    <p>Đang chờ thông tin tiệc từ hồ sơ.</p>
+                  )}
+                </>
+              ) : null}
+              {section.kind === 'TIMELINE' && timeline.length ? (
+                <>
+                  <h2>Chương trình tiệc cưới</h2>
+                  <ol>
+                    {[...timeline]
+                      .sort((a, b) => a.order - b.order)
+                      .map((item) => (
+                        <li key={item.order}>
+                          <time>{item.startTime}</time> {item.title}
+                          {item.description ? (
+                            <p style={{ whiteSpace: 'pre-wrap' }}>{item.description}</p>
+                          ) : null}
+                        </li>
+                      ))}
+                  </ol>
+                </>
+              ) : null}
+              {section.kind === 'SEATING' && !section.imageUrl ? (
+                <p>
+                  Sơ đồ bàn chưa có hình ảnh trong nội dung xuất bản này. Vui lòng liên hệ người tổ
+                  chức để được hướng dẫn chỗ ngồi.
+                </p>
+              ) : null}
+              {section.kind === 'FOOTER' && section.textKey !== 'footer' && text.footer ? (
+                <footer style={{ whiteSpace: 'pre-wrap' }}>{text.footer}</footer>
+              ) : null}
+            </section>
+          ))}
           {assets
             .filter((asset) => !assigned.has(asset.url))
             .map((asset) => photo(asset.url, asset.url))}

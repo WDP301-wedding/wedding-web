@@ -121,7 +121,11 @@ export function ImportCard({
         </label>
       </div>
 
-      {reading ? <p role="status" className={cx.note}>Đang đọc dữ liệu file CSV…</p> : null}
+      {reading ? (
+        <p role="status" className={cx.note}>
+          Đang đọc dữ liệu file CSV…
+        </p>
+      ) : null}
       <InlineError error={fileError} />
 
       {errors.length > 0 ? (
@@ -216,7 +220,13 @@ export function ImportCard({
                 void command
                   .run(
                     (token, key) =>
-                      guestApi.commitImport(token, key, bookingId, preview.previewId, preview.digest),
+                      guestApi.commitImport(
+                        token,
+                        key,
+                        bookingId,
+                        preview.previewId,
+                        preview.digest,
+                      ),
                     'Đã nhập danh sách khách thành công.',
                   )
                   .then((result) => {
@@ -230,11 +240,7 @@ export function ImportCard({
             >
               Xác nhận nhập danh sách
             </button>
-            <button
-              className={cx.buttonOutline}
-              type="button"
-              onClick={() => setPreview(null)}
-            >
+            <button className={cx.buttonOutline} type="button" onClick={() => setPreview(null)}>
               Hủy
             </button>
           </div>

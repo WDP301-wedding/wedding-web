@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ApiClientError } from '../../lib/api/client';
 import { readPublicEnv } from '../../lib/env';
+import { ix } from './studio-classes';
 
 export const publicationSnapshotSchema = z.object({
   publicationRevision: z.number().int().nonnegative(),
@@ -71,13 +72,13 @@ export function getApiBaseUrl(): string {
 }
 
 export const orderStatusMap: Record<string, { label: string; className: string }> = {
-  REQUESTED: { label: 'Chờ báo giá', className: 'is-warning' },
-  QUOTED: { label: 'Đã có báo giá', className: 'is-info' },
-  APPROVED: { label: 'Đã duyệt in', className: 'is-success' },
-  IN_PRODUCTION: { label: 'Đang in ấn', className: 'is-info' },
-  READY_FOR_HANDOVER: { label: 'Sẵn sàng bàn giao', className: 'is-success' },
-  HANDED_OVER: { label: 'Đã bàn giao', className: 'is-success' },
-  CANCELLED: { label: 'Đã hủy', className: '' },
+  REQUESTED: { label: 'Chờ báo giá', className: ix.chipWarning },
+  QUOTED: { label: 'Đã có báo giá', className: ix.chipInfo },
+  APPROVED: { label: 'Đã duyệt in', className: ix.chipSuccess },
+  IN_PRODUCTION: { label: 'Đang in ấn', className: ix.chipInfo },
+  READY_FOR_HANDOVER: { label: 'Sẵn sàng bàn giao', className: ix.chipSuccess },
+  HANDED_OVER: { label: 'Đã bàn giao', className: ix.chipSuccess },
+  CANCELLED: { label: 'Đã hủy', className: ix.chipMuted },
 };
 
 export function getOrGenerateKey(

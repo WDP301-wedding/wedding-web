@@ -1,10 +1,6 @@
 import type { ApiClient } from '../../lib/api/client';
 import type { operations } from '../../lib/api/generated/schema';
-import type {
-  DerivedAssetView,
-  MediaAssetView,
-  MediaPreviewView,
-} from './invitation-api-types';
+import type { DerivedAssetView, MediaAssetView, MediaPreviewView } from './invitation-api-types';
 
 export function createInvitationMediaMethods(
   api: () => ApiClient,
@@ -100,4 +96,3 @@ export function createInvitationMediaMethods(
     },
   };
 }
-

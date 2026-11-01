@@ -4,6 +4,7 @@ import React from 'react';
 import { InvitationContents } from './invitation-content';
 import { getApiBaseUrl } from './invitation-studio-utils';
 import type { InvitationStudioState } from './use-invitation-studio';
+import { ix } from './studio-classes';
 
 export function StudioDesignPreview({
   studio,
@@ -47,9 +48,7 @@ export function StudioDesignPreview({
       sections: (currentDesign?.sections ?? []).map((section) => ({
         kind: section.kind,
         textKey: section.textKey,
-        imageUrl: section.derivedAssetId
-          ? (assetPreviewMap[section.derivedAssetId] ?? null)
-          : null,
+        imageUrl: section.derivedAssetId ? (assetPreviewMap[section.derivedAssetId] ?? null) : null,
       })),
       assets: studioAssets,
       theme: studio.cardTheme,
@@ -72,18 +71,19 @@ export function StudioDesignPreview({
 
   return (
     <>
-      <section className="invitation-preview" aria-label="Xem trước thiệp cưới">
+      <section className={ix.preview} aria-label="Xem trước thiệp cưới">
         {/* Thanh công cụ điều khiển viewport & chế độ xem */}
-        <div className="preview-toolbar">
-          <div className="preview-toolbar-meta">
-            <span className="preview-indicator">Xem trước thực tế</span>
-            <span className="preview-hint-text">Khung chuẩn tỷ lệ</span>
+        <div className={ix.previewToolbar}>
+          <div className={ix.previewMeta}>
+            <span className={ix.previewIndicator}>Xem trước thực tế</span>
+            <span className={ix.previewHint}>Khung chuẩn tỷ lệ</span>
           </div>
 
-          <div className="preview-viewport-controls">
+          <div className={ix.viewport}>
             <button
               type="button"
-              className={`preview-scale-btn ${previewDevice === 'mobile' ? 'is-active' : ''}`}
+              className={ix.scaleButton}
+              aria-pressed={previewDevice === 'mobile'}
               onClick={() => setPreviewDevice('mobile')}
               title="Khổ điện thoại (380px)"
             >
@@ -91,7 +91,8 @@ export function StudioDesignPreview({
             </button>
             <button
               type="button"
-              className={`preview-scale-btn ${previewDevice === 'desktop' ? 'is-active' : ''}`}
+              className={ix.scaleButton}
+              aria-pressed={previewDevice === 'desktop'}
               onClick={() => setPreviewDevice('desktop')}
               title="Khổ rộng (520px)"
             >
@@ -99,7 +100,7 @@ export function StudioDesignPreview({
             </button>
             <button
               type="button"
-              className="preview-scale-btn preview-fullscreen-btn"
+              className={`${ix.scaleButton} text-primary`}
               onClick={() => setIsFullscreen(true)}
               title="Mở toàn màn hình trải nghiệm như khách nhận thiệp"
             >
@@ -109,31 +110,35 @@ export function StudioDesignPreview({
         </div>
 
         {/* Thanh chuyển nhanh các phân đoạn thiệp cưới */}
-        <div className="preview-stepper-bar" role="tablist" aria-label="Các phân đoạn thiệp cưới">
+        <div className={ix.stepper} role="tablist" aria-label="Các phân đoạn thiệp cưới">
           <button
             type="button"
-            className={`preview-step-pill ${activeSection === 'header' ? 'is-active' : ''}`}
+            className={ix.stepPill}
+            data-active={activeSection === 'header'}
             onClick={() => scrollToSection('hy-invite-sec-header', 'header')}
           >
             Trang bìa
           </button>
           <button
             type="button"
-            className={`preview-step-pill ${activeSection === 'message' ? 'is-active' : ''}`}
+            className={ix.stepPill}
+            data-active={activeSection === 'message'}
             onClick={() => scrollToSection('hy-invite-sec-message', 'message')}
           >
             Lời nhắn
           </button>
           <button
             type="button"
-            className={`preview-step-pill ${activeSection === 'event' ? 'is-active' : ''}`}
+            className={ix.stepPill}
+            data-active={activeSection === 'event'}
             onClick={() => scrollToSection('hy-invite-sec-event', 'event')}
           >
             Thời gian & sảnh
           </button>
           <button
             type="button"
-            className={`preview-step-pill ${activeSection === 'timeline' ? 'is-active' : ''}`}
+            className={ix.stepPill}
+            data-active={activeSection === 'timeline'}
             onClick={() => scrollToSection('hy-invite-sec-timeline', 'timeline')}
           >
             Lịch trình
@@ -141,20 +146,15 @@ export function StudioDesignPreview({
         </div>
 
         {/* Khung mô phỏng thiết bị di động chuẩn công thái học */}
-        <div className="preview-phone-simulator">
-          <div className="preview-phone-bezel">
-            <div className="preview-phone-speaker" aria-hidden="true" />
-            <div
-              ref={scrollContainerRef}
-              className={`preview-phone-screen ${previewDevice === 'desktop' ? 'is-desktop-scale' : ''}`}
-            >
-              <div className="invite-paper-inner">
-                <InvitationContents
-                  apiBase={getApiBaseUrl()}
-                  invitation={invitationData}
-                />
-                <p className="cw-note" style={{ margin: '24px 0 8px', fontSize: 12 }}>
-                  Bản xem trước nội dung đang chỉnh. Khi xuất bản, hệ thống áp dụng thông tin và lịch trình chính thức.
+        <div className={ix.phone}>
+          <div className={ix.bezel} data-device={previewDevice}>
+            <div className={ix.speaker} aria-hidden="true" />
+            <div ref={scrollContainerRef} className={ix.screen}>
+              <div className={ix.paper}>
+                <InvitationContents apiBase={getApiBaseUrl()} invitation={invitationData} />
+                <p className={ix.previewNote}>
+                  Bản xem trước nội dung đang chỉnh. Khi xuất bản, hệ thống áp dụng thông tin và
+                  lịch trình chính thức.
                 </p>
               </div>
             </div>
@@ -165,7 +165,7 @@ export function StudioDesignPreview({
       {/* Modal trải nghiệm toàn màn hình như khách nhận thiệp */}
       {isFullscreen ? (
         <div
-          className="preview-modal-backdrop"
+          className={ix.modalBackdrop}
           role="dialog"
           aria-modal="true"
           aria-label="Xem trước thiệp cưới toàn màn hình"
@@ -173,27 +173,23 @@ export function StudioDesignPreview({
             if (e.target === e.currentTarget) setIsFullscreen(false);
           }}
         >
-          <div className="preview-modal-content">
-            <div className="preview-modal-header">
+          <div className={ix.modalContent}>
+            <div className={ix.modalHeader}>
               <h3>Trải nghiệm thiệp cưới trên di động</h3>
               <button
                 type="button"
-                className="button button-secondary"
+                className={ix.btnSmallOutline}
                 onClick={() => setIsFullscreen(false)}
-                style={{ minHeight: 36, padding: '4px 14px', fontSize: 13 }}
               >
                 Đóng
               </button>
             </div>
-            <div className="preview-modal-body">
-              <div className="preview-phone-bezel in-modal">
-                <div className="preview-phone-speaker" aria-hidden="true" />
-                <div className="preview-phone-screen">
-                  <div className="invite-paper-inner">
-                    <InvitationContents
-                      apiBase={getApiBaseUrl()}
-                      invitation={invitationData}
-                    />
+            <div className={ix.modalBody}>
+              <div className={ix.bezelModal}>
+                <div className={ix.speaker} aria-hidden="true" />
+                <div className={ix.screen}>
+                  <div className={ix.paper}>
+                    <InvitationContents apiBase={getApiBaseUrl()} invitation={invitationData} />
                   </div>
                 </div>
               </div>

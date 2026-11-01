@@ -112,9 +112,7 @@ export function GuestListCard({
 
         <div className={gx.filterRow}>
           <label className="inline-flex items-center gap-1.5">
-            <span className={cx.muted}>
-              Trạng thái
-            </span>
+            <span className={cx.muted}>Trạng thái</span>
             <select
               className={gx.filterSelect}
               value={status}
@@ -129,9 +127,7 @@ export function GuestListCard({
           </label>
 
           <label className="inline-flex items-center gap-1.5">
-            <span className={cx.muted}>
-              Nhóm
-            </span>
+            <span className={cx.muted}>Nhóm</span>
             <select
               className={gx.filterSelect}
               value={groupFilter}
