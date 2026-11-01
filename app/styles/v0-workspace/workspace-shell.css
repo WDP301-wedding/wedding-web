@@ -133,7 +133,6 @@
   background: #fffcf9;
 }
 .v0-workspace .workspace-label,
-.v0-workspace .eyebrow,
 .v0-workspace .nav-section {
   font-size: 11px;
   letter-spacing: normal;
@@ -267,10 +266,6 @@
   color: #8a5300;
   border-color: var(--rule-premium);
   background: #fcefd6;
-}
-.v0-workspace .status-muted {
-  color: var(--text-muted);
-  border-color: var(--rule);
 }
 .v0-workspace .status-danger {
   color: #b02323;

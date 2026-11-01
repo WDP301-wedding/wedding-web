@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { AttemptView, CheckoutView } from './billing-api';
+import { bx } from './billing-classes';
 
 type AttemptStatusCode = AttemptView['status'];
 
@@ -80,7 +81,7 @@ export function CheckoutLinkPanel({
   const countdown = useCountdown(checkout.expiresAt);
   const canReopen = reopenableStatuses.has(status) && !expired;
   return (
-    <section className="billing-panel">
+    <section className={bx.panel}>
       <h2>Đường dẫn thanh toán đã được tạo</h2>
       <p>
         Mã giao dịch thanh toán: <code>{checkout.paymentAttemptId}</code>
@@ -91,7 +92,10 @@ export function CheckoutLinkPanel({
             Chưa trả tiền hoặc lỡ đóng trang VNPay? Mở lại để quét mã QR — đường dẫn còn hiệu lực
             đến <strong>{timeFormat(checkout.expiresAt)}</strong>
             {countdown ? (
-              <span> (còn <strong>{countdown}</strong>)</span>
+              <span>
+                {' '}
+                (còn <strong>{countdown}</strong>)
+              </span>
             ) : null}
             . Mở lại không tạo giao dịch mới.
           </p>
@@ -99,12 +103,7 @@ export function CheckoutLinkPanel({
             Bạn sẽ chuyển sang VNPay trong tab hiện tại. Sau khi hoàn tất, chọn quay về website để
             xem trạng thái thanh toán đã xác minh.
           </p>
-          <a
-            className="billing-primary-link"
-            href={checkout.checkoutUrl}
-            target="_self"
-            rel="noreferrer"
-          >
+          <a className={bx.primaryLink} href={checkout.checkoutUrl} target="_self" rel="noreferrer">
             Tiếp tục trên VNPay
           </a>
         </>
@@ -118,7 +117,7 @@ export function CheckoutLinkPanel({
           {onResetExpired && (
             <button
               type="button"
-              className="billing-secondary"
+              className={bx.buttonOutline}
               onClick={onResetExpired}
               style={{ marginTop: '0.5rem' }}
             >

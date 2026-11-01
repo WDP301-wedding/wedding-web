@@ -39,6 +39,13 @@ export const cx = {
   selectorFieldset: 'min-w-0',
   /** Thanh tiến trình hợp đồng: thanh màu từng bước + nhãn. */
   progress: 'grid grid-cols-2 gap-2 sm:grid-cols-4',
+  empty:
+    'flex flex-col items-start gap-2 rounded-xl border border-dashed border-input bg-muted/60 p-6 text-sm text-muted-foreground [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-foreground',
+  statusMuted:
+    'inline-flex w-fit items-center rounded-full bg-secondary px-2.5 py-0.5 text-2xs font-semibold text-muted-foreground',
+  page: 'flex flex-col gap-6',
+  heading: 'flex flex-col gap-2 [&_h1]:text-xl [&_h1]:font-bold sm:[&_h1]:text-2xl',
+  group: 'flex flex-col gap-1 [&>h3]:text-xs [&>h3]:font-semibold [&>h3]:text-muted-foreground',
   button: buttonVariants(),
   buttonOutline: buttonVariants({ variant: 'outline' }),
 } as const;

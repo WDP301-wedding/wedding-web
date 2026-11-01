@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import React from 'react';
 import { BrandMark } from '../../design-system/brand-mark';
+import { bx } from './billing-classes';
 
 export function BillingHeaderNav() {
   return (
-    <header className="billing-header">
-      <Link className="billing-wordmark" href="/" aria-label="Hỷ Yến — Trang chủ">
+    <header className={bx.header}>
+      <Link href="/" aria-label="Hỷ Yến — Trang chủ">
         <BrandMark compact />
       </Link>
       <nav aria-label="Không gian cặp đôi">
@@ -34,12 +35,12 @@ export function BillingIntroSection({
   onSelectBooking: (bookingId: string) => void;
 }>) {
   return (
-    <section className="billing-intro">
+    <section className={bx.intro}>
       <h1>Thanh toán cho ngày trọng đại</h1>
       <p>Xem khoản cọc, số dư và trạng thái đã được nhà hàng xác minh.</p>
 
       {!embedded && availableBookings.length > 0 && (
-        <div className="billing-booking-select-wrapper">
+        <div className={bx.selectWrapper}>
           <label htmlFor="billing-booking-select">Chọn hồ sơ tiệc cưới của bạn:</label>
           <select
             id="billing-booking-select"
@@ -76,7 +77,7 @@ export function BillingLookupForm({
 }>) {
   return (
     <form
-      className="billing-lookup"
+      className={bx.lookup}
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit(bookingId.trim());
@@ -94,7 +95,9 @@ export function BillingLookupForm({
           }}
         />
       </label>
-      <button disabled={blocked}>Mở thanh toán</button>
+      <button className={bx.button} disabled={blocked}>
+        Mở thanh toán
+      </button>
     </form>
   );
 }

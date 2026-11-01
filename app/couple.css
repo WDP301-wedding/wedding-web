@@ -5,17 +5,6 @@
  */
 
 @layer legacy {
-  .v0-workspace .cw-page {
-    display: grid;
-    gap: 24px;
-    max-width: 1120px;
-  }
-  .v0-workspace .cw-heading h1 {
-    margin: 4px 0 8px;
-    font-size: 30px;
-    line-height: 1.3;
-    color: var(--primary);
-  }
   .v0-workspace .cw-card {
     background: var(--surface);
     border: 1px solid var(--rule);
@@ -51,22 +40,6 @@
     flex-wrap: wrap;
     gap: 10px;
     align-items: center;
-  }
-  .v0-workspace .cw-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 8px;
-  }
-  .v0-workspace .cw-list a {
-    display: block;
-    padding: 12px 14px;
-    border: 1px solid var(--rule);
-    text-decoration: none;
-  }
-  .v0-workspace .cw-list a:hover {
-    border-color: var(--champagne);
   }
   .v0-workspace .cw-alert {
     border: 1px solid #efc9c4;
@@ -229,9 +202,6 @@
   @media (max-width: 640px) {
     .v0-workspace .cw-card {
       padding: 16px;
-    }
-    .v0-workspace .cw-heading h1 {
-      font-size: 24px;
     }
     .v0-workspace .cw-copy {
       grid-template-columns: 1fr;

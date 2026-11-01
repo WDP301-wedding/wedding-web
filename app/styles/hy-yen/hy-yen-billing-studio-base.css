@@ -44,45 +44,6 @@
 }
 
 /* ---------- Thanh toán (C3) ---------- */
-.v0-workspace .billing-shell {
-  min-height: 0;
-  background: transparent;
-}
-.v0-workspace .billing-intro {
-  text-align: left;
-  padding: 0 0 20px;
-}
-.v0-workspace .billing-intro h1 {
-  color: var(--hy-ink);
-  font-weight: 700;
-}
-.v0-workspace .billing-lookup,
-.v0-workspace .billing-deposit,
-.v0-workspace .billing-confirm,
-.v0-workspace .billing-panel,
-.v0-workspace .billing-booking-select-wrapper {
-  padding: 20px 24px;
-  margin-bottom: 20px;
-  border: 1px solid var(--hy-outline);
-  border-radius: var(--hy-radius-md);
-  background: var(--hy-surface);
-  box-shadow: var(--hy-shadow-1);
-}
-.v0-workspace .billing-shell input,
-.v0-workspace .billing-shell select {
-  min-height: 44px;
-  border: 1px solid var(--hy-outline-strong);
-  border-radius: var(--hy-radius-sm);
-  background: var(--hy-surface);
-}
-.v0-workspace .billing-shell button,
-.v0-workspace .billing-primary-link {
-  border-radius: var(--hy-radius-sm);
-}
-.v0-workspace .billing-secondary {
-  color: var(--hy-wine);
-  font-weight: 600;
-}
 
 /* ---------- Studio thiệp (C6) ---------- */
 /*

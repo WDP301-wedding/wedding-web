@@ -80,9 +80,6 @@
   font-weight: 600;
   text-align: right;
 }
-.hy-result {
-  max-width: 640px;
-}
 
 /* ---------- Responsive ---------- */
 @media (max-width: 960px) {
@@ -111,12 +108,6 @@
 }
 
 /* Thông báo theo ngày (B6) */
-.hy-notif-group h3 {
-  margin: 16px 0 4px;
-  color: var(--hy-ink-muted);
-  font-size: 14px;
-  line-height: 1.4;
-}
 
 /* Multi-booking Overview & Alias */
 

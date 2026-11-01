@@ -21,6 +21,7 @@ import {
   lastCheckoutKey,
   useBillingWorkspace,
 } from './use-billing-workspace';
+import { bx } from './billing-classes';
 
 export { lastCheckoutKey };
 
@@ -74,7 +75,7 @@ export function CoupleBillingPage({
 
   if (snapshot === null)
     return (
-      <div className="billing-shell">
+      <div className={bx.shell}>
         <h1>Đang mở thanh toán…</h1>
         <p role="status">Đang kiểm tra phiên đăng nhập.</p>
       </div>
@@ -82,7 +83,7 @@ export function CoupleBillingPage({
 
   if (snapshot.status === 'anonymous')
     return (
-      <div className="billing-shell">
+      <div className={bx.shell}>
         <h1>Cần đăng nhập</h1>
         <p role="alert">Đăng nhập bằng tài khoản được cấp quyền trên hồ sơ đặt tiệc.</p>
         <Link href="/dang-nhap">Về trang đăng nhập</Link>
@@ -189,7 +190,7 @@ export function CoupleBillingWorkspace({
   };
 
   return (
-    <div className="billing-shell billing-couple">
+    <div className={bx.shell}>
       {!embedded && <BillingHeaderNav />}
       <BillingIntroSection
         embedded={embedded}
@@ -206,16 +207,16 @@ export function CoupleBillingWorkspace({
           onSubmit={handleLookup}
         />
       )}
-      <div aria-live="polite" className="billing-live">
+      <div aria-live="polite" className={bx.live}>
         {pending && <p role="status">Đang kiểm tra với máy chủ…</p>}
         {error !== null && <p role="alert">{error}</p>}
       </div>
       {context !== null && (
         <>
-          <div className="billing-section-heading">
+          <div className={bx.sectionHeading}>
             <h2>Hồ sơ của hai bạn</h2>
             <button
-              className="billing-secondary"
+              className={bx.buttonOutline}
               disabled={pending}
               onClick={() => {
                 void run(async () => {

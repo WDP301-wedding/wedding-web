@@ -20,6 +20,7 @@ import {
 } from '../couple-workspace/use-couple-workspace';
 import { ContractLinesTable } from '../commercial-contract/contract-lines';
 import { Skeleton } from '../../design-system/skeleton';
+import { cx } from '../commercial-contract/contract-classes';
 
 type Expenses = ApiData<'/bookings/{bookingId}/incidental-expenses', 'get'>;
 type InvoiceList = ApiData<'/bookings/{bookingId}/final-invoices', 'get'>;
@@ -125,8 +126,8 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   return (
     <>
       <LiveUpdateNotice waiting={live.waiting} />
-      <section className="cw-card" aria-label="Công nợ hiện tại">
-        <dl className="cw-stats">
+      <section className={cx.card} aria-label="Công nợ hiện tại">
+        <dl className={cx.stats}>
           <div>
             <dt>Tổng phải thanh toán (đã ghi nhận)</dt>
             <dd>{formatVnd(totals.acceptedChargesVnd)}</dd>
@@ -144,15 +145,15 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
             <dd>{formatVnd(totals.creditVnd)}</dd>
           </div>
         </dl>
-        <div className="cw-actions">
+        <div className={cx.actions}>
           {/* Chỉ mời thanh toán khi backend cho phép (PR #76), không suy ra từ số còn nợ. */}
           {balance.allowed ? (
-            <Link className="button" href={`/khong-gian/thanh-toan?bookingId=${bookingId}`}>
+            <Link className={cx.button} href={`/khong-gian/thanh-toan?bookingId=${bookingId}`}>
               Thanh toán phần còn lại
             </Link>
           ) : (
             <Link
-              className="button button-secondary"
+              className={cx.buttonOutline}
               href={`/khong-gian/thanh-toan?bookingId=${bookingId}`}
             >
               Xem lịch sử thanh toán
@@ -160,40 +161,40 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
           )}
         </div>
         {!balance.allowed && totals.outstandingVnd > 0 ? (
-          <p className="cw-note" role="status">
+          <p className={cx.note} role="status">
             {balance.message}
           </p>
         ) : null}
         {totals.creditVnd > 0 ? (
-          <p className="cw-note">
+          <p className={cx.note}>
             Hai bạn đã thanh toán thừa. Nhà hàng sẽ duyệt và hoàn tiền thủ công kèm chứng từ (không
             hoàn tự động qua VNPay).
           </p>
         ) : null}
       </section>
 
-      <section className="cw-card">
-        <div className="cw-card-header">
+      <section className={cx.card}>
+        <div className={cx.cardHeader}>
           <h2>Chi phí phát sinh</h2>
-          <span className="status status-muted">
+          <span className={cx.statusMuted}>
             {data.expenses.finalized ? 'Đã chốt' : 'Nhà hàng đang ghi nhận'}
           </span>
         </div>
         {data.expenses.lines.length === 0 ? (
-          <p className="cw-note">Chưa có chi phí phát sinh nào.</p>
+          <p className={cx.note}>Chưa có chi phí phát sinh nào.</p>
         ) : (
-          <div className="cw-table-wrap">
-            <table className="cw-table">
+          <div className={cx.tableWrap}>
+            <table className={cx.table}>
               <thead>
                 <tr>
                   <th scope="col">Khoản</th>
-                  <th scope="col" className="num">
+                  <th scope="col" className={cx.num}>
                     Số lượng
                   </th>
-                  <th scope="col" className="num">
+                  <th scope="col" className={cx.num}>
                     Đơn giá
                   </th>
-                  <th scope="col" className="num">
+                  <th scope="col" className={cx.num}>
                     Thành tiền
                   </th>
                   <th scope="col">Ghi chú</th>
@@ -203,11 +204,11 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
                 {data.expenses.lines.map((line) => (
                   <tr key={line.id}>
                     <td>{line.name}</td>
-                    <td className="num">
+                    <td className={cx.num}>
                       {line.quantity} {line.unit}
                     </td>
-                    <td className="num">{formatVnd(line.unitPriceVnd)}</td>
-                    <td className="num">{formatVnd(line.totalVnd)}</td>
+                    <td className={cx.num}>{formatVnd(line.unitPriceVnd)}</td>
+                    <td className={cx.num}>{formatVnd(line.totalVnd)}</td>
                     <td>{line.note ?? ''}</td>
                   </tr>
                 ))}
@@ -215,14 +216,14 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
               <tfoot>
                 <tr>
                   <td colSpan={3}>Tổng phát sinh</td>
-                  <td className="num">{formatVnd(data.expenses.totalVnd)}</td>
+                  <td className={cx.num}>{formatVnd(data.expenses.totalVnd)}</td>
                   <td />
                 </tr>
               </tfoot>
             </table>
           </div>
         )}
-        <p className="cw-note">
+        <p className={cx.note}>
           Chi phí phát sinh do nhà hàng nhập; hai bạn chỉ xem, không cần duyệt.
         </p>
       </section>
@@ -230,16 +231,16 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
       {current ? (
         <InvoiceCard invoice={current} />
       ) : (
-        <section className="cw-card cw-empty">
+        <section className={cx.empty}>
           <h2>Chưa có hoá đơn cuối</h2>
           <p>Nhà hàng sẽ chốt hoá đơn sau khi tiệc kết thúc và đã ghi nhận đủ chi phí phát sinh.</p>
         </section>
       )}
 
       {data.invoices.revisions.length > 1 ? (
-        <section className="cw-card">
+        <section className={cx.card}>
           <h2>Các phiên bản hoá đơn</h2>
-          <ul className="cw-list">
+          <ul className={cx.list}>
             {data.invoices.revisions.map((revision) => (
               <li key={revision.invoiceRevisionId}>
                 {revision.invoiceNumber} · bản {revision.revisionNumber} ·{' '}
@@ -256,10 +257,10 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
 function InvoiceCard({ invoice }: Readonly<{ invoice: Invoice }>) {
   const document = invoice.document;
   return (
-    <section className="cw-card">
-      <div className="cw-card-header">
+    <section className={cx.card}>
+      <div className={cx.cardHeader}>
         <h2>Hoá đơn {invoice.invoiceNumber}</h2>
-        <span className="muted">
+        <span className={cx.muted}>
           Bản {invoice.revisionNumber} · chốt lúc {formatDateTime(invoice.issuedAt)}
         </span>
       </div>
@@ -295,7 +296,7 @@ function InvoiceCard({ invoice }: Readonly<{ invoice: Invoice }>) {
           </ul>
         </>
       ) : null}
-      <dl className="cw-stats">
+      <dl className={cx.stats}>
         <div>
           <dt>Tổng thoả thuận (hợp đồng + phụ lục)</dt>
           <dd>{formatVnd(document.commercialTotalVnd)}</dd>
@@ -309,7 +310,7 @@ function InvoiceCard({ invoice }: Readonly<{ invoice: Invoice }>) {
           <dd>{formatVnd(document.totalVnd)}</dd>
         </div>
       </dl>
-      <p className="cw-note">
+      <p className={cx.note}>
         Hoá đơn đã chốt không bị sửa; mọi thay đổi sau đó được ghi thành bản điều chỉnh có lý do.
       </p>
     </section>

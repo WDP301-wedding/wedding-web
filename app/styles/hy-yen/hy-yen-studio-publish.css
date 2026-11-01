@@ -335,9 +335,6 @@
     border-radius: var(--hy-radius-md);
     background: var(--hy-surface);
   }
-  .v0-workspace .invitation-live .live-editor .template-rail .eyebrow {
-    margin: 0;
-  }
   .v0-workspace .invitation-live .live-editor .template-rail .template-card {
     display: inline-flex;
     align-items: center;

@@ -12,15 +12,7 @@
 .v0-workspace .brand {
   text-decoration: none;
 }
-.v0-workspace .billing-shell {
-  padding: 0;
-  max-width: none;
-  margin: 0;
-  background: transparent;
-  min-height: auto;
-}
-.v0-workspace .collab-header,
-.v0-workspace .billing-header {
+.v0-workspace .collab-header {
   border: 0;
   padding: 0 0 20px;
 }

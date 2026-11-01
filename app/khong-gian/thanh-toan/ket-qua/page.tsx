@@ -5,6 +5,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 
 import { routes } from '../../../../src/routes';
 import { lastCheckoutKey } from '../../../../src/features/payments-billing/billing-page';
+import { cx } from '../../../../src/features/commercial-contract/contract-classes';
 
 /**
  * Trang VNPay chuyển người dùng về sau khi thanh toán (cấu hình `VNPAY_RETURN_URL` ở backend,
@@ -79,7 +80,10 @@ export default function PaymentReturnPage() {
   const missing = target === null;
 
   return (
-    <section className="cw-card hy-result">
+    <section
+      data-ui-v3
+      className={`${cx.card} mx-auto mt-6 max-w-xl [&_a]:font-semibold [&_a]:text-primary [&_h1]:text-xl [&_h1]:font-bold`}
+    >
       <h1>Đang kiểm tra kết quả thanh toán</h1>
       <p>
         Kết quả chính thức do nhà hàng nhận trực tiếp từ VNPay và có thể mất vài giây. Trang này

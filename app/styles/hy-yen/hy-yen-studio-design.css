@@ -90,11 +90,6 @@
   position: sticky;
   top: 16px;
 }
-.v0-workspace .invitation-live .template-rail .eyebrow {
-  color: var(--hy-ink-muted);
-  font-size: 13px;
-  font-weight: 600;
-}
 .v0-workspace .invitation-live .template-rail .rail-label {
   margin: 10px 0 0;
 }
@@ -530,9 +525,6 @@
     border: 1px solid var(--hy-outline);
     border-radius: var(--hy-radius-sm);
     background: var(--hy-surface);
-  }
-  .v0-workspace .invitation-live .template-rail .eyebrow {
-    margin: 0;
   }
   .v0-workspace .invitation-live .template-rail .rail-label {
     margin: 0 0 0 12px;

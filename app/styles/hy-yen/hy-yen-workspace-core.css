@@ -94,14 +94,12 @@
   animation: hy-enter var(--hy-dur-medium2) var(--hy-ease-decelerate) backwards;
 }
 /* Trang billing/kịch bản cũ có header riêng – trong khung đã có sidebar nên ẩn để khỏi trùng. */
-.v0-workspace .billing-header,
 .v0-workspace .collab-header {
   display: none;
 }
 
 /* ---------- Tiêu đề trang ---------- */
-.v0-workspace .page-heading h1,
-.v0-workspace .cw-heading h1 {
+.v0-workspace .page-heading h1 {
   color: var(--hy-ink);
   font-weight: 700;
   line-height: 1.25;
@@ -139,18 +137,6 @@
   color: var(--hy-wine);
   font-variant-numeric: tabular-nums;
 }
-.v0-workspace .cw-list a {
-  border: 1px solid var(--hy-outline);
-  border-radius: var(--hy-radius-sm);
-  color: var(--hy-ink);
-  transition:
-    border-color var(--hy-dur-fast) var(--hy-ease-emphasized),
-    background-color var(--hy-dur-fast) var(--hy-ease-emphasized);
-}
-.v0-workspace .cw-list a:hover {
-  border-color: var(--hy-wine);
-  background: var(--hy-surface-warm);
-}
 
 /* ---------- Trạng thái / chip ---------- */
 .v0-workspace .status {
@@ -168,10 +154,6 @@
 .v0-workspace .status-champagne {
   background: var(--hy-warning-bg);
   color: var(--hy-warning);
-}
-.v0-workspace .status-muted {
-  background: #f7ede4;
-  color: var(--hy-ink-muted);
 }
 .v0-workspace .status-danger {
   background: var(--hy-error-bg);

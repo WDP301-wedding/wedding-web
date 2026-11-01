@@ -6,7 +6,7 @@ import type { CheckoutIntent } from './billing-workspace.helpers';
 import { money } from './billing-display';
 import { BillingConfirmSection } from './billing-confirm-section';
 import { DepositBreakdown } from './deposit-breakdown';
-import styles from './deposit.module.css';
+import { bx } from './billing-classes';
 
 export function BillingDepositSection({
   context,
@@ -35,12 +35,9 @@ export function BillingDepositSection({
   const displayContext = intent?.kind === 'deposit' ? (intent.displayContext ?? context) : context;
   const payablePhase = context.phase === 'DRAFT' || context.phase === 'AWAITING_DEPOSIT';
   return (
-    <section
-      className={`billing-deposit ${styles.workspace}`}
-      aria-label="Chi tiết đặt cọc tiệc cưới"
-    >
+    <section className={bx.depositWorkspace} aria-label="Chi tiết đặt cọc tiệc cưới">
       <DepositBreakdown context={displayContext} />
-      <div className={styles.payment}>
+      <div className={bx.payment}>
         {confirming ? (
           <BillingConfirmSection
             embedded
@@ -59,8 +56,8 @@ export function BillingDepositSection({
                   ? 'Khoản đặt cọc dự kiến'
                   : 'Đặt cọc tiệc cưới'}
             </h2>
-            <p className={styles.amount}>{money(context.depositAmountVnd)}</p>
-            <p className={styles.note}>
+            <p className={bx.amount}>{money(context.depositAmountVnd)}</p>
+            <p className={bx.note}>
               {context.contract
                 ? 'Số tiền theo hợp đồng đã được hai bên duyệt.'
                 : 'Số tiền theo đề xuất của nhà hàng. Điều kiện và số tiền được kiểm tra lại khi tạo giao dịch.'}
@@ -72,6 +69,7 @@ export function BillingDepositSection({
                 </p>
               ) : (
                 <button
+                  className={bx.button}
                   type="button"
                   disabled={
                     blocked || context.timelineRevisionId === null || context.contractRequired
@@ -87,21 +85,21 @@ export function BillingDepositSection({
           </>
         )}
         {context.timelineRevisionId === null && (
-          <p className={styles.note}>
+          <p className={bx.note}>
             Cần có kịch bản được nhà hàng và hai bạn duyệt trước khi đặt cọc.
           </p>
         )}
         {context.contractRequired && (
-          <p className={styles.note}>Cần hợp đồng được cả hai bên duyệt trước khi đặt cọc.</p>
+          <p className={bx.note}>Cần hợp đồng được cả hai bên duyệt trước khi đặt cọc.</p>
         )}
         <Link href={`/khong-gian/thoa-thuan/hop-dong?bookingId=${context.bookingId}`}>
           Xem hợp đồng và thỏa thuận
         </Link>
-        <p className={styles.note}>
+        <p className={bx.note}>
           Khoản cọc được ghi nhận chung cho tiệc và khấu trừ vào tổng số tiền phải thanh toán; không
           phải khoản thu thêm cho từng hạng mục.
         </p>
-        <details className={styles.conditions}>
+        <details className={bx.conditions}>
           <summary>Hạn thanh toán và điều kiện hoàn/hủy cọc</summary>
           <p>
             Trang này chưa có dữ liệu về thời hạn giữ sảnh và điều kiện hoàn/hủy cọc. Hãy đối chiếu

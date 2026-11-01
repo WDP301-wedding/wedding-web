@@ -1,6 +1,7 @@
 import { blockedBalanceCopy } from './balance-eligibility';
 import { ApiClientError } from '../../lib/api/client';
 import type { AttemptView, BillingView } from './billing-api';
+import { bx } from './billing-classes';
 
 export const money = (value: number) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
@@ -74,7 +75,7 @@ const sources: Record<BillingView['history'][number]['sourceType'], string> = {
 };
 export function BillingSummary({ view }: Readonly<{ view: BillingView }>) {
   return (
-    <section aria-label="Tổng hợp tiền đặt tiệc" className="billing-summary">
+    <section aria-label="Tổng hợp tiền đặt tiệc" className={bx.summary}>
       <dl>
         {Object.entries(view.totals).map(([key, value]) => (
           <div key={key}>
@@ -88,12 +89,12 @@ export function BillingSummary({ view }: Readonly<{ view: BillingView }>) {
 }
 export function BillingHistory({ view }: Readonly<{ view: BillingView }>) {
   return (
-    <section className="billing-panel">
+    <section className={bx.panel}>
       <h2>Lịch sử giao dịch</h2>
       {view.history.length === 0 ? (
         <p>Chưa có giao dịch</p>
       ) : (
-        <div className="billing-table-scroll">
+        <div className={bx.tableScroll}>
           <table>
             <caption>Chi tiết giao dịch</caption>
             <thead>
@@ -134,7 +135,7 @@ export function AttemptStatus({ attempt }: Readonly<{ attempt: AttemptView }>) {
     SUCCEEDED: 'Đã xác minh nhận tiền',
   };
   return (
-    <section className="billing-attempt" aria-label="Trạng thái thanh toán">
+    <section className={bx.attempt} aria-label="Trạng thái thanh toán">
       <h3>{labels[attempt.status]}</h3>
       <p>
         {attempt.purpose === 'DEPOSIT' ? 'Đặt cọc' : 'Thanh toán còn lại'} ·{' '}
