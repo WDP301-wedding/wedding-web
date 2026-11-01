@@ -48,9 +48,6 @@
 }
 
 /* ---------- Chữ & chip ---------- */
-.hy-muted {
-  color: var(--hy-ink-muted);
-}
 .hy-chip {
   display: inline-flex;
   align-items: center;
@@ -83,41 +80,12 @@
   background: var(--hy-warning-bg);
   color: var(--hy-warning);
 }
-.hy-banner.is-error {
-  background: var(--hy-error-bg, #fdecea);
-  color: var(--hy-error, #c62828);
-}
-.hy-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
 
 /* ---------- Trang công khai ---------- */
 /* Liên kết điều hướng trong mục: không gạch chân, gạch chân chỉ hiện khi hover/focus.
    Liên kết nằm trong đoạn văn vẫn giữ gạch chân để nhận ra là liên kết. */
 
 /* Hero: ảnh sảnh tiệc + lớp phủ tối bên trái để chữ trắng đủ tương phản, thẻ ước tính bên phải */
-.hy-hero {
-  --hy-hero-image: url('/images/hero-sanh-tiec.webp');
-
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 420px);
-  align-items: center;
-  gap: 40px;
-  min-height: 520px;
-  padding: 72px max(16px, calc((100% - 1180px) / 2));
-  background:
-    linear-gradient(
-      90deg,
-      rgb(43 29 34 / 88%) 0%,
-      rgb(43 29 34 / 72%) 45%,
-      rgb(43 29 34 / 28%) 100%
-    ),
-    var(--hy-hero-image) center / cover no-repeat,
-    var(--hy-ink);
-  color: #ffffff;
-}
 
 /* Kết quả ước tính */
 .hy-estimate {

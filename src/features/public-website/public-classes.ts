@@ -12,7 +12,6 @@ export const sectionHead = 'mb-7 flex flex-wrap items-end justify-between gap-x-
 
 export const h1 = 'text-2xl font-bold text-balance sm:text-3xl';
 export const h2 = 'text-xl font-bold text-balance sm:text-2xl';
-export const h3 = 'text-base font-bold sm:text-lg';
 export const lead = 'text-sm text-muted-foreground sm:text-base sm:leading-7';
 export const muted = 'text-sm text-muted-foreground';
 

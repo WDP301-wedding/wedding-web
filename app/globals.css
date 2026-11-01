@@ -3,7 +3,6 @@
 
 @import './ui-v3.css';
 @import './styles/globals/tokens-base.css' layer(legacy);
-@import './styles/globals/collab.css' layer(legacy);
 @import './styles/globals/invitation-layout.css' layer(legacy);
 @import './styles/globals/workspace-responsive.css' layer(legacy);
 

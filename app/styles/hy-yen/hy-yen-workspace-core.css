@@ -101,14 +101,12 @@
 
 /* ---------- Tiêu đề trang ---------- */
 .v0-workspace .page-heading h1,
-.v0-workspace .cw-heading h1,
-.v0-workspace .public-section-heading h1 {
+.v0-workspace .cw-heading h1 {
   color: var(--hy-ink);
   font-weight: 700;
   line-height: 1.25;
 }
-.v0-workspace .lead,
-.v0-workspace .cw-strip {
+.v0-workspace .lead {
   color: var(--hy-ink-muted);
 }
 
@@ -117,8 +115,6 @@
 .v0-workspace .hero-card,
 .v0-workspace .side-panel,
 .v0-workspace .panel,
-.v0-workspace .overview-next,
-.v0-workspace .hy-journey-card,
 .v0-workspace .empty-state,
 .v0-workspace .print-panel,
 .v0-workspace .public-card,
@@ -236,7 +232,6 @@
 .v0-workspace .cw-form input,
 .v0-workspace .cw-form select,
 .v0-workspace .cw-form textarea,
-.v0-workspace .cw-inline-input,
 .v0-workspace .guest-toolbar input,
 .v0-workspace .inspector input,
 .v0-workspace .inspector textarea {
@@ -247,8 +242,7 @@
 }
 .v0-workspace .cw-form input:focus-visible,
 .v0-workspace .cw-form select:focus-visible,
-.v0-workspace .cw-form textarea:focus-visible,
-.v0-workspace .cw-inline-input:focus-visible {
+.v0-workspace .cw-form textarea:focus-visible {
   border-color: var(--hy-wine);
   outline: 2px solid rgb(122 31 61 / 18%);
   outline-offset: 0;
@@ -260,105 +254,3 @@
 }
 
 /* ---------- Tổng quan (C1) ---------- */
-.v0-workspace .hy-overview {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 20px;
-  margin-bottom: 32px;
-}
-.v0-workspace .hy-overview-top {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: 20px;
-}
-.v0-workspace .hy-countdown {
-  display: grid;
-  align-content: start;
-  gap: 6px;
-  padding: 24px 28px;
-  border-radius: var(--hy-radius-md);
-  background:
-    radial-gradient(circle at 100% 0%, rgb(244 185 167 / 28%), transparent 55%), var(--hy-wine);
-  color: #ffffff;
-  box-shadow: var(--hy-shadow-2);
-}
-.v0-workspace .hy-countdown-phase {
-  justify-self: start;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 16%);
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 600;
-}
-.v0-workspace .hy-countdown-days {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: baseline;
-  gap: 0 10px;
-  margin: 10px 0 4px;
-  font-size: 18px;
-  font-weight: 600;
-}
-.v0-workspace .hy-countdown-days small {
-  grid-column: 1 / -1;
-  font-size: 13px;
-  font-weight: 500;
-  color: rgb(255 255 255 / 80%);
-}
-.v0-workspace .hy-countdown-days strong {
-  font-size: 56px;
-  line-height: 1.25;
-  font-variant-numeric: tabular-nums;
-}
-.v0-workspace .hy-countdown h2 {
-  margin: 8px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid rgb(255 255 255 / 22%);
-  color: #ffffff;
-  font-size: 20px;
-  line-height: 1.3;
-}
-.v0-workspace .hy-countdown p {
-  margin: 0;
-  color: rgb(255 255 255 / 86%);
-}
-.v0-workspace .hy-overview-links {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-content: start;
-  gap: 10px;
-  padding: 20px;
-  background: var(--hy-surface);
-  border: 1px solid var(--hy-outline);
-  border-radius: var(--hy-radius-md);
-  box-shadow: var(--hy-shadow-1);
-}
-.v0-workspace .hy-overview-links .public-button {
-  grid-column: 1 / -1;
-}
-.v0-workspace .hy-overview-links a {
-  text-align: center;
-}
-.v0-workspace .hy-journey-card {
-  padding: 20px 24px 24px;
-}
-.v0-workspace .hy-journey-head {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-.v0-workspace .hy-journey-head h3 {
-  margin: 0;
-  font-size: 17px;
-  line-height: 1.35;
-}
-.v0-workspace .hy-journey-head span {
-  color: var(--hy-ink-muted);
-  font-size: 13px;
-}
-.v0-workspace .overview-next {
-  padding: 20px 24px;
-}

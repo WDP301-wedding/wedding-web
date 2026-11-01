@@ -1,37 +1,4 @@
 /* ---------- Đề xuất & kịch bản (C2 – trang cộng tác cũ) ---------- */
-.v0-workspace .collab-shell,
-.v0-workspace .collab-access-state {
-  min-height: 0;
-  background: transparent;
-}
-.v0-workspace .collab-intro {
-  justify-items: start;
-  max-width: none;
-  padding: 0 0 24px;
-  text-align: left;
-}
-.v0-workspace .collab-intro h1 {
-  max-width: none;
-  color: var(--hy-ink);
-  font-size: clamp(28px, 3vw, 34px);
-  font-weight: 700;
-}
-.v0-workspace .collab-intro > .script-heading {
-  margin: 0 0 6px;
-  color: var(--hy-wine);
-  font-size: 13px;
-  font-weight: 600;
-}
-.v0-workspace .collab-proposal {
-  margin: 0 0 20px;
-  border-radius: var(--hy-radius-md);
-  background:
-    radial-gradient(circle at 100% 0%, rgb(244 185 167 / 26%), transparent 55%), var(--hy-wine);
-  box-shadow: var(--hy-shadow-2);
-}
-.v0-workspace .collab-proposal h2 {
-  font-weight: 700;
-}
 .v0-workspace .collab-columns {
   gap: 20px;
   background: transparent;
@@ -48,8 +15,7 @@
   font-size: 22px;
   font-weight: 700;
 }
-.v0-workspace .collab-columns label,
-.v0-workspace .collab-kicker {
+.v0-workspace .collab-columns label {
   color: var(--hy-ink);
 }
 .v0-workspace .collab-columns input,
@@ -75,11 +41,6 @@
   border-color: var(--hy-outline);
   color: #9a877f;
   opacity: 1;
-}
-.v0-workspace .collab-timeline time {
-  color: var(--hy-wine);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Thanh toán (C3) ---------- */
@@ -226,11 +187,6 @@
   border-color: var(--hy-success);
   background: var(--hy-success-bg);
   color: var(--hy-success);
-}
-.v0-workspace .invitation-live .studio-notice.is-error {
-  border-color: var(--hy-error);
-  background: var(--hy-error-bg);
-  color: var(--hy-error);
 }
 
 /* Khối, tiêu đề, chữ phụ */

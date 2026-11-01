@@ -1,69 +1,4 @@
 /* ---------- Hành trình cưới ---------- */
-.hy-journey {
-  position: relative;
-}
-.hy-journey-track {
-  height: 6px;
-  margin-bottom: 18px;
-  border-radius: 999px;
-  background: var(--hy-outline);
-  overflow: hidden;
-}
-.hy-journey-track span {
-  display: block;
-  height: 100%;
-  background: var(--hy-wine);
-  transform-origin: left center;
-  transition: transform 450ms var(--hy-ease-emphasized);
-  animation: hy-grow 450ms var(--hy-ease-emphasized) both;
-}
-.hy-journey ol {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.hy-step {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  text-align: center;
-}
-.hy-step-dot {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 1.5px solid var(--hy-outline-strong);
-  background: var(--hy-surface);
-  color: var(--hy-ink-muted);
-  font-size: 13px;
-  font-weight: 600;
-}
-.hy-step-done .hy-step-dot {
-  border-color: var(--hy-wine);
-  background: var(--hy-wine);
-  color: #ffffff;
-}
-.hy-step-current .hy-step-dot {
-  border: 2px solid var(--hy-wine);
-  color: var(--hy-wine);
-  box-shadow: 0 0 0 4px var(--hy-wine-soft);
-}
-.hy-step-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--hy-ink-muted);
-}
-.hy-step-done .hy-step-label,
-.hy-step-current .hy-step-label {
-  color: var(--hy-ink);
-  font-weight: 600;
-}
 
 /* ---------- Chuyển động ---------- */
 @keyframes hy-enter {
@@ -74,11 +9,6 @@
   to {
     opacity: 1;
     transform: none;
-  }
-}
-@keyframes hy-grow {
-  from {
-    transform: scaleX(0);
   }
 }
 /* Danh sách hiện lần lượt (stagger 50ms, 8 phần tử đầu). */
@@ -120,11 +50,6 @@
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 900px) {
-  .v0-workspace .hy-overview-top {
-    grid-template-columns: 1fr;
-  }
-}
 @media (max-width: 640px) {
   .v0-workspace .topbar {
     height: 60px;
@@ -133,16 +58,6 @@
   }
   .v0-workspace .booking-context {
     display: none;
-  }
-  .v0-workspace .hy-countdown {
-    padding: 20px;
-  }
-  .v0-workspace .hy-countdown-days strong {
-    font-size: 44px;
-  }
-  .hy-journey ol {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    row-gap: 16px;
   }
   .hy-brand-text strong {
     font-size: 19px;
@@ -166,7 +81,6 @@
   .v0-workspace .cw-table tbody tr {
     animation-name: hy-fade;
   }
-  .public-button:active,
   .v0-workspace .button:active,
   .public-hall-grid > *:hover .public-hall-picture img {
     transform: none;
@@ -179,9 +93,6 @@
 }
 
 /* ---------- Tài khoản (A1) ---------- */
-.script-heading {
-  color: var(--hy-wine);
-}
 .header-action {
   border-radius: var(--hy-radius-sm);
   background: var(--hy-wine);

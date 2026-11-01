@@ -63,10 +63,6 @@
   padding: 72px 32px 44px;
 }
 
-.workspace-hero .script-heading {
-  margin-top: 22px;
-}
-
 .workspace-hero > p:last-child {
   max-width: 680px;
   font-family: var(--font-display);

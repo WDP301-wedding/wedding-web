@@ -73,14 +73,6 @@
   background: var(--paper);
 }
 
-.script-heading {
-  margin: 26px 0 6px;
-  color: var(--burgundy);
-  font-family: var(--font-script);
-  font-size: clamp(24px, 2.6vw, 36px);
-  font-style: normal;
-}
-
 .invitation-content h1 {
   max-width: 720px;
   margin: 0;

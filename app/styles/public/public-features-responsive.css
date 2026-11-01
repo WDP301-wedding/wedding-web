@@ -112,11 +112,6 @@
   margin-top: 2px;
   line-height: 1.35;
 }
-.consultation-form .public-muted {
-  margin: 10px 0 16px;
-  font-size: 13px;
-  line-height: 1.5;
-}
 .account-settings label {
   display: flex;
   flex-direction: column;
@@ -133,8 +128,7 @@
   background: var(--powder);
 }
 .public-data-error button,
-.account-settings button:not(.public-button),
-.overview-section > button {
+.account-settings button:not(.public-button) {
   min-height: 44px;
   border: 1px solid var(--navy);
   background: transparent;
@@ -153,14 +147,6 @@
   font-size: 28px;
   font-weight: 500;
 }
-.overview-booking {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
-  border-block: 1px solid var(--gold);
-  margin: 40px 0;
-  padding: 32px 0;
-}
 .overview-event {
   padding: 32px;
   background: var(--navy);
@@ -170,36 +156,6 @@
   color: var(--paper);
   font-size: 28px;
   margin-top: 24px;
-}
-.overview-event .public-button {
-  color: var(--navy);
-  background: var(--paper);
-  margin-top: 24px;
-}
-.overview-next h3 {
-  margin: 0 0 24px;
-  font-weight: 500;
-  font-size: 22px;
-}
-.overview-next ul {
-  list-style: none;
-  padding: 0;
-}
-.overview-next li {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px 0;
-  border-bottom: 1px solid #eadfd6;
-}
-.overview-next li span {
-  font-size: 13px;
-  color: var(--muted);
-}
-.overview-empty {
-  padding: 48px;
-  border: 1px solid #eadfd6;
-  line-height: 1.9;
 }
 :where(.public-header, .public-footer, #public-content, .account-settings)
   :where(a, button, input, textarea):focus-visible {
@@ -242,9 +198,6 @@
     font-size: 12px;
     width: 100%;
   }
-  .public-header nav .public-button {
-    width: 100%;
-  }
   .public-hero {
     grid-template-columns: 1fr;
     padding: 32px 24px 48px;
@@ -265,27 +218,18 @@
   .public-invitation,
   .public-detail-grid,
   .public-consultation-layout,
-  .public-menu-list article,
-  .overview-booking {
+  .public-menu-list article {
     grid-template-columns: 1fr;
     gap: 32px;
   }
   .public-story {
     padding-block: 48px;
   }
-  .public-story .public-kicker,
   .public-steps {
     grid-column: auto;
   }
   .public-steps {
     display: block;
-  }
-  .public-section-heading {
-    display: block;
-  }
-  .public-section-heading > a {
-    display: inline-block;
-    margin-top: 24px;
   }
   .public-image-caption {
     flex-direction: column;
@@ -308,9 +252,6 @@
     padding: 24px;
   }
   .account-settings {
-    padding: 24px;
-  }
-  .overview-empty {
     padding: 24px;
   }
   .public-contact {

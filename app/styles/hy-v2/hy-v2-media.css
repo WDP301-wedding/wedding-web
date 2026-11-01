@@ -4,11 +4,6 @@
  */
 
 /* ---------- Hero: video nằm dưới lớp phủ tối, chữ và form nằm trên cùng ---------- */
-.hy-hero {
-  position: relative;
-  isolation: isolate;
-  z-index: 1;
-}
 
 /* ---------- Khoảnh khắc ---------- */
 

@@ -83,7 +83,6 @@ body {
 }
 
 /* ---------- Nút (dùng chung public + workspace) ---------- */
-.public-button,
 .v0-workspace .button {
   min-height: 44px;
   padding: 10px 20px;
@@ -99,17 +98,14 @@ body {
     transform var(--hy-dur-fast) var(--hy-ease-emphasized),
     box-shadow var(--hy-dur-fast) var(--hy-ease-emphasized);
 }
-.public-button:hover,
 .v0-workspace .button:hover {
   background: var(--hy-wine-pressed);
   border-color: var(--hy-wine-pressed);
 }
-.public-button:active,
 .v0-workspace .button:active,
 .v0-workspace .cw-actions button:active {
   transform: scale(0.97);
 }
-.public-button:disabled,
 .v0-workspace .button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -159,9 +155,6 @@ body {
 .public-header nav a:hover {
   color: var(--hy-wine);
 }
-.public-header nav .public-button {
-  color: #ffffff;
-}
 @media (min-width: 1800px) {
   .public-header {
     padding-inline: calc((100vw - 1600px) / 2);
@@ -169,17 +162,11 @@ body {
 }
 
 /* ---------- Trang công khai ---------- */
-.public-kicker {
-  color: var(--hy-wine);
-  font-weight: 600;
-}
 .public-hero {
   position: relative;
 }
 .public-hero h1,
-.public-story h2,
-.public-section-heading h1,
-.public-section-heading h2 {
+.public-story h2 {
   color: var(--hy-ink);
   font-weight: 700;
   line-height: 1.25;
@@ -230,7 +217,6 @@ body {
 .public-menu-list article,
 .consultation-form,
 .account-settings,
-.overview-empty,
 .public-invitation {
   background: var(--hy-surface);
   border: 1px solid var(--hy-outline);

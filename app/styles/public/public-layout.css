@@ -32,41 +32,10 @@
   background: transparent;
   color: var(--navy);
 }
-.public-button {
-  display: inline-flex;
-  gap: 24px;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 14px 24px;
-  border: 1px solid var(--navy);
-  border-radius: var(--hy-radius-sm);
-  background: var(--navy);
-  color: var(--paper);
-  font-weight: 600;
-  font-size: 14px;
-  text-decoration: none;
-  cursor: pointer;
-}
-.public-button:hover {
-  background: var(--navy-deep);
-  color: var(--paper);
-}
-.public-button:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
 .public-secondary {
   color: var(--ink);
   background: transparent;
   margin-top: 32px;
-}
-.public-kicker {
-  display: block;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 20px;
 }
 .public-hero {
   display: grid;
@@ -147,10 +116,6 @@
   grid-template-columns: 1fr 1fr;
   gap: 32px 64px;
 }
-.public-story .public-kicker {
-  grid-column: 1/-1;
-  margin-bottom: 0;
-}
 .public-story h2,
 .public-section h1,
 .public-section h2,
@@ -184,16 +149,6 @@
 .public-section {
   padding-top: 64px;
   padding-bottom: 64px;
-}
-.public-section-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 32px;
-  margin-bottom: 40px;
-}
-.public-section-heading h2 {
-  margin-bottom: 0;
 }
 .public-hall-grid {
   display: grid;
@@ -230,11 +185,6 @@
 .public-hall-copy > a {
   font-size: 14px;
   text-underline-offset: 5px;
-}
-.public-muted {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.8;
 }
 .public-invitation {
   display: grid;
