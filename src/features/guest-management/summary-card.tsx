@@ -1,4 +1,6 @@
 import type { GuestStatusFilter, GuestsData } from './use-guests-workspace';
+import { cx } from '../commercial-contract/contract-classes';
+import { gx } from './guest-classes';
 
 /**
  * Ba con số luôn tách riêng (quy tắc nghiệp vụ): dự kiến / tên đã lập / tên đã check-in.
@@ -11,8 +13,8 @@ export function SummaryCard({
   // `undefined` = phần check-in chưa tải xong/lỗi; `null` = check-in đang tắt (backend).
   const checkedIn = data.attendance ? data.attendance.checkedInGuestCount : undefined;
   return (
-    <section className="cw-card" aria-label="Tóm tắt khách mời">
-      <dl className="cw-stats">
+    <section className={cx.card} aria-label="Tóm tắt khách mời">
+      <dl className={gx.stats}>
         <div>
           <dt>Số khách dự kiến</dt>
           <dd>{data.plan.planningHeadcount}</dd>
@@ -32,7 +34,7 @@ export function SummaryCard({
           <dd>{data.groups.filter((group) => group.status === 'ACTIVE').length}</dd>
         </div>
       </dl>
-      <p className="cw-note">
+      <p className={cx.note}>
         Danh sách tên là tùy chọn và có thể chỉ một phần, nên không dùng để tính tỷ lệ tham dự của
         cả tiệc. Khách vẫn có thể đi cùng người thân.
       </p>

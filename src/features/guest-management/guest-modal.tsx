@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom';
 import type { Guest, GuestGroup } from './guest-api';
 import { GuestFields } from './guest-fields';
 import { normalizePhone } from './guest-csv';
+import { cx } from '../commercial-contract/contract-classes';
+import { dialog } from '../../design-system/dialog-classes';
 
 function formField(data: FormData, name: string): string {
   const value = data.get(name);
@@ -94,13 +96,13 @@ export function GuestModal({
 
   return createPortal(
     <div
-      className="hy-dialog-backdrop"
+      className={dialog.backdrop}
       onMouseDown={onClose}
       onClick={(e) => e.stopPropagation()}
     >
       <div
         ref={panelRef}
-        className="hy-dialog"
+        className={dialog.panel}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -113,34 +115,34 @@ export function GuestModal({
           }
         }}
       >
-        <form key={guest?.guestId ?? 'new'} onSubmit={handleSubmit}>
+        <form key={guest?.guestId ?? 'new'} className={cx.form} onSubmit={handleSubmit}>
           <h2 id={titleId}>
             {isEdit ? `Chỉnh sửa thông tin khách “${guest?.name}”` : 'Thêm khách mời mới'}
           </h2>
-          <p className="hy-dialog-description">
+          <p className={cx.note}>
             {isEdit
               ? 'Cập nhật họ tên, nhóm khách hoặc ghi chú. Mã khách và liên kết riêng (nếu có) được giữ nguyên.'
               : 'Điền thông tin khách mời để gán vào nhóm. Bạn có thể cấp liên kết thiệp riêng sau khi thêm.'}
           </p>
 
           {error ? (
-            <div className="cw-alert" role="alert" style={{ marginBottom: 16 }}>
+            <div className={cx.alert} role="alert">
               {error}
             </div>
           ) : null}
 
           <GuestFields groups={groups} {...(guest ? { guest } : {})} />
 
-          <div className="hy-dialog-actions" style={{ marginTop: 20 }}>
+          <div className={dialog.actions}>
             <button
               type="button"
-              className="button button-secondary"
+              className={cx.buttonOutline}
               disabled={pending}
               onClick={onClose}
             >
               Hủy
             </button>
-            <button type="submit" className="button" disabled={pending || groups.length === 0}>
+            <button type="submit" className={cx.button} disabled={pending || groups.length === 0}>
               {pending ? 'Đang lưu…' : isEdit ? 'Lưu thay đổi' : 'Thêm khách'}
             </button>
           </div>

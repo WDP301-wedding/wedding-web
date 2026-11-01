@@ -8,7 +8,8 @@ import { Skeleton } from '../../design-system/skeleton';
 import { LayoutSelector } from './layout-selector';
 import { PlanEditor } from './plan-editor';
 import { useSeatingWorkspace } from './use-seating-workspace';
-import styles from './seating.module.css';
+import { sx } from './seating-classes';
+import { cx } from '../commercial-contract/contract-classes';
 
 export function SeatingPage() {
   return (
@@ -51,10 +52,10 @@ function SeatingWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   if (!options) return <Skeleton label="Đang tải sơ đồ…" />;
 
   return (
-    <div className={styles.workspace}>
+    <div className={sx.workspace}>
       {dialog}
       {refreshAvailable ? (
-        <p role="status" className="cw-alert">
+        <p role="status" className={cx.alert}>
           Có dữ liệu mới từ nhà hàng hoặc thiết bị khác. Bản đang chỉnh của bạn chưa bị thay thế.{' '}
           <button
             type="button"

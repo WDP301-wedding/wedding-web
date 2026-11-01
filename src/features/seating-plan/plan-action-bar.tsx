@@ -3,7 +3,8 @@
 import React from 'react';
 import type { SeatingPlan } from './seating-api';
 import { statusLabels } from './use-seating-workspace';
-import styles from './seating.module.css';
+import { sx } from './seating-classes';
+import { cx } from '../commercial-contract/contract-classes';
 
 export function PlanActionBar({
   plan,
@@ -27,24 +28,25 @@ export function PlanActionBar({
   onConfirmPlan: () => void;
 }>) {
   return (
-    <div className={styles.stickyActionBar} role="region" aria-label="Thao tác lưu sơ đồ">
-      <div className={styles.actionBarStatus}>
-        <span className="status status-champagne">{statusLabels[plan.status]}</span>
+    <div className={sx.stickyActionBar} role="region" aria-label="Thao tác lưu sơ đồ">
+      <div className={sx.actionBarStatus}>
+        <span className={cx.status}>{statusLabels[plan.status]}</span>
         {dirty ? (
-          <span style={{ fontSize: 13, color: 'var(--hy-wine)', fontWeight: 600 }}>
-            ● Có thay đổi chưa lưu
+          <span className="inline-flex items-center gap-1.5 font-semibold text-primary">
+            <span className="size-2 rounded-full bg-primary" aria-hidden="true" />
+            Có thay đổi chưa lưu
           </span>
         ) : (
-          <span style={{ fontSize: 13, color: 'var(--hy-ink-muted)' }}>
+          <span className="text-muted-foreground">
             Đã đồng bộ với hệ thống
           </span>
         )}
       </div>
 
-      <div className={styles.actionBarButtons}>
+      <div className={sx.actionBarButtons}>
         <button
           type="button"
-          className="button button-secondary"
+          className={cx.buttonOutline}
           disabled={pending || undoCount === 0}
           onClick={onUndo}
           title="Hoàn tác thao tác gán gần nhất"
@@ -54,7 +56,7 @@ export function PlanActionBar({
 
         <button
           type="button"
-          className="button button-secondary"
+          className={cx.buttonOutline}
           disabled={pending || !dirty}
           onClick={onReset}
         >
@@ -62,7 +64,7 @@ export function PlanActionBar({
         </button>
 
         <button
-          className="button button-secondary"
+          className={cx.buttonOutline}
           type="button"
           disabled={pending || !dirty}
           onClick={onSaveLabels}
@@ -71,7 +73,7 @@ export function PlanActionBar({
         </button>
 
         <button
-          className="button"
+          className={cx.button}
           type="button"
           disabled={pending || dirty || plan.status === 'CONFIRMED' || !!capacityWarning}
           aria-describedby={capacityWarning ? 'seating-capacity-warning' : undefined}

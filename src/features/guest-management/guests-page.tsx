@@ -10,7 +10,8 @@ import { GroupsCard } from './groups-card';
 import { GuestListCard } from './guest-list-card';
 import { ImportCard } from './import-card';
 import { CheckInCard } from './check-in-card';
-import styles from './guests-layout.module.css';
+import { cx } from '../commercial-contract/contract-classes';
+import { gx } from './guest-classes';
 
 export function GuestsPage() {
   return (
@@ -45,10 +46,10 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   if (!data) return <Skeleton label="Đang tải khách mời…" />;
 
   return (
-    <div className={styles.workspace}>
+    <div className={gx.workspace}>
       <SummaryCard data={data} status={status} />
-      <div className={styles.setupGrid}>
-        <div className={styles.settings}>
+      <div className={gx.setupGrid}>
+        <div className={gx.settings}>
           <PlanCard
             bookingId={bookingId}
             plan={data.plan}
@@ -64,7 +65,7 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
             />
           ) : extrasError ? (
             // Chỉ thẻ check-in lỗi; phần còn lại của trang vẫn dùng bình thường, không cần F5.
-            <section className="cw-card" aria-label="Check-in theo tên tại tiệc">
+            <section className={cx.card} aria-label="Check-in theo tên tại tiệc">
               <h2>Check-in theo tên tại tiệc</h2>
               <ErrorPanel error={extrasError} onRetry={reloadExtras} />
             </section>

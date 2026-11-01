@@ -1,6 +1,7 @@
 import { InlineError } from '../../design-system/inline-error';
 import { useCommand } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestPlan } from './guest-api';
+import { cx } from '../commercial-contract/contract-classes';
 
 export function PlanCard({
   bookingId,
@@ -15,11 +16,11 @@ export function PlanCard({
 }>) {
   const command = useCommand({ errorPresentation: 'inline' });
   return (
-    <section className="cw-card">
+    <section className={cx.card}>
       <InlineError error={command.error} />
       <h2>Số khách dự kiến</h2>
       <form
-        className="cw-form"
+        className={cx.form}
         onSubmit={(event) => {
           event.preventDefault();
           const value = Number(new FormData(event.currentTarget).get('planningHeadcount'));
@@ -31,7 +32,7 @@ export function PlanCard({
             .then((result) => result && onSaved(result));
         }}
       >
-        <div className="cw-form-row">
+        <div className={cx.formRow}>
           <label>
             Số khách dự kiến
             <input
@@ -47,8 +48,8 @@ export function PlanCard({
             </small>
           </label>
         </div>
-        <div className="cw-actions">
-          <button className="button" type="submit" disabled={command.pending}>
+        <div className={cx.actions}>
+          <button className={cx.button} type="submit" disabled={command.pending}>
             Lưu số khách
           </button>
         </div>

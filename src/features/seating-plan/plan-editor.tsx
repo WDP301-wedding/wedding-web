@@ -4,11 +4,12 @@ import React from 'react';
 import type { GuestGroup } from '../guest-management/guest-api';
 import type { SeatingPlan } from './seating-api';
 import { SeatingSvg } from './seating-svg';
-import styles from './seating.module.css';
 import { usePlanEditor } from './use-plan-editor';
 import { PlanEditorHeader } from './plan-editor-header';
 import { PlanEditorSidebar } from './plan-editor-sidebar';
 import { PlanActionBar } from './plan-action-bar';
+import { sx } from './seating-classes';
+import { cx } from '../commercial-contract/contract-classes';
 
 export function PlanEditor({
   bookingId,
@@ -57,12 +58,12 @@ export function PlanEditor({
   });
 
   return (
-    <section className="cw-card" style={{ paddingBottom: 0 }}>
+    <section className={`${cx.card} pb-0 sm:pb-0`}>
       {exitDialog}
       <PlanEditorHeader plan={plan} capacityWarning={capacityWarning} />
 
       {/* Bố cục 2 cột Split View trên Desktop */}
-      <div className={styles.editorLayout}>
+      <div className={sx.editorLayout}>
         {/* Cột trái: Bộ chọn nhóm & Chi tiết bàn đang chọn */}
         <PlanEditorSidebar
           groups={groups}
@@ -76,21 +77,13 @@ export function PlanEditor({
         />
 
         {/* Cột phải: Khung bản vẽ SVG */}
-        <div className={styles.editorCanvas}>
-          <div
-            style={{
-              padding: '6px 12px',
-              borderRadius: 4,
-              backgroundColor: 'var(--hy-surface-warm)',
-              fontSize: 13,
-              color: 'var(--hy-ink)',
-            }}
-          >
+        <div className={sx.editorCanvas}>
+          <div className={sx.modeHint}>
             {activeGroup === null
-              ? '👁 Chế độ xem: Nhấp vào bàn để xem thông tin chi tiết.'
+              ? 'Chế độ xem: Nhấp vào bàn để xem thông tin chi tiết.'
               : activeGroup === ''
-                ? '✕ Chế độ gỡ: Nhấp vào các bàn để gỡ nhóm.'
-                : `✍ Đang gán nhóm: ${groupById.get(activeGroup)?.name}. Nhấp vào các bàn trên sơ đồ để gán nhóm này.`}
+                ? 'Chế độ gỡ: Nhấp vào các bàn để gỡ nhóm.'
+                : `Đang gán nhóm: ${groupById.get(activeGroup)?.name}. Nhấp vào các bàn trên sơ đồ để gán nhóm này.`}
           </div>
 
           <SeatingSvg

@@ -9,7 +9,8 @@ import {
   type SeatingTable,
 } from './seating-api';
 import { useSeatingPan } from './use-seating-pan';
-import styles from './seating.module.css';
+import { Maximize2, Minimize2, Minus, Plus } from 'lucide-react';
+import { sx } from './seating-classes';
 
 export function SeatingSvg({
   plan,
@@ -42,50 +43,50 @@ export function SeatingSvg({
   const content = (
     <>
       <div
-        className={`hy-zoom-bar ${styles.zoomToolbar}`}
+        className={sx.zoomBar}
         role="group"
         aria-label="Thu phóng sơ đồ"
       >
         <button
           type="button"
-          className="button button-secondary"
+          className={sx.zoomButton}
           aria-label="Thu nhỏ"
           disabled={view.zoom <= minZoom}
           onClick={zoomOut}
         >
-          −
+          <Minus aria-hidden="true" />
         </button>
-        <span className={styles.zoomValue} aria-live="polite">
+        <span className={sx.zoomValue} aria-live="polite">
           {Math.round(view.zoom * 100)}%
         </span>
         <button
           type="button"
-          className="button button-secondary"
+          className={sx.zoomButton}
           aria-label="Phóng to"
           disabled={view.zoom >= maxZoom}
           onClick={zoomIn}
         >
-          +
+          <Plus aria-hidden="true" />
         </button>
-        <button type="button" className="cw-text-button" onClick={resetZoom}>
+        <button type="button" className={sx.textButton} onClick={resetZoom}>
           Vừa khung
         </button>
         <button
           type="button"
-          className="button button-secondary"
-          style={{ padding: '4px 10px', fontSize: 13 }}
+          className={sx.fullscreenButton}
           onClick={toggleFullscreen}
         >
-          {isFullscreen ? 'Thu nhỏ cửa sổ' : '⛶ Toàn màn hình'}
+          {isFullscreen ? <Minimize2 aria-hidden="true" /> : <Maximize2 aria-hidden="true" />}
+          {isFullscreen ? 'Thu nhỏ cửa sổ' : 'Toàn màn hình'}
         </button>
-        <small className={styles.zoomHint}>
+        <small className={sx.zoomHint}>
           Kéo để di chuyển · Giữ Ctrl + cuộn chuột để thu phóng
         </small>
       </div>
 
       <svg
         ref={svgRef}
-        className={'cw-seating' + (view.zoom > 1 ? ' hy-pannable' : '')}
+        className={view.zoom > 1 ? `${sx.svg} ${sx.svgPannable}` : sx.svg}
         viewBox={zoomedViewBox(viewBoxOf(plan.renderSnapshot), view.zoom, view.x, view.y)}
         onPointerDown={startPan}
         onPointerMove={movePan}
@@ -114,7 +115,7 @@ export function SeatingSvg({
               tabIndex={0}
               role="button"
               aria-label={`Bàn ${table.tableLabel}${groupName ? `, Nhóm: ${groupName}` : ''}`}
-              className={styles.tableInteractive}
+              className={sx.table}
               onClick={() => {
                 if (panned.current) {
                   panned.current = false;
@@ -198,7 +199,11 @@ export function SeatingSvg({
   );
 
   if (isFullscreen) {
-    return <div className={styles.fullscreenContainer}>{content}</div>;
+    return (
+      <div className={sx.fullscreen} data-fullscreen>
+        {content}
+      </div>
+    );
   }
 
   return content;

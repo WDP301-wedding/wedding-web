@@ -29,12 +29,16 @@ export default function GuestsAndSeatingPage() {
   ];
   return (
     <>
-      <nav className="hy-tabs" aria-label="Khách & sơ đồ">
+      <nav
+        data-ui-v3
+        className="mb-5 flex max-w-full gap-1 overflow-x-auto shadow-[inset_0_-1px_0_var(--hy-outline)]"
+        aria-label="Khách & sơ đồ"
+      >
         {tabs.map((tab) => (
           <Link
             key={tab.label}
             href={tab.href}
-            className={tab.current ? 'is-current' : undefined}
+            className="border-b-2 border-transparent px-4 py-2.5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors duration-150 hover:text-foreground aria-[current=page]:border-primary aria-[current=page]:font-semibold aria-[current=page]:text-primary"
             aria-current={tab.current ? 'page' : undefined}
           >
             {tab.label}

@@ -19,6 +19,11 @@
 @source '../src/features/payments-billing';
 @source '../src/features/settlement';
 @source '../src/features/notifications';
+@source '../src/features/guest-management';
+@source './khong-gian/chuan-bi/khach';
+@source '../src/features/seating-plan';
+@source '../src/design-system/dialog-classes.ts';
+@source '../src/design-system/confirm-dialog.tsx';
 @source './khong-gian/thanh-toan/ket-qua';
 
 /* Sản phẩm chỉ có giao diện sáng: khoá biến thể dark: vào class .dark không bao giờ được gắn. */

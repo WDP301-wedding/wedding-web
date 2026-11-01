@@ -3,7 +3,9 @@
 import React from 'react';
 import type { GuestGroup } from '../guest-management/guest-api';
 import type { SeatingTable } from './seating-api';
-import styles from './seating.module.css';
+import { sx } from './seating-classes';
+import { cx } from '../commercial-contract/contract-classes';
+import { gx } from '../guest-management/guest-classes';
 
 export function PlanEditorSidebar({
   groups,
@@ -25,13 +27,13 @@ export function PlanEditorSidebar({
   onAssignLabel: (layoutTableId: string, guestGroupId: string) => void;
 }>) {
   return (
-    <aside className={styles.editorSidebar}>
-      <fieldset className={styles.assignmentToolbar} disabled={pending}>
+    <aside className={sx.editorSidebar}>
+      <fieldset className={sx.assignmentToolbar} disabled={pending}>
         <legend>1. Chọn nhóm khách</legend>
-        <div className={styles.groupChipList}>
+        <div className={sx.groupChipList}>
           <button
             type="button"
-            className={styles.groupChipButton}
+            className={sx.groupChipButton}
             aria-pressed={activeGroup === null}
             onClick={() => setActiveGroup(null)}
           >
@@ -45,26 +47,26 @@ export function PlanEditorSidebar({
               <button
                 key={group.guestGroupId}
                 type="button"
-                className={styles.groupChipButton}
+                className={sx.groupChipButton}
                 aria-pressed={isPressed}
                 onClick={() => setActiveGroup(group.guestGroupId)}
               >
-                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <span className="inline-flex items-center">
                   <span
-                    className="cw-swatch"
-                    style={{ background: group.color, marginRight: 8 }}
+                    className={gx.swatch}
+                    style={{ background: group.color }}
                     aria-hidden="true"
                   />
                   {group.name}
                 </span>
-                <span className={styles.groupChipCount}>{count} bàn</span>
+                <span className={sx.groupChipCount}>{count} bàn</span>
               </button>
             );
           })}
 
           <button
             type="button"
-            className={styles.groupChipButton}
+            className={sx.groupChipButton}
             aria-pressed={activeGroup === ''}
             onClick={() => setActiveGroup('')}
           >
@@ -74,25 +76,18 @@ export function PlanEditorSidebar({
       </fieldset>
 
       {/* Chi tiết bàn đang chọn */}
-      <div className="cw-card" style={{ padding: 14 }}>
-        <h3 style={{ fontSize: 14, margin: '0 0 8px', fontWeight: 600 }}>2. Bàn đang chọn</h3>
+      <div className={sx.selectedCard}>
+        <h3 className={sx.selectedTitle}>2. Bàn đang chọn</h3>
         {selectedTable ? (
-          <div style={{ display: 'grid', gap: 10 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--hy-wine)' }}>
+          <div className="grid gap-2.5">
+            <div className={sx.selectedName}>
               Bàn {selectedTable.tableLabel}
             </div>
-            <label style={{ fontSize: 13 }}>
+            <label className={sx.selectedField}>
               Nhóm khách cho bàn này:
               <select
                 disabled={pending}
                 value={labels[selectedTable.layoutTableId] ?? ''}
-                style={{
-                  width: '100%',
-                  marginTop: 4,
-                  height: 36,
-                  borderRadius: 4,
-                  borderColor: 'var(--hy-outline-strong)',
-                }}
                 onChange={(event) => {
                   onAssignLabel(selectedTable.layoutTableId, event.target.value);
                 }}
@@ -107,7 +102,7 @@ export function PlanEditorSidebar({
             </label>
           </div>
         ) : (
-          <p className="muted" style={{ fontSize: 13, margin: 0 }}>
+          <p className={cx.muted}>
             Nhấp vào một bàn trên sơ đồ bên cạnh để kiểm tra hoặc gán nhóm nhanh.
           </p>
         )}

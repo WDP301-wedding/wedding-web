@@ -2,7 +2,8 @@
 
 import React from 'react';
 import type { Guest, GuestGroup } from './guest-api';
-import styles from './guests.module.css';
+import { cx } from '../commercial-contract/contract-classes';
+import { gx } from './guest-classes';
 
 export interface GuestTableViewProps {
   visible: Guest[];
@@ -34,11 +35,11 @@ export function GuestTableView({
   onToggleStatus,
 }: GuestTableViewProps) {
   return (
-    <div className="cw-table-wrap">
-      <table className={`cw-table ${styles.desktopOnly}`}>
+    <div className={`${cx.tableWrap} max-md:hidden`}>
+      <table className={cx.table}>
         <thead>
           <tr>
-            <th scope="col" style={{ width: 40, textAlign: 'center' }}>
+            <th scope="col" className="w-10 text-center!">
               <input
                 type="checkbox"
                 aria-label="Chọn tất cả khách hiển thị"
@@ -53,7 +54,7 @@ export function GuestTableView({
             <th scope="col">Nhóm</th>
             <th scope="col">Điện thoại</th>
             <th scope="col">Ghi chú</th>
-            <th scope="col" style={{ textAlign: 'right' }}>
+            <th scope="col" className="text-right!">
               Thao tác
             </th>
           </tr>
@@ -65,9 +66,9 @@ export function GuestTableView({
             return (
               <tr
                 key={guest.guestId}
-                style={isSelected ? { backgroundColor: 'var(--hy-surface-warm)' } : undefined}
+                className={isSelected ? 'bg-muted' : undefined}
               >
-                <td style={{ textAlign: 'center' }}>
+                <td className="text-center">
                   <input
                     type="checkbox"
                     aria-label={`Chọn khách ${guest.name}`}
@@ -80,7 +81,7 @@ export function GuestTableView({
                 </td>
                 <td>
                   <span
-                    className={`cw-swatch ${styles.swatch}`}
+                    className={gx.swatch}
                     style={{ background: grp?.color }}
                     aria-hidden="true"
                   />
@@ -89,11 +90,11 @@ export function GuestTableView({
                 <td>{guest.phone ?? '—'}</td>
                 <td>{guest.operationalNote ?? '—'}</td>
                 <td>
-                  <div className="cw-actions" style={{ justifyContent: 'flex-end' }}>
+                  <div className={`${cx.actions} justify-end`}>
                     {guest.status === 'ACTIVE' ? (
                       <>
                         <button
-                          className="cw-text-button"
+                          className={cx.textButton}
                           type="button"
                           disabled={pending}
                           onClick={() => onEdit(guest)}
@@ -101,7 +102,7 @@ export function GuestTableView({
                           Sửa
                         </button>
                         <button
-                          className="cw-text-button"
+                          className={cx.textButton}
                           type="button"
                           disabled={pending}
                           onClick={() => onIssueLink(guest)}
@@ -109,7 +110,7 @@ export function GuestTableView({
                           Lấy liên kết
                         </button>
                         <button
-                          className="cw-text-button"
+                          className={cx.textButton}
                           type="button"
                           disabled={pending}
                           onClick={() => onSendEmail(guest)}
@@ -119,7 +120,7 @@ export function GuestTableView({
                       </>
                     ) : null}
                     <button
-                      className="cw-text-button"
+                      className={cx.textButton}
                       type="button"
                       disabled={pending}
                       onClick={() => onToggleStatus(guest)}

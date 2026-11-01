@@ -1,7 +1,8 @@
 import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import { formText, useCommand } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestGroup } from './guest-api';
-import styles from './guests.module.css';
+import { cx } from '../commercial-contract/contract-classes';
+import { gx } from './guest-classes';
 
 // Màu gợi ý cho nhóm khách – lấy từ bảng màu Hỷ Yến, đủ đậm để phân biệt trên sơ đồ bàn.
 export const palette = [
@@ -33,10 +34,10 @@ export function GroupsCard({
     if (result) onChanged(result, action);
   };
   return (
-    <section className="cw-card">
+    <section className={cx.card}>
       <h2>Nhóm khách</h2>
-      <div className="cw-table-wrap">
-        <table className="cw-table">
+      <div className={cx.tableWrap}>
+        <table className={cx.table}>
           <thead>
             <tr>
               <th scope="col">Nhóm</th>
@@ -50,7 +51,7 @@ export function GroupsCard({
               <tr key={group.guestGroupId}>
                 <td>
                   <span
-                    className={`cw-swatch ${styles.swatch}`}
+                    className={gx.swatch}
                     style={{ background: group.color }}
                     aria-hidden="true"
                   />
@@ -60,7 +61,7 @@ export function GroupsCard({
                   <input
                     aria-label={`Màu nhóm ${group.name}`}
                     type="color"
-                    className={styles.colorPicker}
+                    className={gx.colorPicker}
                     defaultValue={group.color.toLowerCase()}
                     disabled={command.pending || group.status !== 'ACTIVE'}
                     onBlur={(event) => {
@@ -80,9 +81,9 @@ export function GroupsCard({
                   />
                 </td>
                 <td>{group.status === 'ACTIVE' ? 'Đang dùng' : 'Đã lưu trữ'}</td>
-                <td className="cw-actions">
+                <td className={cx.actions}>
                   <button
-                    className="cw-text-button"
+                    className={cx.textButton}
                     type="button"
                     disabled={command.pending || group.status !== 'ACTIVE'}
                     onClick={() =>
@@ -111,7 +112,7 @@ export function GroupsCard({
                     Đổi tên
                   </button>
                   <button
-                    className="cw-text-button"
+                    className={cx.textButton}
                     type="button"
                     disabled={command.pending}
                     onClick={() =>
@@ -160,7 +161,7 @@ export function GroupsCard({
         </table>
       </div>
       <form
-        className="cw-form"
+        className={cx.form}
         onSubmit={(event) => {
           event.preventDefault();
           const form = event.currentTarget;
@@ -182,7 +183,7 @@ export function GroupsCard({
             });
         }}
       >
-        <div className="cw-form-row">
+        <div className={cx.formRow}>
           <label>
             Tên nhóm mới
             <input name="name" required maxLength={80} placeholder="Ví dụ: Đồng nghiệp cô dâu" />
@@ -192,13 +193,13 @@ export function GroupsCard({
             <input
               name="color"
               type="color"
-              className={styles.colorPicker}
+              className={gx.colorPicker}
               defaultValue={palette[groups.length % palette.length]!.toLowerCase()}
             />
           </label>
         </div>
-        <div className="cw-actions">
-          <button className="button button-secondary" type="submit" disabled={command.pending}>
+        <div className={cx.actions}>
+          <button className={cx.buttonOutline} type="submit" disabled={command.pending}>
             Thêm nhóm
           </button>
         </div>
