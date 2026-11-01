@@ -1,4 +1,6 @@
 /* Dedicated styles for guest management - Enterprise Quality */
+
+@layer legacy {
 .swatch {
   display: inline-block;
   width: 14px;
@@ -224,4 +226,5 @@
   display: inline-flex;
   align-items: center;
   cursor: pointer;
+}
 }

@@ -1,4 +1,6 @@
 /* Profile Page Styles - Enterprise Production Grade */
+
+@layer legacy {
 .profilePageWrapper {
   min-height: 100vh;
   background-color: var(--hy-surface-warm, #fbf4ee);
@@ -227,4 +229,5 @@
   .settingsSection {
     padding: 20px;
   }
+}
 }

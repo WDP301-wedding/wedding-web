@@ -3,49 +3,6 @@
  * Chỉ dùng token --hy-* và font token.
  */
 
-/* ---------- Toast (sonner) ---------- */
-[data-sonner-toaster] {
-  font-family: var(--font-body);
-  --width: 380px;
-}
-[data-sonner-toaster] [data-sonner-toast].hy-toast {
-  border: 1px solid var(--hy-outline);
-  border-radius: var(--hy-radius-sm);
-  background: var(--hy-surface);
-  color: var(--hy-ink);
-  box-shadow: var(--hy-shadow-2);
-  font-size: 15px;
-  line-height: 1.45;
-  padding: 14px 16px;
-  gap: 10px;
-}
-[data-sonner-toaster] [data-sonner-toast].hy-toast [data-title] {
-  font-weight: 600;
-}
-[data-sonner-toaster] [data-sonner-toast].hy-toast-success {
-  border-color: color-mix(in srgb, var(--hy-success) 30%, transparent);
-  border-left: 4px solid var(--hy-success);
-  background: var(--hy-success-bg);
-  color: var(--hy-success);
-}
-[data-sonner-toaster] [data-sonner-toast].hy-toast-error {
-  border-color: color-mix(in srgb, var(--hy-error) 30%, transparent);
-  border-left: 4px solid var(--hy-error);
-  background: var(--hy-error-bg);
-  color: #8e1c1c;
-}
-[data-sonner-toaster] [data-sonner-toast] .hy-toast-description {
-  color: var(--hy-ink-muted);
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  word-break: break-all;
-}
-[data-sonner-toaster] [data-sonner-toast] .hy-toast-close {
-  border-color: var(--hy-outline);
-  background: var(--hy-surface);
-  color: var(--hy-ink);
-}
-
 /* ---------- Hộp thoại xác nhận ---------- */
 .hy-dialog-backdrop {
   position: fixed;

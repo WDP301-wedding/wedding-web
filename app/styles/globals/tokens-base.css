@@ -12,6 +12,10 @@
   /* Bảng màu Hỷ Yến */
   --hy-wine: #7a1f3d;
   --hy-wine-pressed: #5c1430;
+  --hy-on-wine: #ffffff;
+  --hy-focus: var(--hy-wine);
+  --hy-surface-container: #f7ede4;
+  --font-code: ui-monospace, SFMono-Regular, Consolas, monospace;
   --hy-wine-soft: #f5e4e9;
   --hy-peach: #f4b9a7;
   --hy-cream: #fff8f1;

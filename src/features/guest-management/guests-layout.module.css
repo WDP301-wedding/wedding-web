@@ -1,4 +1,6 @@
 /* Local density rules: leave shared cards, forms and other pages unchanged. */
+
+@layer legacy {
 .workspace {
   container-type: inline-size;
   display: grid;
@@ -73,4 +75,5 @@
   .settings {
     grid-template-columns: minmax(0, 1fr);
   }
+}
 }

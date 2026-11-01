@@ -1,3 +1,4 @@
+@layer legacy {
 .shell {
   width: min(100% - 2rem, 68rem);
   margin: 2rem auto;
@@ -89,4 +90,5 @@
   .shell nav button {
     flex: 1 1 45%;
   }
+}
 }

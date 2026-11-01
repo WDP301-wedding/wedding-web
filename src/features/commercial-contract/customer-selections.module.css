@@ -1,3 +1,4 @@
+@layer legacy {
 .catalog {
   overflow: auto;
   max-height: 420px;
@@ -83,4 +84,5 @@
   .progress {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 }

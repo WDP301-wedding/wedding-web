@@ -1,3 +1,4 @@
+@layer legacy {
 .inputWrap {
   position: relative;
   display: flex;
@@ -69,4 +70,5 @@
   background-image:
     linear-gradient(180deg, rgb(43 29 34 / 0%) 45%, rgb(43 29 34 / 78%) 100%),
     url('/images/khoanh-khac/co-dau-chu-re.webp');
+}
 }

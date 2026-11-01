@@ -39,10 +39,8 @@ export function BillingIntroSection({
       <p>Xem khoản cọc, số dư và trạng thái đã được nhà hàng xác minh.</p>
 
       {!embedded && availableBookings.length > 0 && (
-        <div className="billing-booking-select-wrapper mb-3 text-left">
-          <label htmlFor="billing-booking-select" className="block text-sm font-medium mb-1">
-            Chọn hồ sơ tiệc cưới của bạn:
-          </label>
+        <div className="billing-booking-select-wrapper">
+          <label htmlFor="billing-booking-select">Chọn hồ sơ tiệc cưới của bạn:</label>
           <select
             id="billing-booking-select"
             value={currentBookingId}
@@ -51,7 +49,6 @@ export function BillingIntroSection({
               const selectedId = e.target.value;
               if (selectedId) onSelectBooking(selectedId);
             }}
-            className="w-full min-h-[44px] px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#879883] bg-white text-sm"
           >
             <option value="">-- Danh sách tiệc cưới đã lưu --</option>
             {availableBookings.map((b) => (
@@ -101,4 +98,3 @@ export function BillingLookupForm({
     </form>
   );
 }
-

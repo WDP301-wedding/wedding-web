@@ -1,3 +1,5 @@
+@layer legacy {
 .selectorFieldset {
   padding: 16px;
+}
 }

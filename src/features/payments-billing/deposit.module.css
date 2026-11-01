@@ -1,3 +1,4 @@
+@layer legacy {
 .workspace:global(.billing-deposit) {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -237,4 +238,5 @@
     grid-template-columns: minmax(0, 1.5fr) minmax(290px, 1fr);
     align-items: start;
   }
+}
 }

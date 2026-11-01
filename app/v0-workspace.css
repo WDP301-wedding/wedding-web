@@ -1,5 +1,5 @@
-@import './styles/v0-workspace/workspace-shell.css';
-@import './styles/v0-workspace/workspace-tasks-media.css';
-@import './styles/v0-workspace/workspace-editor-guests.css';
-@import './styles/v0-workspace/workspace-responsive.css';
-@import './styles/v0-workspace/workspace-live-overrides.css';
+@import './styles/v0-workspace/workspace-shell.css' layer(legacy);
+@import './styles/v0-workspace/workspace-tasks-media.css' layer(legacy);
+@import './styles/v0-workspace/workspace-editor-guests.css' layer(legacy);
+@import './styles/v0-workspace/workspace-responsive.css' layer(legacy);
+@import './styles/v0-workspace/workspace-live-overrides.css' layer(legacy);

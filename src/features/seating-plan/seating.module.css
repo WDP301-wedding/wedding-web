@@ -1,5 +1,6 @@
 /* Dedicated styles for seating plan - Enterprise Quality */
 
+@layer legacy {
 .tableInteractive {
   cursor: pointer;
   outline: none;
@@ -286,4 +287,5 @@
   flex-wrap: wrap;
   gap: 6px 12px;
   padding-block: 6px;
+}
 }
