@@ -145,19 +145,7 @@ body {
   background: rgb(255 248 241 / 92%);
   border-bottom: 1px solid var(--hy-outline);
 }
-.public-header .estate-brand strong {
-  font-size: 22px;
-}
 /* Logo ảnh (monogram + "Hỷ Yến Wedding") – chữ nằm trong ảnh nên không chịu token font. */
-.public-header .estate-brand {
-  display: block;
-  line-height: 0;
-}
-.public-header-logo {
-  display: block;
-  width: auto;
-  height: 56px;
-}
 .public-header nav {
   gap: 4px 20px;
 }
@@ -173,15 +161,6 @@ body {
 }
 .public-header nav .public-button {
   color: #ffffff;
-}
-.public-account-link {
-  color: var(--hy-wine);
-  max-width: clamp(140px, 16vw, 240px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: inline-block;
-  vertical-align: middle;
 }
 @media (min-width: 1800px) {
   .public-header {

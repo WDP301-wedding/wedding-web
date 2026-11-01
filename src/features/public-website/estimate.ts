@@ -51,3 +51,18 @@ export function consultationHref(choice: {
   const suffix = query.toString();
   return suffix ? `/tu-van?${suffix}` : '/tu-van';
 }
+
+export type Shift = 'LUNCH' | 'DINNER';
+export type Estimate = Readonly<{ date: string; guests: number; shift: Shift }>;
+
+export const shiftName = (code: Shift) => (code === 'LUNCH' ? 'Ca trưa' : 'Ca tối');
+/** `2027-03-15` → `15/03/2027`. */
+export const formatDate = (iso: string) => iso.split('-').reverse().join('/');
+
+/** Mã nhóm món của dữ liệu mẫu → tên tiếng Việt; nhãn nhà hàng tự đặt giữ nguyên. */
+const dishCategories: Record<string, string> = {
+  APPETIZER: 'Khai vị',
+  MAIN: 'Món chính',
+  DESSERT: 'Tráng miệng',
+};
+export const dishCategory = (label: string) => dishCategories[label] ?? label;

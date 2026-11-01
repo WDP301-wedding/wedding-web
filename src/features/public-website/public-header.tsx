@@ -1,16 +1,22 @@
 'use client';
-import { describeApiError } from '../../lib/api/api-errors';
 
+import { ChevronDown, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useId, useState, type MouseEvent } from 'react';
+import { cn } from 'cn';
+
+import { buttonVariants } from '../../components/ui/button';
 import { routes } from '../../routes';
 import { browserSession } from '../identity-access/browser-session';
-import type { WebIdentitySession, WebSessionSnapshot } from '../identity-access/session';
+import type { WebIdentitySession } from '../identity-access/session';
+import { container } from './public-classes';
+import { usePublicHeader } from './use-public-header';
 
-const anonymous: WebSessionSnapshot = { status: 'anonymous', denial: null };
-const serverSnapshot = () => anonymous;
+const navLink =
+  'inline-flex h-10 items-center rounded-lg px-3.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary hover:text-primary';
+const menuItem =
+  'flex h-10 w-full items-center rounded-lg px-3 text-left text-sm text-foreground transition-colors hover:bg-secondary disabled:opacity-50';
 
 export function PublicHeader({
   className,
@@ -28,170 +34,168 @@ export function PublicHeader({
   /** Chỉ hiện mục "Ưu đãi" khi nhà hàng có ưu đãi thật (src/content/public-content.ts). */
   showOffers?: boolean;
 }) {
-  const router = useRouter();
-  const subscribe = useCallback((listener: () => void) => session.subscribe(listener), [session]);
-  const getSnapshot = useCallback(() => session.snapshot(), [session]);
-  const snapshot = useSyncExternalStore(subscribe, getSnapshot, serverSnapshot);
-  const [loggingOut, setLoggingOut] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (restoreSession)
-      void session.restore().catch((caught: unknown) => setError(describeApiError(caught).message));
-  }, [session, restoreSession]);
-
-  useEffect(() => {
-    if (!userMenuOpen) return;
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setUserMenuOpen(false);
-      }
-    }
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setUserMenuOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [userMenuOpen]);
-
-  async function logout() {
-    if (pending || loggingOut) return;
-    if (onLogout) {
-      onLogout();
-      return;
-    }
-    setLoggingOut(true);
-    setError(null);
-    try {
-      await session.logout();
-      router.replace(routes.login);
-    } catch {
-      setError('Không thể kết nối máy chủ để đăng xuất. Hãy kiểm tra kết nối rồi tải lại trang.');
-    } finally {
-      setLoggingOut(false);
-    }
-  }
+  const { snapshot, error, menuRef, userMenuOpen, setUserMenuOpen, busy, logout } = usePublicHeader(
+    { session, onLogout, pending, restoreSession },
+  );
+  const navId = useId();
+  const [navOpen, setNavOpen] = useState(false);
+  // Trên điện thoại menu xổ xuống: bấm một liên kết thì thu menu lại.
+  const closeOnLink = (event: MouseEvent) => {
+    if ((event.target as HTMLElement).closest('a')) setNavOpen(false);
+  };
 
   return (
-    <header className={['public-header', className].filter(Boolean).join(' ')}>
-      <Link className="estate-brand" href={routes.home} aria-label="Hỷ Yến — Trang chủ">
-        <Image
-          className="public-header-logo"
-          src="/images/hy-yen-logo.png"
-          alt="Hỷ Yến Wedding"
-          width={394}
-          height={414}
-          loading="eager"
-        />
-      </Link>
-      <nav aria-label="Điều hướng chính">
-        <Link href={routes.halls}>Sảnh tiệc</Link>
-        <Link href={routes.menus}>Thực đơn</Link>
-        {showOffers ? <Link href="/#uu-dai">Ưu đãi</Link> : null}
-        <Link href="/#hoi-dap">Câu hỏi thường gặp</Link>
+    <header
+      data-ui-v3
+      className={cn('sticky top-0 z-40 border-b border-border bg-background', className)}
+    >
+      <div className={cn(container, 'relative flex h-16 items-center gap-2 lg:h-18')}>
+        <Link
+          className="flex shrink-0 items-center gap-2.5"
+          href={routes.home}
+          aria-label="Hỷ Yến — Trang chủ"
+        >
+          <Image
+            className="h-10 w-auto"
+            src="/images/hy-yen-logo.png"
+            alt="Hỷ Yến Wedding"
+            width={394}
+            height={414}
+            loading="eager"
+          />
+          <span className="text-lg font-bold" aria-hidden="true">
+            Hỷ Yến
+          </span>
+        </Link>
 
-        {snapshot.status === 'authenticated' ? (
-          <>
-            <Link className="public-nav-space-link" href={routes.space}>
-              Không gian cưới
-            </Link>
-            <div className="public-user-dropdown" ref={menuRef}>
-              <button
-                type="button"
-                className="public-user-trigger"
-                aria-haspopup="menu"
-                aria-expanded={userMenuOpen}
-                aria-label={`Tài khoản ${snapshot.actor.displayEmail}`}
-                onClick={() => setUserMenuOpen((prev) => !prev)}
-              >
-                <span className="public-user-avatar" aria-hidden="true">
-                  {snapshot.actor.displayEmail.charAt(0).toUpperCase()}
-                </span>
-                <span className="public-account-link">{snapshot.actor.displayEmail}</span>
-                <svg
-                  className={`public-user-caret ${userMenuOpen ? 'is-open' : ''}`}
-                  width="12"
-                  height="12"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-              {userMenuOpen ? (
-                <div className="public-user-menu" role="menu" aria-label="Menu tài khoản">
-                  <div className="public-user-menu-header">
-                    <span className="public-user-menu-avatar" aria-hidden="true">
-                      {snapshot.actor.displayEmail.charAt(0).toUpperCase()}
-                    </span>
-                    <div className="public-user-menu-info">
-                      <strong className="public-user-menu-email">
-                        {snapshot.actor.displayEmail}
-                      </strong>
-                      <span className="public-user-menu-role">Cặp đôi Hỷ Yến</span>
-                    </div>
-                  </div>
-                  <div className="public-user-menu-divider" />
-                  <Link
-                    className="public-user-menu-item"
-                    href={routes.space}
-                    role="menuitem"
-                    onClick={() => setUserMenuOpen(false)}
-                  >
-                    <span>Không gian cưới của bạn</span>
-                  </Link>
-                  <Link
-                    className="public-user-menu-item"
-                    href={routes.profile}
-                    role="menuitem"
-                    onClick={() => setUserMenuOpen(false)}
-                  >
-                    <span>Hồ sơ & Bảo mật</span>
-                  </Link>
-                  <div className="public-user-menu-divider" />
-                  <button
-                    className="public-user-menu-item is-logout"
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      void logout();
-                    }}
-                    disabled={pending || loggingOut}
-                  >
-                    <span>{pending || loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}</span>
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          </>
-        ) : (
-          <Link className="public-account-link" href={routes.login}>
-            Đăng nhập
+        <nav
+          id={navId}
+          aria-label="Điều hướng chính"
+          onClick={closeOnLink}
+          className={cn(
+            'items-center gap-1 lg:ml-auto lg:flex',
+            navOpen
+              ? 'flex animate-in flex-col items-stretch border-b border-border bg-background p-3 shadow-hy-2 duration-200 fade-in slide-in-from-top-1 max-lg:absolute max-lg:inset-x-0 max-lg:top-full lg:flex-row lg:items-center lg:border-0 lg:p-0 lg:shadow-none'
+              : 'hidden',
+          )}
+        >
+          <Link className={navLink} href={routes.halls}>
+            Sảnh tiệc
           </Link>
-        )}
+          <Link className={navLink} href={routes.menus}>
+            Thực đơn
+          </Link>
+          {showOffers ? (
+            <Link className={navLink} href="/#uu-dai">
+              Ưu đãi
+            </Link>
+          ) : null}
+          <Link className={navLink} href="/#hoi-dap">
+            Câu hỏi thường gặp
+          </Link>
 
-        <div className="public-nav-actions">
-          <Link className="public-button" href={routes.consultation}>
+          {snapshot.status === 'authenticated' ? (
+            <>
+              <Link className={cn(navLink, 'text-primary')} href={routes.space}>
+                Không gian cưới
+              </Link>
+              <div className="relative" ref={menuRef}>
+                <button
+                  type="button"
+                  className={cn(navLink, 'gap-2 pr-2.5 pl-1.5')}
+                  aria-haspopup="menu"
+                  aria-expanded={userMenuOpen}
+                  aria-label={`Tài khoản ${snapshot.actor.displayEmail}`}
+                  onClick={() => setUserMenuOpen((open) => !open)}
+                >
+                  <span
+                    className="flex size-7 items-center justify-center rounded-full bg-accent text-xs font-bold text-primary"
+                    aria-hidden="true"
+                  >
+                    {snapshot.actor.displayEmail.charAt(0).toUpperCase()}
+                  </span>
+                  <span className="max-w-44 truncate">{snapshot.actor.displayEmail}</span>
+                  <ChevronDown
+                    className={cn(
+                      'size-4 text-muted-foreground transition-transform duration-200',
+                      userMenuOpen && 'rotate-180',
+                    )}
+                    aria-hidden="true"
+                  />
+                </button>
+                {userMenuOpen ? (
+                  <div
+                    className="absolute top-full right-0 z-50 mt-2 w-64 origin-top-right animate-in rounded-xl border border-border bg-popover p-1.5 shadow-hy-2 duration-150 fade-in zoom-in-95"
+                    role="menu"
+                    aria-label="Menu tài khoản"
+                  >
+                    <div className="flex flex-col px-3 py-2">
+                      <strong className="truncate text-sm">{snapshot.actor.displayEmail}</strong>
+                      <span className="text-xs text-muted-foreground">Cặp đôi Hỷ Yến</span>
+                    </div>
+                    <div className="my-1 h-px bg-border" />
+                    <Link
+                      className={menuItem}
+                      href={routes.space}
+                      role="menuitem"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      Không gian cưới của bạn
+                    </Link>
+                    <Link
+                      className={menuItem}
+                      href={routes.profile}
+                      role="menuitem"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      Hồ sơ & Bảo mật
+                    </Link>
+                    <div className="my-1 h-px bg-border" />
+                    <button
+                      className={cn(menuItem, 'text-hy-error hover:bg-hy-error-bg')}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        void logout();
+                      }}
+                      disabled={busy}
+                    >
+                      {busy ? 'Đang đăng xuất…' : 'Đăng xuất'}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <Link className={navLink} href={routes.login}>
+              Đăng nhập
+            </Link>
+          )}
+        </nav>
+
+        <div className="ml-auto flex items-center gap-1 lg:ml-2">
+          <Link className={buttonVariants({ size: 'sm' })} href={routes.consultation}>
             Nhận tư vấn
           </Link>
+          <button
+            type="button"
+            className="inline-flex size-11 items-center justify-center rounded-lg text-foreground hover:bg-secondary lg:hidden"
+            aria-expanded={navOpen}
+            aria-controls={navId}
+            aria-label={navOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
+            onClick={() => setNavOpen((open) => !open)}
+          >
+            {navOpen ? (
+              <X className="size-5" aria-hidden="true" />
+            ) : (
+              <Menu className="size-5" aria-hidden="true" />
+            )}
+          </button>
         </div>
-      </nav>
+      </div>
       {error ? (
-        <p className="public-nav-error" role="alert">
+        <p className={cn(container, 'pb-3 text-sm text-hy-error')} role="alert">
           {error}
         </p>
       ) : null}

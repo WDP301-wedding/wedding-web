@@ -10,7 +10,6 @@
   font-weight: 500;
   margin: 5px 0 0;
 }
-.v0-workspace .text-button,
 .v0-workspace .secondary-link {
   background: none;
   border: 0;
@@ -19,9 +18,6 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-.v0-workspace .text-button svg {
-  width: 15px;
 }
 .v0-workspace .task-list {
   border-top: 1px solid var(--rule);

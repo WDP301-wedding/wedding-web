@@ -228,10 +228,6 @@
 .public-detail-image {
   padding: 0;
 }
-.public-footer .estate-brand,
-.public-header .estate-brand {
-  text-decoration: none;
-}
 
 /* ---------- Skeleton (shimmer 1,2s) ---------- */
 .hy-skeleton {

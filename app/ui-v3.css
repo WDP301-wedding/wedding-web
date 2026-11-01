@@ -10,6 +10,8 @@
 /* shortcut: chỉ quét thư mục đã sang v3 để class cũ trùng tên utility (vd. "hidden", "table")
    không bị Tailwind ghi đè; khi chuyển một màn, thêm @source cho file của màn đó. */
 @source '../src/components/ui';
+@source '../src/features/public-website';
+@source '../src/features/identity-access';
 
 /* Sản phẩm chỉ có giao diện sáng: khoá biến thể dark: vào class .dark không bao giờ được gắn. */
 @custom-variant dark (&:is(.dark *));
@@ -158,5 +160,53 @@
   }
   :where([data-ui-v3]) :where(table) {
     font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Chuyển trang bằng React <ViewTransition> của Next 16 (design-system/page-transition.tsx):
+   trang cũ mờ nhanh, trang mới hiện dần và nhích lên 8px; header nằm ngoài nên đứng yên. */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(.hy-page-out) {
+  animation: 120ms var(--hy-ease-accelerate) both hy-fade-out;
+}
+::view-transition-new(.hy-page-in) {
+  animation: 200ms var(--hy-ease-decelerate) both hy-rise-in;
+}
+@keyframes hy-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes hy-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes hy-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Giữ hiện dần (cho biết nội dung đã đổi), bỏ dịch chuyển. */
+  ::view-transition-new(.hy-page-in) {
+    animation-name: hy-fade-in;
+  }
+}
+
+/* Dấu tích tự vẽ nét: gửi yêu cầu tư vấn thành công. */
+@media (prefers-reduced-motion: no-preference) {
+  .hy-draw-check path {
+    stroke-dasharray: 24;
+    stroke-dashoffset: 24;
+    animation: hy-draw 420ms 150ms var(--hy-ease-decelerate) forwards;
+  }
+}
+@keyframes hy-draw {
+  to {
+    stroke-dashoffset: 0;
   }
 }

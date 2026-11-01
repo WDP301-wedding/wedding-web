@@ -172,10 +172,6 @@
 /* ---------- Responsive ---------- */
 @media (max-width: 960px) {
   .hy-hero,
-  .hy-estimate-grid,
-  .hy-consult,
-  .hy-hall-detail-grid,
-  .hy-menu-detail,
   .hy-overview2-top,
   .hy-overview2-bottom {
     grid-template-columns: minmax(0, 1fr);
@@ -322,12 +318,6 @@
   .hy-steps ol {
     flex-direction: column;
   }
-  .hy-estimator-row {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-  .hy-gallery-thumbs {
-    grid-template-columns: repeat(2, 1fr);
-  }
   .hy-countdown2-days strong {
     font-size: 44px;
   }
@@ -341,17 +331,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hy-estimator,
   .hy-estimate,
   .hy-task,
-  .hy-sent-mark,
   .hy-space-subnav,
   .hy-space-sheet {
     animation: hy-fade var(--hy-dur-fast) linear backwards;
-  }
-  .hy-hall-card:hover,
-  .hy-menu-card:hover {
-    transform: none;
   }
 }
 
@@ -367,10 +351,6 @@
   color: var(--hy-ink-muted);
   font-size: 14px;
   line-height: 1.4;
-}
-.hy-hall-card > a,
-.hy-media-empty {
-  text-decoration: none;
 }
 
 /* Multi-booking Overview & Alias */

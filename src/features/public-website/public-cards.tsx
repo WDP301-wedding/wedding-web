@@ -1,36 +1,43 @@
-import React from 'react';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from 'cn';
+
 import { CatalogImage } from './catalog-image';
 import { consultationHref, formatVnd } from './estimate';
 import type { Hall, Menu, Restaurant } from './public-api';
+import { arrowLink, card, container, lift, zoom } from './public-classes';
 
 export function Unavailable({ show }: Readonly<{ show: boolean }>) {
   if (!show) return null;
   return (
-    <p className="hy-notice" role="status">
-      Chưa tải được đầy đủ thông tin nhà hàng. Trang sẽ tự cập nhật sau ít phút — bạn vẫn có thể gửi
-      yêu cầu tư vấn.
-    </p>
+    <div className={cn(container, 'pt-6')}>
+      <p className="rounded-lg bg-hy-warning-bg px-4 py-3 text-sm text-hy-warning" role="status">
+        Chưa tải được đầy đủ thông tin nhà hàng. Trang sẽ tự cập nhật sau ít phút — bạn vẫn có thể
+        gửi yêu cầu tư vấn.
+      </p>
+    </div>
   );
 }
 
 export function HallCard({ hall, priority = false }: Readonly<{ hall: Hall; priority?: boolean }>) {
   return (
-    <article className="hy-hall-card">
-      <Link href={`/sanh/${hall.id}`} tabIndex={-1} aria-hidden="true">
-        <CatalogImage
-          media={hall.media[0]}
-          sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 380px"
-          priority={priority}
-          placeholder="Ảnh sảnh đang được cập nhật"
-        />
-      </Link>
-      <div className="hy-hall-card-copy">
-        <h3>
-          <Link href={`/sanh/${hall.id}`}>{hall.name}</Link>
+    <article className={cn(card, lift, 'group relative flex h-full flex-col')}>
+      <CatalogImage
+        media={hall.media[0]}
+        sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 400px"
+        priority={priority}
+        placeholder="Ảnh sảnh đang được cập nhật"
+        className={cn('aspect-[16/10]', zoom)}
+      />
+      <div className="flex flex-col gap-1 p-5">
+        <h3 className="text-lg font-bold">
+          {/* Cả thẻ bấm được nhờ lớp phủ ::after của liên kết tên sảnh. */}
+          <Link className="after:absolute after:inset-0" href={`/sanh/${hall.id}`}>
+            {hall.name}
+          </Link>
         </h3>
-        <p className="hy-muted">Tối đa {hall.maxGuests} khách</p>
-        {hall.description ? <p className="hy-clamp">{hall.description}</p> : null}
+        <p className="text-sm text-muted-foreground tabular-nums">Tối đa {hall.maxGuests} khách</p>
+        {hall.description ? <p className="line-clamp-3 text-sm">{hall.description}</p> : null}
       </div>
     </article>
   );
@@ -38,11 +45,19 @@ export function HallCard({ hall, priority = false }: Readonly<{ hall: Hall; prio
 
 export function MenuCard({ menu }: Readonly<{ menu: Menu }>) {
   return (
-    <article className="hy-menu-card">
-      <h3>{menu.name}</h3>
-      <strong className="hy-money">{formatVnd(menu.priceVndPerTable)}/bàn</strong>
-      {menu.description ? <p className="hy-clamp">{menu.description}</p> : null}
-      <Link href={consultationHref({ menuId: menu.id })}>Tư vấn với thực đơn này →</Link>
+    <article className={cn(card, lift, 'flex flex-col gap-2 p-6')}>
+      <h3 className="text-lg font-bold">{menu.name}</h3>
+      <strong className="text-xl font-bold text-primary tabular-nums">
+        {formatVnd(menu.priceVndPerTable)}
+        <span className="text-sm font-medium text-muted-foreground">/bàn</span>
+      </strong>
+      {menu.description ? (
+        <p className="line-clamp-3 text-sm text-muted-foreground">{menu.description}</p>
+      ) : null}
+      <Link className={cn(arrowLink, 'mt-auto pt-2')} href={consultationHref({ menuId: menu.id })}>
+        Tư vấn với thực đơn này
+        <ArrowRight aria-hidden="true" />
+      </Link>
     </article>
   );
 }
@@ -50,16 +65,23 @@ export function MenuCard({ menu }: Readonly<{ menu: Menu }>) {
 export function Contact({ restaurant }: Readonly<{ restaurant: Restaurant | null }>) {
   if (!restaurant) return null;
   return (
-    <address className="hy-contact">
+    <address className="flex flex-col gap-0.5 rounded-xl bg-muted p-4 text-sm not-italic">
       <strong>{restaurant.displayName}</strong>
-      {restaurant.address ? <span>{restaurant.address}</span> : null}
+      {restaurant.address ? (
+        <span className="text-muted-foreground">{restaurant.address}</span>
+      ) : null}
       {restaurant.publicPhone ? (
-        <a href={`tel:${restaurant.publicPhone.replace(/[^+\d]/gu, '')}`}>
+        <a
+          className="font-semibold text-primary"
+          href={`tel:${restaurant.publicPhone.replace(/[^+\d]/gu, '')}`}
+        >
           Hotline: {restaurant.publicPhone}
         </a>
       ) : null}
       {restaurant.publicEmail ? (
-        <a href={`mailto:${restaurant.publicEmail}`}>{restaurant.publicEmail}</a>
+        <a className="text-primary" href={`mailto:${restaurant.publicEmail}`}>
+          {restaurant.publicEmail}
+        </a>
       ) : null}
     </address>
   );

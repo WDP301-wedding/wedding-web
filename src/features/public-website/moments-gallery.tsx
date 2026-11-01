@@ -1,8 +1,13 @@
 'use client';
 
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
+import { cn } from 'cn';
+
+import { Button } from '../../components/ui/button';
+import { zoom } from './public-classes';
 
 type Moment = Readonly<{ src: string; alt: string }>;
 
@@ -25,11 +30,16 @@ export function MomentsGallery({ moments }: Readonly<{ moments: readonly Moment[
 
   return (
     <>
-      <ul className="hy-moments-grid">
+      {/* Ảnh 1 chiếm ô lớn, ảnh 10 trải hai cột để lưới 12 ảnh kín ô ở cả 2 và 4 cột. */}
+      <ul className="grid auto-rows-[140px] grid-cols-2 gap-2 sm:auto-rows-[180px] sm:gap-3 lg:grid-cols-4 [&>li:first-child]:col-span-2 lg:[&>li:first-child]:row-span-2 [&>li:nth-child(10)]:col-span-2">
         {moments.map((moment, index) => (
-          <li key={moment.src}>
+          <li key={moment.src} className="min-h-0">
             <button
               type="button"
+              className={cn(
+                zoom,
+                'group size-full overflow-hidden rounded-xl bg-secondary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+              )}
               ref={(node) => {
                 triggers.current[index] = node;
               }}
@@ -42,6 +52,7 @@ export function MomentsGallery({ moments }: Readonly<{ moments: readonly Moment[
                 width={width}
                 height={height}
                 sizes="(max-width: 720px) 50vw, 400px"
+                className="size-full object-cover"
               />
             </button>
           </li>
@@ -94,9 +105,13 @@ function Lightbox({
   };
 
   return createPortal(
-    <div className="hy-lightbox" onMouseDown={onClose}>
+    <div
+      data-ui-v3
+      className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-hy-ink/85 p-4 duration-200 fade-in motion-reduce:animate-none"
+      onMouseDown={onClose}
+    >
       <div
-        className="hy-lightbox-panel"
+        className="flex w-full max-w-5xl animate-in flex-col gap-3 duration-300 ease-hy-decelerate fade-in zoom-in-98 motion-reduce:animate-none"
         role="dialog"
         aria-modal="true"
         aria-label={`Ảnh ${index + 1}/${moments.length}: ${moment.alt}`}
@@ -111,23 +126,26 @@ function Lightbox({
           height={height}
           sizes="(max-width: 1200px) 100vw, 1200px"
           priority
+          className="max-h-[75dvh] w-full rounded-xl object-contain"
         />
-        <p className="hy-lightbox-caption">
+        <p className="flex items-baseline justify-between gap-4 text-sm text-white">
           {moment.alt}
-          <span>
+          <span className="shrink-0 text-white/70 tabular-nums">
             {index + 1}/{moments.length}
           </span>
         </p>
-        <div className="hy-lightbox-actions">
-          <button type="button" className="button button-secondary" onClick={() => go(-1)}>
-            ← Ảnh trước
-          </button>
-          <button type="button" className="button button-secondary" onClick={() => go(1)}>
-            Ảnh sau →
-          </button>
-          <button ref={closeButton} type="button" className="button" onClick={onClose}>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button type="button" variant="secondary" onClick={() => go(-1)}>
+            <ChevronLeft aria-hidden="true" />
+            Ảnh trước
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => go(1)}>
+            Ảnh sau
+            <ChevronRight aria-hidden="true" />
+          </Button>
+          <Button ref={closeButton} type="button" onClick={onClose}>
             Đóng
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

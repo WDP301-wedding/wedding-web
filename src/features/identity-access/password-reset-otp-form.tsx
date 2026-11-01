@@ -1,8 +1,14 @@
 'use client';
 import { useEffect, useState, type FormEvent } from 'react';
+import { cn } from 'cn';
+
+import { Button } from '../../components/ui/button';
 import { ApiClientError } from '../../lib/api/client';
+import { alert, control, field, fieldHint } from '../public-website/public-classes';
 import { createPasswordOtpGateway, type OtpChallenge } from './password-otp-api';
 const gateway = createPasswordOtpGateway();
+const textAction =
+  'rounded-lg px-2 py-2 text-sm font-semibold text-primary transition-colors hover:text-hy-wine-pressed disabled:text-muted-foreground';
 export function PasswordResetOtpForm({ onCompleted }: { onCompleted: () => void }) {
   const [email, setEmail] = useState('');
   const [challenge, setChallenge] = useState<OtpChallenge | null>(null);
@@ -57,9 +63,7 @@ export function PasswordResetOtpForm({ onCompleted }: { onCompleted: () => void 
           return;
         }
         if (caught.status === 422 && caught.details && caught.details.length > 0) {
-          const pw = caught.details.find(
-            (d) => d.path === 'newPassword' || d.path === 'password',
-          );
+          const pw = caught.details.find((d) => d.path === 'newPassword' || d.path === 'password');
           if (pw) {
             setError(pw.message || 'Mật khẩu mới chưa hợp lệ (phải từ 1 đến 128 ký tự).');
             return;
@@ -74,16 +78,17 @@ export function PasswordResetOtpForm({ onCompleted }: { onCompleted: () => void 
     }
   }
   return (
-    <form className="identity-form" onSubmit={(event) => void submit(event)}>
-      <h1>Khôi phục mật khẩu</h1>
-      <p>
+    <form className="flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
+      <h1 className="text-xl font-bold sm:text-2xl">Khôi phục mật khẩu</h1>
+      <p className="text-sm text-muted-foreground">
         {challenge
           ? 'Nếu tài khoản đủ điều kiện, mã OTP đã được gửi vào email. Mã có hiệu lực 10 phút.'
           : 'Nhập email của tài khoản để nhận mã OTP xác nhận.'}
       </p>
-      <div className="auth-field field">
+      <div className={field}>
         <label htmlFor="otp-email">Email</label>
         <input
+          className={cn(control, 'read-only:bg-secondary read-only:text-muted-foreground')}
           id="otp-email"
           type="email"
           autoComplete="email"
@@ -96,9 +101,10 @@ export function PasswordResetOtpForm({ onCompleted }: { onCompleted: () => void 
       </div>
       {challenge && (
         <>
-          <div className="auth-field field">
+          <div className={field}>
             <label htmlFor="otp-code">Mã OTP</label>
             <input
+              className={control}
               id="otp-code"
               name="code"
               type="text"
@@ -110,9 +116,10 @@ export function PasswordResetOtpForm({ onCompleted }: { onCompleted: () => void 
               required
             />
           </div>
-          <div className="auth-field field">
+          <div className={field}>
             <label htmlFor="otp-password">Mật khẩu mới</label>
             <input
+              className={control}
               id="otp-password"
               name="password"
               type="password"
@@ -121,9 +128,10 @@ export function PasswordResetOtpForm({ onCompleted }: { onCompleted: () => void 
               required
             />
           </div>
-          <div className="auth-field field">
+          <div className={field}>
             <label htmlFor="otp-confirmation">Xác nhận mật khẩu mới</label>
             <input
+              className={control}
               id="otp-confirmation"
               name="passwordConfirmation"
               type="password"
@@ -132,21 +140,23 @@ export function PasswordResetOtpForm({ onCompleted }: { onCompleted: () => void 
               required
             />
           </div>
-          <p>Mật khẩu tối đa 128 ký tự. Sau khi cập nhật, hãy đăng nhập lại trên các thiết bị.</p>
+          <p className={fieldHint}>
+            Mật khẩu tối đa 128 ký tự. Sau khi cập nhật, hãy đăng nhập lại trên các thiết bị.
+          </p>
         </>
       )}
       {error && (
-        <p role="alert" className="form-error">
+        <p role="alert" className={alert}>
           {error}
         </p>
       )}
-      <button className="primary-action" type="submit" disabled={pending}>
+      <Button type="submit" size="lg" disabled={pending}>
         {pending ? 'Đang xử lý…' : challenge ? 'Xác nhận và cập nhật mật khẩu' : 'Gửi mã OTP'}
-      </button>
+      </Button>
       {challenge && (
-        <>
+        <div className="flex flex-wrap justify-center gap-2">
           <button
-            className="text-action text-button"
+            className={textAction}
             type="button"
             disabled={pending || remaining > 0}
             onClick={() => void send()}
@@ -154,7 +164,7 @@ export function PasswordResetOtpForm({ onCompleted }: { onCompleted: () => void 
             {remaining > 0 ? `Gửi lại sau ${remaining}s` : 'Gửi lại mã OTP'}
           </button>
           <button
-            className="text-action text-button"
+            className={textAction}
             type="button"
             disabled={pending}
             onClick={() => {
@@ -165,7 +175,7 @@ export function PasswordResetOtpForm({ onCompleted }: { onCompleted: () => void 
           >
             Dùng email khác
           </button>
-        </>
+        </div>
       )}
     </form>
   );

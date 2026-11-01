@@ -75,11 +75,6 @@
   border: 1px solid #eadfd6;
   border-radius: var(--hy-radius-md, 16px);
 }
-.public-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 18px;
-}
 .consultation-form label {
   display: flex;
   flex-direction: column;
@@ -87,10 +82,6 @@
   margin-bottom: 0;
   font-size: 14px;
   font-weight: 500;
-}
-.consultation-form label.consultation-full-width {
-  grid-column: 1 / -1;
-  margin-bottom: 0;
 }
 .consultation-form label span {
   color: var(--muted);
@@ -115,37 +106,6 @@
   min-height: 76px;
   line-height: 1.5;
 }
-.consultation-form .hy-shift-picker {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  grid-template-columns: none;
-}
-.consultation-form .hy-shift-picker legend {
-  margin: 0;
-  padding: 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: inherit;
-}
-.consultation-form .hy-shift-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.consultation-form .hy-shift-picker label {
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 12px;
-  margin: 0;
-  border-radius: var(--hy-radius-sm);
-  cursor: pointer;
-}
 #preferred-date-help {
   font-size: 11px;
   color: var(--muted);
@@ -164,11 +124,6 @@
   margin-bottom: 16px;
   font-size: 14px;
   font-weight: 500;
-}
-.consultation-success {
-  border: 1px solid var(--gold);
-  padding: 40px;
-  line-height: 1.9;
 }
 .public-data-error {
   border-left: 3px solid var(--burgundy);
@@ -197,11 +152,6 @@
 .account-settings h2 {
   font-size: 28px;
   font-weight: 500;
-}
-.account-settings-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 64px;
 }
 .overview-booking {
   display: grid;
@@ -278,10 +228,6 @@
     grid-template-columns: 1fr;
     gap: 32px;
   }
-  .public-form-grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
 }
 @media (max-width: 700px) {
   .public-header,
@@ -298,16 +244,6 @@
   }
   .public-header nav .public-button {
     width: 100%;
-  }
-  .public-nav-actions {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-  .public-header nav .public-nav-actions .public-button {
-    flex: 1 1 auto;
-    width: auto;
-    padding-inline: 12px;
-    gap: 12px;
   }
   .public-hero {
     grid-template-columns: 1fr;
@@ -330,7 +266,6 @@
   .public-detail-grid,
   .public-consultation-layout,
   .public-menu-list article,
-  .account-settings-grid,
   .overview-booking {
     grid-template-columns: 1fr;
     gap: 32px;

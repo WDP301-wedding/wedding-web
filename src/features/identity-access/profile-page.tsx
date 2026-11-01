@@ -1,178 +1,135 @@
 'use client';
-import { InlineError } from '../../design-system/inline-error';
-import { notify } from '../../design-system/toast';
-import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
-
+import { ArrowLeft, Check } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import { cn } from 'cn';
 
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
 import { BrandMark } from '../../design-system/brand-mark';
+import { InlineError } from '../../design-system/inline-error';
 import { Skeleton } from '../../design-system/skeleton';
 import { routes } from '../../routes';
 import { useInSpace } from '../couple-workspace/space-provider';
 import { AccountSettings } from './account-settings';
 import { browserSession } from './browser-session';
 import { PublicIdentityPage } from './identity-page';
-import type { WebSessionSnapshot } from './session';
-import styles from './profile-page.module.css';
+import { useProfileSession } from './use-profile-session';
+
+/** Trong Không gian cưới trang nằm gọn trong khung sẵn có; mở riêng thì có nền và header riêng. */
+function ProfileFrame({ inSpace, children }: Readonly<{ inSpace: boolean; children: ReactNode }>) {
+  return (
+    <div data-ui-v3 className={cn('flex flex-col', !inSpace && 'min-h-dvh bg-muted')}>
+      {children}
+    </div>
+  );
+}
+
+const mainClass = (inSpace: boolean) =>
+  cn(
+    'flex w-full flex-col gap-6',
+    inSpace ? 'pb-12' : 'mx-auto max-w-5xl flex-1 px-4 pt-8 pb-16 sm:px-6',
+  );
 
 export function ProfilePage() {
-  const router = useRouter();
   const inSpace = useInSpace();
-  const [snapshot, setSnapshot] = useState<WebSessionSnapshot>(() => browserSession.snapshot());
-  const [restoring, setRestoring] = useState(true);
-  const [restoreError, setRestoreError] = useState<FriendlyError | null>(null);
-  const [restoreKey, setRestoreKey] = useState(0);
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    void browserSession
-      .restore()
-      .then((nextSnapshot) => {
-        if (!active) return;
-        setSnapshot(nextSnapshot);
-        setRestoring(false);
-        setRestoreError(null);
-      })
-      .catch((error: unknown) => {
-        if (active) {
-          setRestoreError(describeApiError(error));
-          setRestoring(false);
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [restoreKey]);
-
-  const handleLogout = async () => {
-    setLoggingOut(true);
-    try {
-      await browserSession.logout();
-    } catch {
-      notify.info('Đã xóa phiên trên thiết bị này; chưa xác nhận được đăng xuất với máy chủ.');
-    } finally {
-      setSnapshot(browserSession.snapshot());
-      setLoggingOut(false);
-      router.replace(routes.login);
-    }
-  };
+  const { snapshot, restoring, restoreError, loggingOut, retry, logout, signedOut, refresh } =
+    useProfileSession();
 
   if (restoreError)
     return (
-      <main className={styles.profileMain}>
-        <InlineError
-          error={restoreError}
-          onRetry={() => {
-            setRestoreError(null);
-            setRestoring(true);
-            setRestoreKey((value) => value + 1);
-          }}
-        />
-      </main>
+      <ProfileFrame inSpace={inSpace}>
+        <main className={mainClass(inSpace)}>
+          <InlineError error={restoreError} onRetry={retry} />
+        </main>
+      </ProfileFrame>
     );
   if (restoring) {
     return (
-      <div
-        className={[styles.profilePageWrapper, inSpace ? styles.inSpace : '']
-          .filter(Boolean)
-          .join(' ')}
-      >
-        <main
-          className={[styles.profileMain, inSpace ? styles.mainInSpace : '']
-            .filter(Boolean)
-            .join(' ')}
-        >
+      <ProfileFrame inSpace={inSpace}>
+        <main className={mainClass(inSpace)}>
           <Skeleton label="Đang tải hồ sơ của bạn…" />
         </main>
-      </div>
+      </ProfileFrame>
     );
   }
 
   if (snapshot.status !== 'authenticated') {
-    return (
-      <PublicIdentityPage
-        startView="login"
-        onAuthenticated={() => setSnapshot(browserSession.snapshot())}
-      />
-    );
+    return <PublicIdentityPage startView="login" onAuthenticated={refresh} />;
   }
 
   const email = snapshot.actor.displayEmail;
   const initial = email.slice(0, 1).toUpperCase();
 
   return (
-    <div
-      className={[styles.profilePageWrapper, inSpace ? styles.inSpace : '']
-        .filter(Boolean)
-        .join(' ')}
-    >
+    <ProfileFrame inSpace={inSpace}>
       {!inSpace ? (
-        <header className={styles.profileHeaderBar}>
-          <div className={styles.headerInner}>
-            <Link href={routes.space} style={{ textDecoration: 'none' }}>
+        <header className="border-b border-border bg-card">
+          <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-3 px-4 sm:px-6">
+            <Link href={routes.space}>
               <BrandMark compact />
             </Link>
-            <div className={styles.headerActions}>
-              <Link className={styles.backLink} href={routes.space}>
-                <span aria-hidden="true">←</span> Quay lại Kế hoạch cưới
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Link
+                className="inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-primary hover:bg-accent"
+                href={routes.space}
+              >
+                <ArrowLeft className="size-4" aria-hidden="true" />
+                <span className="max-sm:sr-only">Quay lại Kế hoạch cưới</span>
               </Link>
-              <button
-                className={styles.logoutButton}
+              <Button
+                variant="outline"
+                size="sm"
                 type="button"
                 disabled={loggingOut}
-                onClick={() => void handleLogout()}
+                onClick={() => void logout()}
               >
                 {loggingOut ? 'Đang đăng xuất…' : 'Đăng xuất'}
-              </button>
+              </Button>
             </div>
           </div>
         </header>
       ) : null}
 
-      <main
-        className={[styles.profileMain, inSpace ? styles.mainInSpace : '']
-          .filter(Boolean)
-          .join(' ')}
-        id="profile-content"
-      >
-        <nav aria-label="Đường dẫn" className={styles.breadcrumb}>
-          <Link href={routes.space}>Không gian cưới</Link>
+      <main className={mainClass(inSpace)} id="profile-content">
+        <nav
+          aria-label="Đường dẫn"
+          className="flex items-center gap-2 text-xs text-muted-foreground"
+        >
+          <Link className="text-primary hover:underline" href={routes.space}>
+            Không gian cưới
+          </Link>
           <span aria-hidden="true">/</span>
           <span>Hồ sơ & Bảo mật tài khoản</span>
         </nav>
 
-        <section className={styles.profileHeroCard} aria-label="Tài khoản hiện tại">
-          <div className={styles.profileIdentity}>
-            <div className={styles.profileAvatar} aria-hidden="true">
+        <section
+          className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+          aria-label="Tài khoản hiện tại"
+        >
+          <div className="flex min-w-0 items-center gap-4">
+            <div
+              className="flex size-14 shrink-0 items-center justify-center rounded-full bg-accent text-xl font-bold text-primary"
+              aria-hidden="true"
+            >
               {initial}
             </div>
-            <div className={styles.profileMeta}>
-              <span className={styles.kicker}>Tài khoản Hỷ Yến</span>
-              <h1 className={styles.profileTitle}>Hồ sơ & Bảo mật</h1>
-              <p className={styles.profileEmail}>{email}</p>
+            <div className="flex min-w-0 flex-col">
+              <h1 className="text-xl font-bold">Hồ sơ & Bảo mật</h1>
+              <p className="truncate text-sm text-muted-foreground">{email}</p>
             </div>
           </div>
-          <div className={styles.profileBadges}>
-            <span className={styles.verifiedBadge}>
-              <span aria-hidden="true">✓</span> Đã xác thực
-            </span>
-            <span className={styles.roleBadge}>Quyền truy cập: Cặp đôi</span>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="success">
+              <Check aria-hidden="true" />
+              Đã xác thực
+            </Badge>
+            <Badge>Quyền truy cập: Cặp đôi</Badge>
           </div>
         </section>
 
-        <div className={styles.settingsSection}>
-          <AccountSettings
-            session={browserSession}
-            onSignedOut={() => {
-              setSnapshot(browserSession.snapshot());
-              router.replace(routes.login);
-            }}
-          />
-        </div>
+        <AccountSettings session={browserSession} onSignedOut={signedOut} />
       </main>
-    </div>
+    </ProfileFrame>
   );
 }
