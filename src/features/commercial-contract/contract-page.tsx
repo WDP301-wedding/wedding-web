@@ -39,7 +39,6 @@ export function ContractPage({ section = 'all' }: Readonly<{ section?: ContractS
   return (
     <CouplePage
       active="contract"
-      eyebrow="Thống nhất"
       title={sectionCopy[section].title}
       description={sectionCopy[section].description}
     >

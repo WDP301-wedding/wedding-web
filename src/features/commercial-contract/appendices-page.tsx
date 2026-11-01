@@ -16,7 +16,6 @@ export function AppendicesPage() {
   return (
     <CouplePage
       active="appendices"
-      eyebrow="Sau đặt cọc"
       title="Phụ lục hợp đồng"
       description="Thay đổi thực đơn, số bàn, dịch vụ hoặc số thiệp in sau khi đã cọc. Hợp đồng gốc không bị sửa; mỗi thay đổi là một phụ lục có lý do và hai bên cùng duyệt."
       requireFull

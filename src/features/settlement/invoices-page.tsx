@@ -60,7 +60,6 @@ export function InvoicesPage() {
   return (
     <CouplePage
       active="invoices"
-      eyebrow="Quyết toán"
       title="Chi phí phát sinh & hoá đơn"
       description="Nhà hàng ghi nhận chi phí phát sinh sau khi tiệc kết thúc và chốt hoá đơn cuối. Hai bạn xem chi tiết và thanh toán phần còn lại."
       requireFull

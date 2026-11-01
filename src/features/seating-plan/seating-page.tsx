@@ -14,7 +14,6 @@ export function SeatingPage() {
   return (
     <CouplePage
       active="seating"
-      eyebrow="Sau đặt cọc"
       title="Sơ đồ bàn"
       description="Chọn mẫu sơ đồ của sảnh và gắn nhóm khách cho từng bàn. Không cần xếp từng người vào ghế."
       requireFull
