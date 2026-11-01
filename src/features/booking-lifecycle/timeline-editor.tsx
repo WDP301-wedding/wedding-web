@@ -1,10 +1,18 @@
 'use client';
 
+import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { cn } from 'cn';
+
+import { Button } from '../../components/ui/button';
+import { control, field } from '../public-website/public-classes';
 
 import { useConfirmDialog } from '../../design-system/confirm-dialog';
 
 import type { TimelineItemInput } from './collaboration-api';
+
+const iconButton =
+  'inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:pointer-events-none disabled:opacity-40 [&_svg]:size-4';
 
 type Draft = Readonly<{
   key: string;
@@ -55,7 +63,7 @@ export function TimelineEditor({
 
   return (
     <form
-      className="timeline-editor"
+      className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         const items = drafts.map((item, order) => ({
@@ -68,74 +76,109 @@ export function TimelineEditor({
         void onSave(items, reason);
       }}
     >
-      <fieldset disabled={disabled}>
-        <legend>Chỉnh sửa các mốc chương trình</legend>
-        {drafts.length === 0 ? <p>Chưa có mốc. Thêm nội dung hoặc lưu bản nháp trống.</p> : null}
+      <fieldset disabled={disabled} className="flex min-w-0 flex-col gap-3 disabled:opacity-60">
+        <legend className="mb-1 text-sm font-bold">Chỉnh sửa các mốc chương trình</legend>
+        {drafts.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            Chưa có mốc. Thêm nội dung hoặc lưu bản nháp trống.
+          </p>
+        ) : null}
         {drafts.map((item, index) => (
-          <div className="timeline-editor-item" key={item.key}>
-            <strong>Mốc {index + 1}</strong>
-            <label>
-              Giờ bắt đầu mốc {index + 1}
-              <input
-                type="time"
-                required
-                value={item.startTime}
-                onChange={(event) => update(item.key, { startTime: event.target.value })}
-              />
-            </label>
-            <label>
-              Nội dung mốc {index + 1}
-              <input
-                required
-                maxLength={120}
-                value={item.title}
-                onChange={(event) => update(item.key, { title: event.target.value })}
-              />
-            </label>
-            <label>
-              Ghi chú mốc {index + 1}
-              <textarea
-                rows={2}
-                maxLength={2000}
-                value={item.description}
-                onChange={(event) => update(item.key, { description: event.target.value })}
-              />
-            </label>
-            <div className="timeline-editor-actions">
-              <button type="button" disabled={index === 0} onClick={() => move(index, -1)}>
-                Đưa mốc {index + 1} lên
-              </button>
-              <button
-                type="button"
-                disabled={index === drafts.length - 1}
-                onClick={() => move(index, 1)}
-              >
-                Đưa mốc {index + 1} xuống
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  void (async () => {
-                    // Mốc chỉ bị xoá khỏi bản nháp; bấm "Lưu" mới gửi lên nhà hàng.
-                    const removed = await confirm({
-                      title: `Xoá mốc ${index + 1}${item.title ? ` “${item.title}”` : ''}?`,
-                      description:
-                        'Mốc sẽ bị xoá khỏi bản nháp lịch trình. Thay đổi chỉ được gửi khi bạn bấm lưu.',
-                      confirmLabel: 'Xoá mốc',
-                      tone: 'danger',
-                    });
-                    if (removed)
-                      setDrafts((current) => current.filter((row) => row.key !== item.key));
-                  })()
-                }
-              >
-                Xóa mốc {index + 1}
-              </button>
+          <div
+            className="flex animate-in flex-col gap-3 rounded-lg border border-border bg-muted/50 p-3 duration-200 fade-in slide-in-from-top-1 motion-reduce:animate-none sm:p-4"
+            key={item.key}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <strong className="text-xs font-semibold text-primary">Mốc {index + 1}</strong>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  className={iconButton}
+                  disabled={index === 0}
+                  onClick={() => move(index, -1)}
+                  aria-label={`Đưa mốc ${index + 1} lên`}
+                  title="Đưa lên"
+                >
+                  <ArrowUp aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className={iconButton}
+                  disabled={index === drafts.length - 1}
+                  onClick={() => move(index, 1)}
+                  aria-label={`Đưa mốc ${index + 1} xuống`}
+                  title="Đưa xuống"
+                >
+                  <ArrowDown aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className={cn(iconButton, 'text-hy-error hover:bg-hy-error-bg')}
+                  aria-label={`Xóa mốc ${index + 1}`}
+                  title="Xoá mốc"
+                  onClick={() =>
+                    void (async () => {
+                      // Mốc chỉ bị xoá khỏi bản nháp; bấm "Lưu" mới gửi lên nhà hàng.
+                      const removed = await confirm({
+                        title: `Xoá mốc ${index + 1}${item.title ? ` “${item.title}”` : ''}?`,
+                        description:
+                          'Mốc sẽ bị xoá khỏi bản nháp lịch trình. Thay đổi chỉ được gửi khi bạn bấm lưu.',
+                        confirmLabel: 'Xoá mốc',
+                        tone: 'danger',
+                      });
+                      if (removed)
+                        setDrafts((current) => current.filter((row) => row.key !== item.key));
+                    })()
+                  }
+                >
+                  <Trash2 aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-[140px_minmax(0,1fr)]">
+              <label className={field}>
+                <span>
+                  Giờ bắt đầu<span className="sr-only"> mốc {index + 1}</span>
+                </span>
+                <input
+                  className={cn(control, 'tabular-nums')}
+                  type="time"
+                  required
+                  value={item.startTime}
+                  onChange={(event) => update(item.key, { startTime: event.target.value })}
+                />
+              </label>
+              <label className={field}>
+                <span>
+                  Nội dung<span className="sr-only"> mốc {index + 1}</span>
+                </span>
+                <input
+                  className={control}
+                  required
+                  maxLength={120}
+                  value={item.title}
+                  onChange={(event) => update(item.key, { title: event.target.value })}
+                />
+              </label>
+              <label className={cn(field, 'sm:col-span-2')}>
+                <span>
+                  Ghi chú<span className="sr-only"> mốc {index + 1}</span>
+                </span>
+                <textarea
+                  className={cn(control, 'h-auto py-2.5')}
+                  rows={2}
+                  maxLength={2000}
+                  value={item.description}
+                  onChange={(event) => update(item.key, { description: event.target.value })}
+                />
+              </label>
             </div>
           </div>
         ))}
-        <button
+        <Button
           type="button"
+          variant="outline"
+          className="self-start"
           disabled={drafts.length >= 100}
           onClick={() =>
             setDrafts((current) => [
@@ -145,11 +188,12 @@ export function TimelineEditor({
           }
         >
           Thêm mốc chương trình
-        </button>
+        </Button>
         {needsReason ? (
-          <label>
+          <label className={field}>
             Lý do thay đổi
             <textarea
+              className={cn(control, 'h-auto py-2.5')}
               required
               maxLength={500}
               rows={2}
@@ -158,7 +202,9 @@ export function TimelineEditor({
             />
           </label>
         ) : null}
-        <button type="submit">{needsReason ? 'Gửi yêu cầu thay đổi' : 'Lưu kịch bản mới'}</button>
+        <Button type="submit" className="self-start">
+          {needsReason ? 'Gửi yêu cầu thay đổi' : 'Lưu kịch bản mới'}
+        </Button>
       </fieldset>
       {dialog}
     </form>

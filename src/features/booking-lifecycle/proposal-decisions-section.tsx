@@ -1,7 +1,12 @@
 'use client';
 
-import React from 'react';
+import { ChevronRight } from 'lucide-react';
+import { cn } from 'cn';
+
+import { Button } from '../../components/ui/button';
+import { control, field as fieldClass } from '../public-website/public-classes';
 import type { CollaborationGateway, ProposalView } from './collaboration-api';
+import { card, cardTitle, hint, summary } from './collab-classes';
 import { Approval, field } from './proposal-workspace-components';
 
 export function ProposalDecisionsSection({
@@ -18,17 +23,16 @@ export function ProposalDecisionsSection({
   const timeline = proposal.timeline;
 
   return (
-    <section className="collab-decisions" aria-label="Phê duyệt kịch bản">
-      <p className="collab-kicker">Quyết định của hai bên</p>
-      <h2>Phê duyệt</h2>
+    <section className={cn(card, 'flex flex-col gap-3')} aria-label="Phê duyệt kịch bản">
+      <h2 className={cardTitle}>Quyết định của hai bên</h2>
       <Approval label="Nhà hàng" value={timeline?.managerApprovedAt ?? null} />
       <Approval label="Hai bạn" value={timeline?.coupleApprovedAt ?? null} />
       {timeline === null ? (
-        <p className="collab-hint">Chưa có kịch bản để duyệt.</p>
+        <p className={hint}>Chưa có kịch bản để duyệt.</p>
       ) : (
         <>
-          <button
-            className="collab-approve"
+          <Button
+            className="mt-1"
             disabled={pending || !proposal.capabilities.canApproveTimeline}
             type="button"
             onClick={() =>
@@ -44,11 +48,14 @@ export function ProposalDecisionsSection({
             }
           >
             Phê duyệt revision này
-          </button>
-          <details className="collab-more">
-            <summary>Rút lại phê duyệt</summary>
+          </Button>
+          <details className="group border-t border-border pt-1">
+            <summary className={summary}>
+              <ChevronRight aria-hidden="true" />
+              Rút lại phê duyệt
+            </summary>
             <form
-              className="collab-withdraw"
+              className="mt-1 flex flex-col gap-3"
               onSubmit={(event) => {
                 event.preventDefault();
                 const reason = field(new FormData(event.currentTarget), 'reason');
@@ -64,17 +71,24 @@ export function ProposalDecisionsSection({
                 );
               }}
             >
-              <label>
+              <label className={fieldClass}>
                 Lý do rút phê duyệt
-                <textarea name="reason" required maxLength={500} rows={2} />
+                <textarea
+                  className={cn(control, 'h-auto py-2.5')}
+                  name="reason"
+                  required
+                  maxLength={500}
+                  rows={2}
+                />
               </label>
-              <button
-                className="collab-secondary"
+              <Button
+                className="self-start"
+                variant="outline"
                 disabled={pending || !proposal.capabilities.canWithdrawApproval}
                 type="submit"
               >
                 Rút phê duyệt
-              </button>
+              </Button>
             </form>
           </details>
         </>
@@ -82,4 +96,3 @@ export function ProposalDecisionsSection({
     </section>
   );
 }
-

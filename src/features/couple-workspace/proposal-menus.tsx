@@ -54,16 +54,16 @@ export function ProposalMenus({ offer }: Readonly<{ offer: Proposal['proposal'] 
     );
   }
   return (
-    <ul className="hy-menu-lines">
+    <ul className="flex flex-col gap-2">
       {lines.map((line) => (
-        <li key={line.key}>
-          <span>
+        <li key={line.key} className="flex items-start justify-between gap-3">
+          <span className="flex flex-col">
             {line.name}
-            <small>
+            <small className="text-xs font-normal text-muted-foreground tabular-nums">
               {line.tableCount} bàn × {vnd(line.priceVndPerTable)}
             </small>
           </span>
-          <strong>{vnd(line.lineTotalVnd)}</strong>
+          <strong className="tabular-nums">{vnd(line.lineTotalVnd)}</strong>
         </li>
       ))}
     </ul>

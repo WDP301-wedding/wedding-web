@@ -319,7 +319,9 @@ describe('Booking collaboration workspace', () => {
       },
     });
     expect(screen.queryByRole('button', { name: 'Lưu kịch bản mới' })).not.toBeInTheDocument();
-    expect(screen.getByText(/Kịch bản đã được duyệt hoặc có giao dịch cọc đang xử lý/)).toBeVisible();
+    expect(
+      screen.getByText(/Kịch bản đã được duyệt hoặc có giao dịch cọc đang xử lý/),
+    ).toBeVisible();
     expect(screen.getByRole('button', { name: 'Phê duyệt revision này' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Rút phê duyệt' })).toBeDisabled();
   });

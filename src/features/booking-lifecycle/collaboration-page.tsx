@@ -90,9 +90,11 @@ export function CollaborationPage({
 
 function AccessState({ children, title }: Readonly<{ children?: React.ReactNode; title: string }>) {
   return (
-    <div className="collab-access-state">
-      <p className="collab-kicker">Hỷ Yến</p>
-      <h1>{title}</h1>
+    <div
+      data-ui-v3
+      className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-6 text-sm [&_a]:font-semibold [&_a]:text-primary"
+    >
+      <h1 className="text-xl font-bold">{title}</h1>
       {children}
     </div>
   );

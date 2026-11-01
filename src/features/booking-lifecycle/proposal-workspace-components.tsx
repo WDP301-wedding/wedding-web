@@ -1,9 +1,16 @@
 'use client';
 
+import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import React from 'react';
+import type { ReactNode } from 'react';
+import { cn } from 'cn';
+
+import { Badge } from '../../components/ui/badge';
+import { Button, buttonVariants } from '../../components/ui/button';
 import { ProposalMenus } from '../couple-workspace/proposal-menus';
+import { control, field as fieldClass } from '../public-website/public-classes';
 import type { CollaborationGateway, ProposalView } from './collaboration-api';
+import { card, hint, summary } from './collab-classes';
 import { phaseLabels } from './collaboration-utils';
 
 export function field(data: FormData, name: string): string {
@@ -17,13 +24,13 @@ export function money(value: number): string {
 
 export function Approval({ label, value }: Readonly<{ label: string; value: string | null }>) {
   return (
-    <div className="approval-row">
+    <div className="flex items-center justify-between gap-3 text-sm">
       <span>{label}</span>
-      <strong>
+      <Badge variant={value === null ? 'warning' : 'success'}>
         {value === null
           ? 'Chờ duyệt'
           : `Đã duyệt · ${new Intl.DateTimeFormat('vi-VN').format(new Date(value))}`}
-      </strong>
+      </Badge>
     </div>
   );
 }
@@ -32,11 +39,11 @@ export function EmptyState({
   body,
   children,
   title,
-}: Readonly<{ body: string; title: string; children?: React.ReactNode }>) {
+}: Readonly<{ body: string; title: string; children?: ReactNode }>) {
   return (
-    <div className="collab-empty">
-      <strong>{title}</strong>
-      <p>{body}</p>
+    <div className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-input bg-muted/60 p-5 text-sm">
+      <strong className="text-base">{title}</strong>
+      <p className="text-muted-foreground">{body}</p>
       {children}
     </div>
   );
@@ -57,11 +64,11 @@ export function NextStep({
   action?: string;
 }>) {
   return (
-    <div className={'collab-next collab-next-' + tone}>
-      <strong>{title}</strong>
-      <p>{body}</p>
+    <div className="flex flex-col gap-1.5">
+      <strong className={cn('text-sm', tone === 'done' && 'text-hy-success')}>{title}</strong>
+      <p className="text-xs text-muted-foreground">{body}</p>
       {href && action ? (
-        <Link className="button" href={href}>
+        <Link className={buttonVariants({ size: 'sm', className: 'mt-1 self-start' })} href={href}>
           {action}
         </Link>
       ) : null}
@@ -74,40 +81,38 @@ export function ProposalSummarySection({
 }: Readonly<{
   proposal: ProposalView;
 }>) {
+  const facts: readonly (readonly [string, ReactNode, boolean?])[] = [
+    ['Thực đơn', <ProposalMenus key="menus" offer={proposal.proposal} />],
+    ['Số bàn', proposal.proposal.tableCount],
+    ['Khách dự kiến', proposal.planningHeadcount],
+    ['Tổng dự kiến', money(proposal.proposal.baseChargeVnd), true],
+    ['Tiền cọc (30%)', money(proposal.proposal.depositAmountVnd), true],
+  ];
   return (
-    <section className="collab-proposal" aria-label="Tóm tắt đề xuất">
-      <div className="collab-proposal-title">
-        <span>{phaseLabels[proposal.phase] ?? proposal.phase}</span>
-        <h2>{proposal.proposal.hall.name}</h2>
-        <p>
+    <section
+      className="grid overflow-hidden rounded-xl border border-border bg-card md:grid-cols-[220px_minmax(0,1fr)]"
+      aria-label="Tóm tắt đề xuất"
+    >
+      <div className="flex flex-col justify-end gap-1 bg-primary p-5 text-primary-foreground">
+        <span className="text-xs text-white/80">
+          {phaseLabels[proposal.phase] ?? proposal.phase}
+        </span>
+        <h2 className="text-xl font-bold">{proposal.proposal.hall.name}</h2>
+        <p className="text-xs text-white/85 tabular-nums">
           {proposal.eventDate.split('-').reverse().join('/')} ·{' '}
           {proposal.proposal.shift.code === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối'}{' '}
           {proposal.proposal.shift.startTime}–{proposal.proposal.shift.endTime}
         </p>
       </div>
-      <dl>
-        <div>
-          <dt>Thực đơn</dt>
-          <dd>
-            <ProposalMenus offer={proposal.proposal} />
-          </dd>
-        </div>
-        <div>
-          <dt>Số bàn</dt>
-          <dd>{proposal.proposal.tableCount}</dd>
-        </div>
-        <div>
-          <dt>Khách dự kiến</dt>
-          <dd>{proposal.planningHeadcount}</dd>
-        </div>
-        <div>
-          <dt>Tổng dự kiến</dt>
-          <dd>{money(proposal.proposal.baseChargeVnd)}</dd>
-        </div>
-        <div>
-          <dt>Tiền cọc (30%)</dt>
-          <dd>{money(proposal.proposal.depositAmountVnd)}</dd>
-        </div>
+      <dl className="grid gap-x-6 gap-y-3 p-5 sm:grid-cols-2">
+        {facts.map(([label, value, strong]) => (
+          <div key={label} className={cn('flex flex-col', label === 'Thực đơn' && 'sm:col-span-2')}>
+            <dt className="text-xs text-muted-foreground">{label}</dt>
+            <dd className={cn('text-sm tabular-nums', strong ? 'font-bold' : 'font-medium')}>
+              {value}
+            </dd>
+          </div>
+        ))}
       </dl>
     </section>
   );
@@ -133,14 +138,17 @@ export function ProposalCancelSection({
   }) => Promise<boolean>;
 }>) {
   return (
-    <details className="collab-more collab-cancel-box">
-      <summary>Cần đổi hoặc huỷ tiệc?</summary>
-      <p className="collab-hint">
+    <details className={cn(card, 'group')}>
+      <summary className={summary}>
+        <ChevronRight aria-hidden="true" />
+        Cần đổi hoặc huỷ tiệc?
+      </summary>
+      <p className={cn(hint, 'mt-2')}>
         Muốn đổi giờ hay nội dung chương trình, hãy dùng “Đề xuất thay đổi kịch bản”. Yêu cầu huỷ sẽ
         được Quản lý xem xét theo chính sách đã ký.
       </p>
       <form
-        className="collab-cancel"
+        className="mt-3 flex flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           const reason = field(new FormData(event.currentTarget), 'reason');
@@ -166,16 +174,21 @@ export function ProposalCancelSection({
           })();
         }}
       >
-        <h3>Yêu cầu hủy</h3>
-        <label>
+        <h3 className="text-sm font-bold">Yêu cầu hủy</h3>
+        <label className={fieldClass}>
           Lý do
-          <textarea name="reason" required maxLength={500} rows={3} />
+          <textarea
+            className={cn(control, 'h-auto py-2.5')}
+            name="reason"
+            required
+            maxLength={500}
+            rows={3}
+          />
         </label>
-        <button disabled={pending} type="submit">
+        <Button className="self-start" variant="destructive" disabled={pending} type="submit">
           Gửi yêu cầu hủy
-        </button>
+        </Button>
       </form>
     </details>
   );
 }
-

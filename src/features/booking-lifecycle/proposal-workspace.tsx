@@ -1,6 +1,9 @@
 'use client';
 
-import React from 'react';
+import { ChevronRight } from 'lucide-react';
+import { cn } from 'cn';
+
+import { card, cardTitle, hint, meta, summary } from './collab-classes';
 import { TimelineEditor } from './timeline-editor';
 import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import type { CollaborationGateway, ProposalView } from './collaboration-api';
@@ -79,19 +82,17 @@ export function ProposalWorkspace({
     );
 
   return (
-    <div className="collab-layout">
-      <div className="collab-main">
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="flex min-w-0 flex-col gap-6">
         <ProposalSummarySection proposal={proposal} />
 
-        <article className="collab-timeline">
-          <div className="collab-card-head">
-            <div>
-              <p className="collab-kicker">
-                Kịch bản hiện tại · Bản {timeline?.revisionNumber ?? 0}
-              </p>
-              <h2>Dòng thời gian</h2>
+        <article className={cn(card, 'flex flex-col gap-4')}>
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div className="flex flex-col">
+              <p className={meta}>Kịch bản hiện tại · Bản {timeline?.revisionNumber ?? 0}</p>
+              <h2 className={cardTitle}>Dòng thời gian</h2>
             </div>
-            <span className="collab-shift-note">
+            <span className={cn(meta, 'tabular-nums')}>
               Giờ hợp lệ: {proposal.proposal.shift.startTime}–{proposal.proposal.shift.endTime}
             </span>
           </div>
@@ -101,13 +102,23 @@ export function ProposalWorkspace({
               body="Thêm mốc đầu tiên để hai bên cùng xem và phê duyệt."
             />
           ) : (
-            <ol>
-              {timeline.items.map((item) => (
-                <li key={item.itemId}>
-                  <time>{item.startTime}</time>
-                  <span>
-                    <strong>{item.title}</strong>
-                    {item.description ? <small>{item.description}</small> : null}
+            <ol className="flex flex-col">
+              {timeline.items.map((item, index) => (
+                <li
+                  key={item.itemId}
+                  className="grid animate-in grid-cols-[56px_14px_minmax(0,1fr)] gap-x-3 duration-300 fade-in fill-mode-backwards slide-in-from-left-1 motion-reduce:animate-none"
+                  style={{ animationDelay: `${index * 40}ms` }}
+                >
+                  <time className="text-sm leading-6 font-bold tabular-nums">{item.startTime}</time>
+                  <span className="flex flex-col items-center" aria-hidden="true">
+                    <span className="mt-2 size-2.5 rounded-full bg-primary" />
+                    <span className="w-0.5 flex-1 bg-border" />
+                  </span>
+                  <span className="flex flex-col pb-4">
+                    <strong className="text-sm leading-6">{item.title}</strong>
+                    {item.description ? (
+                      <small className="text-xs text-muted-foreground">{item.description}</small>
+                    ) : null}
                   </span>
                 </li>
               ))}
@@ -116,11 +127,14 @@ export function ProposalWorkspace({
           {/* Form sửa chỉ mở khi cần, để trang gọn; mở sẵn khi chưa có mốc nào. */}
           {proposal.capabilities.canEditTimeline ? (
             <details
-              className="collab-edit"
+              className="group border-t border-border pt-2"
               open={timeline === null || timeline.items.length === 0}
             >
-              <summary>{confirmed ? 'Đề xuất thay đổi kịch bản' : 'Chỉnh sửa kịch bản'}</summary>
-              <p className="collab-hint">
+              <summary className={summary}>
+                <ChevronRight aria-hidden="true" />
+                {confirmed ? 'Đề xuất thay đổi kịch bản' : 'Chỉnh sửa kịch bản'}
+              </summary>
+              <p className={cn(hint, 'mb-3')}>
                 Giờ bắt đầu mỗi mốc phải từ {proposal.proposal.shift.startTime} đến trước{' '}
                 {proposal.proposal.shift.endTime} theo ca tiệc đã chọn.
                 {confirmed ? ' Tiệc đã cọc nên thay đổi cần nhà hàng duyệt.' : ''}
@@ -150,7 +164,7 @@ export function ProposalWorkspace({
               />
             </details>
           ) : (
-            <p className="collab-hint">
+            <p className={cn(hint, 'border-t border-border pt-3')}>
               Kịch bản đã được duyệt hoặc có giao dịch cọc đang xử lý. Nếu muốn thay đổi trước cọc,
               rút phê duyệt ở mục Quyết định của hai bên. Giao dịch chưa rõ kết quả cần được xác
               minh trước.
@@ -159,7 +173,7 @@ export function ProposalWorkspace({
         </article>
       </div>
 
-      <aside className="collab-side">
+      <aside className="flex flex-col gap-4 lg:sticky lg:top-24">
         <ProposalDecisionsSection
           proposal={proposal}
           pending={pending}
@@ -167,8 +181,11 @@ export function ProposalWorkspace({
           command={command}
         />
 
-        <section className="collab-next-card" aria-label="Bước tiếp theo">
-          <p className="collab-kicker">Bước tiếp theo</p>
+        <section
+          className="flex flex-col gap-2 rounded-xl bg-muted p-5"
+          aria-label="Bước tiếp theo"
+        >
+          <h2 className="text-sm font-bold">Bước tiếp theo</h2>
           {next}
         </section>
 
