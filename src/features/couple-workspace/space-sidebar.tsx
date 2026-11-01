@@ -27,7 +27,7 @@ export function SpaceSidebar({
   return (
     <aside
       data-ui-v3
-      className="sticky top-0 z-[100] hidden h-dvh flex-col gap-5 overflow-y-auto border-r border-border bg-card px-3 py-5 lg:flex"
+      className="sticky top-0 z-[100] hidden h-dvh flex-col gap-5 overflow-x-hidden overflow-y-auto border-r border-border bg-card px-3 py-5 lg:flex"
       aria-label="Không gian cưới"
     >
       <Link className="px-2" href={href(routes.space)} aria-label="Hỷ Yến — Tổng quan">
@@ -48,7 +48,7 @@ export function SpaceSidebar({
                   aria-current={active && !item.children ? 'page' : undefined}
                 >
                   <Icon name={chip?.tone === 'lock' ? 'lock' : item.icon} />
-                  <span>{item.label}</span>
+                  <span className="whitespace-nowrap">{item.label}</span>
                   {chip ? <span className={chipClass(chip.tone)}>{chip.label}</span> : null}
                 </Link>
                 {active && item.children ? (

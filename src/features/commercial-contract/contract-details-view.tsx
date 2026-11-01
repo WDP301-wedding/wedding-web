@@ -9,6 +9,7 @@ import { contractApi } from './contract-api';
 import type { currentRevision, ContractList } from './contract-api';
 import { ContractLinesTable } from './contract-lines';
 import { WithdrawForm } from './contract-withdraw-form';
+import { cx } from './contract-classes';
 
 export function ContractDetailsView({
   current,
@@ -43,12 +44,12 @@ export function ContractDetailsView({
         lines={current.document.lines}
         totalVnd={current.document.contractTotalVnd}
       />
-      <p className="cw-note">
+      <p className={cx.note}>
         Tổng dưới đây do nhà hàng tính trên máy chủ cho đúng phiên bản đang xem. Bao gồm các hạng
         mục trong bảng; chi phí phát sinh chưa ghi nhận không nằm trong tổng này. Kiểm tra toàn bộ
         trước khi xác nhận duyệt.
       </p>
-      <dl className="cw-stats">
+      <dl className={cx.stats}>
         <div>
           <dt>Tổng hợp đồng</dt>
           <dd>{formatVnd(current.document.contractTotalVnd)}</dd>
@@ -66,15 +67,15 @@ export function ContractDetailsView({
           <dd>{coupleApproved ? 'Đã duyệt' : 'Chưa'}</dd>
         </div>
       </dl>
-      <p className="cw-note">
+      <p className={cx.note}>
         Cô dâu: <strong>{current.document.brideName ?? 'chưa có'}</strong> · Chú rể:{' '}
         <strong>{current.document.groomName ?? 'chưa có'}</strong> ·{' '}
         {current.document.incidentalClause}
       </p>
 
-      <div className="cw-actions">
+      <div className={cx.actions}>
         <button
-          className="button button-secondary"
+          className={cx.buttonOutline}
           type="button"
           disabled={command.pending}
           onClick={() =>
@@ -88,7 +89,7 @@ export function ContractDetailsView({
         </button>
 
         {current.state === 'DRAFT' ? (
-          <p className="cw-note">
+          <p className={cx.note}>
             Nhà hàng đang soạn bản nháp. Hai bạn có thể xem trước; nút duyệt sẽ mở sau khi nhà hàng
             gửi hợp đồng.
           </p>
@@ -98,7 +99,7 @@ export function ContractDetailsView({
         !coupleApproved &&
         contracts.capabilities?.canApprove ? (
           <button
-            className="button"
+            className={cx.button}
             type="button"
             disabled={command.pending}
             onClick={() =>
@@ -134,14 +135,14 @@ export function ContractDetailsView({
           <Celebrate onceKey={'contract-' + current.revisionId} />
         ) : null}
         {current.state === 'APPROVED' && contracts.eligibleForDeposit ? (
-          <Link className="button" href={`/khong-gian/thanh-toan?bookingId=${bookingId}`}>
+          <Link className={cx.button} href={`/khong-gian/thanh-toan?bookingId=${bookingId}`}>
             Đặt cọc {formatVnd(current.document.depositAmountVnd)}
           </Link>
         ) : null}
 
         {isPostDeposit ? (
           <Link
-            className="button button-secondary"
+            className={cx.buttonOutline}
             href={`/khong-gian/chuan-bi/phu-luc?bookingId=${bookingId}`}
           >
             Thay đổi sau cọc → Phụ lục
@@ -150,7 +151,7 @@ export function ContractDetailsView({
       </div>
 
       {current.state === 'APPROVED' && !contracts.eligibleForDeposit && !isPostDeposit ? (
-        <p className="cw-note">
+        <p className={cx.note}>
           Hợp đồng đã duyệt nhưng chưa đủ điều kiện đặt cọc (kịch bản, giữ chỗ sảnh hoặc giao dịch
           đang chờ). Liên hệ nhà hàng nếu cần.
         </p>

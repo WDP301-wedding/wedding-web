@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { InlineError } from '../../design-system/inline-error';
 import { useCommand, formText } from '../couple-workspace/use-couple-workspace';
 import { contractApi, type CoupleProfile } from './contract-api';
+import { cx } from './contract-classes';
 
 export interface CoupleNamesCardProps {
   profile: CoupleProfile;
@@ -20,9 +21,9 @@ export function CoupleNamesCard({ profile, onSaved }: CoupleNamesCardProps) {
 
   if (!isEditing && hasNames) {
     return (
-      <section className="cw-card" aria-labelledby="names-heading">
+      <section className={cx.card} aria-labelledby="names-heading">
         <div
-          className="cw-card-header"
+          className={cx.cardHeader}
           style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -35,7 +36,7 @@ export function CoupleNamesCard({ profile, onSaved }: CoupleNamesCardProps) {
           </h2>
           <button
             type="button"
-            className="button button-secondary"
+            className={cx.buttonOutline}
             style={{
               padding: '4px 12px',
               fontSize: '0.8rem',
@@ -78,17 +79,17 @@ export function CoupleNamesCard({ profile, onSaved }: CoupleNamesCardProps) {
   }
 
   return (
-    <section className="cw-card" aria-labelledby="names-heading">
-      <div className="cw-card-header">
+    <section className={cx.card} aria-labelledby="names-heading">
+      <div className={cx.cardHeader}>
         <h2 id="names-heading">Tên cô dâu &amp; chú rể</h2>
-        {missing ? <span className="cw-chip is-warning">Cần nhập đủ tên</span> : null}
+        {missing ? <span className={cx.chipWarning}>Cần nhập đủ tên</span> : null}
       </div>
-      <p className="cw-note">
+      <p className={cx.note}>
         Tên sẽ xuất hiện trên hợp đồng tiệc cưới và thiệp in. Vui lòng nhập đúng tên hai bạn.
       </p>
       <InlineError error={command.error} />
       <form
-        className="cw-form"
+        className={cx.form}
         onSubmit={(event) => {
           event.preventDefault();
           const form = new FormData(event.currentTarget);
@@ -113,7 +114,7 @@ export function CoupleNamesCard({ profile, onSaved }: CoupleNamesCardProps) {
             });
         }}
       >
-        <div className="cw-form-row" key={`${profile.brideName ?? ''}:${profile.groomName ?? ''}`}>
+        <div className={cx.formRow} key={`${profile.brideName ?? ''}:${profile.groomName ?? ''}`}>
           <label>
             Tên cô dâu
             <input
@@ -135,17 +136,17 @@ export function CoupleNamesCard({ profile, onSaved }: CoupleNamesCardProps) {
             />
           </label>
         </div>
-        <small className="muted">
+        <small className={cx.muted}>
           Nếu đổi tên sau khi hợp đồng đã gửi duyệt, bạn sẽ cần tạo bản nháp mới để gửi lại hai bên
           duyệt.
         </small>
-        <div className="cw-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button className="button" disabled={command.pending} type="submit">
+        <div className={cx.actions} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button className={cx.button} disabled={command.pending} type="submit">
             {command.pending ? 'Đang lưu…' : 'Lưu tên'}
           </button>
           {hasNames && (
             <button
-              className="button button-secondary"
+              className={cx.buttonOutline}
               type="button"
               disabled={command.pending}
               onClick={() => setEditing(false)}

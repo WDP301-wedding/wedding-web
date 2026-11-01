@@ -51,7 +51,7 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
 
   return (
     // `v0-workspace`: CSS cũ của các trang chưa chuyển (khách, sơ đồ, thiệp…) gắn dưới class này.
-    <div className="v0-workspace min-h-dvh bg-background lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
+    <div className="v0-workspace min-h-dvh bg-background lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
       <a
         className="sr-only z-[130] rounded-lg bg-card px-4 py-2 text-sm font-semibold text-primary shadow-hy-2 focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
         href="#space-content"

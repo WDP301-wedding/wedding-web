@@ -15,6 +15,7 @@
 @source '../src/features/couple-workspace';
 @source '../src/design-system/journey-stepper.tsx';
 @source '../src/features/booking-lifecycle';
+@source '../src/features/commercial-contract';
 
 /* Sản phẩm chỉ có giao diện sáng: khoá biến thể dark: vào class .dark không bao giờ được gắn. */
 @custom-variant dark (&:is(.dark *));

@@ -7,6 +7,7 @@ import { useCommand, type Proposal } from '../couple-workspace/use-couple-worksp
 import { currentRevision, type ContractList } from './contract-api';
 import { stateLabels } from './contract-history-card';
 import { ContractDetailsView } from './contract-details-view';
+import { cx } from './contract-classes';
 
 export interface ContractCardProps {
   proposal: Proposal;
@@ -36,9 +37,9 @@ export function ContractCard({
 
   if (contracts.modelVersion === 'LEGACY_PROPOSAL_V1' && current === null && isPostDeposit) {
     return (
-      <section className="cw-card">
+      <section className={cx.card}>
         <h2>Hợp đồng</h2>
-        <p className="cw-note">
+        <p className={cx.note}>
           Tiệc này được xác nhận theo đề xuất cũ. Các khoản đã thanh toán được giữ nguyên; xem chi
           tiết ở trang Thanh toán.
         </p>
@@ -61,8 +62,8 @@ export function ContractCard({
   )
     return null;
   return (
-    <section className="cw-card" aria-labelledby="contract-heading">
-      <div className="cw-card-header">
+    <section className={cx.card} aria-labelledby="contract-heading">
+      <div className={cx.cardHeader}>
         <h2 id="contract-heading">
           {current
             ? 'Hợp đồng · bản số ' + current.revisionNumber
@@ -70,12 +71,10 @@ export function ContractCard({
               ? 'Nhà hàng đang chuẩn bị hợp đồng'
               : 'Hợp đồng được lập sau khi chốt lựa chọn'}
         </h2>
-        {current ? (
-          <span className="status status-champagne">{stateLabels[current.state]}</span>
-        ) : null}
+        {current ? <span className={cx.status}>{stateLabels[current.state]}</span> : null}
       </div>
       {!timelineApproved && !isPostDeposit ? (
-        <p className="cw-note">
+        <p className={cx.note}>
           Cần duyệt đúng phiên bản kịch bản trước khi đặt cọc.{' '}
           <Link href={'/khong-gian/thoa-thuan/kich-ban?bookingId=' + proposal.bookingId}>
             Xem kịch bản tiệc
