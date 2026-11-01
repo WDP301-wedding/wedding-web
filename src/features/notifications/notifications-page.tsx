@@ -203,8 +203,8 @@ export function NotificationsPage() {
                             key={item.id}
                             className={
                               item.readAt
-                                ? 'flex flex-col gap-1 pl-3'
-                                : 'flex flex-col gap-1 border-l-[3px] border-primary pl-3'
+                                ? 'flex flex-col gap-1 pl-4'
+                                : 'relative flex flex-col gap-1 pl-4 before:absolute before:top-2 before:left-0 before:size-2 before:rounded-full before:bg-primary'
                             }
                           >
                             <strong className={item.readAt ? 'font-medium' : 'font-bold'}>

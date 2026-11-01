@@ -29,7 +29,7 @@ export const bx = {
   attempt: 'flex flex-col gap-3 rounded-xl border border-border bg-muted p-5',
   attemptNote: 'text-xs text-muted-foreground',
   balanceAction: 'flex flex-col items-start gap-3',
-  gate: 'flex flex-col items-start gap-2.5 rounded-lg border-l-4 border-hy-warning bg-hy-warning-bg px-4 py-3 text-sm text-foreground',
+  gate: 'flex flex-col items-start gap-2.5 rounded-lg border border-hy-warning/25 bg-hy-warning-bg px-4 py-3 text-sm text-foreground',
   primaryLink: buttonVariants(),
   button: buttonVariants(),
   buttonOutline: buttonVariants({ variant: 'outline' }),

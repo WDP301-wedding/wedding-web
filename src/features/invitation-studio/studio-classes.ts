@@ -31,7 +31,7 @@ export const ix = {
   metaWarning: 'text-xs text-hy-warning',
   hint: 'text-sm leading-relaxed text-muted-foreground',
   hintWarning:
-    'rounded-lg border-l-4 border-hy-warning bg-hy-warning-bg px-3 py-2.5 text-sm text-foreground',
+    'rounded-lg border border-hy-warning/25 bg-hy-warning-bg px-3 py-2.5 text-sm text-foreground',
   label: 'mb-1.5 block text-xs font-semibold',
   input: `h-11 ${field}`,
   textarea: `min-h-28 py-2.5 ${field}`,
@@ -51,7 +51,7 @@ export const ix = {
     'rounded-lg border border-dashed border-input bg-muted/60 p-4 text-sm text-muted-foreground',
   callout: 'flex flex-col gap-1 rounded-xl border border-border bg-muted p-4 text-sm',
   calloutWarning:
-    'flex flex-col gap-1 rounded-xl border-l-4 border-hy-warning bg-hy-warning-bg p-4 text-sm',
+    'flex flex-col gap-1 rounded-xl border border-hy-warning/25 bg-hy-warning-bg p-4 text-sm',
   calloutTitle: 'font-semibold',
   chip: `${chipBase} bg-accent text-primary`,
   chipSuccess: `${chipBase} bg-hy-success-bg text-hy-success`,
