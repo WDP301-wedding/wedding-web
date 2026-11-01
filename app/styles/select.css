@@ -1,6 +1,6 @@
 /* Shared single-select treatment. Native form, label and keyboard semantics stay intact. */
 
-@layer legacy {
+@layer base {
   :root body select:not([multiple]):is(:not([size]), [size='1']) {
     box-sizing: border-box;
     min-inline-size: 0;

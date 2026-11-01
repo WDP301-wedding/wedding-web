@@ -30,7 +30,6 @@ export default function GuestsAndSeatingPage() {
   return (
     <>
       <nav
-        data-ui-v3
         className="mb-5 flex max-w-full gap-1 overflow-x-auto shadow-[inset_0_-1px_0_var(--hy-outline)]"
         aria-label="Khách & sơ đồ"
       >

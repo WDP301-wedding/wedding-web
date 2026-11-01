@@ -106,7 +106,6 @@ function Lightbox({
 
   return createPortal(
     <div
-      data-ui-v3
       className="fixed inset-0 z-50 flex animate-in items-center justify-center bg-hy-ink/85 p-4 duration-200 fade-in motion-reduce:animate-none"
       onMouseDown={onClose}
     >

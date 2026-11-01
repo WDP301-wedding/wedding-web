@@ -28,7 +28,7 @@ export function AgreementSteps() {
     summary !== undefined && summary.managerApproved && !summary.coupleApproved && !scriptDone;
 
   return (
-    <nav data-ui-v3 className="mb-6" aria-label="Các bước thoả thuận">
+    <nav className="mb-6" aria-label="Các bước thoả thuận">
       <ol className="grid grid-cols-2 gap-1 rounded-xl bg-secondary p-1">
         {steps.map((step, index) => {
           const current = pathname === step.href;

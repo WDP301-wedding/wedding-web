@@ -11,7 +11,13 @@ export type StudioDesignTabProps = Readonly<{ studio: InvitationStudioState }>;
 export function StudioDesignTab({ studio }: StudioDesignTabProps) {
   const { currentDesign, title, mobileViewMode, setMobileViewMode } = studio;
   return (
-    <section aria-labelledby="design-heading" className={ix.liveEditor} data-mode={mobileViewMode}>
+    // data-wide: trình sửa 2 cột cần khung nội dung rộng hơn (SpaceShell đọc thuộc tính này).
+    <section
+      aria-labelledby="design-heading"
+      className={ix.liveEditor}
+      data-mode={mobileViewMode}
+      data-wide
+    >
       <header className={ix.designMeta}>
         <div>
           <h2 id="design-heading" className={ix.title}>

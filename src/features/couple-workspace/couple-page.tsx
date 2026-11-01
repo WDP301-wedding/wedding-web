@@ -9,7 +9,6 @@ import { cn } from 'cn';
 import { Badge } from '../../components/ui/badge';
 import { buttonVariants } from '../../components/ui/button';
 import type { FriendlyError } from '../../lib/api/api-errors';
-import { WorkspaceShell, type Section } from './workspace-shell';
 import {
   formatEventDate,
   shiftLabel,
@@ -29,7 +28,6 @@ const phaseLabels: Record<Proposal['phase'], string> = {
 };
 
 type CouplePageProps = Readonly<{
-  active: Section;
   title: string;
   description?: string;
   /** Trang chỉ dùng được khi Couple đã có quyền FULL (sau khi cọc được xác nhận). */
@@ -41,14 +39,14 @@ type CouplePageProps = Readonly<{
  * Khung chung cho các trang Couple: tiêu đề và đủ các trạng thái (đang tải, chưa đăng nhập,
  * chọn tiệc, lỗi, chưa đủ quyền). Trang con chỉ lo nội dung chính.
  */
-export function CouplePage({ active, title, description, requireFull, children }: CouplePageProps) {
-  const { state, reload, bookingId } = useCoupleWorkspace();
+export function CouplePage({ title, description, requireFull, children }: CouplePageProps) {
+  const { state, reload } = useCoupleWorkspace();
   // Trong /khong-gian thanh trên đã hiện sảnh, ngày, ca → không lặp lại dải thông tin tiệc.
   const inSpace = useInSpace();
   return (
-    <WorkspaceShell active={active} bookingId={bookingId ?? undefined}>
+    <>
       <div className="flex flex-col gap-6">
-        <header data-ui-v3 className="flex flex-col gap-2">
+        <header className="flex flex-col gap-2">
           <h1 className="text-xl font-bold text-balance sm:text-2xl">{title}</h1>
           {description ? (
             <p className="max-w-3xl text-sm text-muted-foreground">{description}</p>
@@ -77,7 +75,7 @@ export function CouplePage({ active, title, description, requireFull, children }
               </Link>
             </EmptyPanel>
           ) : (
-            <section data-ui-v3 className={cn(panel, 'flex flex-col gap-3')}>
+            <section className={cn(panel, 'flex flex-col gap-3')}>
               <h2 className="text-lg font-bold">Chọn tiệc cưới</h2>
               <ul className="flex flex-col divide-y divide-border">
                 {state.bookings.map((booking) => (
@@ -122,7 +120,7 @@ export function CouplePage({ active, title, description, requireFull, children }
           )
         ) : null}
       </div>
-    </WorkspaceShell>
+    </>
   );
 }
 
@@ -151,10 +149,7 @@ export function EmptyPanel({
   illustration,
 }: Readonly<{ title: string; children?: ReactNode; illustration?: IllustrationName }>) {
   return (
-    <section
-      data-ui-v3
-      className={cn(panel, 'flex flex-col items-start gap-3 text-sm text-muted-foreground')}
-    >
+    <section className={cn(panel, 'flex flex-col items-start gap-3 text-sm text-muted-foreground')}>
       {illustration ? <Illustration name={illustration} /> : null}
       <h2 className="text-lg font-bold text-foreground">{title}</h2>
       {children}

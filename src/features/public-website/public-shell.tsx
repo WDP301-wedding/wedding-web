@@ -22,7 +22,7 @@ export function PublicShell({
   showOffers = false,
 }: Readonly<{ children: ReactNode; restaurant?: Restaurant | null; showOffers?: boolean }>) {
   return (
-    <div data-ui-v3 className="flex min-h-dvh flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <a
         className="sr-only z-50 rounded-lg bg-card px-4 py-2 text-sm font-semibold text-primary shadow-hy-2 focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
         href="#public-content"

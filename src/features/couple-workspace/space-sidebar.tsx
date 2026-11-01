@@ -26,7 +26,6 @@ export function SpaceSidebar({
   const inProfile = pathname.startsWith(routes.profile);
   return (
     <aside
-      data-ui-v3
       className="sticky top-0 z-[100] hidden h-dvh flex-col gap-5 overflow-x-hidden overflow-y-auto border-r border-border bg-card px-3 py-5 lg:flex"
       aria-label="Không gian cưới"
     >

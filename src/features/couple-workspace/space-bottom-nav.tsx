@@ -24,7 +24,6 @@ export function SpaceBottomNav({
 }>) {
   return (
     <nav
-      data-ui-v3
       className="fixed inset-x-0 bottom-0 z-[100] grid h-16 grid-cols-5 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] lg:hidden"
       aria-label="Điều hướng nhanh"
     >

@@ -87,10 +87,7 @@ export default function PersonalInvitationPage() {
     error: 'Chưa mở được thiệp do lỗi kết nối. Vui lòng tải lại trang.',
   };
   return (
-    <main
-      data-ui-v3
-      className="mx-auto my-20 flex max-w-[560px] flex-col gap-3 px-4 text-center [&_h1]:text-xl [&_h1]:font-bold [&_p]:text-muted-foreground"
-    >
+    <main className="mx-auto my-20 flex max-w-[560px] flex-col gap-3 px-4 text-center [&_h1]:text-xl [&_h1]:font-bold [&_p]:text-muted-foreground">
       <h1>Thiệp mời</h1>
       <p role={state.status === 'loading' ? 'status' : 'alert'}>{messages[state.status]}</p>
     </main>

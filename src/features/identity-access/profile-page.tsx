@@ -18,11 +18,7 @@ import { useProfileSession } from './use-profile-session';
 
 /** Trong Không gian cưới trang nằm gọn trong khung sẵn có; mở riêng thì có nền và header riêng. */
 function ProfileFrame({ inSpace, children }: Readonly<{ inSpace: boolean; children: ReactNode }>) {
-  return (
-    <div data-ui-v3 className={cn('flex flex-col', !inSpace && 'min-h-dvh bg-muted')}>
-      {children}
-    </div>
-  );
+  return <div className={cn('flex flex-col', !inSpace && 'min-h-dvh bg-muted')}>{children}</div>;
 }
 
 const mainClass = (inSpace: boolean) =>

@@ -1,17 +1,9 @@
-/* Thứ tự layer trong lúc chuyển sang v3: CSS cũ (legacy) thắng reset nhưng thua utility Tailwind. */
-@layer theme, base, legacy, components, utilities;
+@layer theme, base, components, utilities;
 
+@import './styles/tokens.css';
 @import './ui-v3.css';
+@import './styles/select.css';
 @import './styles/invitation-card.css' layer(components);
 @import './styles/invitation-card-themes.css' layer(components);
-@import './styles/globals/tokens-base.css' layer(legacy);
-@import './styles/globals/invitation-layout.css' layer(legacy);
-@import './styles/globals/workspace-responsive.css' layer(legacy);
-
-@layer legacy {
-  :root {
-    --font-display: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
-    --font-body: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
-    --font-script: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
-  }
-}
+/* Ngoài layer: sonner chèn CSS không có layer, phần ghi đè phải cùng cấp để còn thắng. */
+@import './styles/toast.css';

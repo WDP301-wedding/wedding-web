@@ -49,8 +49,7 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
   const switchBooking = (id: string) => router.push(withBooking(pathname, id));
 
   return (
-    // `v0-workspace`: CSS cũ của các trang chưa chuyển (khách, sơ đồ, thiệp…) gắn dưới class này.
-    <div className="v0-workspace min-h-dvh bg-background lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
+    <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
       <a
         className="sr-only z-[130] rounded-lg bg-card px-4 py-2 text-sm font-semibold text-primary shadow-hy-2 focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
         href="#space-content"
@@ -73,7 +72,7 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
         />
         <main
           id="space-content"
-          className="mx-auto w-full max-w-[1240px] min-w-0 px-4 pt-4 pb-24 sm:px-6 lg:px-10 lg:pt-6 lg:pb-12 has-[:is(.live-editor,.cw-seating,.cw-table-wrap)]:max-w-[1560px]"
+          className="mx-auto w-full max-w-[1240px] min-w-0 px-4 pt-4 pb-24 sm:px-6 lg:px-10 lg:pt-6 lg:pb-12 has-data-wide:max-w-[1560px]"
         >
           {state.status !== 'loading' && state.status !== 'anonymous' ? (
             <ConnectionFeedback />

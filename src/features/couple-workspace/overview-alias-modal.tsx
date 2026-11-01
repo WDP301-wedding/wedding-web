@@ -35,7 +35,6 @@ export function OverviewAliasModal({
   return (
     <dialog
       ref={dialogRef}
-      data-ui-v3
       className="m-auto w-[min(480px,calc(100vw-32px))] animate-in rounded-2xl bg-card p-0 text-foreground shadow-[0_32px_64px_rgb(43_29_34/0.32)] duration-300 ease-hy-decelerate fade-in zoom-in-98 backdrop:bg-hy-ink/55 motion-reduce:animate-none"
       aria-labelledby="alias-modal-title"
       aria-describedby="alias-modal-description"

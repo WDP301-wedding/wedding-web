@@ -70,7 +70,6 @@ export function EstimateModal({
 
   return createPortal(
     <div
-      data-ui-v3
       className="fixed inset-0 z-50 flex animate-in items-end justify-center bg-hy-ink/60 duration-200 fade-in sm:items-center sm:p-6 motion-reduce:animate-none"
       onMouseDown={onClose}
       onKeyDown={handleKeyDown}

@@ -7,7 +7,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { EmptyPanel, ErrorPanel } from '../couple-workspace/couple-page';
 import { formatDateTime, useCommand } from '../couple-workspace/use-couple-workspace';
-import { WorkspaceShell } from '../couple-workspace/workspace-shell';
 import { browserSession } from '../identity-access/browser-session';
 import {
   notificationApi,
@@ -154,7 +153,7 @@ export function NotificationsPage() {
   };
 
   return (
-    <WorkspaceShell active="notifications">
+    <>
       <div className={cx.page}>
         <header className={cx.heading}>
           <h1>Thông báo</h1>
@@ -312,6 +311,6 @@ export function NotificationsPage() {
           </>
         ) : null}
       </div>
-    </WorkspaceShell>
+    </>
   );
 }

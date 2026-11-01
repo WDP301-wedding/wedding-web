@@ -16,7 +16,6 @@ import { gx } from './guest-classes';
 export function GuestsPage() {
   return (
     <CouplePage
-      active="guests"
       title="Khách mời"
       description="Nhóm khách dùng được ngay cả khi chưa có danh sách tên. Số khách dự kiến nhập riêng, không tự tính từ danh sách."
       requireFull

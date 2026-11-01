@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-import { WorkspaceShell } from '../couple-workspace/workspace-shell';
 import { routes } from '../../routes';
 import { Skeleton } from '../../design-system/skeleton';
 import { browserSession as session } from '../identity-access/browser-session';
@@ -147,16 +146,16 @@ export function CoupleInvitationsPage() {
 
   if (state === 'loading') {
     return (
-      <WorkspaceShell active={tab} bookingId={bookingId ?? undefined}>
+      <>
         <Skeleton label="Đang chuẩn bị không gian thiết kế thiệp…" />
-      </WorkspaceShell>
+      </>
     );
   }
 
   if (error)
     return (
-      <WorkspaceShell active={tab} bookingId={bookingId ?? undefined}>
-        <div data-ui-v3 className={`${cx.card} items-start`}>
+      <>
+        <div className={`${cx.card} items-start`}>
           <p className={cx.alert} role="alert">
             {error}
           </p>
@@ -164,13 +163,13 @@ export function CoupleInvitationsPage() {
             Thử lại
           </button>
         </div>
-      </WorkspaceShell>
+      </>
     );
 
   if (state === 'anonymous' || !token) {
     return (
-      <WorkspaceShell active={tab} bookingId={bookingId ?? undefined}>
-        <section data-ui-v3 className={cx.empty}>
+      <>
+        <section className={cx.empty}>
           <h2>Mở sau khi đặt cọc</h2>
           <p>
             Thiệp cưới dành cho tiệc đã được xác nhận. Sau khi khoản cọc được nhà hàng ghi nhận,
@@ -180,15 +179,15 @@ export function CoupleInvitationsPage() {
             Đi tới Thanh toán
           </Link>
         </section>
-      </WorkspaceShell>
+      </>
     );
   }
 
   if (!bookingId) {
     return (
-      <WorkspaceShell active={tab} bookingId={bookingId ?? undefined}>
+      <>
         <Skeleton label="Đang mở tiệc cưới của bạn…" />
-      </WorkspaceShell>
+      </>
     );
   }
 
@@ -203,7 +202,7 @@ export function CoupleInvitationsPage() {
   };
 
   return (
-    <WorkspaceShell active={tab} bookingId={bookingId ?? undefined}>
+    <>
       <InvitationStudioView
         event={
           proposal
@@ -225,6 +224,6 @@ export function CoupleInvitationsPage() {
         onTabChange={handleTabChange}
         key={bookingId}
       />
-    </WorkspaceShell>
+    </>
   );
 }

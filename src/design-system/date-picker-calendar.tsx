@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from './date-picker.module.css';
+import { dp } from './date-picker-classes';
 import { WEEKDAYS, type CalendarDayCell } from './date-picker-utils';
 
 export interface DatePickerCalendarProps {
@@ -26,21 +26,16 @@ export function DatePickerCalendar({
   viewYear,
 }: DatePickerCalendarProps) {
   return (
-    <div
-      role="dialog"
-      aria-modal="false"
-      aria-label="Chọn ngày"
-      className={styles.popover}
-    >
-      <div className={styles.header}>
-        <span className={styles.monthTitle}>
+    <div role="dialog" aria-modal="false" aria-label="Chọn ngày" className={dp.popover}>
+      <div className={dp.header}>
+        <span className={dp.monthTitle}>
           Tháng {viewMonth + 1}/{viewYear}
         </span>
-        <div className={styles.navGroup}>
+        <div className={dp.navGroup}>
           <button
             type="button"
             aria-label="Tháng trước"
-            className={styles.navBtn}
+            className={dp.navButton}
             onClick={onPrevMonth}
           >
             <svg
@@ -60,7 +55,7 @@ export function DatePickerCalendar({
           <button
             type="button"
             aria-label="Tháng sau"
-            className={styles.navBtn}
+            className={dp.navButton}
             onClick={onNextMonth}
           >
             <svg
@@ -80,30 +75,27 @@ export function DatePickerCalendar({
         </div>
       </div>
 
-      <div className={styles.weekdaysGrid}>
+      <div className={dp.weekdays}>
         {WEEKDAYS.map((w) => (
-          <span key={w} className={styles.weekday}>
+          <span key={w} className={dp.weekday}>
             {w}
           </span>
         ))}
       </div>
 
-      <div className={styles.daysGrid}>
+      <div className={dp.days}>
         {emptyCells.map((_, i) => (
-          <div key={`empty-${i}`} className={styles.dayEmpty} />
+          <div key={`empty-${i}`} className={dp.dayEmpty} />
         ))}
         {dayCells.map((cell) => {
-          const classNames = [styles.dayBtn];
-          if (cell.isSelected) classNames.push(styles.selectedDay);
-          if (cell.isToday) classNames.push(styles.todayDay);
-          if (cell.isDisabled) classNames.push(styles.disabledDay);
-
           return (
             <button
               key={cell.iso}
               type="button"
               disabled={cell.isDisabled}
-              className={classNames.join(' ')}
+              className={dp.day}
+              data-selected={cell.isSelected}
+              data-today={cell.isToday}
               onClick={() => onSelectDay(cell.day)}
               aria-label={`${cell.day}/${viewMonth + 1}/${viewYear}`}
             >
@@ -113,30 +105,22 @@ export function DatePickerCalendar({
         })}
       </div>
 
-      <div className={styles.legend}>
-        <div className={styles.legendItem}>
-          <span className={styles.selectedDot} />
+      <div className={dp.legend}>
+        <div className={dp.legendItem}>
+          <span className={dp.selectedDot} />
           <span>Đã chọn</span>
         </div>
-        <div className={styles.legendItem}>
-          <span className={styles.disabledText}>12</span>
+        <div className={dp.legendItem}>
+          <span className={dp.disabledText}>12</span>
           <span>Không khả dụng</span>
         </div>
       </div>
 
-      <div className={styles.footer}>
-        <button
-          type="button"
-          className={styles.cancelBtn}
-          onClick={onClear}
-        >
+      <div className={dp.footer}>
+        <button type="button" className={dp.cancel} onClick={onClear}>
           Xoá
         </button>
-        <button
-          type="button"
-          className={styles.confirmBtn}
-          onClick={onClose}
-        >
+        <button type="button" className={dp.confirm} onClick={onClose}>
           Đóng
         </button>
       </div>

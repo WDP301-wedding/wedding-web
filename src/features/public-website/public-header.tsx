@@ -45,10 +45,7 @@ export function PublicHeader({
   };
 
   return (
-    <header
-      data-ui-v3
-      className={cn('sticky top-0 z-40 border-b border-border bg-background', className)}
-    >
+    <header className={cn('sticky top-0 z-40 border-b border-border bg-background', className)}>
       <div className={cn(container, 'relative flex h-16 items-center gap-2 lg:h-18')}>
         <Link
           className="flex shrink-0 items-center gap-2.5"

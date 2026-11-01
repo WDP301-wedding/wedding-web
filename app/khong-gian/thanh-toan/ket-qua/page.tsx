@@ -81,7 +81,6 @@ export default function PaymentReturnPage() {
 
   return (
     <section
-      data-ui-v3
       className={`${cx.card} mx-auto mt-6 max-w-xl [&_a]:font-semibold [&_a]:text-primary [&_h1]:text-xl [&_h1]:font-bold`}
     >
       <h1>Đang kiểm tra kết quả thanh toán</h1>

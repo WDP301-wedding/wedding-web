@@ -32,7 +32,7 @@ export function SpaceMoreSheet({
   if (!moreOpen) return null;
 
   return (
-    <div data-ui-v3 className={sheetBackdrop} onClick={onClose}>
+    <div className={sheetBackdrop} onClick={onClose}>
       <div
         id="space-more-sheet"
         className={cn(sheetPanel, 'flex flex-col gap-1')}
@@ -90,7 +90,7 @@ export function SpaceBookingSwitcherSheet({
   if (!switcherOpen) return null;
 
   return (
-    <div data-ui-v3 className={sheetBackdrop} onClick={onClose}>
+    <div className={sheetBackdrop} onClick={onClose}>
       <div
         id="booking-switch-sheet"
         className={cn(sheetPanel, 'flex flex-col gap-4')}

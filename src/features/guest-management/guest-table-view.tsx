@@ -35,7 +35,7 @@ export function GuestTableView({
   onToggleStatus,
 }: GuestTableViewProps) {
   return (
-    <div className={`${cx.tableWrap} max-md:hidden`}>
+    <div className={`${cx.tableWrap} max-md:hidden`} data-wide>
       <table className={cx.table}>
         <thead>
           <tr>

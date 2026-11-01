@@ -28,7 +28,6 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
 
   return (
     <div
-      data-ui-v3
       className={ix.root}
       onChangeCapture={() => {
         if (activeTab === 'design') setDesignDirty(true);

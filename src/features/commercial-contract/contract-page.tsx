@@ -38,11 +38,7 @@ const sectionCopy: Record<ContractSection, { title: string; description: string 
 
 export function ContractPage({ section = 'all' }: Readonly<{ section?: ContractSection }> = {}) {
   return (
-    <CouplePage
-      active="contract"
-      title={sectionCopy[section].title}
-      description={sectionCopy[section].description}
-    >
+    <CouplePage title={sectionCopy[section].title} description={sectionCopy[section].description}>
       {(proposal, reload) => (
         <ContractWorkspace
           key={proposal.bookingId}

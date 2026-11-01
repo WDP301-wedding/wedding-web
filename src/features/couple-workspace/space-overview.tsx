@@ -65,7 +65,7 @@ function OverviewContent() {
   const { proposal: offer } = proposal;
 
   return (
-    <div data-ui-v3 className="flex flex-col gap-6 lg:gap-7">
+    <div className="flex flex-col gap-6 lg:gap-7">
       <h1 className="sr-only">Tổng quan tiệc cưới</h1>
       {proposal.phase === 'CANCELLED' ? (
         <p className="rounded-lg bg-hy-error-bg px-4 py-3 text-sm text-hy-error" role="status">

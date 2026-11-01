@@ -169,7 +169,7 @@ export function CollaborationWorkspace({
   };
 
   return (
-    <div data-ui-v3 className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <a
         className="sr-only rounded-lg bg-card px-4 py-2 text-sm font-semibold text-primary focus:not-sr-only focus:self-start"
         href="#proposal-content"

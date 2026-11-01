@@ -35,7 +35,7 @@ export function ContractProgress({
     paid ? 'Đã xác nhận cọc' : 'Đặt cọc',
   ];
   return (
-    <nav data-ui-v3 aria-label="Tiến trình hợp đồng">
+    <nav aria-label="Tiến trình hợp đồng">
       <ol className={cx.progress}>
         {labels.map((label, index) => {
           const done = index < step || paid;

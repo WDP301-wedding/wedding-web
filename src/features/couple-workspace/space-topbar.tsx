@@ -45,10 +45,7 @@ export function SpaceTopbar({
   onSwitch: (bookingId: string) => void;
 }>) {
   return (
-    <header
-      data-ui-v3
-      className="sticky top-0 z-[100] flex min-h-16 items-center gap-3 border-b border-border bg-card px-4 py-2 sm:px-6 lg:px-10"
-    >
+    <header className="sticky top-0 z-[100] flex min-h-16 items-center gap-3 border-b border-border bg-card px-4 py-2 sm:px-6 lg:px-10">
       <Link className="lg:hidden" href={href(routes.space)} aria-label="Hỷ Yến — Tổng quan">
         <BrandMark compact />
       </Link>

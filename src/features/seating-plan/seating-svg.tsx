@@ -76,6 +76,7 @@ export function SeatingSvg({
 
       <svg
         ref={svgRef}
+        data-wide
         className={view.zoom > 1 ? `${sx.svg} ${sx.svgPannable}` : sx.svg}
         viewBox={zoomedViewBox(viewBoxOf(plan.renderSnapshot), view.zoom, view.x, view.y)}
         onPointerDown={startPan}
