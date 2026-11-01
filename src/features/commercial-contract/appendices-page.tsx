@@ -1,5 +1,8 @@
 'use client';
 
+import Link from 'next/link';
+
+import { routes, withBooking } from '../../routes';
 import { LiveUpdateNotice } from '../realtime/use-live-refresh';
 import { CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
 import { formatVnd, type Proposal } from '../couple-workspace/use-couple-workspace';
@@ -7,6 +10,7 @@ import { ContractLinesTable, LineSelector } from './contract-lines';
 import { Skeleton } from '../../design-system/skeleton';
 import { useAppendicesWorkspace } from './use-appendices-workspace';
 import { AppendixCurrentCard, AppendixHistoryCard } from './appendix-cards';
+import styles from './customer-selections.module.css';
 
 export function AppendicesPage() {
   return (
@@ -54,6 +58,24 @@ function AppendicesWorkspace({
     handleApproveAppendix,
   } = useAppendicesWorkspace(proposal, reloadBooking);
 
+  // Trạng thái nghiệp vụ, không phải lỗi: thử lại cũng không đổi nên chỉ báo lý do và lối đi tiếp.
+  if (loadError?.code === 'SETTLED_CONTRACT_REQUIRED')
+    return (
+      <aside className={styles.accessNotice} aria-label="Phụ lục chưa mở">
+        <p role="status">
+          Tiệc chưa có bản hợp đồng đặt cọc được xác nhận. Phụ lục chỉ lập được sau khi hai bên
+          duyệt hợp đồng và khoản cọc theo hợp đồng đó được ghi nhận.
+        </p>
+        <div className="cw-actions">
+          <Link
+            className="button button-secondary"
+            href={withBooking(routes.contract, proposal.bookingId)}
+          >
+            Xem hợp đồng
+          </Link>
+        </div>
+      </aside>
+    );
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
   if (!appendices) return <Skeleton label="Đang tải phụ lục…" />;
 
