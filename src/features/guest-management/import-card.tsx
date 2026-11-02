@@ -6,7 +6,7 @@ import { InlineError } from '../../design-system/inline-error';
 import { notify } from '../../design-system/toast';
 import { formatDateTime, useCommand } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestGroup, type ImportPreview } from './guest-api';
-import { csvTemplate, csvToImportRows, type ImportRow } from './guest-csv';
+import { createCsvTemplate, csvToImportRows, type ImportRow } from './guest-csv';
 import { cx } from '../commercial-contract/contract-classes';
 
 export function ImportCard({
@@ -36,8 +36,9 @@ export function ImportCard({
   const downloadTemplate = () => {
     let url: string | undefined;
     try {
+      const templateContent = createCsvTemplate(groups);
       url = URL.createObjectURL(
-        new Blob(['\uFEFF' + csvTemplate], { type: 'text/csv;charset=utf-8' }),
+        new Blob(['\uFEFF' + templateContent], { type: 'text/csv;charset=utf-8' }),
       );
       const link = document.createElement('a');
       link.href = url;
@@ -85,8 +86,9 @@ export function ImportCard({
       <p className={cx.note}>
         Cột bắt buộc: <code>ma</code> (mã riêng mỗi dòng, giữ nguyên khi nhập lại),{' '}
         <code>ho_ten</code>, <code>nhom</code> (đúng tên nhóm ở trên). Tùy chọn:{' '}
-        <code>so_dien_thoai</code>, <code>ghi_chu</code>. Tối đa 1.000 dòng mỗi lần; có lỗi ở bất kỳ
-        dòng nào thì không dòng nào được nhập.
+        <code>so_dien_thoai</code>, <code>ghi_chu</code>. Hỗ trợ file CSV ngăn cách bằng dấu phẩy
+        hoặc chấm phẩy (Excel). Tối đa 1.000 dòng mỗi lần; có lỗi ở bất kỳ dòng nào thì không
+        dòng nào được nhập.
       </p>
 
       <div className={`${cx.actions} gap-3`}>
