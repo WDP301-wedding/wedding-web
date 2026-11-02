@@ -142,8 +142,8 @@ export function useInvitationStudio({
         );
         if (first) {
           design.setTitle(first.title);
-          design.setBrideName(first.textFields.brideName ?? '');
-          design.setGroomName(first.textFields.groomName ?? '');
+          design.setBrideName(first.textFields.brideName || null);
+          design.setGroomName(first.textFields.groomName || null);
           design.setGreeting(first.textFields.greeting ?? '');
           design.setMessageText(first.textFields.message ?? '');
           design.setFooter(first.textFields.footer ?? '');

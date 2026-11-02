@@ -28,12 +28,15 @@ export function useInvitationDesign({
   const currentDesign = designs[0];
 
   const [title, setTitle] = useState(designs[0]?.title ?? 'Thiệp Cưới Hạnh Phúc');
-  const [brideName, setBrideName] = useState(
-    designs[0]?.textFields?.brideName || coupleNames?.brideName || '',
+  // null = hai bạn chưa nhập tên trên thiệp → dùng tên ở hồ sơ tiệc (có thể tải về sau khi Studio mở).
+  const [brideOverride, setBrideName] = useState<string | null>(
+    designs[0]?.textFields?.brideName || null,
   );
-  const [groomName, setGroomName] = useState(
-    designs[0]?.textFields?.groomName || coupleNames?.groomName || '',
+  const [groomOverride, setGroomName] = useState<string | null>(
+    designs[0]?.textFields?.groomName || null,
   );
+  const brideName = brideOverride ?? coupleNames?.brideName ?? '';
+  const groomName = groomOverride ?? coupleNames?.groomName ?? '';
   const [greeting, setGreeting] = useState(
     designs[0]?.textFields?.greeting ?? 'Trân trọng kính mời',
   );
