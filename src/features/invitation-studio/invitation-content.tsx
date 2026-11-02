@@ -8,16 +8,16 @@ export type InvitationEvent = Readonly<{
   startTime?: string;
 }>;
 export type InvitationText = Readonly<{
-  brideName?: string;
-  groomName?: string;
-  greeting?: string;
-  message?: string;
-  footer?: string;
+  brideName?: string | null;
+  groomName?: string | null;
+  greeting?: string | null;
+  message?: string | null;
+  footer?: string | null;
 }>;
 export type InvitationSection = Readonly<{
   kind: 'HERO' | 'MESSAGE' | 'EVENT' | 'TIMELINE' | 'SEATING' | 'FOOTER';
-  textKey: keyof InvitationText | null;
-  imageUrl: string | null;
+  textKey?: keyof InvitationText | null;
+  imageUrl?: string | null;
 }>;
 export type InvitationContent = Readonly<{
   title: string;
@@ -41,7 +41,7 @@ export function InvitationContents({
   recipientGreeting,
 }: Readonly<{ invitation: InvitationContent; apiBase: string; recipientGreeting?: string }>) {
   const { title, textFields: text, event, timeline, assets, theme } = invitation;
-  const currentTheme = theme || inferThemeFromContent(title, text.message);
+  const currentTheme = theme || inferThemeFromContent(title, text.message ?? undefined);
   const groomInitial = Array.from(text.groomName?.trim() || 'H')[0]?.toUpperCase() ?? 'H';
   const brideInitial = Array.from(text.brideName?.trim() || 'Y')[0]?.toUpperCase() ?? 'Y';
   const configured = invitation.sections ?? [];

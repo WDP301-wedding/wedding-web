@@ -50,7 +50,10 @@ export function useInvitationDesign({
       const saved = localStorage.getItem(`invitation-theme:${bookingId}`);
       if (saved) return saved as CardThemeId;
     }
-    return inferThemeFromContent(initialDesigns[0]?.title, initialDesigns[0]?.textFields?.message);
+    return inferThemeFromContent(
+      initialDesigns[0]?.title,
+      initialDesigns[0]?.textFields?.message ?? undefined,
+    );
   });
 
   const handleSetCardTheme = (theme: CardThemeId) => {

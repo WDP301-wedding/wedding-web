@@ -229,6 +229,10 @@ export class WebIdentitySession {
     }
   }
 
+  async getInvitationDetails(token: string): Promise<{ maskedEmail: string } | null> {
+    return this.api.getInvitationDetails ? await this.api.getInvitationDetails(token) : null;
+  }
+
   private handleDenial(error: unknown): void {
     if (error instanceof ApiClientError && error.status === 401) {
       this.clear();

@@ -29,6 +29,7 @@ export interface IdentityApi {
   acceptInvitation(this: void, token: string, password: string): Promise<IssuedSession>;
   createSession(this: void, email: string, password: string): Promise<IssuedSession>;
   getCurrentUser(this: void, accessToken: string): Promise<CurrentActor>;
+  getInvitationDetails?(this: void, token: string): Promise<{ maskedEmail: string } | null>;
   logout(this: void, accessToken: string): Promise<void>;
   refreshSession(this: void): Promise<SessionCredential>;
 }

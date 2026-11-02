@@ -74,11 +74,17 @@ export function IdentityExperience({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState<string | null>(null);
+  const [maskedEmail, setMaskedEmail] = useState<string | null>(null);
   const credentialSubmitted = useRef(false);
 
   useEffect(() => {
     let active = true;
     if (initialCredential !== null) {
+      if (initialCredential.kind === 'invitation') {
+        void session.getInvitationDetails(initialCredential.token).then((details) => {
+          if (active && details?.maskedEmail) setMaskedEmail(details.maskedEmail);
+        });
+      }
       queueMicrotask(() => {
         if (!active) return;
         setView(initialCredential.kind === 'invitation' ? 'invitation' : 'reset-request');
@@ -269,7 +275,11 @@ export function IdentityExperience({
         {view === 'invitation' ? (
           <AuthForm
             title="Hoàn tất lời mời của bạn"
-            description="Tài khoản mới sẽ dùng mật khẩu này. Nếu đã có tài khoản, hãy nhập mật khẩu hiện tại."
+            description={
+              maskedEmail
+                ? `Lời mời được gửi tới ${maskedEmail}. Tài khoản mới sẽ dùng mật khẩu này. Nếu đã có tài khoản, hãy nhập mật khẩu hiện tại.`
+                : 'Tài khoản mới sẽ dùng mật khẩu này. Nếu đã có tài khoản, hãy nhập mật khẩu hiện tại.'
+            }
             submitLabel="Xác nhận lời mời"
             pending={pending || credentialConsumed}
             onSubmit={handleInvitation}
