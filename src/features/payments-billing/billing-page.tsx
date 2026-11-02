@@ -10,6 +10,7 @@ import { CoupleWorkspaceContext, type Proposal } from '../couple-workspace/use-c
 import { createCoupleBillingGateway, type CoupleBillingGateway } from './billing-api';
 import { type createBillingIntents } from './billing-intents';
 import { CheckoutLinkPanel } from './checkout-link';
+import { notify } from '../../design-system/toast';
 import { BillingDepositSection } from './billing-deposit-section';
 import { BillingBalanceSection } from './billing-balance-section';
 import { BillingConfirmSection } from './billing-confirm-section';
@@ -162,6 +163,12 @@ export function CoupleBillingWorkspace({
     initialProposal,
   });
 
+  useEffect(() => {
+    if (error) {
+      notify.error(error);
+    }
+  }, [error]);
+
   const handleSelectBooking = (selectedId: string) => {
     identifierEditedRef.current = true;
     setBookingId(selectedId);
@@ -271,7 +278,12 @@ export function CoupleBillingWorkspace({
                   amountVnd: view.totals.outstandingVnd,
                 });
               }}
-              onRefreshLedger={() => void run(() => load(context.bookingId))}
+              onRefreshLedger={() =>
+                void run(async () => {
+                  await load(context.bookingId);
+                  notify.success('Đã làm mới dữ liệu sổ cái thanh toán.');
+                })
+              }
               onLoadMoreHistory={() => {
                 void run(async () => {
                   const value = await authorize((token) =>
@@ -330,7 +342,10 @@ export function CoupleBillingWorkspace({
                 if (context.accessLevel !== 'FULL' && value.purpose !== 'DEPOSIT')
                   throw new Error('Attempt mismatch');
                 await displayAttempt(context.bookingId, value);
-                if (completed(value)) await load(context.bookingId);
+                if (completed(value)) {
+                  notify.success('Giao dịch thanh toán đã hoàn tất thành công!');
+                  await load(context.bookingId);
+                }
               });
             }}
           />

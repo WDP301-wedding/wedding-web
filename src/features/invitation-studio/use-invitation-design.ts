@@ -26,6 +26,7 @@ export function useInvitationDesign({
 }: UseInvitationDesignOptions) {
   const [designs, setDesigns] = useState<readonly DesignView[]>(initialDesigns);
   const currentDesign = designs[0];
+  const [includesSeating, setIncludesSeating] = useState(designs[0]?.includesSeating ?? false);
 
   const [title, setTitle] = useState(designs[0]?.title ?? 'Thiệp Cưới Hạnh Phúc');
   // null = hai bạn chưa nhập tên trên thiệp → dùng tên ở hồ sơ tiệc (có thể tải về sau khi Studio mở).
@@ -99,8 +100,14 @@ export function useInvitationDesign({
     const newImageSections = derivedAssetIds
       .filter((id) => !sanitizedSections.some((section) => section.derivedAssetId === id))
       .map((id) => ({ kind: 'HERO' as const, textKey: null, derivedAssetId: id }));
-    const finalSections = [...sanitizedSections, ...newImageSections];
-    const signature = `${currentDesign?.designId ?? 'new'}:${currentDesign?.revisionNumber ?? 0}:${title}:${brideName}:${groomName}:${greeting}:${message}:${footer}:${derivedAssetIds.join(',')}`;
+    const finalSections = [
+      ...sanitizedSections.filter((section) => section.kind !== 'SEATING'),
+      ...newImageSections,
+      ...(includesSeating
+        ? [{ kind: 'SEATING' as const, textKey: null, derivedAssetId: null }]
+        : []),
+    ];
+    const signature = `${currentDesign?.designId ?? 'new'}:${currentDesign?.revisionNumber ?? 0}:${title}:${brideName}:${groomName}:${greeting}:${message}:${footer}:${derivedAssetIds.join(',')}:${includesSeating}`;
     const key = getOrGenerateKey(saveKeyRef, signature, 'save-design');
     try {
       if (currentDesign) {
@@ -122,7 +129,7 @@ export function useInvitationDesign({
               },
               sections: finalSections,
               derivedAssetIds,
-              includesSeating: currentDesign.includesSeating,
+              includesSeating,
             },
           },
           key,
@@ -138,9 +145,9 @@ export function useInvitationDesign({
           {
             title,
             textFields: { brideName, groomName, greeting, message, footer },
-            sections: newImageSections,
+            sections: finalSections,
             derivedAssetIds,
-            includesSeating: false,
+            includesSeating,
           },
           key,
         );
@@ -207,6 +214,8 @@ export function useInvitationDesign({
   };
 
   return {
+    includesSeating,
+    setIncludesSeating,
     designs,
     setDesigns,
     currentDesign,

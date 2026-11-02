@@ -1,3 +1,5 @@
+import { InvitationSeatingView } from './invitation-seating-view';
+import type { InvitationSeating } from './print-purchase-api';
 import Image from 'next/image';
 import { inferThemeFromContent } from './ai-invitation-generator';
 
@@ -21,6 +23,7 @@ export type InvitationSection = Readonly<{
 }>;
 export type InvitationContent = Readonly<{
   title: string;
+  seating?: InvitationSeating | null;
   textFields: InvitationText;
   event: InvitationEvent | null;
   timeline: readonly Readonly<{
@@ -169,7 +172,7 @@ export function InvitationContents({
                   </ol>
                 </>
               ) : null}
-              {section.kind === 'SEATING' && !section.imageUrl ? (
+              {section.kind === 'SEATING' && !section.imageUrl && !invitation.seating ? (
                 <p>
                   Sơ đồ bàn chưa có hình ảnh trong nội dung xuất bản này. Vui lòng liên hệ người tổ
                   chức để được hướng dẫn chỗ ngồi.
@@ -180,6 +183,7 @@ export function InvitationContents({
               ) : null}
             </section>
           ))}
+          {invitation.seating ? <InvitationSeatingView tables={invitation.seating} /> : null}
           {assets
             .filter((asset) => !assigned.has(asset.url))
             .map((asset) => photo(asset.url, asset.url))}

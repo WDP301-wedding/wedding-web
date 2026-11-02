@@ -1,4 +1,5 @@
 import { ApiClientError } from '../../lib/api/client';
+import { describeApiError } from '../../lib/api/api-errors';
 import { createExperienceGateway } from '../identity-access/experience-api';
 
 export type Authorize = <T>(operation: (accessToken: string) => Promise<T>) => Promise<T>;
@@ -85,7 +86,7 @@ export function errorMessage(caught: unknown): string {
     if (caught.message && !isRawOrEnglishMessage(caught.message)) {
       return caught.message;
     }
-    return 'Yêu cầu chưa hoàn tất. Vui lòng thử lại sau.';
+    return describeApiError(caught).message;
   }
   return caught instanceof Error
     ? 'Không thể đồng bộ hồ sơ. Vui lòng kiểm tra kết nối mạng và thử lại.'

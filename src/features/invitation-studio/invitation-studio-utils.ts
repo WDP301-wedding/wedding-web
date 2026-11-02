@@ -62,7 +62,16 @@ export function invitationErrorMessage(err: unknown, fallback: string): string {
     if (err.status === 404) return `Không tìm thấy tài nguyên yêu cầu trên máy chủ.${meta}`;
     return `${describeApiError(err).message}${meta}`;
   }
-  return err instanceof Error ? err.message : fallback;
+  if (err instanceof Error) {
+    if (
+      err.message &&
+      /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(err.message)
+    ) {
+      return err.message;
+    }
+    return fallback;
+  }
+  return fallback;
 }
 
 export function getApiBaseUrl(): string {

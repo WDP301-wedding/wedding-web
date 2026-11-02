@@ -3,7 +3,7 @@ import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import { InlineError } from '../../design-system/inline-error';
 import { formatVnd } from '../couple-workspace/use-couple-workspace';
 import { currentRevision, type ContractList } from './contract-api';
-import type { CustomerSelection } from './selection-wire';
+import type { CustomerSelection, SelectionResult } from './selection-wire';
 import { SelectionAccessNotice } from './selection-access-notice';
 import {
   ContractLinesTable,
@@ -18,12 +18,13 @@ import { cx } from './contract-classes';
 type Props = {
   contracts: ContractList;
   bookingId: string;
-  onChanged: () => void;
+  onChanged: (result?: SelectionResult) => void;
   onDirtyChange: (value: boolean) => void;
   onWritingChange: (value: boolean) => void;
 };
 export function CustomerSelections(props: Readonly<Props>) {
   const canEdit =
+    props.contracts.customerSelection?.status !== 'SUBMITTED' &&
     props.contracts.selectionAccess?.canEdit === true &&
     props.contracts.capabilities?.canEditSelections === true;
   const catalog = useSelectionCatalog(canEdit);
@@ -156,7 +157,25 @@ function SelectionEditor(
     bookingRevision: props.contracts.bookingRevision,
   });
   const { confirm, dialog } = useConfirmDialog();
-  const busy = state.command.pending || state.waitingRefresh || Boolean(state.blockedAccess);
+  const busy = state.command.pending || Boolean(state.blockedAccess);
+  const saveDisabledReason = busy
+    ? state.command.pending
+      ? 'Đang xử lý yêu cầu. Vui lòng chờ hoàn tất.'
+      : 'Quyền chỉnh sửa đã thay đổi. Xem hướng dẫn cập nhật hồ sơ ở trên.'
+    : (state.validationMessage ??
+      (!state.dirty && props.selection.status === 'DRAFT'
+        ? 'Bản nháp đã lưu, chưa có thay đổi mới.'
+        : null));
+  const submitDisabledReason = busy
+    ? saveDisabledReason
+    : (state.validationMessage ??
+      (state.dirty || props.selection.status !== 'DRAFT'
+        ? 'Nhấn “Lưu nháp” trước. Sau khi lưu thành công, bạn có thể gửi lựa chọn cho nhà hàng.'
+        : state.previewError
+          ? 'Chưa xác nhận được giá cho bản nháp. Hãy thử tính giá lại.'
+          : !state.priced || state.previewPending
+            ? 'Đang xác nhận giá bản nháp trên máy chủ.'
+            : null));
   return (
     <>
       <ContractLinesTable
@@ -215,8 +234,12 @@ function SelectionEditor(
             disabled={busy}
             onClick={state.reloadCatalog}
           >
-            Cập nhật danh mục đang bán
+            Tải lại thực đơn & dịch vụ
           </button>
+          <p className={cx.note}>
+            Tải lại để xem hạng mục và giá mới nhất. Thao tác này giữ các lựa chọn đang nhập và
+            không tự lưu hay gửi nhà hàng.
+          </p>
           {state.missing.map((line) => (
             <p className={cx.alert} key={selectionKey(line)}>
               Hạng mục{' '}
@@ -318,13 +341,8 @@ function SelectionEditor(
             <button
               className={cx.buttonOutline}
               type="button"
-              disabled={
-                busy ||
-                state.invalid ||
-                !state.priced ||
-                state.previewPending ||
-                (!state.dirty && props.selection.status === 'DRAFT')
-              }
+              disabled={saveDisabledReason !== null}
+              aria-describedby="selection-save-status"
               onClick={() => void state.save()}
             >
               Lưu nháp
@@ -332,14 +350,8 @@ function SelectionEditor(
             <button
               className={cx.button}
               type="button"
-              disabled={
-                busy ||
-                state.dirty ||
-                props.selection.status !== 'DRAFT' ||
-                state.invalid ||
-                !state.priced ||
-                state.previewPending
-              }
+              disabled={submitDisabledReason !== null}
+              aria-describedby="selection-submit-status"
               onClick={() =>
                 void (async () => {
                   if (
@@ -357,13 +369,20 @@ function SelectionEditor(
               Gửi lựa chọn cho nhà hàng
             </button>
           </div>
+          <p id="selection-save-status" className={cx.note} role="status">
+            {saveDisabledReason ??
+              'Có thể lưu nháp. Máy chủ sẽ kiểm tra hạng mục và tính giá khi lưu.'}
+          </p>
+          <p id="selection-submit-status" className={cx.note} role="status">
+            {submitDisabledReason ?? 'Bản nháp đã lưu, sẵn sàng gửi cho nhà hàng.'}
+          </p>
           <p className={cx.note}>
             Lưu nháp để chọn tiếp bất cứ lúc nào. Chỉ “Gửi lựa chọn cho nhà hàng” mới khóa chỉnh sửa
             phía bạn.
           </p>
         </>
       ) : (
-        <p role="status">Đang tải danh mục thực đơn, dịch vụ và thiệp in…</p>
+        <p role="status">Đang tải thực đơn và dịch vụ…</p>
       )}
       {dialog}
     </>

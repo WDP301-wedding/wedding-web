@@ -119,7 +119,9 @@ export function useInvitationPrint({
       );
       setOrders((orders ?? []).map((o) => (o.orderId === order.orderId ? updated : o)));
       approveKeyRef.current = null;
-      notify.success('Đã duyệt báo giá in thiệp thành công! Đơn hàng bắt đầu sản xuất.');
+      notify.success(
+        'Đã duyệt báo giá in thiệp thành công! Đơn đang chờ nhà hàng bắt đầu sản xuất.',
+      );
     } catch (err: unknown) {
       notify.error(invitationErrorMessage(err, 'Không thể duyệt báo giá.'));
     } finally {
@@ -178,16 +180,41 @@ export function useInvitationPrint({
             );
             if (!isCurrent()) return;
             const previous = printSources[printSourceIndex]?.offeringId;
-            setPrintSources(sources);
+            const remaining = sources
+              .map((source) => ({
+                ...source,
+                quantity: Math.max(
+                  0,
+                  source.quantity -
+                    loaded
+                      .filter((order) =>
+                        ['APPROVED', 'IN_PRODUCTION', 'READY_FOR_HANDOVER', 'HANDED_OVER'].includes(
+                          order.status,
+                        ),
+                      )
+                      .flatMap((order) => order.lines)
+                      .reduce(
+                        (sum, line) =>
+                          sum +
+                          (line.commercialSource?.offeringId === source.offeringId
+                            ? line.quantity
+                            : 0),
+                        0,
+                      ),
+                ),
+              }))
+              .filter((source) => source.quantity > 0);
+            setPrintSources(remaining);
             setPrintSourcesError(null);
             setSourcesReady(true);
             setPrintSourceIndex(
               Math.max(
                 0,
-                sources.findIndex((source) => source.offeringId === previous),
+                remaining.findIndex((source) => source.offeringId === previous),
               ),
             );
-            if (!printSourcesLoaded.current && sources[0]) setPrintQuantity(sources[0].quantity);
+            if (!printSourcesLoaded.current && remaining[0])
+              setPrintQuantity(remaining[0].quantity);
             printSourcesLoaded.current = true;
           } catch (error) {
             if (isCurrent()) {
@@ -213,6 +240,7 @@ export function useInvitationPrint({
 
   return {
     orders,
+    setOrders,
     ordersError,
     printQuantity,
     setPrintQuantity,

@@ -1,6 +1,8 @@
 'use client';
+import { routes, withBooking } from '../../routes';
 
 import React from 'react';
+import Link from 'next/link';
 import { formatDateTime, formatVnd } from '../couple-workspace/use-couple-workspace';
 import { ContractLinesTable } from './contract-lines';
 import { appendixStateLabels, type Appendix, type AppendixList } from './appendix-api';
@@ -55,8 +57,17 @@ export function AppendixCurrentCard({
         · Nhà hàng duyệt: {current.approvals.some((a) => a.party === 'MANAGER') ? 'rồi' : 'chưa'} ·
         Hai bạn duyệt: {current.approvals.some((a) => a.party === 'COUPLE') ? 'rồi' : 'chưa'}
       </p>
+      {current.printOrderId ? (
+        <p className={cx.note}>
+          Phụ lục này gắn với đơn in. Xác nhận của hai bạn đã được lưu khi đặt in; nhà hàng duyệt
+          cùng đơn.{' '}
+          <Link href={withBooking(routes.card + '?tab=print', current.document.bookingId)}>
+            Theo dõi tại Thiệp & in
+          </Link>
+        </p>
+      ) : null}
       <div className={cx.actions}>
-        {current.state === 'DRAFT' && !isClosed ? (
+        {!current.printOrderId && current.state === 'DRAFT' && !isClosed ? (
           <button
             className={cx.button}
             type="button"
@@ -66,7 +77,8 @@ export function AppendixCurrentCard({
             Gửi duyệt
           </button>
         ) : null}
-        {current.state === 'AWAITING_APPROVAL' &&
+        {!current.printOrderId &&
+        current.state === 'AWAITING_APPROVAL' &&
         !isClosed &&
         !current.approvals.some((a) => a.party === 'COUPLE') ? (
           <button

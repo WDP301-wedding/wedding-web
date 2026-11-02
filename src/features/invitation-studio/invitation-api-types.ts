@@ -1,9 +1,9 @@
+import type { PurchaseOrder } from './print-purchase-api';
 import type { operations } from '../../lib/api/generated/schema';
 
 export type DesignView =
   operations['getWeddingInvitation']['responses'][200]['content']['application/json']['data'];
-export type PrintOrderView =
-  operations['getPrintOrder']['responses'][200]['content']['application/json']['data'];
+export type PrintOrderView = PurchaseOrder;
 export type PublicInvitationView =
   operations['getPublicInvitation']['responses'][200]['content']['application/json']['data'];
 export type TemplateItemView =

@@ -56,6 +56,30 @@ export function StudioDesignForm({
         />
       </div>
 
+      <fieldset disabled={saving}>
+        <label>
+          <input
+            type="checkbox"
+            checked={studio.includesSeating}
+            onChange={(e) => {
+              studio.setIncludesSeating(e.target.checked);
+              studio.setDesignDirty(true);
+            }}
+          />{' '}
+          Kèm sơ đồ bàn đã xác nhận vào thiệp và bản in
+        </label>
+        <p className={ix.hint}>
+          Chỉ hiển thị vị trí bàn và nhóm, không công khai danh sách hay thông tin liên hệ khách.
+        </p>
+        {studio.includesSeating && studio.seating.error ? (
+          <div role="alert">
+            <p>{studio.seating.error}</p>
+            <button type="button" onClick={() => void studio.seating.refresh()}>
+              Tải lại sơ đồ
+            </button>
+          </div>
+        ) : null}
+      </fieldset>
       <div className={ix.fieldRow}>
         <div>
           <label htmlFor="groom-name" className={ix.label}>

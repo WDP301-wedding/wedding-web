@@ -143,7 +143,7 @@ export function useCommand({
       } catch (caught) {
         const friendly = describeApiError(caught, overrides);
         setError(friendly);
-        if (presentation.current === 'toast') notify.error(friendly.message, friendly.requestId);
+        notify.error(friendly.message, friendly.requestId);
         onError?.(friendly);
         return undefined;
       } finally {

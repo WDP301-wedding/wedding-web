@@ -13,6 +13,7 @@ import { cn } from 'cn';
 import { Badge } from '../../components/ui/badge';
 import { Button, buttonVariants } from '../../components/ui/button';
 import { alert, choice, control, field, fieldHint } from './public-classes';
+import { notify } from '../../design-system/toast';
 
 const textField = cn(field, 'min-w-0');
 
@@ -143,7 +144,9 @@ export function ConsultationForm({
         .join('\n\n'),
     };
     if (fields.preferredDate !== null && fields.preferredDate < minimumPreferredDate()) {
-      setError('Ngày tổ chức dự kiến phải từ ngày mốt trở đi (theo giờ Việt Nam).');
+      const err = 'Ngày tổ chức dự kiến phải từ ngày mốt trở đi (theo giờ Việt Nam).';
+      setError(err);
+      notify.error(err);
       return;
     }
     const hash = JSON.stringify(fields);
@@ -153,17 +156,19 @@ export function ConsultationForm({
     try {
       await submit({ ...fields, submissionId: intent.current.id });
       setState('success');
+      notify.success('Cảm ơn bạn đã gửi yêu cầu tư vấn! Nhà hàng sẽ liên hệ sớm nhất.');
       onSent?.();
     } catch (caught) {
       setState('idle');
-      setError(
+      const errMsg =
         caught instanceof ApiClientError &&
-          ['CONSULTATION_HALL_UNAVAILABLE', 'CONSULTATION_MENU_UNAVAILABLE'].includes(caught.code)
+        ['CONSULTATION_HALL_UNAVAILABLE', 'CONSULTATION_MENU_UNAVAILABLE'].includes(caught.code)
           ? 'Sảnh hoặc thực đơn vừa ngừng phục vụ. Vui lòng đổi lựa chọn rồi gửi lại.'
           : caught instanceof ApiClientError && caught.status === 429
             ? 'Bạn đã gửi nhiều yêu cầu. Vui lòng chờ hoặc liên hệ nhà hàng.'
-            : 'Chưa gửi được yêu cầu. Nội dung của bạn vẫn được giữ lại; hãy thử lại.',
-      );
+            : 'Chưa gửi được yêu cầu. Nội dung của bạn vẫn được giữ lại; hãy thử lại.';
+      setError(errMsg);
+      notify.error(errMsg);
     }
   }
   if (state === 'success')

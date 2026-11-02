@@ -12,6 +12,8 @@ import { invitationErrorMessage } from './invitation-studio-utils';
 import { useInvitationDesign } from './use-invitation-design';
 import { useInvitationMedia } from './use-invitation-media';
 import { useInvitationPublish } from './use-invitation-publish';
+import { useInvitationSeating } from './use-invitation-seating';
+import { usePrintPurchase } from './use-print-purchase';
 import { useInvitationPrint } from './use-invitation-print';
 
 export interface UseInvitationStudioOptions {
@@ -119,6 +121,20 @@ export function useInvitationStudio({
     confirm,
   });
 
+  const seating = useInvitationSeating(bookingId, design.includesSeating);
+  const purchase = usePrintPurchase(
+    bookingId,
+    design.currentDesign,
+    printVisited,
+    design.designDirty || writing,
+    confirm,
+    (order) =>
+      print.setOrders((orders) => [
+        order,
+        ...(orders ?? []).filter((item) => item.orderId !== order.orderId),
+      ]),
+  );
+
   // View modes
   const [mobileViewMode, setMobileViewMode] = useState<'editor' | 'preview'>('editor');
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'desktop'>('mobile');
@@ -142,6 +158,7 @@ export function useInvitationStudio({
         );
         if (first) {
           design.setTitle(first.title);
+          design.setIncludesSeating(first.includesSeating);
           design.setBrideName(first.textFields.brideName || null);
           design.setGroomName(first.textFields.groomName || null);
           design.setGreeting(first.textFields.greeting ?? '');
@@ -177,6 +194,8 @@ export function useInvitationStudio({
     ...publish,
     // Print
     ...print,
+    purchase,
+    seating,
     // UI view modes
     mobileViewMode,
     setMobileViewMode,
@@ -187,6 +206,7 @@ export function useInvitationStudio({
       writing ||
       publish.isPublishing ||
       print.isOrdering ||
+      purchase.busy ||
       print.approvingOrderId !== null ||
       print.cancellingOrderId !== null,
     designLive,

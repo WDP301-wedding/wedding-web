@@ -30,7 +30,7 @@ export function AccountSettings({
   const [error, setError] = useState<string | null>(null);
   // Thành công → toast; lỗi (OTP sai, phải chờ, mật khẩu chưa khớp) giữ inline cạnh form vì
   // người dùng cần đọc trong lúc sửa, không được tự biến mất.
-  useToastFeedback(notice, null);
+  useToastFeedback(notice, error);
   const [reload, setReload] = useState(0);
   const [challenge, setChallenge] = useState<OtpChallenge | null>(null);
   const [remaining, setRemaining] = useState(0);

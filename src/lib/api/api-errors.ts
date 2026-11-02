@@ -8,6 +8,22 @@ import { ApiClientError } from './client';
  * để khi báo lỗi cho nhóm backend, họ tra log được ngay.
  */
 const codeMessages: Record<string, string> = {
+  PRINT_CONTRACT_COPIES_AVAILABLE:
+    'Hợp đồng đã có số thiệp chưa in với quy cách này. Hãy dùng phần in theo hợp đồng bên dưới để tránh trả tiền lần hai.',
+  PRINT_PRICE_INVALID: 'Quy cách in chưa có giá hợp lệ. Vui lòng liên hệ nhà hàng.',
+  PRINT_POST_DEPOSIT_ONLY:
+    'Thiệp in được đặt riêng sau đặt cọc. Hãy bỏ hạng mục in khỏi lựa chọn hợp đồng ban đầu.',
+  PRINT_APPENDIX_PENDING:
+    'Tiệc đang có phụ lục chờ xử lý. Hãy hoàn tất hoặc rút yêu cầu đang chờ rồi xem lại giá in.',
+  PRINT_PURCHASE_USE_APPROVAL:
+    'Đơn này đã có xác nhận chi phí. Nhà hàng cần duyệt đơn và phụ lục cùng nhau.',
+  PRINTABLE_SEATING_REQUIRES_REVIEW:
+    'Sơ đồ bàn chưa được xác nhận hoặc cần kiểm tra lại. Hãy hoàn tất sơ đồ ở Khách & sơ đồ.',
+  PRINT_QUOTE_STALE: 'Nội dung hoặc giá đã thay đổi. Hãy xem lại bản in và giá trước khi xác nhận.',
+  PRINT_QUOTE_EXPIRED: 'Giá in đã hết hiệu lực. Hãy lấy bản xem trước và giá mới.',
+  CONTRACT_PRINT_TEMPLATE_CONFLICT:
+    'Quy cách in không phù hợp với mẫu thiệp đã lưu. Hãy chọn quy cách tương ứng.',
+  SETTLED_CONTRACT_REQUIRED: 'Đặt in theo phụ lục yêu cầu hợp đồng đã duyệt và đặt cọc thành công.',
   LEGACY_COMMERCIAL_CONVERSION_BLOCKED:
     'Tiệc theo thỏa thuận cũ đã có chứng từ hoặc giao dịch cọc. Nhà hàng cần đối soát trước khi thay đổi mô hình hợp đồng.',
   FINANCIAL_REVIEW_REQUIRED:
@@ -28,17 +44,49 @@ const codeMessages: Record<string, string> = {
   CONTRACT_APPROVED:
     'Nội dung đã được chốt theo tiến trình tiệc. Xem hợp đồng hoặc liên hệ nhà hàng.',
 
+  // Tư vấn & Đặt tiệc
+  CONSULTATION_REQUEST_NOT_FOUND: 'Không tìm thấy yêu cầu tư vấn.',
+  CONSULTATION_REQUEST_NOT_OPEN: 'Yêu cầu tư vấn đã đóng hoặc đã được xử lý.',
+  CONSULTATION_ALREADY_EXISTS: 'Yêu cầu tư vấn đã tồn tại.',
+  CONSULTATION_ALREADY_CONVERTED: 'Yêu cầu tư vấn này đã được chuyển thành booking trước đó.',
+  CONSULTATION_HALL_UNAVAILABLE: 'Sảnh tiệc vừa ngừng phục vụ hoặc đã kín lịch. Vui lòng đổi lựa chọn khác.',
+  CONSULTATION_MENU_UNAVAILABLE: 'Gói thực đơn vừa ngừng phục vụ. Vui lòng đổi lựa chọn khác.',
+  BOOKING_NOT_FOUND: 'Không tìm thấy hồ sơ đặt tiệc.',
+  BOOKING_SLOT_UNAVAILABLE: 'Sảnh và ca này đã có tiệc xác nhận hoặc đang được giữ chỗ.',
+  SLOT_UNAVAILABLE: 'Khung giờ này đã kín lịch. Vui lòng chọn ngày, ca hoặc sảnh khác.',
+  SLOT_NOT_AVAILABLE: 'Khung giờ này không khả dụng. Vui lòng chọn ngày hoặc ca khác.',
+  BOOKING_CANCELLED: 'Tiệc này đã bị huỷ.',
+  BOOKING_COMPLETED: 'Tiệc này đã hoàn tất tổ chức và quyết toán.',
+  BOOKING_NOT_PAYABLE: 'Hồ sơ tiệc chưa đủ điều kiện thanh toán hoặc đã hoàn tất quyết toán.',
+  INVALID_BOOKING_TRANSITION: 'Không thể chuyển trạng thái hồ sơ tiệc theo yêu cầu.',
+  STALE_BOOKING_REVISION: 'Hồ sơ tiệc vừa được cập nhật ở nơi khác. Vui lòng tải lại.',
+  STALE_CONSULTATION_REVISION: 'Hồ sơ tư vấn vừa được cập nhật ở nơi khác. Vui lòng tải lại.',
+
   CUSTOMER_SELECTION_REQUIRED: 'Cần khách lưu và gửi lựa chọn trước khi lập hợp đồng.',
   CUSTOMER_SELECTION_LOCKED:
     'Lựa chọn đã gửi hoặc hợp đồng đã được nhà hàng soạn. Bạn không thể tự sửa; vui lòng liên hệ nhà hàng.',
   TIMELINE_APPROVAL_WITHDRAWAL_REQUIRED:
     'Kịch bản đã được hai bên duyệt. Rút phê duyệt trước khi chuẩn bị phiên bản mới.',
+  TIMELINE_APPROVAL_REQUIRES_ITEM: 'Hãy thêm và lưu ít nhất một mốc trước khi phê duyệt kịch bản.',
+  TIMELINE_WITHDRAWAL_NOT_ALLOWED: 'Không thể rút phê duyệt kịch bản ở giai đoạn hiện tại.',
+  TIMELINE_REVISION_SUPERSEDED: 'Kịch bản đã có phiên bản mới hơn. Vui lòng tải lại.',
+  TIMELINE_ITEM_COUNT_INVALID: 'Kịch bản chỉ hỗ trợ tối đa 100 mốc thời gian.',
+  TIMELINE_ITEM_TEXT_INVALID: 'Nội dung mốc thời gian phải từ 1–120 ký tự.',
+  TIMELINE_ITEM_TIME_INVALID: 'Giờ bắt đầu mỗi mốc không hợp lệ theo khung giờ của tiệc.',
+  TIMELINE_TIME_OUT_OF_RANGE: 'Giờ bắt đầu mỗi mốc phải nằm trong khung giờ của tiệc.',
+  TIMELINE_ORDER_INVALID: 'Thứ tự các mốc thời gian không hợp lệ. Vui lòng kiểm tra lại.',
   // Chung
   AUTHENTICATION_REQUIRED: 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.',
+  SESSION_EXPIRED: 'Phiên làm việc đã hết hạn. Hãy đăng nhập lại.',
   IDEMPOTENCY_KEY_REUSED:
     'Yêu cầu bị trùng với một thao tác trước có nội dung khác. Hãy tải lại trang.',
   REQUEST_IN_PROGRESS: 'Yêu cầu trước đang được xử lý. Hãy đợi vài giây rồi thử lại.',
   VALIDATION_FAILED: 'Dữ liệu chưa hợp lệ. Hãy kiểm tra lại các trường.',
+  VALIDATION_ERROR: 'Dữ liệu chưa hợp lệ. Hãy kiểm tra lại các trường.',
+  MALFORMED_JSON: 'Dữ liệu gửi lên không đúng định dạng.',
+  PAYLOAD_TOO_LARGE: 'Tệp tải lên vượt quá dung lượng cho phép.',
+  SERVICE_UNAVAILABLE: 'Dịch vụ tạm thời bận hoặc bảo trì. Vui lòng thử lại sau.',
+  INTERNAL_ERROR: 'Máy chủ gặp sự cố xử lý. Vui lòng thử lại sau ít phút.',
   // Hợp đồng & cọc
   COUPLE_NAMES_INCOMPLETE: 'Cần nhập đủ tên cô dâu và chú rể trước khi gửi duyệt hợp đồng.',
   COMMERCIAL_PRICE_REVISION_STALE:
@@ -64,12 +112,41 @@ const codeMessages: Record<string, string> = {
   // Hoá đơn & Thoả thuận thương mại
   EVENT_NOT_ENDED: 'Tiệc chưa kết thúc.',
   INVOICE_FINALIZED: 'Hoá đơn quyết toán đã được chốt. Không thể thay đổi thoả thuận.',
+  INVOICE_FINALIZATION_REQUIRED: 'Cần chốt hoá đơn quyết toán trước khi hoàn tất thủ tục.',
+  INVOICE_NOT_ELIGIBLE: 'Hồ sơ tiệc chưa đủ điều kiện lập hoá đơn quyết toán.',
+  BALANCE_NOT_ELIGIBLE: 'Chưa đủ điều kiện thanh toán số dư còn lại.',
+  BILLING_RECORD_NOT_FOUND: 'Không tìm thấy hồ sơ thanh toán.',
+  BILLING_ACCESS_DENIED: 'Phiên đăng nhập hoặc quyền xem hồ sơ không còn hợp lệ.',
+  BILLING_REFUND_LIMIT_EXCEEDED: 'Khoản hoàn vượt hạn mức đã duyệt hoặc số tiền còn được hoàn.',
+  BILLING_REFUND_APPROVAL_REQUIRED: 'Yêu cầu hoàn tiền cần có sự phê duyệt trước.',
+  BILLING_REFUND_NOT_APPROVED: 'Chưa có quyết định hoàn tiền hợp lệ cho khoản thanh toán này.',
+  BILLING_BALANCE_LIMIT_EXCEEDED: 'Số tiền giao dịch vượt quá hạn mức thanh toán.',
+  BILLING_AMOUNT_INVALID: 'Số tiền thanh toán không hợp lệ.',
+  BILLING_TOTAL_OVERFLOW: 'Tổng số tiền thanh toán vượt quá giới hạn hệ thống.',
+  BILLING_LEDGER_INCONSISTENT: 'Sổ cái thanh toán chưa nhất quán. Vui lòng đối soát lại.',
+  DEPOSIT_NOT_ELIGIBLE: 'Hồ sơ chưa đủ điều kiện nhận cọc. Hãy kiểm tra lịch giữ chỗ và kịch bản đã duyệt.',
+  DEPOSIT_NOT_SETTLED: 'Tiền cọc chưa được xác nhận hoàn tất.',
+  PAYMENT_EVIDENCE_CONFLICT: 'Số tiền hoặc chứng từ không khớp với thỏa thuận cọc của hồ sơ tiệc.',
+  REFUND_NOT_ALLOWED: 'Khoản thanh toán này không đủ điều kiện hoàn trả hoặc vượt hạn mức.',
+  INCIDENTAL_EXPENSE_NOT_FOUND: 'Không tìm thấy dòng chi phí phát sinh này.',
+  FINAL_INVOICE_EXISTS: 'Tiệc đã có hoá đơn quyết toán được lập.',
+  FINAL_INVOICE_NOT_FOUND: 'Chưa có hoá đơn cuối cho tiệc này.',
   STALE_BILLING_REVISION: 'Số dư vừa thay đổi. Hãy tải lại trước khi thanh toán.',
   APPENDIX_NOT_EDITABLE: 'Tiệc đã ở giai đoạn kết thúc hoặc tất toán. Không thể lập thêm phụ lục.',
-  SETTLED_CONTRACT_REQUIRED: 'Tiệc chưa có bản hợp đồng đặt cọc được xác nhận.',
   FINANCIAL_SOURCE_CONFLICT: 'Hồ sơ thương mại đã được cố định theo chứng từ kế toán.',
   APPENDIX_APPROVAL_REQUIRED: 'Phụ lục trước đó cần được hai bên phê duyệt đầy đủ.',
   COMMERCIAL_SELECTION_INVALID: 'Danh mục dịch vụ trong thoả thuận không hợp lệ.',
+  // Đơn in ấn & Thiệp
+  PRINT_ORDER_NOT_FOUND: 'Không tìm thấy đơn in thiệp trong hệ thống.',
+  PRINT_ORDER_STATUS_INVALID: 'Trạng thái đơn in hiện tại không cho phép thực hiện thao tác này.',
+  PRINT_ORDER_REVISION_STALE: 'Đơn in vừa được cập nhật ở nơi khác. Vui lòng tải lại danh sách.',
+  INVITATION_PUBLICATION_STALE: 'Bản phát hành thiệp đã thay đổi. Vui lòng tải lại trang.',
+  // Sảnh & Catalog
+  HALL_NOT_FOUND: 'Không tìm thấy sảnh tiệc.',
+  DISH_NOT_FOUND: 'Không tìm thấy món ăn.',
+  MENU_PACKAGE_NOT_FOUND: 'Không tìm thấy gói thực đơn.',
+  LAYOUT_TEMPLATE_NOT_FOUND: 'Không tìm thấy mẫu sơ đồ bàn.',
+  CATALOG_HALL_CAPACITY_CONFLICT: 'Sức chứa sảnh tiệc không hợp lệ hoặc xung đột với cấu hình hiện tại.',
   // Khách & sơ đồ
   GUEST_GROUP_IN_USE: 'Nhóm còn khách đang hoạt động. Hãy chuyển hoặc lưu trữ các khách đó trước.',
   // Các mã dưới đây trước đây rơi về câu chung "Dữ liệu vừa thay đổi. Hãy tải lại" — sai hướng
@@ -117,8 +194,6 @@ const codeMessages: Record<string, string> = {
     'Bản thiết kế vừa thay đổi trong lúc tạo file in. Hãy tạo lại file in.',
   PRINTABLE_SEATING_DIGEST_CONFLICT:
     'Sơ đồ bàn đã có bản xác nhận mới hơn. Hãy tải lại rồi tạo file in theo bản mới.',
-  CONTRACT_PRINT_TEMPLATE_CONFLICT:
-    'Thiết kế thiệp hiện tại chưa dùng đúng mẫu in trong hợp đồng nên chưa gửi yêu cầu in được. Hãy liên hệ nhà hàng để được hỗ trợ.',
   CONTRACT_PRINT_SOURCE_CONFLICT:
     'Mẫu/giá in không còn khớp với hợp đồng. Hãy tải lại và chọn đúng mẫu in trong hợp đồng.',
   // Thông báo
@@ -158,15 +233,18 @@ export function describeApiError(
     error = error.cause;
   }
   if (!(error instanceof ApiClientError)) {
+    const rawMsg = error instanceof Error ? error.message : '';
+    const hasVi =
+      rawMsg && /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(rawMsg);
     return {
       message:
         error instanceof Error &&
         !(error instanceof TypeError) &&
         !(error instanceof SyntaxError) &&
         error.name !== 'ZodError' &&
-        error.message
+        hasVi
           ? error.message
-          : 'Đã có lỗi không mong muốn. Hãy thử lại.',
+          : 'Không thể kết nối máy chủ. Vui lòng kiểm tra lại đường truyền internet và thử lại.',
       requestId: null,
       code: null,
     };
@@ -193,9 +271,13 @@ export function describeApiError(
       code: error.code,
     };
   }
+  const isVietnamese =
+    typeof error.message === 'string' &&
+    /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(error.message);
   const message =
     overrides[error.code] ??
     codeMessages[error.code] ??
+    (isVietnamese ? error.message : undefined) ??
     (error.status !== undefined ? statusMessages[error.status] : undefined) ??
     'Máy chủ từ chối yêu cầu.';
   // Lỗi 422 có danh sách lỗi theo trường: nối vào để người dùng biết sửa ở đâu.

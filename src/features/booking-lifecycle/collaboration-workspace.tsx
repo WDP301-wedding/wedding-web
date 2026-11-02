@@ -51,7 +51,7 @@ export function CollaborationWorkspace({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useToastFeedback(message, null);
+  useToastFeedback(message, error);
   const [availableBookings, setAvailableBookings] = useState<readonly BookingChoice[] | null>(null);
   const requestedRef = useRef(embedded);
   const activeRequestIdRef = useRef<string | null>(null);

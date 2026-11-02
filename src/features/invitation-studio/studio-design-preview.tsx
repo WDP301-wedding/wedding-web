@@ -54,6 +54,7 @@ export function StudioDesignPreview({
       })),
       assets: studioAssets,
       theme: studio.cardTheme,
+      seating: studio.includesSeating ? studio.seating.tables : null,
     }),
     [
       title,
@@ -68,6 +69,8 @@ export function StudioDesignPreview({
       assetPreviewMap,
       studioAssets,
       studio.cardTheme,
+      studio.includesSeating,
+      studio.seating.tables,
     ],
   );
 

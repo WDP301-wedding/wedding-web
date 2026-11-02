@@ -2,8 +2,11 @@ import type { ApiBody, ApiData } from '../../lib/api/types';
 import { bearer, coupleApi, unwrap } from '../couple-workspace/use-couple-workspace';
 import type { ContractLine, ContractList } from './contract-api';
 
-export type AppendixList = ApiData<'/bookings/{bookingId}/contract-appendices', 'get'>;
-export type Appendix = AppendixList['revisions'][number];
+type LegacyAppendixList = ApiData<'/bookings/{bookingId}/contract-appendices', 'get'>;
+export type Appendix = LegacyAppendixList['revisions'][number] & { readonly printOrderId?: string };
+export type AppendixList = Omit<LegacyAppendixList, 'revisions'> & {
+  readonly revisions: readonly Appendix[];
+};
 export type AppendixResult = ApiData<'/bookings/{bookingId}/contract-appendices', 'post'>;
 
 const idem = (key: string) => ({ 'Idempotency-Key': key });

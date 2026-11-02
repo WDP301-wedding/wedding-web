@@ -29,7 +29,7 @@ export async function loadSelectionChoices(
 ): Promise<SelectionChoice[]> {
   const client = coupleApi();
   const query = (cursor?: string) => ({ limit: 50, ...(cursor ? { cursor } : {}) });
-  const [menus, services, prints] = await Promise.all([
+  const [menus, services] = await Promise.all([
     all<Catalog['menus'][number]>(async (cursor) =>
       unwrap<ApiData<'/catalog/menu-packages', 'get'>>(
         await client.GET('/catalog/menu-packages', {
@@ -42,15 +42,6 @@ export async function loadSelectionChoices(
     all<Catalog['services'][number]>(async (cursor) =>
       unwrap<ApiData<'/catalog/services', 'get'>>(
         await client.GET('/catalog/services', {
-          headers: bearer(token),
-          ...(signal ? { signal } : {}),
-          params: { query: query(cursor) },
-        }),
-      ),
-    ),
-    all<Catalog['prints'][number]>(async (cursor) =>
-      unwrap<ApiData<'/catalog/print-offerings', 'get'>>(
-        await client.GET('/catalog/print-offerings', {
           headers: bearer(token),
           ...(signal ? { signal } : {}),
           params: { query: query(cursor) },
@@ -79,18 +70,6 @@ export async function loadSelectionChoices(
         description: s.description,
         unit: s.unit,
         unitPriceVnd: s.unitPriceVnd,
-        quantity: 0,
-      })),
-    ...prints
-      .filter((p) => p.active)
-      .map((p) => ({
-        category: 'PRINT' as const,
-        sourceId: p.offeringId,
-        sourceRevisionId: p.sourceRevisionId,
-        name: p.name,
-        description: [p.printType, p.material, p.templateTitle].join(' · '),
-        unit: p.unit,
-        unitPriceVnd: p.unitPriceVnd,
         quantity: 0,
       })),
   ];
