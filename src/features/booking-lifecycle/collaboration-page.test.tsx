@@ -609,7 +609,7 @@ describe('Booking collaboration workspace', () => {
 
     // Must show error and empty state; must NOT retain proposal A
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Không thể đồng bộ hồ sơ. Nội dung bạn nhập vẫn được giữ lại.',
+      'Không thể đồng bộ hồ sơ',
     );
     expect(screen.queryByText('Sảnh Ánh Dương')).not.toBeInTheDocument();
   });

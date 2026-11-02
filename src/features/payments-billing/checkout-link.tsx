@@ -104,7 +104,7 @@ export function CheckoutLinkPanel({
             Bạn sẽ chuyển sang VNPay trong tab hiện tại. Sau khi hoàn tất, chọn quay về website để
             xem trạng thái thanh toán đã xác minh.
           </p>
-          <a className={bx.primaryLink} href={checkout.checkoutUrl} target="_self" rel="noreferrer">
+          <a className={bx.primaryLink} href={checkout.checkoutUrl} target="_self" rel="noopener noreferrer">
             Tiếp tục trên VNPay
           </a>
         </>

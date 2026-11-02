@@ -223,6 +223,8 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
   const requestImage = (prompt = 'Hoa trắng') => {
+    const expandBtn = screen.queryByRole('button', { name: /Vẽ thêm hình minh họa bằng AI/ });
+    if (expandBtn) fireEvent.click(expandBtn);
     fireEvent.change(screen.getByLabelText('Mô tả ảnh AI'), { target: { value: prompt } });
     fireEvent.click(screen.getByText('Tạo Ảnh AI'));
   };

@@ -227,7 +227,11 @@ export async function executeLoadBilling({
   currentCheckout: CheckoutView | null;
   attemptId: string;
 }) {
-  const value = await authorize((token) => gateway.loadContext(token, id, contextSeed));
+  const value = await authorize((token) =>
+    contextSeed !== undefined
+      ? gateway.loadContext(token, id, contextSeed)
+      : gateway.loadContext(token, id),
+  );
   if (value.bookingId !== id) throw new Error('Booking mismatch');
 
   const hideBalanceAttempt =

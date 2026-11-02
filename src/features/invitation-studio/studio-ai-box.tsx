@@ -232,6 +232,7 @@ export function StudioAiBox({
             <div className={px.promptRow}>
               <input
                 type="text"
+                aria-label="Mô tả ảnh AI"
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
                 placeholder="Mô tả hình ảnh: Cổng hoa hồng hoàng gia, ánh hoàng hôn..."
@@ -244,9 +245,15 @@ export function StudioAiBox({
                 onClick={handleAiGenerate}
                 className={ix.btnSmall}
               >
-                {aiJob.busy ? 'Đang vẽ...' : 'Vẽ ảnh'}
+                {aiJob.busy ? 'Đang vẽ...' : 'Tạo Ảnh AI'}
               </button>
             </div>
+
+            {aiJob.error ? (
+              <p role="alert" className={ix.hintWarning}>
+                {aiJob.error}
+              </p>
+            ) : null}
 
             {aiJob.job ? (
               <div className={px.aiStatus}>
@@ -254,6 +261,33 @@ export function StudioAiBox({
                 {aiJob.job.status === 'RUNNING' && (
                   <span className={ix.spinner} aria-hidden="true" />
                 )}
+              </div>
+            ) : null}
+
+            {aiJob.job?.status === 'RECOVERY_REQUIRED' ? (
+              <div className={ix.actions}>
+                <button
+                  type="button"
+                  className={ix.btnSmall}
+                  disabled={aiJob.busy}
+                  onClick={() => {
+                    void aiJob.recover();
+                  }}
+                >
+                  Thử khôi phục
+                </button>
+              </div>
+            ) : null}
+
+            {aiJob.stalled ? (
+              <div className={ix.actions}>
+                <button
+                  type="button"
+                  className={ix.btnSmall}
+                  onClick={aiJob.checkAgain}
+                >
+                  Kiểm tra lại
+                </button>
               </div>
             ) : null}
 
