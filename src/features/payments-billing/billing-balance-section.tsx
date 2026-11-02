@@ -3,6 +3,7 @@
 import type { balanceGate } from './balance-eligibility';
 import type { BillingView } from './billing-api';
 import { BillingHistory, BillingSummary } from './billing-display';
+import { bx } from './billing-classes';
 
 export function BillingBalanceSection({
   view,
@@ -28,20 +29,21 @@ export function BillingBalanceSection({
   return (
     <>
       <BillingSummary view={view} />
-      <div className="billing-balance-action">
+      <div className={bx.balanceAction}>
         <button
+          className={bx.button}
           disabled={blocked || gate === null || !gate.allowed}
           onClick={onStartBalance}
         >
           Thanh toán còn lại
         </button>
         {gate !== null && !gate.allowed ? (
-          <div className="billing-gate" role="status">
+          <div className={bx.gate} role="status">
             <p>{gate.message}</p>
             {gate.action === 'refresh' ? (
               <button
                 type="button"
-                className="billing-secondary"
+                className={bx.buttonOutline}
                 disabled={pending}
                 onClick={onRefreshLedger}
               >
@@ -49,13 +51,13 @@ export function BillingBalanceSection({
               </button>
             ) : null}
             {gate.action === 'check-payment' && attemptId !== '' ? (
-              <a className="billing-secondary" href="#billing-attempt-status">
+              <a className={bx.buttonOutline} href="#billing-attempt-status">
                 Kiểm tra giao dịch đang xử lý
               </a>
             ) : null}
             {gate.action === 'contact' && restaurant?.publicPhone ? (
               <a
-                className="billing-secondary"
+                className={bx.buttonOutline}
                 href={`tel:${restaurant.publicPhone.replace(/[^+\d]/gu, '')}`}
               >
                 Gọi nhà hàng {restaurant.publicPhone}
@@ -66,11 +68,7 @@ export function BillingBalanceSection({
       </div>
       <BillingHistory view={view} />
       {view.nextCursor !== null && (
-        <button
-          className="billing-secondary"
-          disabled={pending}
-          onClick={onLoadMoreHistory}
-        >
+        <button className={bx.buttonOutline} disabled={pending} onClick={onLoadMoreHistory}>
           Tải thêm lịch sử
         </button>
       )}

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import type { SelectionAccess } from './selection-wire';
 import { routes, withBooking } from '../../routes';
-import styles from './customer-selections.module.css';
+import { cx } from './contract-classes';
 
 export const selectionBlockMessages: Record<NonNullable<SelectionAccess['blockReason']>, string> = {
   NOT_CUSTOMER:
@@ -50,7 +50,7 @@ export function SelectionAccessNotice({
   } as const;
   const link = access ? links[access.nextAction] : null;
   return (
-    <aside className={styles.accessNotice} aria-label="Trạng thái chỉnh sửa lựa chọn">
+    <aside className={cx.accessNotice} aria-label="Trạng thái chỉnh sửa lựa chọn">
       <p role="status">
         {access?.blockReason
           ? selectionBlockMessages[access.blockReason]
@@ -62,13 +62,13 @@ export function SelectionAccessNotice({
           này.
         </p>
       ) : null}
-      <div className="cw-actions">
+      <div className={cx.actions}>
         {link && !hideNavigation ? (
-          <Link className="button button-secondary" href={withBooking(link.href, bookingId)}>
+          <Link className={cx.buttonOutline} href={withBooking(link.href, bookingId)}>
             {link.label}
           </Link>
         ) : null}
-        <button className="button button-secondary" type="button" onClick={onRefresh}>
+        <button className={cx.buttonOutline} type="button" onClick={onRefresh}>
           Cập nhật trạng thái hồ sơ
         </button>
       </div>

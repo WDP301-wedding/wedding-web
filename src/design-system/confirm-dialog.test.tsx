@@ -58,7 +58,7 @@ describe('useConfirmDialog', () => {
     await waitFor(() => expect(onResult).toHaveBeenLastCalledWith(false));
     fireEvent.click(screen.getByRole('button', { name: 'Mở xác nhận' }));
     await screen.findByRole('alertdialog');
-    fireEvent.mouseDown(document.querySelector('.hy-dialog-backdrop')!);
+    fireEvent.mouseDown(screen.getByRole('alertdialog').parentElement!);
     await waitFor(() => expect(onResult).toHaveBeenCalledTimes(2));
     expect(onResult).toHaveBeenLastCalledWith(false);
   });

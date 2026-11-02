@@ -34,9 +34,13 @@ export function Celebrate({ onceKey }: { onceKey: string }) {
   }, [onceKey]);
   if (!visible) return null;
   return (
-    <div className="hy-celebrate" aria-hidden="true">
+    <div className="pointer-events-none fixed inset-0 z-60 overflow-hidden" aria-hidden="true">
       {petals.map((index) => (
-        <span key={index} style={{ ['--i' as string]: index }} />
+        <span
+          key={index}
+          className="absolute -top-6 left-[calc(6%+var(--i)*6.5%)] h-[18px] w-3 animate-[hy-petal_1200ms_var(--hy-ease-decelerate)_calc(var(--i)*30ms)_both] rounded-[12px_0] bg-hy-peach opacity-0 nth-[3n]:bg-hy-champagne nth-[4n]:bg-hy-wine-soft"
+          style={{ ['--i' as string]: index }}
+        />
       ))}
     </div>
   );

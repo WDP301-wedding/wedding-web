@@ -1,4 +1,5 @@
 import type { Guest, GuestGroup } from './guest-api';
+import { cx } from '../commercial-contract/contract-classes';
 
 export function GuestFields({
   groups,
@@ -8,7 +9,7 @@ export function GuestFields({
   guest?: Guest;
 }>) {
   return (
-    <div className="cw-form-row">
+    <div className={cx.formRow}>
       <label>
         Họ tên
         <input name="name" required maxLength={120} defaultValue={guest?.name ?? ''} />

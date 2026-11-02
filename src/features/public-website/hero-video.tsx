@@ -30,7 +30,7 @@ export function HeroVideo() {
   if (!play) return null;
   return (
     <video
-      className="hy-hero-video"
+      className="absolute inset-0 -z-20 size-full object-cover"
       poster="/images/hero-sanh-tiec-poster.webp"
       autoPlay
       muted

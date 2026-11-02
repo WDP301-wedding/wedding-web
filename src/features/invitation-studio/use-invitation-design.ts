@@ -6,17 +6,15 @@ import { previewAssetId } from './invitation-api';
 import { useImageJob, type SucceededImageJob } from './use-image-job';
 import { getOrGenerateKey, invitationErrorMessage } from './invitation-studio-utils';
 import { notify } from '../../design-system/toast';
-import {
-  type CardThemeId,
-  type GeneratedInvitationDesign,
-  inferThemeFromContent,
-} from './ai-invitation-generator';
+import type { CardThemeId, GeneratedInvitationDesign } from './ai-design-presets';
+import { inferThemeFromContent } from './ai-invitation-generator';
 
 export interface UseInvitationDesignOptions {
   bookingId: string;
   accessToken: string;
   gateway: InvitationGateway;
   initialDesigns?: readonly DesignView[] | undefined;
+  coupleNames?: { brideName?: string | null; groomName?: string | null } | undefined;
 }
 
 export function useInvitationDesign({
@@ -24,13 +22,21 @@ export function useInvitationDesign({
   accessToken,
   gateway,
   initialDesigns = [],
+  coupleNames,
 }: UseInvitationDesignOptions) {
   const [designs, setDesigns] = useState<readonly DesignView[]>(initialDesigns);
   const currentDesign = designs[0];
 
   const [title, setTitle] = useState(designs[0]?.title ?? 'Thiệp Cưới Hạnh Phúc');
-  const [brideName, setBrideName] = useState(designs[0]?.textFields?.brideName ?? '');
-  const [groomName, setGroomName] = useState(designs[0]?.textFields?.groomName ?? '');
+  // null = hai bạn chưa nhập tên trên thiệp → dùng tên ở hồ sơ tiệc (có thể tải về sau khi Studio mở).
+  const [brideOverride, setBrideName] = useState<string | null>(
+    designs[0]?.textFields?.brideName || null,
+  );
+  const [groomOverride, setGroomName] = useState<string | null>(
+    designs[0]?.textFields?.groomName || null,
+  );
+  const brideName = brideOverride ?? coupleNames?.brideName ?? '';
+  const groomName = groomOverride ?? coupleNames?.groomName ?? '';
   const [greeting, setGreeting] = useState(
     designs[0]?.textFields?.greeting ?? 'Trân trọng kính mời',
   );
@@ -76,7 +82,9 @@ export function useInvitationDesign({
       localStorage.setItem(`invitation-theme:${bookingId}`, generated.theme);
     }
     setDesignDirty(true);
-    notify.success(`Đã áp dụng thiết kế "${generated.themeName}"! Xem thiệp trực quan ở khung bên phải.`);
+    notify.success(
+      `Đã áp dụng thiết kế "${generated.themeName}"! Xem thiệp trực quan ở khung bên phải.`,
+    );
   };
 
   const saveKeyRef = useRef<{ signature: string; key: string } | null>(null);

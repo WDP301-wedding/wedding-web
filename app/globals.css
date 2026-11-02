@@ -1,10 +1,9 @@
-@import './styles/globals/tokens-base.css';
-@import './styles/globals/collab.css';
-@import './styles/globals/invitation-layout.css';
-@import './styles/globals/workspace-responsive.css';
+@layer theme, base, components, utilities;
 
-:root {
-  --font-display: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
-  --font-body: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
-  --font-script: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
-}
+@import './styles/tokens.css';
+@import './ui-v3.css';
+@import './styles/select.css';
+@import './styles/invitation-card.css' layer(components);
+@import './styles/invitation-card-themes.css' layer(components);
+/* Ngoài layer: sonner chèn CSS không có layer, phần ghi đè phải cùng cấp để còn thắng. */
+@import './styles/toast.css';

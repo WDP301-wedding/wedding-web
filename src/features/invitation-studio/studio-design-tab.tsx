@@ -4,31 +4,35 @@ import type { InvitationStudioState } from './use-invitation-studio';
 import { StudioDesignForm } from './studio-design-form';
 import { StudioAiBox } from './studio-ai-box';
 import { StudioDesignPreview } from './studio-design-preview';
+import { ix } from './studio-classes';
 
 export type StudioDesignTabProps = Readonly<{ studio: InvitationStudioState }>;
 
 export function StudioDesignTab({ studio }: StudioDesignTabProps) {
   const { currentDesign, title, mobileViewMode, setMobileViewMode } = studio;
   return (
+    // data-wide: trình sửa 2 cột cần khung nội dung rộng hơn (SpaceShell đọc thuộc tính này).
     <section
       aria-labelledby="design-heading"
-      className={`live-editor ${mobileViewMode === 'preview' ? 'mobile-show-preview' : 'mobile-show-editor'}`}
+      className={ix.liveEditor}
+      data-mode={mobileViewMode}
+      data-wide
     >
-      <header className="studio-design-meta">
+      <header className={ix.designMeta}>
         <div>
-          <h2 id="design-heading" className="studio-title">
+          <h2 id="design-heading" className={ix.title}>
             Nội dung thiệp
           </h2>
-          <p className="studio-meta">{title || 'Thiệp chưa đặt tên'}</p>
+          <p className={ix.meta}>{title || 'Thiệp chưa đặt tên'}</p>
         </div>
-        <span className="hy-chip">
+        <span className={ix.chip}>
           {currentDesign ? 'Bản lưu ' + currentDesign.revisionNumber : 'Thiết kế mới'}
         </span>
       </header>
-      <div className="studio-mobile-mode-bar" role="group" aria-label="Chế độ xem thiệp">
+      <div className={ix.modeBar} role="group" aria-label="Chế độ xem thiệp">
         <button
           type="button"
-          className={`studio-mobile-mode-btn ${mobileViewMode === 'editor' ? 'is-active' : ''}`}
+          className={ix.modeButton}
           aria-pressed={mobileViewMode === 'editor'}
           onClick={() => setMobileViewMode('editor')}
         >
@@ -36,20 +40,18 @@ export function StudioDesignTab({ studio }: StudioDesignTabProps) {
         </button>
         <button
           type="button"
-          className={`studio-mobile-mode-btn ${mobileViewMode === 'preview' ? 'is-active' : ''}`}
+          className={ix.modeButton}
           aria-pressed={mobileViewMode === 'preview'}
           onClick={() => setMobileViewMode('preview')}
         >
           Xem trước
         </button>
       </div>
-      <div className="inspector">
+      <div className={ix.inspector}>
         <StudioAiBox studio={studio} />
-        <div className="studio-form-divider-title" style={{ marginTop: 8 }}>
-          <h4 style={{ margin: '8px 0 4px', fontSize: 15, color: 'var(--hy-wine, #7a1f3d)' }}>
-            Chi tiết nội dung &amp; câu chữ
-          </h4>
-          <p className="studio-meta" style={{ margin: '0 0 12px' }}>
+        <div className={ix.formDivider}>
+          <h4>Chi tiết nội dung &amp; câu chữ</h4>
+          <p className={ix.meta}>
             Bạn có thể xem trước ở khung bên phải hoặc tùy ý sửa tay các trường chữ dưới đây:
           </p>
         </div>

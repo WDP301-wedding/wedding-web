@@ -7,6 +7,7 @@ import { Skeleton } from '../../design-system/skeleton';
 import { routes } from '../../routes';
 import { ErrorPanel } from './couple-page';
 import { useCoupleWorkspace } from './use-couple-workspace';
+import { cx } from '../commercial-contract/contract-classes';
 
 /**
  * Cổng cho các trang /khong-gian dùng component cũ tự đọc `?bookingId` trên URL
@@ -23,20 +24,20 @@ export function SpaceGate({
   if (state.status === 'error') return <ErrorPanel error={state.error} onRetry={reload} />;
   if (state.status === 'anonymous')
     return (
-      <section className="cw-card cw-empty">
-        <h2>Cần đăng nhập</h2>
+      <section className={cx.empty}>
+        <h1>Cần đăng nhập</h1>
         <p>Đăng nhập bằng tài khoản đã được nhà hàng mời để tiếp tục.</p>
-        <Link className="button" href={routes.login}>
+        <Link className={cx.button} href={routes.login}>
           Đăng nhập
         </Link>
       </section>
     );
   if (state.status === 'choose-booking')
     return (
-      <section className="cw-card cw-empty">
-        <h2>Chưa có tiệc cưới</h2>
+      <section className={cx.empty}>
+        <h1>Chưa có tiệc cưới</h1>
         <p>Nhà hàng sẽ mở hồ sơ sau buổi tư vấn. Bạn có thể gửi yêu cầu tư vấn mới.</p>
-        <Link className="button button-secondary" href={routes.consultation}>
+        <Link className={cx.buttonOutline} href={routes.consultation}>
           Gửi yêu cầu tư vấn
         </Link>
       </section>

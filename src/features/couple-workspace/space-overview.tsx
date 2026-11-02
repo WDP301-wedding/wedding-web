@@ -1,21 +1,24 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
-import React, { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
+import { cn } from 'cn';
+
+import { Badge } from '../../components/ui/badge';
+import { buttonVariants } from '../../components/ui/button';
 import { InlineError } from '../../design-system/inline-error';
-import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
-import { useLiveRefresh } from '../realtime/use-live-refresh';
 import { JourneyStepper, journeyIndex, journeySteps } from '../../design-system/journey-stepper';
 import { routes, withBooking } from '../../routes';
-import { browserSession } from '../identity-access/browser-session';
-import {
-  notificationApi,
-  notificationHref,
-  type InboxItem,
-} from '../notifications/notification-api';
-import { SpaceGate } from './space-gate';
+import { notificationHref } from '../notifications/notification-api';
+import { OverviewAliasModal } from './overview-alias-modal';
+import { OverviewMultiBookings } from './overview-multi-bookings';
+import { daysUntil, nextTasks } from './overview-tasks';
 import { menuLines } from './proposal-menus';
+import { panel, panelTitle } from './space-classes';
+import { SpaceGate } from './space-gate';
 import { useSpaceExtras } from './space-provider';
+import { useAliasDialog, useLatestNotifications } from './use-overview';
 import {
   bookingDisplayName,
   bookingPhaseLabel,
@@ -25,13 +28,10 @@ import {
   shiftLabel,
   useCoupleWorkspace,
 } from './use-couple-workspace';
-import { createExperienceGateway } from '../identity-access/experience-api';
-import { notify } from '../../design-system/toast';
-import { daysUntil, nextTasks } from './overview-tasks';
-import { OverviewMultiBookings } from './overview-multi-bookings';
-import { OverviewAliasModal } from './overview-alias-modal';
 
 export { daysUntil, nextTasks, type Task } from './overview-tasks';
+
+const heroChip = 'rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold text-white';
 
 export function SpaceOverview() {
   return (
@@ -44,172 +44,136 @@ export function SpaceOverview() {
 function OverviewContent() {
   const { state, bookings, bookingId, reload } = useCoupleWorkspace();
   const { restaurant } = useSpaceExtras();
-  const [latest, setLatest] = useState<readonly InboxItem[] | null>(null);
-  const [latestError, setLatestError] = useState<FriendlyError | null>(null);
-  const [aliasModalOpen, setAliasModalOpen] = useState(false);
-  const [aliasInput, setAliasInput] = useState('');
-  const [savingAlias, setSavingAlias] = useState(false);
-  const [aliasError, setAliasError] = useState<FriendlyError | null>(null);
+  const ready = state.status === 'ready';
+  const summary = bookings.find((booking) => booking.bookingId === bookingId);
+  const inbox = useLatestNotifications(ready);
   const aliasDialog = useRef<HTMLDialogElement>(null);
   const aliasTrigger = useRef<HTMLButtonElement>(null);
-
-  const latestLive = useLiveRefresh(
-    async (isCurrent) => {
-      try {
-        const page = await browserSession.authorize((token) => notificationApi.inbox(token));
-        if (isCurrent()) {
-          setLatest(page.items.slice(0, 3));
-          setLatestError(null);
-        }
-      } catch (error) {
-        if (isCurrent()) setLatestError(describeApiError(error));
-      }
-    },
-    {
-      scope: 'overview-inbox',
-      enabled: state.status === 'ready',
-      initial: true,
-      types: ['notification.received'],
-    },
+  const alias = useAliasDialog(
+    ready ? state.proposal.bookingId : undefined,
+    summary,
+    reload,
+    aliasDialog,
+    aliasTrigger,
   );
 
-  useEffect(() => {
-    if (!aliasModalOpen) return;
-    const dialog = aliasDialog.current;
-    if (!dialog) return;
-    const trigger = aliasTrigger.current;
-    dialog.showModal();
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      dialog.close();
-      document.body.style.overflow = overflow;
-      trigger?.focus();
-    };
-  }, [aliasModalOpen]);
-
-  if (state.status !== 'ready') return null;
+  if (!ready) return null;
   const proposal = state.proposal;
-  const summary = bookings.find((booking) => booking.bookingId === bookingId);
   const step = journeyIndex(proposal.phase, proposal.eventDate);
   const days = daysUntil(proposal.eventDate);
   const tasks = nextTasks(proposal, summary, days);
   const { proposal: offer } = proposal;
 
-  const openAliasModal = () => {
-    setAliasInput(summary?.alias ?? '');
-    setAliasError(null);
-    setAliasModalOpen(true);
-  };
-
-  const handleSaveAlias = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (savingAlias) return;
-    setSavingAlias(true);
-    setAliasError(null);
-    try {
-      await browserSession.authorize((token) =>
-        createExperienceGateway().updateBookingAlias(
-          token,
-          proposal.bookingId,
-          aliasInput.trim() ? aliasInput.trim() : null,
-          summary?.revision,
-        ),
-      );
-      notify.success('Đã cập nhật tên gợi nhớ tiệc!');
-      setAliasModalOpen(false);
-      reload();
-    } catch (error) {
-      setAliasError(describeApiError(error));
-    } finally {
-      setSavingAlias(false);
-    }
-  };
-
   return (
-    <div className="hy-overview2">
-      <h1 className="visually-hidden">Tổng quan tiệc cưới</h1>
+    <div className="flex flex-col gap-6 lg:gap-7">
+      <h1 className="sr-only">Tổng quan tiệc cưới</h1>
       {proposal.phase === 'CANCELLED' ? (
-        <p className="hy-banner is-error" role="status">
+        <p className="rounded-lg bg-hy-error-bg px-4 py-3 text-sm text-hy-error" role="status">
           Tiệc đã huỷ. Hồ sơ được giữ lại để hai bạn xem lịch sử.
         </p>
       ) : null}
 
-      <div className="hy-overview-booking-header">
-        <div className="hy-overview-booking-title-row">
-          <h2>{summary ? bookingDisplayName(summary) : offer.hall.name}</h2>
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className="text-xl font-bold sm:text-2xl">
+            {summary ? bookingDisplayName(summary) : offer.hall.name}
+          </h2>
           <button
             type="button"
             ref={aliasTrigger}
-            className="hy-alias-edit-btn"
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
             aria-haspopup="dialog"
-            onClick={openAliasModal}
+            onClick={alias.openDialog}
             title="Đặt tên gợi nhớ cho tiệc này"
           >
             {summary?.alias ? 'Đổi tên gợi nhớ' : 'Đặt tên gợi nhớ'}
           </button>
         </div>
         {summary?.alias ? (
-          <p className="hy-overview-booking-hall-sub">
+          <p className="text-sm text-muted-foreground">
             Sảnh {offer.hall.name} · {shiftLabel(offer.shift.code)}
           </p>
         ) : null}
       </div>
 
-      <header className="hy-hero" style={{ position: 'relative', zIndex: 1 }}>
-        <div className="hy-hero-countdown">
+      <header className="relative isolate flex min-h-60 flex-wrap items-end justify-between gap-6 overflow-hidden rounded-2xl bg-hy-ink p-5 text-white sm:p-8">
+        <Image
+          className="-z-20 object-cover"
+          src="/images/hero-sanh-tiec-1080.webp"
+          alt=""
+          fill
+          sizes="(max-width: 1024px) 100vw, 1120px"
+        />
+        <div
+          className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgb(43_29_34/0.88),rgb(43_29_34/0.35)_75%)]"
+          aria-hidden="true"
+        />
+        <div className="flex items-baseline gap-2.5">
           {days > 0 ? (
             <>
-              <span className="hy-hero-days">{days}</span>
-              <span className="hy-hero-unit">ngày nữa tới tiệc</span>
+              <span className="text-5xl leading-none font-bold tabular-nums sm:text-6xl">
+                {days}
+              </span>
+              <span className="text-base font-semibold sm:text-lg">ngày nữa tới tiệc</span>
             </>
           ) : days === 0 ? (
-            <span className="hy-hero-unit is-today">Hôm nay là ngày tiệc!</span>
+            <span className="text-2xl font-bold">Hôm nay là ngày tiệc!</span>
           ) : (
-            <span className="hy-hero-unit is-past">Tiệc đã diễn ra</span>
+            <span className="text-xl font-semibold">Tiệc đã diễn ra</span>
           )}
         </div>
-        <div className="hy-hero-details">
-          <p className="hy-hero-date">{formatEventDate(proposal.eventDate)}</p>
-          <p className="hy-hero-meta">
+        <div className="flex flex-col gap-2 sm:items-end sm:text-right">
+          <p className="text-lg font-bold tabular-nums">{formatEventDate(proposal.eventDate)}</p>
+          <p className="text-sm text-white/90">
             {eventTypeLabel(summary?.eventType)} · Sảnh {offer.hall.name} ·{' '}
             {shiftLabel(offer.shift.code)} ({offer.shift.startTime}–{offer.shift.endTime})
           </p>
-          <div className="hy-hero-chips">
-            <span className="hy-chip is-accent">{bookingPhaseLabel(proposal.phase)}</span>
-            <span className="hy-chip">{proposal.planningHeadcount} khách dự kiến</span>
-            <span className="hy-chip">{offer.tableCount} bàn</span>
-            <span className="hy-chip">{menuLines(offer).length} món</span>
+          <div className="flex flex-wrap gap-1.5 sm:justify-end">
+            <span className={heroChip}>{bookingPhaseLabel(proposal.phase)}</span>
+            <span className={heroChip}>{proposal.planningHeadcount} khách dự kiến</span>
+            <span className={heroChip}>{offer.tableCount} bàn</span>
+            <span className={heroChip}>{menuLines(offer).length} thực đơn</span>
           </div>
         </div>
       </header>
 
-      <OverviewMultiBookings bookings={bookings} proposal={proposal} />
-
-      <section className="hy-journey-card" aria-labelledby="journey-title">
-        <div className="hy-journey-head">
-          <h2 id="journey-title">Hành trình cưới</h2>
-          <span>{step < 0 ? 'Tiệc đã huỷ' : `Bước ${step + 1}/6 · ${journeySteps[step]}`}</span>
+      <section className={cn(panel, 'flex flex-col gap-4')} aria-labelledby="journey-title">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="journey-title" className={panelTitle}>
+            Hành trình cưới
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            {step < 0 ? 'Tiệc đã huỷ' : `Bước ${step + 1}/6 · ${journeySteps[step]}`}
+          </span>
         </div>
         <JourneyStepper current={step} />
       </section>
 
       {tasks.length > 0 ? (
-        <section aria-labelledby="tasks-title">
-          <h2 id="tasks-title" className="hy-section-title">
+        <section className="flex flex-col gap-4" aria-labelledby="tasks-title">
+          <h2 id="tasks-title" className={panelTitle}>
             Việc cần làm ngay
           </h2>
-          <div className="hy-task-grid">
+          <div className="grid gap-4 md:grid-cols-3">
             {tasks.map((task) => (
-              <article key={task.title} className={`hy-task is-${task.status}`}>
-                {task.status === 'wait' ? (
-                  <span className="hy-chip is-warning">Chờ bạn</span>
-                ) : null}
-                <h3>{task.title}</h3>
-                <p>{task.detail}</p>
+              <article
+                key={task.title}
+                className={cn(
+                  panel,
+                  'flex flex-col gap-2 transition-[translate,box-shadow] duration-250 ease-hy-emphasized hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgb(43_29_34/0.1)] motion-reduce:hover:translate-y-0',
+                  task.status === 'wait' && 'border-hy-warning/40',
+                )}
+              >
+                {task.status === 'wait' ? <Badge variant="warning">Chờ bạn</Badge> : null}
+                <h3 className="text-base font-bold">{task.title}</h3>
+                <p className="flex-1 text-sm text-muted-foreground">{task.detail}</p>
                 {task.href ? (
                   <Link
-                    className={task.status === 'wait' ? 'button' : 'button button-secondary'}
+                    className={buttonVariants({
+                      variant: task.status === 'wait' ? 'default' : 'secondary',
+                      size: 'sm',
+                      className: 'self-start',
+                    })}
                     href={task.href}
                   >
                     {task.action}
@@ -221,44 +185,76 @@ function OverviewContent() {
         </section>
       ) : null}
 
-      <div className="hy-overview2-bottom">
-        <section className="hy-card" aria-labelledby="latest-title">
-          <header className="hy-card-head">
-            <h2 id="latest-title">Thông báo mới</h2>
-            <Link href={withBooking(routes.notifications, proposal.bookingId)}>Xem tất cả</Link>
+      <OverviewMultiBookings bookings={bookings} proposal={proposal} />
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <section className={cn(panel, 'flex flex-col gap-3')} aria-labelledby="latest-title">
+          <header className="flex items-baseline justify-between gap-3">
+            <h2 id="latest-title" className="text-base font-bold">
+              Thông báo mới
+            </h2>
+            <Link
+              className="text-xs font-semibold text-primary hover:underline"
+              href={withBooking(routes.notifications, proposal.bookingId)}
+            >
+              Xem tất cả
+            </Link>
           </header>
-          <InlineError error={latestError} onRetry={() => void latestLive.refresh()} />
-          {latest === null && latestError ? null : latest === null ? (
-            <p className="hy-muted" role="status">
+          <InlineError error={inbox.latestError} onRetry={inbox.retry} />
+          {inbox.latest === null && inbox.latestError ? null : inbox.latest === null ? (
+            <p className="text-sm text-muted-foreground" role="status">
               Đang tải thông báo…
             </p>
-          ) : latest.length === 0 ? (
-            <p className="hy-muted">Chưa có thông báo nào.</p>
+          ) : inbox.latest.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Chưa có thông báo nào.</p>
           ) : (
-            <ul className="hy-notice-list">
-              {latest.map((item) => {
+            <ul className="flex flex-col divide-y divide-border">
+              {inbox.latest.map((item) => {
                 const href = notificationHref(item);
                 return (
-                  <li key={item.id} className={item.readAt ? undefined : 'is-unread'}>
-                    {href ? <Link href={href}>{item.title}</Link> : <span>{item.title}</span>}
-                    <small>{formatDateTime(item.createdAt)}</small>
+                  <li key={item.id} className="flex flex-col gap-0.5 py-2.5 first:pt-0 last:pb-0">
+                    <span
+                      className={cn('text-sm', item.readAt ? 'text-foreground' : 'font-semibold')}
+                    >
+                      {href ? (
+                        <Link className="hover:text-primary" href={href}>
+                          {item.title}
+                        </Link>
+                      ) : (
+                        item.title
+                      )}
+                    </span>
+                    <small className="text-xs text-muted-foreground">
+                      {formatDateTime(item.createdAt)}
+                    </small>
                   </li>
                 );
               })}
             </ul>
           )}
         </section>
-        <section className="hy-card hy-contact-card" aria-labelledby="contact-title">
-          <h2 id="contact-title">Liên hệ nhà hàng</h2>
-          <p>{restaurant?.displayName ?? 'Nhà hàng Hỷ Yến'}</p>
-          <div className="hy-actions">
+        <section
+          className="flex flex-col gap-2 rounded-xl bg-accent p-5 sm:p-6"
+          aria-labelledby="contact-title"
+        >
+          <h2 id="contact-title" className="text-base font-bold">
+            Liên hệ nhà hàng
+          </h2>
+          <p className="text-sm">{restaurant?.displayName ?? 'Nhà hàng Hỷ Yến'}</p>
+          <div className="mt-1 flex flex-wrap gap-2">
             {restaurant?.publicPhone ? (
-              <a className="button" href={`tel:${restaurant.publicPhone.replace(/[^+\d]/gu, '')}`}>
+              <a
+                className={buttonVariants({ size: 'sm' })}
+                href={`tel:${restaurant.publicPhone.replace(/[^+\d]/gu, '')}`}
+              >
                 Gọi {restaurant.publicPhone}
               </a>
             ) : null}
             {restaurant?.publicEmail ? (
-              <a className="button button-secondary" href={`mailto:${restaurant.publicEmail}`}>
+              <a
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                href={`mailto:${restaurant.publicEmail}`}
+              >
                 Email
               </a>
             ) : null}
@@ -267,17 +263,15 @@ function OverviewContent() {
       </div>
 
       <OverviewAliasModal
-        isOpen={aliasModalOpen}
+        isOpen={alias.open}
         dialogRef={aliasDialog}
         hasExistingAlias={Boolean(summary?.alias)}
-        aliasInput={aliasInput}
-        setAliasInput={setAliasInput}
-        savingAlias={savingAlias}
-        aliasError={aliasError}
-        onClose={() => setAliasModalOpen(false)}
-        onSave={(e) => {
-          void handleSaveAlias(e);
-        }}
+        aliasInput={alias.input}
+        setAliasInput={alias.setInput}
+        savingAlias={alias.saving}
+        aliasError={alias.error}
+        onClose={alias.close}
+        onSave={(event) => void alias.save(event)}
       />
     </div>
   );

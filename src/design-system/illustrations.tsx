@@ -145,7 +145,7 @@ export function Illustration({
   if (name === 'divider')
     return (
       <svg
-        className={className ?? 'hy-divider'}
+        className={className}
         viewBox="0 0 320 48"
         width={size * 3.33}
         height={size / 2}
@@ -166,7 +166,7 @@ export function Illustration({
   const drawing = drawings[name];
   return (
     <svg
-      className={className ?? 'hy-illustration'}
+      className={className ?? 'shrink-0 text-primary'}
       viewBox="0 0 96 96"
       width={size}
       height={size}

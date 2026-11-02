@@ -1,4 +1,3 @@
-import React from 'react';
 import Link from 'next/link';
 import { routes } from '../../routes';
 
@@ -32,7 +31,7 @@ export const iconPaths: Record<IconName, string> = {
 export function Icon({ name }: Readonly<{ name: IconName }>) {
   return (
     <svg
-      className="hy-icon"
+      className="size-5 shrink-0"
       viewBox="0 0 24 24"
       width="20"
       height="20"
@@ -50,14 +49,23 @@ export function Icon({ name }: Readonly<{ name: IconName }>) {
 
 export function SupportCard({ phone }: Readonly<{ phone: string | null }>) {
   return (
-    <div className="hy-support">
-      <Icon name="call" />
-      <div>
-        <strong>Cần hỗ trợ? Gọi nhà hàng</strong>
+    <div className="flex items-start gap-2.5 rounded-lg bg-muted p-3 text-xs">
+      <span className="text-primary">
+        <Icon name="call" />
+      </span>
+      <div className="flex flex-col">
+        <strong className="font-semibold">Cần hỗ trợ? Gọi nhà hàng</strong>
         {phone ? (
-          <a href={`tel:${phone.replace(/[^+\d]/gu, '')}`}>{phone}</a>
+          <a
+            className="font-semibold text-primary tabular-nums"
+            href={`tel:${phone.replace(/[^+\d]/gu, '')}`}
+          >
+            {phone}
+          </a>
         ) : (
-          <Link href={routes.consultation}>Gửi lời nhắn</Link>
+          <Link className="font-semibold text-primary" href={routes.consultation}>
+            Gửi lời nhắn
+          </Link>
         )}
       </div>
     </div>

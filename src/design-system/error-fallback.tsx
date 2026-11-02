@@ -1,6 +1,9 @@
 'use client';
 import Link from 'next/link';
-import styles from './error-fallback.module.css';
+import { buttonVariants } from '../components/ui/button';
+
+const panel =
+  'mx-auto flex w-full max-w-[44rem] flex-col gap-3 leading-relaxed [&_code]:text-xs [&_h1]:text-xl [&_h1]:leading-snug [&_h1]:font-bold sm:[&_h1]:text-2xl [&_p]:text-muted-foreground';
 
 export function ErrorFallback({
   error,
@@ -16,8 +19,15 @@ export function ErrorFallback({
       ? error.digest
       : null;
   return (
-    <section className={embedded ? styles.panel : styles.page} role="alert">
-      <div className={styles.panel}>
+    <section
+      className={
+        embedded
+          ? panel
+          : 'grid min-h-[70dvh] place-items-center p-[clamp(1rem,4vw,3rem)] animate-in duration-300 fade-in motion-reduce:animate-none'
+      }
+      role="alert"
+    >
+      <div className={panel}>
         <h1>Chưa thể hiển thị trang này</h1>
         <p>
           Đã có sự cố khi tải nội dung. Hãy thử tải lại phần này. Nếu lỗi tiếp diễn, bạn có thể liên
@@ -28,11 +38,11 @@ export function ErrorFallback({
             Mã sự cố: <code>{digest}</code>
           </p>
         ) : null}
-        <div className={styles.actions}>
-          <button type="button" onClick={retry}>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <button type="button" className={buttonVariants()} onClick={retry}>
             Thử tải lại
           </button>
-          <Link href="/" prefetch={false}>
+          <Link className={buttonVariants({ variant: 'outline' })} href="/" prefetch={false}>
             Về trang chủ
           </Link>
         </div>

@@ -4,7 +4,6 @@ import { Suspense, type ReactNode } from 'react';
 import { Skeleton } from '../../src/design-system/skeleton';
 import { SpaceProvider } from '../../src/features/couple-workspace/space-provider';
 import { SpaceShell } from '../../src/features/couple-workspace/space-shell';
-import './thanh-toan/billing.css';
 
 export const metadata: Metadata = {
   title: 'Không gian cưới | Hỷ Yến',

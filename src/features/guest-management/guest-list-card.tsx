@@ -9,7 +9,9 @@ import type { GuestStatusFilter } from './use-guests-workspace';
 import { useGuestListCard } from './use-guest-list-card';
 import { GuestTableView } from './guest-table-view';
 import { GuestCardList } from './guest-card-list';
-import styles from './guests.module.css';
+import { buttonVariants } from '../../components/ui/button';
+import { cx } from '../commercial-contract/contract-classes';
+import { gx } from './guest-classes';
 
 export function GuestListCard({
   bookingId,
@@ -62,19 +64,19 @@ export function GuestListCard({
   });
 
   return (
-    <section className="cw-card">
-      <div className="cw-card-header">
+    <section className={cx.card}>
+      <div className={cx.cardHeader}>
         <div>
           <h2>Danh sách tên khách</h2>
-          <span className={styles.guestCountBadge}>
+          <span className={gx.guestCountBadge}>
             Hiển thị {visible.length} / {guests.length} khách
             {status === 'ARCHIVED' ? ' (Đã lưu trữ)' : ''}
           </span>
         </div>
-        <div className="cw-actions">
+        <div className={cx.actions}>
           {status === 'ACTIVE' ? (
             <button
-              className="button"
+              className={cx.button}
               type="button"
               disabled={command.pending || activeGroups.length === 0}
               onClick={() => setModalState({ open: true, guest: null })}
@@ -86,11 +88,11 @@ export function GuestListCard({
       </div>
 
       {/* Toolbar Tìm kiếm & Lọc */}
-      <div className={styles.toolbar}>
-        <div className={styles.searchWrap}>
+      <div className={gx.toolbar}>
+        <div className={gx.searchWrap}>
           <input
             type="search"
-            className={styles.searchInput}
+            className={gx.searchInput}
             placeholder="Tìm theo tên, SĐT, ghi chú…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -99,7 +101,7 @@ export function GuestListCard({
           {searchQuery ? (
             <button
               type="button"
-              className={styles.clearSearch}
+              className={gx.clearSearch}
               onClick={() => setSearchQuery('')}
               aria-label="Xoá tìm kiếm"
             >
@@ -108,13 +110,11 @@ export function GuestListCard({
           ) : null}
         </div>
 
-        <div className={styles.filterRow}>
-          <label>
-            <span className="muted" style={{ marginRight: 6 }}>
-              Trạng thái
-            </span>
+        <div className={gx.filterRow}>
+          <label className="inline-flex items-center gap-1.5">
+            <span className={cx.muted}>Trạng thái</span>
             <select
-              className={styles.filterSelect}
+              className={gx.filterSelect}
               value={status}
               onChange={(e) => {
                 onStatusChange(e.target.value as GuestStatusFilter);
@@ -126,12 +126,10 @@ export function GuestListCard({
             </select>
           </label>
 
-          <label>
-            <span className="muted" style={{ marginRight: 6 }}>
-              Nhóm
-            </span>
+          <label className="inline-flex items-center gap-1.5">
+            <span className={cx.muted}>Nhóm</span>
             <select
-              className={styles.filterSelect}
+              className={gx.filterSelect}
               value={groupFilter}
               onChange={(e) => setGroupFilter(e.target.value)}
             >
@@ -148,7 +146,7 @@ export function GuestListCard({
 
       {/* Bảng Danh sách Desktop & Thẻ Mobile */}
       {visible.length === 0 ? (
-        <p className="cw-note cw-note-illustrated">
+        <p className={gx.noteIllustrated}>
           {status === 'ACTIVE' && !searchQuery && !groupFilter ? (
             <Illustration name="empty-khach" size={64} />
           ) : null}
@@ -201,15 +199,14 @@ export function GuestListCard({
 
       {/* Thanh Thao tác hàng loạt (Bulk Bar) khi có chọn */}
       {selectedIds.size > 0 ? (
-        <div className={styles.bulkBar} role="region" aria-label="Thao tác hàng loạt">
-          <div className={styles.bulkInfo}>Đã chọn {selectedIds.size} khách mời</div>
-          <div className={styles.bulkActions}>
+        <div className={gx.bulkBar} role="region" aria-label="Thao tác hàng loạt">
+          <div className={gx.bulkInfo}>Đã chọn {selectedIds.size} khách mời</div>
+          <div className={gx.bulkActions}>
             {status === 'ACTIVE' ? (
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, margin: 0 }}>
-                <span style={{ fontSize: 13, color: 'var(--hy-ink-muted)' }}>Chuyển sang:</span>
+              <label className="inline-flex items-center gap-1.5">
+                <span className={cx.muted}>Chuyển sang:</span>
                 <select
-                  className={styles.filterSelect}
-                  style={{ height: 32, fontSize: 13 }}
+                  className={`${gx.filterSelect} h-9`}
                   defaultValue=""
                   onChange={(e) => {
                     if (e.target.value) {
@@ -231,8 +228,7 @@ export function GuestListCard({
             ) : null}
 
             <button
-              className="button button-secondary"
-              style={{ padding: '6px 12px', fontSize: 13 }}
+              className={buttonVariants({ variant: 'outline', size: 'sm' })}
               type="button"
               disabled={command.pending}
               onClick={() => void handleBulkToggleStatus()}
@@ -241,9 +237,8 @@ export function GuestListCard({
             </button>
 
             <button
-              className="cw-text-button"
+              className={cx.textButton}
               type="button"
-              style={{ fontSize: 13 }}
               onClick={() => setSelectedIds(new Set())}
             >
               Bỏ chọn

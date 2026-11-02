@@ -2,16 +2,9 @@
 
 import React from 'react';
 import { openBlob } from '../../lib/api/download';
-import {
-  formatDateTime,
-  formatVnd,
-  useCommand,
-} from '../couple-workspace/use-couple-workspace';
-import {
-  contractApi,
-  type ContractList,
-  type ContractRevision,
-} from './contract-api';
+import { formatDateTime, formatVnd, useCommand } from '../couple-workspace/use-couple-workspace';
+import { contractApi, type ContractList, type ContractRevision } from './contract-api';
+import { cx } from './contract-classes';
 
 export const stateLabels: Record<ContractRevision['state'], string> = {
   DRAFT: 'Bản nháp',
@@ -29,16 +22,16 @@ export function HistoryCard({ contracts, bookingId }: HistoryCardProps) {
   const command = useCommand();
   if (contracts.revisions.length <= 1) return null;
   return (
-    <section className="cw-card">
+    <section className={cx.card}>
       <h2>Lịch sử phiên bản</h2>
-      <div className="cw-table-wrap">
-        <table className="cw-table">
+      <div className={cx.tableWrap} tabIndex={0} role="region" aria-label="Lịch sử hợp đồng">
+        <table className={cx.table}>
           <thead>
             <tr>
               <th scope="col">Bản</th>
               <th scope="col">Trạng thái</th>
               <th scope="col">Tạo lúc</th>
-              <th scope="col" className="num">
+              <th scope="col" className={cx.num}>
                 Tổng
               </th>
               <th scope="col">PDF</th>
@@ -50,10 +43,10 @@ export function HistoryCard({ contracts, bookingId }: HistoryCardProps) {
                 <td>#{revision.revisionNumber}</td>
                 <td>{stateLabels[revision.state]}</td>
                 <td>{formatDateTime(revision.createdAt)}</td>
-                <td className="num">{formatVnd(revision.document.contractTotalVnd)}</td>
+                <td className={cx.num}>{formatVnd(revision.document.contractTotalVnd)}</td>
                 <td>
                   <button
-                    className="cw-text-button"
+                    className={cx.textButton}
                     type="button"
                     disabled={command.pending}
                     onClick={() =>

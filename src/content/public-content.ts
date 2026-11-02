@@ -1,5 +1,3 @@
-import type { IllustrationName } from '../design-system/illustrations';
-
 /**
  * Nội dung tĩnh của trang công khai mà backend CHƯA có API (Ưu đãi, Câu hỏi thường gặp).
  * Sửa trực tiếp file này; khi backend có API thì thay bằng dữ liệu thật.
@@ -131,27 +129,21 @@ export const moments: readonly Readonly<{ src: string; alt: string }>[] = [
 export const weddingSteps: readonly Readonly<{
   title: string;
   detail: string;
-  /** Icon nét mảnh (assets/brand/icon-buoc-*), ghép theo nội dung từng bước. */
-  icon: IllustrationName;
 }>[] = [
   {
-    icon: 'buoc-tu-van',
     title: 'Tư vấn',
     detail: 'Gửi yêu cầu, quản lý tiệc gọi lại và hẹn bạn xem sảnh.',
   },
   {
-    icon: 'buoc-hop-dong',
     title: 'Hợp đồng & cọc',
     detail:
       'Nhà hàng mở hồ sơ, mời bạn vào Không gian cưới để duyệt kịch bản, hợp đồng và đặt cọc 30% qua VNPay.',
   },
   {
-    icon: 'buoc-chuan-bi',
     title: 'Chuẩn bị',
     detail: 'Nhập số khách theo nhóm, xếp sơ đồ bàn, thiết kế thiệp và đặt in.',
   },
   {
-    icon: 'buoc-ngay-cuoi',
     title: 'Ngày cưới',
     detail: 'Nhà hàng vận hành tiệc theo kịch bản hai bên đã duyệt; quyết toán sau tiệc.',
   },

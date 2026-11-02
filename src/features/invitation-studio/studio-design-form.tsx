@@ -2,7 +2,10 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { X } from 'lucide-react';
 import type { InvitationStudioState } from './use-invitation-studio';
+import { px } from './studio-panel-classes';
+import { ix } from './studio-classes';
 
 export function StudioDesignForm({
   studio,
@@ -36,10 +39,10 @@ export function StudioDesignForm({
       onSubmit={(e) => {
         void handleSaveDesign(e);
       }}
-      className="studio-form"
+      className={ix.form}
     >
       <div>
-        <label htmlFor="invitation-title" className="studio-label">
+        <label htmlFor="invitation-title" className={ix.label}>
           Tên thiệp
         </label>
         <input
@@ -49,13 +52,13 @@ export function StudioDesignForm({
           onChange={(e) => setTitle(e.target.value)}
           required
           maxLength={120}
-          className="studio-input"
+          className={ix.input}
         />
       </div>
 
-      <div className="studio-field-row">
+      <div className={ix.fieldRow}>
         <div>
-          <label htmlFor="groom-name" className="studio-label">
+          <label htmlFor="groom-name" className={ix.label}>
             Tên chú rể
           </label>
           <input
@@ -64,11 +67,11 @@ export function StudioDesignForm({
             value={groomName}
             onChange={(e) => setGroomName(e.target.value)}
             placeholder="Nhập tên chú rể..."
-            className="studio-input"
+            className={ix.input}
           />
         </div>
         <div>
-          <label htmlFor="bride-name" className="studio-label">
+          <label htmlFor="bride-name" className={ix.label}>
             Tên cô dâu
           </label>
           <input
@@ -77,13 +80,13 @@ export function StudioDesignForm({
             value={brideName}
             onChange={(e) => setBrideName(e.target.value)}
             placeholder="Nhập tên cô dâu..."
-            className="studio-input"
+            className={ix.input}
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="invitation-greeting" className="studio-label">
+        <label htmlFor="invitation-greeting" className={ix.label}>
           Lời mời đầu thiệp
         </label>
         <input
@@ -92,12 +95,12 @@ export function StudioDesignForm({
           value={greeting}
           onChange={(e) => setGreeting(e.target.value)}
           maxLength={200}
-          className="studio-input"
+          className={ix.input}
         />
       </div>
 
       <div>
-        <label htmlFor="invitation-message" className="studio-label">
+        <label htmlFor="invitation-message" className={ix.label}>
           Lời nhắn
         </label>
         <textarea
@@ -106,12 +109,12 @@ export function StudioDesignForm({
           value={message}
           onChange={(e) => setMessageText(e.target.value)}
           maxLength={1000}
-          className="studio-textarea"
+          className={ix.textarea}
         />
       </div>
 
       <div>
-        <label htmlFor="invitation-footer" className="studio-label">
+        <label htmlFor="invitation-footer" className={ix.label}>
           Ghi chú cuối thiệp
         </label>
         <input
@@ -120,40 +123,41 @@ export function StudioDesignForm({
           value={footer}
           onChange={(e) => setFooter(e.target.value)}
           maxLength={300}
-          className="studio-input"
+          className={ix.input}
         />
       </div>
 
       {/* Attached Images Chips */}
       {derivedAssetIds.length > 0 && (
-        <div className="studio-attached-images">
-          <label className="studio-label">Ảnh trên thiệp ({derivedAssetIds.length})</label>
-          <div className="studio-chip-group">
+        <div className={px.attached}>
+          <label className={ix.label}>Ảnh trên thiệp ({derivedAssetIds.length})</label>
+          <div className={px.chipGroup}>
             {derivedAssetIds.map((id) => {
               const mediaItem = uploadedMediaList.find((m) => m.derivedAssetId === id);
               const previewSrc = assetPreviewMap[id];
               return (
-                <span key={id} className="studio-chip">
+                <span key={id} className={px.chip}>
                   {previewSrc ? (
                     <Image
                       src={previewSrc}
                       alt="Ảnh đính kèm"
                       width={24}
                       height={24}
-                      className="studio-chip-thumb"
+                      className={px.chipThumb}
                       unoptimized
                     />
                   ) : null}
-                  <span className="studio-chip-text" title={mediaItem?.altText ?? id}>
+                  <span className={px.chipText} title={mediaItem?.altText ?? id}>
                     {mediaItem?.altText ? mediaItem.altText.slice(0, 20) : id.slice(0, 8)}...
                   </span>
                   <button
                     type="button"
                     onClick={() => handleRemoveImageFromDesign(id)}
-                    className="studio-chip-remove"
+                    className={px.chipRemove}
                     title="Bỏ ảnh này khỏi thiệp"
+                    aria-label="Bỏ ảnh này khỏi thiệp"
                   >
-                    ✕
+                    <X className="size-3.5" aria-hidden="true" />
                   </button>
                 </span>
               );
@@ -162,11 +166,16 @@ export function StudioDesignForm({
         </div>
       )}
 
-      <div className="studio-form-actions">
-        <button type="submit" disabled={saving} className="studio-btn">
+      <div className={ix.formActions}>
+        <button type="submit" disabled={saving} className={ix.btn}>
           {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
         </button>
-        {designDirty && <span className="studio-unsaved-badge">Có thay đổi chưa lưu</span>}
+        {designDirty && (
+          <span className={ix.unsaved}>
+            <span className="size-2 rounded-full bg-primary" aria-hidden="true" />
+            Có thay đổi chưa lưu
+          </span>
+        )}
       </div>
     </form>
   );

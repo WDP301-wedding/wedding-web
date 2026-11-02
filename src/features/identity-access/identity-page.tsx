@@ -1,18 +1,16 @@
 'use client';
-import { describeApiError } from '../../lib/api/api-errors';
-import { type FormEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { routes } from '../../routes';
+import { useLayoutEffect } from 'react';
+
 import { PasswordResetOtpForm } from './password-reset-otp-form';
-import { ApiClientError } from '../../lib/api/client';
 import { browserSession } from './browser-session';
 import {
   consumeCredentialFragment,
   type WebIdentitySession,
   type BootstrapCredential,
-  type WebSessionSnapshot,
 } from './session';
 import { AuthForm, Field, PublicShell } from './identity-form-fields';
-import { identityErrorMessage, readField, type IdentityView } from './identity-error-utils';
+import { useIdentityExperience } from './use-identity-experience';
+import { alert } from '../public-website/public-classes';
 
 const browserCredential =
   typeof window === 'undefined'
@@ -21,9 +19,9 @@ const browserCredential =
         window.history.replaceState(null, '', safePath),
       );
 export { browserSession } from './browser-session';
-export function hasBootstrapCredential() {
-  return browserCredential !== null;
-}
+
+const textAction =
+  'self-center rounded-lg px-2 py-2 text-sm font-semibold text-primary transition-colors hover:text-hy-wine-pressed';
 
 type IdentityExperienceProps = Readonly<{
   session: WebIdentitySession;
@@ -35,14 +33,18 @@ type IdentityExperienceProps = Readonly<{
    * chuyển thẳng vào /khong-gian thay vì hiện trang hồ sơ. Để trống → hiện hồ sơ như cũ.
    */
   onAuthenticated?: (() => void) | undefined;
+  /** Ghi chú hiện trên form đăng nhập (ví dụ `/loi-moi` mở mà không có mã lời mời). */
+  loginHint?: string | undefined;
 }>;
 
 export function PublicIdentityPage({
   startView = 'login',
   onAuthenticated,
+  loginHint,
 }: Readonly<{
   startView?: 'login' | 'reset-request';
   onAuthenticated?: (() => void) | undefined;
+  loginHint?: string | undefined;
 }> = {}) {
   useLayoutEffect(removeCredentialFragmentAfterHydration, []);
   return (
@@ -51,6 +53,7 @@ export function PublicIdentityPage({
       initialCredential={browserCredential}
       startView={startView}
       onAuthenticated={onAuthenticated}
+      loginHint={browserCredential === null ? loginHint : undefined}
     />
   );
 }
@@ -61,190 +64,58 @@ function removeCredentialFragmentAfterHydration() {
   window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
 }
 
+function StatusPanel({ title, children }: Readonly<{ title: string; children?: string }>) {
+  return (
+    <div className="flex flex-col gap-2" role="status" aria-busy="true">
+      <h1 className="text-xl font-bold sm:text-2xl">{title}</h1>
+      {children ? <p className="text-sm text-muted-foreground">{children}</p> : null}
+    </div>
+  );
+}
+
 export function IdentityExperience({
   session,
   initialCredential,
   startView = 'login',
   onAuthenticated,
+  loginHint,
 }: IdentityExperienceProps) {
-  const [snapshot, setSnapshot] = useState<WebSessionSnapshot>(() => session.snapshot());
-  const [view, setView] = useState<IdentityView>('restoring');
-  const [pending, setPending] = useState(false);
-  const [credentialConsumed, setCredentialConsumed] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [notice, setNotice] = useState<string | null>(null);
-  const [maskedEmail, setMaskedEmail] = useState<string | null>(null);
-  const credentialSubmitted = useRef(false);
-
-  useEffect(() => {
-    let active = true;
-    if (initialCredential !== null) {
-      if (initialCredential.kind === 'invitation') {
-        void session.getInvitationDetails(initialCredential.token).then((details) => {
-          if (active && details?.maskedEmail) setMaskedEmail(details.maskedEmail);
-        });
-      }
-      queueMicrotask(() => {
-        if (!active) return;
-        setView(initialCredential.kind === 'invitation' ? 'invitation' : 'reset-request');
-      });
-      return () => {
-        active = false;
-      };
-    }
-
-    void session
-      .restore()
-      .then((nextSnapshot) => {
-        if (!active) return;
-        setSnapshot(nextSnapshot);
-        setView(startView);
-      })
-      .catch((caught: unknown) => {
-        if (active) {
-          setSnapshot(session.snapshot());
-          setView(startView);
-          setError(describeApiError(caught).message);
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [initialCredential, session, startView]);
-
-  const authenticated = snapshot.status === 'authenticated';
-  useEffect(() => {
-    if (authenticated) {
-      if (onAuthenticated) {
-        onAuthenticated();
-      } else if (typeof window !== 'undefined') {
-        window.location.assign(routes.space);
-      }
-    }
-  }, [authenticated, onAuthenticated]);
+  const {
+    snapshot,
+    view,
+    setView,
+    pending,
+    credentialConsumed,
+    error,
+    fieldErrors,
+    notice,
+    setNotice,
+    handleLogin,
+    handleInvitation,
+    maskedEmail,
+  } = useIdentityExperience({ session, initialCredential, startView, onAuthenticated });
 
   if (snapshot.status === 'authenticated') {
     return (
       <PublicShell session={session}>
-        <div className="auth-panel">
-          <div className="auth-state" role="status" aria-busy="true">
-            <h1>Đang mở không gian cưới…</h1>
-          </div>
-        </div>
+        <StatusPanel title="Đang mở không gian cưới…" />
       </PublicShell>
     );
   }
 
-  const run = async (operation: () => Promise<void>) => {
-    setPending(true);
-    setError(null);
-    setFieldErrors({});
-    setNotice(null);
-    try {
-      await operation();
-    } catch (caught) {
-      credentialSubmitted.current = false;
-      setCredentialConsumed(false);
-
-      if (caught instanceof ApiClientError && caught.details && caught.details.length > 0) {
-        const errors: Record<string, string> = {};
-        for (const detail of caught.details) {
-          if (detail.path) {
-            let msg = detail.message;
-            if (detail.path === 'password' || detail.path === 'newPassword') {
-              if (detail.code === 'too_small') {
-                msg = 'Mật khẩu quá ngắn. Vui lòng nhập mật khẩu hợp lệ.';
-              } else if (detail.code === 'too_big') {
-                msg = 'Mật khẩu quá dài (tối đa 128 ký tự).';
-              } else {
-                msg = detail.message || 'Mật khẩu không hợp lệ.';
-              }
-            } else if (detail.path === 'email') {
-              msg = 'Email không hợp lệ.';
-            }
-            errors[detail.path] = msg;
-          }
-        }
-        setFieldErrors(errors);
-        setError(null);
-      } else if (
-        caught instanceof ApiClientError &&
-        (caught.status === 422 || caught.code === 'VALIDATION_ERROR') &&
-        view === 'invitation'
-      ) {
-        setFieldErrors({
-          password: 'Mật khẩu chưa hợp lệ hoặc không đáp ứng chính sách bảo mật.',
-        });
-        setError(null);
-      } else {
-        setError(identityErrorMessage(caught, view));
-      }
-    } finally {
-      setPending(false);
-    }
-  };
-
-  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const email = readField(form, 'email');
-    const password = readField(form, 'password');
-    const errors: Record<string, string> = {};
-    if (!email) {
-      errors.email = 'Vui lòng nhập email.';
-    }
-    if (!password) {
-      errors.password = 'Vui lòng nhập mật khẩu.';
-    }
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      setError(null);
-      return;
-    }
-    void run(async () => {
-      const nextSnapshot = await session.login(email, password);
-      setSnapshot(nextSnapshot);
-    });
-  };
-
-  const handleInvitation = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (credentialSubmitted.current || initialCredential?.kind !== 'invitation') return;
-    const form = new FormData(event.currentTarget);
-    const password = readField(form, 'password');
-    const passwordConfirmation = readField(form, 'passwordConfirmation');
-    const errors: Record<string, string> = {};
-    if (!password) {
-      errors.password = 'Vui lòng nhập mật khẩu.';
-    }
-    if (!passwordConfirmation) {
-      errors.passwordConfirmation = 'Vui lòng xác nhận mật khẩu.';
-    } else if (password !== passwordConfirmation) {
-      errors.passwordConfirmation = 'Hai mật khẩu chưa trùng khớp.';
-    }
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      setError(null);
-      return;
-    }
-    credentialSubmitted.current = true;
-    setCredentialConsumed(true);
-    void run(async () => {
-      const nextSnapshot = await session.acceptInvitation(initialCredential.token, password);
-      setSnapshot(nextSnapshot);
-    });
-  };
-
   return (
     <PublicShell session={session}>
-      <div className="auth-panel" aria-live="polite">
+      <div className="flex flex-col gap-4" aria-live="polite">
         {view === 'restoring' ? (
-          <div className="auth-state" role="status" aria-busy="true">
-            <span className="preview-label">Phiên riêng tư</span>
-            <h1>Đang khôi phục hành trình</h1>
-            <p>Hỷ Yến đang kiểm tra phiên an toàn của bạn.</p>
-          </div>
+          <StatusPanel title="Đang khôi phục hành trình">
+            Hỷ Yến đang kiểm tra phiên an toàn của bạn.
+          </StatusPanel>
+        ) : null}
+
+        {view === 'login' && loginHint ? (
+          <p className="rounded-lg bg-hy-info-bg px-4 py-3 text-sm text-hy-info" role="status">
+            {loginHint}
+          </p>
         ) : null}
 
         {view === 'login' ? (
@@ -311,23 +182,26 @@ export function IdentityExperience({
         ) : null}
 
         {error === null ? null : (
-          <p className="form-message form-error" role="alert">
+          <p className={alert} role="alert">
             {error}
           </p>
         )}
         {notice === null ? null : (
-          <p className="form-message form-success" role="status">
+          <p
+            className="rounded-lg bg-hy-success-bg px-4 py-3 text-sm text-hy-success"
+            role="status"
+          >
             {notice}
           </p>
         )}
 
         {view === 'login' ? (
-          <button className="text-action" type="button" onClick={() => setView('reset-request')}>
+          <button className={textAction} type="button" onClick={() => setView('reset-request')}>
             Quên mật khẩu?
           </button>
         ) : null}
         {view === 'reset-request' ? (
-          <button className="text-action" type="button" onClick={() => setView('login')}>
+          <button className={textAction} type="button" onClick={() => setView('login')}>
             Quay lại đăng nhập
           </button>
         ) : null}

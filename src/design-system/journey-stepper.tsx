@@ -1,3 +1,5 @@
+import { Check } from 'lucide-react';
+
 /**
  * "Hành trình cưới" 6 bước (design system Hỷ Yến).
  *
@@ -26,40 +28,40 @@ export function journeyIndex(phase: BookingPhase, eventDate: string, today = new
   return todayKey >= eventDate ? 4 : 3;
 }
 
+const bar = { done: 'bg-hy-success', current: 'bg-primary', todo: 'bg-border' };
+
 export function JourneyStepper({ current }: { current: number }) {
-  const progress = current < 0 ? 0 : (current / (journeySteps.length - 1)) * 100;
   return (
-    <div className="hy-journey">
-      <div className="hy-journey-track" aria-hidden="true">
-        <span style={{ transform: `scaleX(${progress / 100})` }} />
-      </div>
-      <ol>
-        {journeySteps.map((label, index) => {
-          const state =
-            current < 0
-              ? 'todo'
-              : index < current
-                ? 'done'
-                : index === current
-                  ? 'current'
-                  : 'todo';
-          return (
-            <li
-              key={label}
-              className={'hy-step hy-step-' + state}
-              aria-current={state === 'current' ? 'step' : undefined}
+    <ol className="grid grid-cols-6 gap-1.5 sm:gap-2">
+      {journeySteps.map((label, index) => {
+        const state =
+          current < 0 ? 'todo' : index < current ? 'done' : index === current ? 'current' : 'todo';
+        return (
+          <li
+            key={label}
+            className="flex min-w-0 flex-col gap-2"
+            aria-current={state === 'current' ? 'step' : undefined}
+          >
+            {/* Thanh từng bước lấp đầy lần lượt khi trang mở. */}
+            <span
+              className={`hy-grow-x h-1 rounded-full ${bar[state]}`}
+              style={{ animationDelay: `${index * 60}ms` }}
+              aria-hidden="true"
+            />
+            <span
+              className={`flex items-center gap-1 text-xs ${state === 'todo' ? 'text-muted-foreground' : 'text-foreground'} ${state === 'current' ? 'font-bold' : 'font-medium'} ${state === 'current' ? '' : 'max-sm:sr-only'}`}
             >
-              <span className="hy-step-dot" aria-hidden="true">
-                {state === 'done' ? '✓' : index + 1}
-              </span>
-              <span className="hy-step-label">{label}</span>
-              <span className="visually-hidden">
+              {state === 'done' ? (
+                <Check className="size-3.5 shrink-0 text-hy-success" aria-hidden="true" />
+              ) : null}
+              <span className="truncate">{label}</span>
+              <span className="sr-only">
                 {state === 'done' ? ' – đã xong' : state === 'current' ? ' – đang ở bước này' : ''}
               </span>
-            </li>
-          );
-        })}
-      </ol>
-    </div>
+            </span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

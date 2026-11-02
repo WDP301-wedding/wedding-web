@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- Fallback cho ảnh khi không tối ưu hoá được qua next/image */
 import Image from 'next/image';
 import { useState } from 'react';
+import { cn } from 'cn';
 
 import { BrandMark } from '../../design-system/brand-mark';
 
@@ -54,7 +55,7 @@ export function CatalogImage({
   sizes,
   priority = false,
   placeholder,
-  className = 'hy-media',
+  className,
 }: Readonly<{
   media: Media | undefined;
   sizes: string;
@@ -76,7 +77,12 @@ export function CatalogImage({
 
   if (!media || failed)
     return (
-      <div className={`${className} hy-media-empty`}>
+      <div
+        className={cn(
+          'flex flex-col items-center justify-center gap-2 bg-secondary px-4 text-center text-xs text-muted-foreground',
+          className,
+        )}
+      >
         <BrandMark compact />
         <span>{placeholder}</span>
       </div>
@@ -102,12 +108,13 @@ export function CatalogImage({
   };
 
   return (
-    <div className={className}>
+    <div className={cn('relative overflow-hidden bg-secondary', className)}>
       {canOptimize ? (
         <Image
           key={`${media.signedUrl}-${retryKey}`}
           src={media.signedUrl}
           alt={media.alternativeText}
+          className="object-cover"
           fill
           sizes={sizes}
           priority={priority}
@@ -120,6 +127,7 @@ export function CatalogImage({
           key={`${media.signedUrl}-${retryKey}`}
           src={media.signedUrl}
           alt={media.alternativeText}
+          className="absolute inset-0 size-full object-cover"
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           style={imageStyle}

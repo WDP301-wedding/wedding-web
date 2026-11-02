@@ -51,10 +51,7 @@ export function useGuestListCard({
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const activeGroups = useMemo(
-    () => groups.filter((group) => group.status === 'ACTIVE'),
-    [groups],
-  );
+  const activeGroups = useMemo(() => groups.filter((group) => group.status === 'ACTIVE'), [groups]);
   const groupMap = useMemo(
     () => new Map(groups.map((group) => [group.guestGroupId, group])),
     [groups],
@@ -76,8 +73,7 @@ export function useGuestListCard({
   }, [guests, groupFilter, searchQuery]);
 
   // Quản lý chọn checkbox hàng loạt
-  const allVisibleSelected =
-    visible.length > 0 && visible.every((g) => selectedIds.has(g.guestId));
+  const allVisibleSelected = visible.length > 0 && visible.every((g) => selectedIds.has(g.guestId));
   const someVisibleSelected = visible.some((g) => selectedIds.has(g.guestId));
 
   const toggleSelectAll = () => {
@@ -111,20 +107,17 @@ export function useGuestListCard({
       return;
 
     const selectedGuests = guests.filter((g) => selectedIds.has(g.guestId));
-    const results = await command.run(
-      async (token) => {
-        const updatedList: Guest[] = [];
-        for (const g of selectedGuests) {
-          const res = await guestApi.updateGuest(token, crypto.randomUUID(), bookingId, g.guestId, {
-            expectedRevision: g.revision,
-            guestGroupId: targetGroupId,
-          });
-          updatedList.push(res);
-        }
-        return updatedList;
-      },
-      `Đã chuyển ${selectedGuests.length} khách sang nhóm “${targetGroup?.name}”.`,
-    );
+    const results = await command.run(async (token) => {
+      const updatedList: Guest[] = [];
+      for (const g of selectedGuests) {
+        const res = await guestApi.updateGuest(token, crypto.randomUUID(), bookingId, g.guestId, {
+          expectedRevision: g.revision,
+          guestGroupId: targetGroupId,
+        });
+        updatedList.push(res);
+      }
+      return updatedList;
+    }, `Đã chuyển ${selectedGuests.length} khách sang nhóm “${targetGroup?.name}”.`);
 
     if (results) {
       for (const res of results) {
@@ -231,5 +224,3 @@ export function useGuestListCard({
     dialog,
   };
 }
-
-export type GuestListCardState = ReturnType<typeof useGuestListCard>;

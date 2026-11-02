@@ -1,6 +1,7 @@
 import type { ApiBody, ApiData } from '../../lib/api/types';
 import { bearer, coupleApi, unwrap } from '../couple-workspace/use-couple-workspace';
 import type { ImportRow } from './guest-csv';
+import { localizeGroup } from './group-labels';
 
 export type GuestGroup = ApiData<'/bookings/{bookingId}/guest-groups', 'get'>[number];
 export type GuestPlan = ApiData<'/bookings/{bookingId}/guest-plan', 'get'>;
@@ -19,13 +20,14 @@ const idem = (key: string) => ({ 'Idempotency-Key': key });
 export const guestApi = {
   /** Lần đọc đầu tiên backend tự khởi tạo 4 nhóm mặc định. */
   async groups(token: string, bookingId: string) {
-    return unwrap<GuestGroup[]>(
+    const groups = unwrap<GuestGroup[]>(
       await coupleApi().GET('/bookings/{bookingId}/guest-groups', {
         headers: bearer(token),
         params: { path: { bookingId } },
         cache: 'no-store',
       }),
     );
+    return groups.map(localizeGroup);
   },
   async createGroup(
     token: string,
@@ -33,12 +35,14 @@ export const guestApi = {
     bookingId: string,
     body: ApiBody<'/bookings/{bookingId}/guest-groups', 'post'>,
   ) {
-    return unwrap<GuestGroup>(
-      await coupleApi().POST('/bookings/{bookingId}/guest-groups', {
-        headers: bearer(token),
-        params: { path: { bookingId }, header: idem(key) },
-        body,
-      }),
+    return localizeGroup(
+      unwrap<GuestGroup>(
+        await coupleApi().POST('/bookings/{bookingId}/guest-groups', {
+          headers: bearer(token),
+          params: { path: { bookingId }, header: idem(key) },
+          body,
+        }),
+      ),
     );
   },
   async updateGroup(
@@ -48,12 +52,14 @@ export const guestApi = {
     groupId: string,
     body: ApiBody<'/bookings/{bookingId}/guest-groups/{groupId}', 'patch'>,
   ) {
-    return unwrap<GuestGroup>(
-      await coupleApi().PATCH('/bookings/{bookingId}/guest-groups/{groupId}', {
-        headers: bearer(token),
-        params: { path: { bookingId, groupId }, header: idem(key) },
-        body,
-      }),
+    return localizeGroup(
+      unwrap<GuestGroup>(
+        await coupleApi().PATCH('/bookings/{bookingId}/guest-groups/{groupId}', {
+          headers: bearer(token),
+          params: { path: { bookingId, groupId }, header: idem(key) },
+          body,
+        }),
+      ),
     );
   },
   async plan(token: string, bookingId: string) {

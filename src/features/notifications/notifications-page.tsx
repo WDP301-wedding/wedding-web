@@ -7,7 +7,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { EmptyPanel, ErrorPanel } from '../couple-workspace/couple-page';
 import { formatDateTime, useCommand } from '../couple-workspace/use-couple-workspace';
-import { WorkspaceShell } from '../couple-workspace/workspace-shell';
 import { browserSession } from '../identity-access/browser-session';
 import {
   notificationApi,
@@ -18,6 +17,7 @@ import {
 } from './notification-api';
 import { Skeleton } from '../../design-system/skeleton';
 import { useSpaceExtras } from '../couple-workspace/space-provider';
+import { cx } from '../commercial-contract/contract-classes';
 
 const vnDay = (iso: string) =>
   new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
@@ -153,16 +153,15 @@ export function NotificationsPage() {
   };
 
   return (
-    <WorkspaceShell active="notifications">
-      <div className="cw-page">
-        <header className="cw-heading">
-          <p className="eyebrow">Cập nhật</p>
+    <>
+      <div className={cx.page}>
+        <header className={cx.heading}>
           <h1>Thông báo</h1>
         </header>
         {state === 'loading' && !loadError ? <Skeleton label="Đang tải thông báo…" /> : null}
         {state === 'anonymous' ? (
           <EmptyPanel title="Cần đăng nhập">
-            <Link className="button" href="/dang-nhap">
+            <Link className={cx.button} href="/dang-nhap">
               Đăng nhập
             </Link>
           </EmptyPanel>
@@ -170,11 +169,11 @@ export function NotificationsPage() {
         {loadError ? <ErrorPanel error={loadError} onRetry={reload} /> : null}
         {state === 'ready' ? (
           <>
-            <section className="cw-card">
-              <div className="cw-card-header">
+            <section className={cx.card}>
+              <div className={cx.cardHeader}>
                 <h2>Hộp thư ({unread} chưa đọc)</h2>
                 <button
-                  className="button button-secondary"
+                  className={cx.buttonOutline}
                   type="button"
                   disabled={command.pending || unread === 0}
                   onClick={() => {
@@ -191,29 +190,32 @@ export function NotificationsPage() {
                 </button>
               </div>
               {items.length === 0 ? (
-                <p className="cw-note">Chưa có thông báo nào.</p>
+                <p className={cx.note}>Chưa có thông báo nào.</p>
               ) : (
                 groupByDay(items).map((group) => (
-                  <div key={group.label} className="hy-notif-group">
+                  <div key={group.label} className={cx.group}>
                     <h3>{group.label}</h3>
-                    <ul className="cw-list">
+                    <ul className={cx.list}>
                       {group.items.map((item) => {
                         const href = notificationHref(item);
                         return (
                           <li
                             key={item.id}
-                            style={{
-                              borderLeft: item.readAt ? undefined : '3px solid var(--champagne)',
-                              paddingLeft: 8,
-                            }}
+                            className={
+                              item.readAt
+                                ? 'flex flex-col gap-1 pl-4'
+                                : 'relative flex flex-col gap-1 pl-4 before:absolute before:top-2 before:left-0 before:size-2 before:rounded-full before:bg-primary'
+                            }
                           >
-                            <strong>{item.title}</strong>
-                            <p style={{ margin: '4px 0' }}>{item.message}</p>
-                            <small className="muted">{formatDateTime(item.createdAt)}</small>
-                            <div className="cw-actions">
+                            <strong className={item.readAt ? 'font-medium' : 'font-bold'}>
+                              {item.title}
+                            </strong>
+                            <p className="text-muted-foreground">{item.message}</p>
+                            <small className={cx.muted}>{formatDateTime(item.createdAt)}</small>
+                            <div className={cx.actions}>
                               {href ? (
                                 <Link
-                                  className="cw-text-button"
+                                  className={cx.textButton}
                                   href={href}
                                   onClick={() => {
                                     if (item.readAt === null)
@@ -234,7 +236,7 @@ export function NotificationsPage() {
                               ) : null}
                               {item.readAt === null ? (
                                 <button
-                                  className="cw-text-button"
+                                  className={cx.textButton}
                                   type="button"
                                   disabled={command.pending}
                                   onClick={() =>
@@ -263,7 +265,7 @@ export function NotificationsPage() {
               )}
               {cursor ? (
                 <button
-                  className="button button-secondary"
+                  className={cx.buttonOutline}
                   type="button"
                   disabled={command.pending}
                   onClick={() =>
@@ -281,7 +283,7 @@ export function NotificationsPage() {
               ) : null}
             </section>
             {preferences ? (
-              <section className="cw-card">
+              <section className={cx.card}>
                 <h2>Nhắc nhở</h2>
                 <label>
                   <input
@@ -303,12 +305,12 @@ export function NotificationsPage() {
                   />{' '}
                   Nhận email nhắc trước ngày cưới và hạn chỉnh ảnh
                 </label>
-                <p className="cw-note">Thông báo đẩy (push) chỉ có trên ứng dụng Android.</p>
+                <p className={cx.note}>Thông báo đẩy (push) chỉ có trên ứng dụng Android.</p>
               </section>
             ) : null}
           </>
         ) : null}
       </div>
-    </WorkspaceShell>
+    </>
   );
 }

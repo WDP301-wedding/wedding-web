@@ -1,5 +1,6 @@
 'use client';
 import { useState, useSyncExternalStore } from 'react';
+import { buttonVariants } from '../../components/ui/button';
 import { InlineError } from '../../design-system/inline-error';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { browserSession } from '../identity-access/browser-session';
@@ -41,7 +42,10 @@ export function ConnectionFeedback() {
   };
   if (!online || status === 'connected') return null;
   return (
-    <aside className="hy-banner" aria-label="Trạng thái cập nhật dữ liệu">
+    <aside
+      className="mx-auto my-4 flex max-w-[1180px] flex-wrap items-center gap-3 rounded-lg bg-hy-warning-bg px-4 py-3 text-sm text-hy-warning"
+      aria-label="Trạng thái cập nhật dữ liệu"
+    >
       <p role="status">
         {status === 'connecting'
           ? 'Đang kết nối cập nhật trực tiếp…'
@@ -49,7 +53,7 @@ export function ConnectionFeedback() {
       </p>
       <button
         type="button"
-        className="button button-secondary"
+        className={buttonVariants({ variant: 'outline', size: 'sm' })}
         disabled={pending}
         onClick={() => void retry()}
       >

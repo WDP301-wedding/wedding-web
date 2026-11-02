@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { formText } from '../couple-workspace/use-couple-workspace';
+import { cx } from './contract-classes';
 
 export function WithdrawForm({
   pending,
@@ -11,7 +12,7 @@ export function WithdrawForm({
     <details>
       <summary>Cần chỉnh sửa? Rút duyệt</summary>
       <form
-        className="cw-form"
+        className={cx.form}
         onSubmit={(event) => {
           event.preventDefault();
           const reason = formText(new FormData(event.currentTarget), 'reason');
@@ -22,8 +23,8 @@ export function WithdrawForm({
           Lý do
           <textarea name="reason" required maxLength={500} rows={2} />
         </label>
-        <div className="cw-actions">
-          <button className="button button-secondary" disabled={pending} type="submit">
+        <div className={cx.actions}>
+          <button className={cx.buttonOutline} disabled={pending} type="submit">
             Rút duyệt
           </button>
         </div>
@@ -31,4 +32,3 @@ export function WithdrawForm({
     </details>
   );
 }
-

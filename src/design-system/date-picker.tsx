@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useId, useMemo, useRef, useState, useEffect } from 'react';
-import styles from './date-picker.module.css';
+import { cn } from 'cn';
+import { dp } from './date-picker-classes';
 import {
   computeCalendarGrid,
   parseDateParts,
@@ -66,10 +67,14 @@ export function DatePicker({
 
   const controlledParts = isControlled ? parseDateParts(value) : null;
   const selectedIso = isControlled
-    ? (controlledParts ? toIsoString(controlledParts) : '')
+    ? controlledParts
+      ? toIsoString(controlledParts)
+      : ''
     : uncontrolledIso;
   const displayValue = isControlled
-    ? (controlledParts ? toVnString(controlledParts) : (value ?? ''))
+    ? controlledParts
+      ? toVnString(controlledParts)
+      : (value ?? '')
     : uncontrolledDisplay;
 
   // View year and month for calendar navigation
@@ -235,18 +240,18 @@ export function DatePicker({
   }, [viewYear, viewMonth, selectedIso, min, max]);
 
   return (
-    <div ref={containerRef} className={`${styles.container} ${className ?? ''}`} style={style}>
-      {name ? (
-        <input type="hidden" name={name} value={selectedIso} />
-      ) : null}
+    <div ref={containerRef} className={cn(dp.container, className)} style={style}>
+      {name ? <input type="hidden" name={name} value={selectedIso} /> : null}
 
-      <div className={styles.trigger}>
+      <div className={dp.trigger}>
         <input
           id={inputId}
           type="text"
           inputMode="numeric"
           autoComplete="off"
-          className={`${styles.input} ${isOpen ? styles.isOpen : ''} ${hasError ? styles.hasError : ''}`}
+          className={dp.input}
+          data-open={isOpen}
+          data-error={hasError}
           value={displayValue}
           placeholder={placeholder}
           required={required && !selectedIso}
@@ -256,8 +261,6 @@ export function DatePicker({
           aria-describedby={ariaDescribedby}
           aria-labelledby={ariaLabelledby}
           aria-label={ariaLabel}
-          aria-expanded={isOpen}
-          aria-haspopup="dialog"
           onClick={handleToggle}
           onChange={handleInputChange}
           onBlur={handleBlur}
@@ -268,8 +271,10 @@ export function DatePicker({
           type="button"
           tabIndex={-1}
           aria-label="Chọn ngày từ lịch"
+          aria-expanded={isOpen}
+          aria-haspopup="dialog"
           disabled={disabled}
-          className={styles.calendarIconBtn}
+          className={dp.iconButton}
           onClick={handleToggle}
         >
           <svg

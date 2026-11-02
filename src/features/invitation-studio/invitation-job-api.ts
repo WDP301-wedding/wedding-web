@@ -47,10 +47,7 @@ export function createInvitationJobMethods(
       return toImageJob(required(data).data);
     },
 
-    async listImageJobs(
-      accessToken: string,
-      bookingId: string,
-    ): Promise<readonly ImageJobView[]> {
+    async listImageJobs(accessToken: string, bookingId: string): Promise<readonly ImageJobView[]> {
       const { data } = await api().GET('/bookings/{bookingId}/invitation-image-jobs', {
         headers: headers(accessToken),
         params: { path: { bookingId }, query: { limit: 20 } },
@@ -77,4 +74,3 @@ export function createInvitationJobMethods(
     },
   };
 }
-

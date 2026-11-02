@@ -7,7 +7,9 @@ import {
   type SeatingPlan,
 } from './seating-api';
 import { layoutWarnings } from './use-seating-workspace';
-import styles from './seating.module.css';
+import { TriangleAlert } from 'lucide-react';
+import { sx } from './seating-classes';
+import { cx } from '../commercial-contract/contract-classes';
 
 export function LayoutSelector({
   disabled = false,
@@ -30,44 +32,42 @@ export function LayoutSelector({
   const command = useCommand();
 
   return (
-    <section className="cw-card">
-      <div className="cw-card-header">
+    <section className={cx.card}>
+      <div className={cx.cardHeader}>
         <div>
-          <h2>{plan ? `Mẫu sơ đồ sảnh: ${plan.layoutName}` : 'Chọn mẫu bố trí không gian bàn tiệc'}</h2>
-          <span className="muted" style={{ fontSize: 13 }}>
+          <h2>
+            {plan ? `Mẫu sơ đồ sảnh: ${plan.layoutName}` : 'Chọn mẫu bố trí không gian bàn tiệc'}
+          </h2>
+          <span className={cx.muted}>
             Số khách dự kiến: <strong>{options.planningHeadcount} khách</strong>
           </span>
         </div>
       </div>
 
       {disabled ? (
-        <p className="cw-alert" role="status" style={{ margin: '12px 0' }}>
-          Bạn đang có thay đổi chưa lưu trên sơ đồ hiện tại. Hãy bấm <strong>Lưu nhãn bàn</strong> hoặc{' '}
-          <strong>Khôi phục</strong> ở phía dưới trước khi chuyển sang mẫu khác.
+        <p className={cx.alert} role="status">
+          Bạn đang có thay đổi chưa lưu trên sơ đồ hiện tại. Hãy bấm <strong>Lưu nhãn bàn</strong>{' '}
+          hoặc <strong>Khôi phục</strong> ở phía dưới trước khi chuyển sang mẫu khác.
         </p>
       ) : null}
 
       {options.items.length === 0 ? (
-        <p className="cw-note">Sảnh chưa có mẫu sơ đồ nào được xuất bản. Hãy liên hệ nhà hàng.</p>
+        <p className={cx.note}>Sảnh chưa có mẫu sơ đồ nào được xuất bản. Hãy liên hệ nhà hàng.</p>
       ) : (
-        <div className={styles.layoutGrid}>
+        <div className={sx.layoutGrid}>
           {options.items.map((option) => {
             const isActive = plan?.layoutTemplateVersionId === option.layoutTemplateVersionId;
             return (
               <div
                 key={option.layoutTemplateVersionId}
-                className={`${styles.layoutCard} ${isActive ? styles.layoutCardActive : ''}`}
+                className={isActive ? `${sx.layoutCard} ${sx.layoutCardActive}` : sx.layoutCard}
               >
-                <div className={styles.layoutCardHeader}>
-                  <h3 className={styles.layoutCardTitle}>{option.name}</h3>
+                <div className={sx.layoutCardHeader}>
+                  <h3 className={sx.layoutCardTitle}>{option.name}</h3>
                   <span
-                    className={`status ${
-                      isActive
-                        ? 'status-wine'
-                        : option.compatible
-                          ? 'status-champagne'
-                          : 'status-neutral'
-                    }`}
+                    className={
+                      isActive ? sx.statusActive : option.compatible ? cx.status : cx.statusMuted
+                    }
                   >
                     {isActive
                       ? 'Đang dùng'
@@ -79,15 +79,11 @@ export function LayoutSelector({
                   </span>
                 </div>
 
-                {option.description ? (
-                  <p style={{ fontSize: 13, color: 'var(--hy-ink-muted)', margin: 0 }}>
-                    {option.description}
-                  </p>
-                ) : null}
+                {option.description ? <p className={cx.muted}>{option.description}</p> : null}
 
                 {/* Khung hình xem trước sơ đồ */}
                 {option.tables ? (
-                  <div className={styles.layoutThumbnailWrap}>
+                  <div className={sx.layoutThumbnailWrap}>
                     <svg
                       viewBox={viewBoxOf(
                         option.tables.map(
@@ -102,7 +98,6 @@ export function LayoutSelector({
                       )}
                       width="100%"
                       height="100%"
-                      style={{ maxHeight: 140 }}
                       role="img"
                       aria-label={'Xem trước mẫu ' + option.name}
                     >
@@ -125,7 +120,8 @@ export function LayoutSelector({
                       </defs>
                       {option.tables.map((table) => {
                         const minDim = Math.min(table.width, table.height);
-                        const labelFontSize = Math.max(10, Math.min(22, minDim * 0.35));
+                        const k = Math.max(1, minDim / 100);
+                        const labelFontSize = Math.max(10 * k, Math.min(22 * k, minDim * 0.35));
                         return (
                           <g
                             key={table.layoutTableId}
@@ -189,15 +185,13 @@ export function LayoutSelector({
                     </svg>
                   </div>
                 ) : (
-                  <div className={styles.layoutThumbnailWrap}>
-                    <p className="muted" style={{ fontSize: 12, margin: 0 }}>
-                      Bản xem trước chưa được máy chủ cung cấp.
-                    </p>
+                  <div className={sx.layoutThumbnailWrap}>
+                    <p className={cx.muted}>Bản xem trước chưa được máy chủ cung cấp.</p>
                   </div>
                 )}
 
                 {/* Thông số kỹ thuật của mẫu */}
-                <div className={styles.layoutCardSpecs}>
+                <div className={sx.layoutCardSpecs}>
                   <div>
                     <strong>{option.tables?.length ?? '—'}</strong> bàn
                   </div>
@@ -205,21 +199,24 @@ export function LayoutSelector({
                     <strong>{option.totalSeatCapacity}</strong> ghế
                   </div>
                   <div>
-                    Khoảng khách: <strong>{option.minGuests}–{option.maxGuests}</strong>
+                    Khoảng khách:{' '}
+                    <strong>
+                      {option.minGuests}–{option.maxGuests}
+                    </strong>
                   </div>
                 </div>
 
                 {option.warning ? (
-                  <small style={{ color: 'var(--hy-warning, #8a5300)', fontSize: 12 }}>
-                    ⚠ {layoutWarnings[option.warning] ?? 'Mẫu cần được nhà hàng kiểm tra lại.'}
+                  <small className="inline-flex items-start gap-1.5 text-xs text-hy-warning">
+                    <TriangleAlert className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+                    {layoutWarnings[option.warning] ?? 'Mẫu cần được nhà hàng kiểm tra lại.'}
                   </small>
                 ) : null}
 
                 {/* Nút hành động */}
-                <div style={{ marginTop: 'auto' }}>
+                <div className="mt-auto">
                   <button
-                    className={`button ${isActive ? 'button-secondary' : ''}`}
-                    style={{ width: '100%' }}
+                    className={`${isActive ? cx.buttonOutline : cx.button} w-full`}
                     type="button"
                     disabled={disabled || command.pending || isActive}
                     onClick={() =>
@@ -268,7 +265,7 @@ export function LayoutSelector({
       )}
 
       {options.items.length > 0 && !options.items.some((option) => option.compatible) ? (
-        <p className="cw-note" style={{ marginTop: 16 }}>
+        <p className={cx.note}>
           Sảnh hiện chưa có mẫu phù hợp với {options.planningHeadcount} khách dự kiến. Hãy liên hệ
           nhà hàng để bổ sung mẫu phù hợp hoặc kiểm tra khoảng khách cho phép của mẫu; ngoại lệ
           không được vượt sức chứa thực tế.
@@ -277,8 +274,7 @@ export function LayoutSelector({
 
       {!plan && command.error?.code === 'SEATING_PLAN_EXISTS' ? (
         <form
-          className="cw-form"
-          style={{ marginTop: 16 }}
+          className={cx.form}
           onSubmit={(event) => {
             event.preventDefault();
             const id = formText(new FormData(event.currentTarget), 'planId');
@@ -288,13 +284,13 @@ export function LayoutSelector({
         >
           <details open>
             <summary>Mở sơ đồ đã tạo trên thiết bị khác</summary>
-            <div className="cw-form-row">
+            <div className={cx.formRow}>
               <label>
                 Mã sơ đồ
                 <input name="planId" placeholder="xxxxxxxx-xxxx-…" />
               </label>
             </div>
-            <button className="button button-secondary" type="submit" disabled={command.pending}>
+            <button className={cx.buttonOutline} type="submit" disabled={command.pending}>
               Mở sơ đồ
             </button>
           </details>

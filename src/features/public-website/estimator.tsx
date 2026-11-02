@@ -1,38 +1,29 @@
 'use client';
 
-import Link from 'next/link';
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-  type ReactNode,
-} from 'react';
-import { createPortal } from 'react-dom';
+import Image from 'next/image';
+import { useId, useState, useSyncExternalStore, type FormEvent, type ReactNode } from 'react';
+import { cn } from 'cn';
 
-import { minimumPreferredDate } from './consultation-date';
-import { consultationHref, formatVnd, menuEstimates, suitableHalls, tableCount } from './estimate';
-import type { Hall, Menu, Restaurant } from './public-api';
-import { CatalogImage } from './catalog-image';
-import { HeroVideo } from './hero-video';
-import { DatePicker } from '../../design-system/date-picker';
+import { Button } from '../../components/ui/button';
 import { fallbackShifts } from '../../content/public-content';
-
-type Shift = 'LUNCH' | 'DINNER';
-type Estimate = Readonly<{ date: string; guests: number; shift: Shift }>;
+import { DatePicker } from '../../design-system/date-picker';
+import { minimumPreferredDate } from './consultation-date';
+import { EstimateModal } from './estimate-modal';
+import { formatDate, shiftName, tableCount, type Estimate, type Shift } from './estimate';
+import { HeroVideo } from './hero-video';
+import type { Hall, Menu, Restaurant } from './public-api';
+import { choice, container, control, field } from './public-classes';
 
 const noSubscribe = () => () => undefined;
-
-const formatDate = (iso: string) => iso.split('-').reverse().join('/');
-export const shiftName = (code: Shift) => (code === 'LUNCH' ? 'Ca trưa' : 'Ca tối');
+/** Chữ và form hero hiện dần một lần khi mở trang. */
+const rise =
+  'animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards duration-700 ease-hy-decelerate motion-reduce:animate-none';
 
 /**
  * A2 · Hero + "Ước tính tiệc của bạn" (P2 – plan first).
  *
  * Toàn bộ phép tính chạy trên trình duyệt từ catalog đã có sẵn trong HTML (Server Component
- * truyền xuống) → bấm "Xem ước tính" mở hộp thoại Modal/Bottom-Sheet cao cấp ngay giữa màn hình,
+ * truyền xuống) → bấm "Xem ước tính" mở hộp thoại Modal/Bottom-Sheet ngay giữa màn hình,
  * không bị che khuất dưới nếp gấp trên màn hình nhỏ/laptop.
  */
 export function EstimatorHero({
@@ -77,75 +68,112 @@ export function EstimatorHero({
 
   return (
     <>
-      <section className="hy-hero" aria-labelledby={`${formId}-title`}>
+      <section
+        className="relative isolate overflow-hidden bg-hy-ink text-white"
+        aria-labelledby={`${formId}-title`}
+      >
+        <Image
+          className="-z-20 object-cover"
+          src="/images/hero-sanh-tiec.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+        />
         <HeroVideo />
-        <div className="hy-hero-copy">{intro}</div>
-        <form className="hy-estimator" onSubmit={submit} aria-labelledby={`${formId}-title`}>
-          <h2 id={`${formId}-title`}>Ước tính tiệc của bạn</h2>
-          <div className="hy-estimator-row">
-            <label>
-              Ngày
-              <DatePicker name="date" min={minimumDate} />
-            </label>
-            <label>
-              Số khách
-              <input
-                name="guests"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={10000}
-                required
-                defaultValue={280}
-              />
-            </label>
-          </div>
-          <fieldset className="hy-shift-picker">
-            <legend className="visually-hidden">Ca tiệc</legend>
-            {shifts.map((item) => (
-              <label key={item.code} className={shift === item.code ? 'is-selected' : undefined}>
-                <input
-                  type="radio"
-                  name="shift"
-                  value={item.code}
-                  checked={shift === item.code}
-                  onChange={() => setShift(item.code)}
-                />
-                <strong>{shiftName(item.code)}</strong>
-                <small>
-                  {item.startTime} – {item.endTime}
-                </small>
+        <div
+          className="absolute inset-0 -z-10 bg-hy-ink/75 lg:bg-[linear-gradient(90deg,rgb(43_29_34/0.85),rgb(43_29_34/0.62)_55%,rgb(43_29_34/0.4))]"
+          aria-hidden="true"
+        />
+        <div
+          className={cn(
+            container,
+            'grid items-center gap-8 pt-10 pb-12 lg:min-h-[600px] lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-16 lg:py-20',
+          )}
+        >
+          <div className={cn(rise, 'flex max-w-2xl flex-col gap-4 lg:gap-5')}>{intro}</div>
+          <form
+            className={cn(
+              rise,
+              'flex flex-col gap-4 rounded-2xl bg-card p-5 text-foreground shadow-[0_24px_48px_rgb(43_29_34/0.24)] sm:p-7',
+            )}
+            style={{ animationDelay: '120ms' }}
+            onSubmit={submit}
+            aria-labelledby={`${formId}-title`}
+          >
+            <h2 id={`${formId}-title`} className="text-lg font-bold">
+              Ước tính tiệc của bạn
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              <label className={field}>
+                Ngày
+                <DatePicker name="date" min={minimumDate} />
               </label>
-            ))}
-          </fieldset>
-          {error ? (
-            <p className="hy-field-error" role="alert">
-              {error}
-            </p>
-          ) : null}
-          <button className="button" type="submit">
-            Xem ước tính
-          </button>
-        </form>
+              <label className={field}>
+                Số khách
+                <input
+                  className={cn(control, 'tabular-nums')}
+                  name="guests"
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={10000}
+                  required
+                  defaultValue={280}
+                />
+              </label>
+            </div>
+            <fieldset className="grid grid-cols-2 gap-3">
+              <legend className="mb-1.5 text-xs font-semibold">Ca tiệc</legend>
+              {shifts.map((item) => (
+                <label key={item.code} className={choice}>
+                  <input
+                    className="sr-only"
+                    type="radio"
+                    name="shift"
+                    value={item.code}
+                    checked={shift === item.code}
+                    onChange={() => setShift(item.code)}
+                  />
+                  <strong className="text-sm group-has-checked:text-primary">
+                    {shiftName(item.code)}
+                  </strong>
+                  <small className="text-xs text-muted-foreground tabular-nums">
+                    {item.startTime} – {item.endTime}
+                  </small>
+                </label>
+              ))}
+            </fieldset>
+            {error ? (
+              <p className="text-xs text-destructive" role="alert">
+                {error}
+              </p>
+            ) : null}
+            <Button type="submit" size="lg">
+              Xem ước tính
+            </Button>
+          </form>
+        </div>
       </section>
 
       {estimate ? (
-        <aside className="hy-estimate-reopen-banner" aria-label="Ước tính tiệc của bạn">
-          <div className="hy-estimate-reopen-inner">
-            <div className="hy-estimate-reopen-text">
+        <aside
+          data-estimate-banner
+          className="fixed inset-x-0 bottom-0 z-30 animate-in border-t border-border bg-card/95 shadow-hy-2 duration-300 fade-in slide-in-from-bottom-4 motion-reduce:animate-none"
+          aria-label="Ước tính tiệc của bạn"
+        >
+          <div className={cn(container, 'flex flex-wrap items-center justify-between gap-3 py-3')}>
+            <p className="text-sm">
               <strong>Ước tính tiệc của bạn:</strong>{' '}
-              <span>
-                {estimate.guests} khách · {tableCount(estimate.guests)} bàn · {shiftName(estimate.shift)}
+              <span className="text-muted-foreground tabular-nums">
+                {estimate.guests} khách · {tableCount(estimate.guests)} bàn ·{' '}
+                {shiftName(estimate.shift)}
                 {estimate.date ? ` (${formatDate(estimate.date)})` : ''}
               </span>
-            </div>
-            <button
-              type="button"
-              className="button button-secondary"
-              onClick={() => setIsModalOpen(true)}
-            >
+            </p>
+            <Button type="button" variant="outline" size="sm" onClick={() => setIsModalOpen(true)}>
               Mở lại bảng ước tính
-            </button>
+            </Button>
           </div>
         </aside>
       ) : null}
@@ -162,181 +190,3 @@ export function EstimatorHero({
     </>
   );
 }
-
-export function EstimateModal({
-  estimate,
-  halls,
-  menus,
-  onClose = () => undefined,
-}: Readonly<{
-  estimate: Estimate;
-  halls: readonly Hall[];
-  menus: readonly Menu[];
-  onClose?: () => void;
-}>) {
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const fitting = suitableHalls(halls, estimate.guests);
-  const costs = menuEstimates(menus, estimate.guests);
-  const tables = tableCount(estimate.guests);
-  const [hallId, setHallId] = useState<string | undefined>(fitting[0]?.id);
-  // Mặc định chọn thực đơn ở giữa (thường là gói được chọn nhiều) nếu có ≥ 3 gói.
-  const [menuId, setMenuId] = useState<string | undefined>(
-    costs[Math.min(1, costs.length - 1)]?.menu.id,
-  );
-  const selectedHall = fitting.find((hall) => hall.id === hallId) ?? fitting[0];
-
-  useEffect(() => {
-    closeButtonRef.current?.focus();
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prevOverflow;
-    };
-  }, []);
-
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      onClose();
-    }
-  };
-
-  if (typeof document === 'undefined') return null;
-
-  return createPortal(
-    <div
-      className="hy-estimate-modal-backdrop"
-      onMouseDown={onClose}
-      onKeyDown={handleKeyDown}
-    >
-      <div
-        className="hy-estimate-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="estimate-title"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <div className="hy-modal-drag-handle" aria-hidden="true" />
-        <header className="hy-estimate-modal-head">
-          <div className="hy-estimate-modal-title-group">
-            <h2 id="estimate-title">
-              {estimate.guests} khách · {tables} bàn · {shiftName(estimate.shift)}
-              {estimate.date ? ` ${formatDate(estimate.date)}` : ''}
-            </h2>
-            <span className="hy-chip is-info">Ước tính – chưa giữ chỗ</span>
-          </div>
-          <button
-            ref={closeButtonRef}
-            type="button"
-            className="hy-estimate-modal-close"
-            onClick={onClose}
-            aria-label="Đóng bảng ước tính"
-          >
-            ✕
-          </button>
-        </header>
-
-        <div className="hy-estimate-modal-body">
-          <div className="hy-estimate-grid">
-            <fieldset className="hy-estimate-halls">
-              <legend>1 · Sảnh vừa sức chứa</legend>
-              {fitting.length === 0 ? (
-                <p className="hy-muted">
-                  Chưa có sảnh nào đủ {estimate.guests} khách. Gửi yêu cầu để quản lý tiệc tư vấn phương
-                  án phù hợp.
-                </p>
-              ) : (
-                <div className="hy-estimate-hall-list">
-                  {fitting.map((hall, index) => (
-                    <label
-                      key={hall.id}
-                      className={
-                        'hy-estimate-hall' + (hall.id === selectedHall?.id ? ' is-selected' : '')
-                      }
-                    >
-                      <CatalogImage
-                        media={hall.media[0]}
-                        sizes="(max-width: 720px) 100vw, 240px"
-                        placeholder={hall.name}
-                      />
-                      {index === 0 ? <span className="hy-chip is-success">Vừa nhất</span> : null}
-                      <span className="hy-estimate-hall-name">
-                        <input
-                          type="radio"
-                          name="estimate-hall"
-                          value={hall.id}
-                          checked={hall.id === selectedHall?.id}
-                          onChange={() => setHallId(hall.id)}
-                        />
-                        <strong>{hall.name}</strong>
-                      </span>
-                      <small>
-                        Tối đa {hall.maxGuests} khách · còn {hall.maxGuests - estimate.guests} chỗ
-                      </small>
-                      <Link href={`/sanh/${hall.id}`}>Xem sảnh →</Link>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </fieldset>
-
-            <fieldset className="hy-estimate-menus">
-              <legend>2 · Chi phí ước tính theo thực đơn · {tables} bàn</legend>
-              {costs.length === 0 ? (
-                <p className="hy-muted">Thực đơn đang được cập nhật.</p>
-              ) : (
-                costs.map(({ menu, totalVnd }) => (
-                  <label
-                    key={menu.id}
-                    className={'hy-estimate-menu' + (menu.id === menuId ? ' is-selected' : '')}
-                  >
-                    <input
-                      type="radio"
-                      name="estimate-menu"
-                      value={menu.id}
-                      checked={menu.id === menuId}
-                      onChange={() => setMenuId(menu.id)}
-                    />
-                    <span>
-                      <strong>{menu.name}</strong>
-                      <small>
-                        {tables} bàn × {formatVnd(menu.priceVndPerTable)}
-                      </small>
-                    </span>
-                    <strong className="hy-money">{formatVnd(totalVnd)}</strong>
-                  </label>
-                ))
-              )}
-              <p className="hy-muted hy-small">
-                Số bàn = số khách ÷ 10, làm tròn lên. Chưa gồm dịch vụ (MC, trang trí), đồ in và VAT.
-                Giá chốt theo hợp đồng sau buổi tư vấn.
-              </p>
-            </fieldset>
-          </div>
-        </div>
-
-        <footer className="hy-estimate-modal-foot">
-          <button type="button" className="button button-secondary" onClick={onClose}>
-            Đóng / Chỉnh sửa lại
-          </button>
-          <Link
-            className="button"
-            href={consultationHref({
-              hallId: selectedHall?.id,
-              menuId,
-              date: estimate.date || undefined,
-              guests: estimate.guests,
-              shift: estimate.shift,
-            })}
-          >
-            Gửi yêu cầu tư vấn với lựa chọn này →
-          </Link>
-        </footer>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
-export const EstimateResult = EstimateModal;
-

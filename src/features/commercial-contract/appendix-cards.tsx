@@ -3,11 +3,8 @@
 import React from 'react';
 import { formatDateTime, formatVnd } from '../couple-workspace/use-couple-workspace';
 import { ContractLinesTable } from './contract-lines';
-import {
-  appendixStateLabels,
-  type Appendix,
-  type AppendixList,
-} from './appendix-api';
+import { appendixStateLabels, type Appendix, type AppendixList } from './appendix-api';
+import { cx } from './contract-classes';
 
 export function AppendixCurrentCard({
   current,
@@ -23,15 +20,15 @@ export function AppendixCurrentCard({
   onApprove: (current: Appendix) => void;
 }>) {
   return (
-    <section className="cw-card">
-      <div className="cw-card-header">
+    <section className={cx.card}>
+      <div className={cx.cardHeader}>
         <h2>Phụ lục số {current.revisionNumber}</h2>
-        <span className="status status-champagne">{appendixStateLabels[current.state]}</span>
+        <span className={cx.status}>{appendixStateLabels[current.state]}</span>
       </div>
       <p>
         <strong>Lý do:</strong> {current.document.reason}
       </p>
-      <div className="cw-grid">
+      <div className={cx.grid}>
         <div>
           <h3>Trước</h3>
           <ContractLinesTable
@@ -49,19 +46,19 @@ export function AppendixCurrentCard({
           />
         </div>
       </div>
-      <p className="cw-note">
+      <p className={cx.note}>
         Chênh lệch:{' '}
         <strong>
           {current.document.deltaVnd > 0 ? '+' : ''}
           {formatVnd(current.document.deltaVnd)}
         </strong>{' '}
-        · Nhà hàng duyệt: {current.approvals.some((a) => a.party === 'MANAGER') ? 'rồi' : 'chưa'} · Hai bạn
-        duyệt: {current.approvals.some((a) => a.party === 'COUPLE') ? 'rồi' : 'chưa'}
+        · Nhà hàng duyệt: {current.approvals.some((a) => a.party === 'MANAGER') ? 'rồi' : 'chưa'} ·
+        Hai bạn duyệt: {current.approvals.some((a) => a.party === 'COUPLE') ? 'rồi' : 'chưa'}
       </p>
-      <div className="cw-actions">
+      <div className={cx.actions}>
         {current.state === 'DRAFT' && !isClosed ? (
           <button
-            className="button"
+            className={cx.button}
             type="button"
             disabled={pending}
             onClick={() => onSubmit(current)}
@@ -73,7 +70,7 @@ export function AppendixCurrentCard({
         !isClosed &&
         !current.approvals.some((a) => a.party === 'COUPLE') ? (
           <button
-            className="button"
+            className={cx.button}
             type="button"
             disabled={pending}
             onClick={() => onApprove(current)}
@@ -93,9 +90,9 @@ export function AppendixHistoryCard({
 }>) {
   if (appendices.revisions.length === 0) return null;
   return (
-    <section className="cw-card">
+    <section className={cx.card}>
       <h2>Lịch sử phụ lục</h2>
-      <ul className="cw-list">
+      <ul className={cx.list}>
         {appendices.revisions.map((revision) => (
           <li key={revision.revisionId}>
             #{revision.revisionNumber} · {appendixStateLabels[revision.state]} ·{' '}
@@ -107,4 +104,3 @@ export function AppendixHistoryCard({
     </section>
   );
 }
-

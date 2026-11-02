@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Check, ChevronRight } from 'lucide-react';
 import { imageJobStatusText } from './use-image-job';
 import type { InvitationStudioState } from './use-invitation-studio';
-import {
-  AI_DESIGN_PRESETS,
-  generateDesignFromPrompt,
-  type AiDesignPreset,
-} from './ai-invitation-generator';
+import { AI_DESIGN_PRESETS, type AiDesignPreset } from './ai-design-presets';
+import { generateDesignFromPrompt } from './ai-invitation-generator';
+import { px } from './studio-panel-classes';
+import { ix } from './studio-classes';
 
 export function StudioAiBox({
   studio,
@@ -66,28 +66,24 @@ export function StudioAiBox({
   };
 
   return (
-    <div className="studio-ai-card-designer">
+    <div className={px.aiCard}>
       {/* Header */}
-      <div className="studio-ai-box-head">
+      <div className="flex flex-col gap-1">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <span className="ai-badge">✨ Trợ lý AI Designer</span>
-            <h3 className="studio-subtitle" style={{ margin: 0, fontSize: 16 }}>
-              Thiết Kế Toàn Bộ Thiệp Cưới
-            </h3>
-          </div>
-          <p className="studio-meta" style={{ margin: 0 }}>
-            Nhập mô tả ý tưởng của bạn (phong cách, tông màu, lời chúc...) hoặc bấm chọn nhanh 1 trong 3 biến thể gợi ý bên dưới để AI tự động thiết kế trọn vẹn thiệp cưới.
+          <h3 className={ix.subtitle}>Thiết kế toàn bộ thiệp cưới</h3>
+          <p className={ix.meta}>
+            Nhập mô tả ý tưởng của bạn (phong cách, tông màu, lời chúc...) hoặc bấm chọn nhanh 1
+            trong 3 biến thể gợi ý bên dưới để AI tự động thiết kế trọn vẹn thiệp cưới.
           </p>
         </div>
       </div>
 
       {/* Thanh Prompt Input tùy chỉnh */}
-      <form onSubmit={handleGenerateCustomCard} className="studio-ai-custom-prompt-container">
-        <label htmlFor="ai-custom-card-prompt" className="studio-label" style={{ fontWeight: 600 }}>
+      <form onSubmit={handleGenerateCustomCard} className={px.aiForm}>
+        <label htmlFor="ai-custom-card-prompt" className={ix.label}>
           Mô tả phong cách thiệp cưới theo ý bạn:
         </label>
-        <div className="studio-ai-prompt-row">
+        <div className={px.promptRow}>
           <input
             id="ai-custom-card-prompt"
             type="text"
@@ -95,106 +91,102 @@ export function StudioAiBox({
             onChange={(e) => setCustomPrompt(e.target.value)}
             placeholder="Ví dụ: Thiệp cưới phong cách hoàng gia sang trọng tone đỏ rượu và vàng gold cho chú rể Minh Quân và cô dâu Lan Anh..."
             disabled={isGeneratingCard}
-            className="studio-input"
-            style={{ fontSize: 14 }}
+            className={ix.input}
           />
           <button
             type="submit"
             disabled={isGeneratingCard || !customPrompt.trim()}
-            className="studio-btn"
-            style={{ minWidth: 160 }}
+            className={ix.btn}
           >
-            {isGeneratingCard ? 'Đang thiết kế...' : '✨ Tạo thiết kế'}
+            {isGeneratingCard ? 'Đang thiết kế...' : 'Tạo thiết kế'}
           </button>
         </div>
 
-        <div className="studio-prompt-ideas-row">
-          <span className="studio-meta" style={{ fontSize: 12 }}>Ý tưởng gợi ý:</span>
+        <div className={px.ideasRow}>
+          <span className={ix.meta}>Ý tưởng gợi ý:</span>
           <button
             type="button"
-            className="studio-chip-btn"
+            className={px.chipButton}
             onClick={() => {
-              setCustomPrompt('Thiệp cưới truyền thống Á Đông áo dài đỏ thắm trầu cau mang đậm nét đẹp văn hóa');
+              setCustomPrompt(
+                'Thiệp cưới truyền thống Á Đông áo dài đỏ thắm trầu cau mang đậm nét đẹp văn hóa',
+              );
             }}
           >
-            🏮 Á Đông truyền thống
+            Á Đông truyền thống
           </button>
           <button
             type="button"
-            className="studio-chip-btn"
+            className={px.chipButton}
             onClick={() => {
-              setCustomPrompt('Thiệp cưới dạ tiệc ánh sao Celestial Navy quý phái huyền bí lung linh');
+              setCustomPrompt(
+                'Thiệp cưới dạ tiệc ánh sao Celestial Navy quý phái huyền bí lung linh',
+              );
             }}
           >
-            ✨ Dạ tiệc ánh sao
+            Dạ tiệc ánh sao
           </button>
           <button
             type="button"
-            className="studio-chip-btn"
+            className={px.chipButton}
             onClick={() => {
               setCustomPrompt('Thiệp cưới phong cách Champagne thanh lịch tone vàng ánh kim ấm áp');
             }}
           >
-            🥂 Champagne ấm áp
+            Champagne ấm áp
           </button>
         </div>
       </form>
 
       {/* 3 Biến thể gợi ý từ AI */}
-      <div className="studio-ai-presets-section">
-        <div className="studio-presets-label-row">
-          <span className="studio-label" style={{ fontWeight: 600 }}>
-            Hoặc chọn 1 trong 3 biến thể phong cách gợi ý từ AI:
-          </span>
-          <span className="studio-meta" style={{ fontSize: 12 }}>
-            (Bấm để áp dụng ngay vào thiệp)
-          </span>
+      <div className={px.presetsSection}>
+        <div className={px.presetsLabelRow}>
+          <span className={ix.label}>Hoặc chọn 1 trong 3 biến thể phong cách gợi ý từ AI:</span>
+          <span className={ix.meta}>(Bấm để áp dụng ngay vào thiệp)</span>
         </div>
 
-        <div className="studio-presets-grid">
+        <div className={px.presetsGrid}>
           {AI_DESIGN_PRESETS.map((preset) => {
             const isActive = cardTheme === preset.id;
             return (
               <div
                 key={preset.id}
-                className={`studio-preset-card ${isActive ? 'is-active' : ''}`}
+                className={px.presetCard}
+                data-active={isActive}
+                // Bấm cả thẻ để chọn cho tiện; bàn phím và trình đọc màn hình dùng nút bên dưới.
                 onClick={() => handleApplyPreset(preset)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleApplyPreset(preset);
-                  }
-                }}
               >
-                <div className="preset-card-head">
-                  <span className="preset-icon">{preset.icon}</span>
-                  <div className="preset-meta-text">
-                    <strong className="preset-name">{preset.name}</strong>
-                    <span className="preset-tagline">{preset.tagline}</span>
+                <div className={px.presetHead}>
+                  <div className={px.presetMeta}>
+                    <strong className={px.presetName}>{preset.name}</strong>
+                    <span className={px.presetTagline}>{preset.tagline}</span>
                   </div>
-                  {isActive && <span className="preset-active-check">✓ Đang dùng</span>}
+                  {isActive && (
+                    <span className={px.presetActive}>
+                      <Check className="size-3.5" aria-hidden="true" />
+                      Đang dùng
+                    </span>
+                  )}
                 </div>
 
-                <p className="preset-desc">{preset.description}</p>
+                <p className={px.presetDesc}>{preset.description}</p>
 
-                <div className="preset-palette">
+                <div className={px.palette}>
                   {preset.palette.map((color, idx) => (
                     <span
                       key={idx}
-                      className="palette-dot"
+                      className={px.paletteDot}
                       style={{ backgroundColor: color }}
-                      title={color}
+                      aria-hidden="true"
                     />
                   ))}
-                  <span className="palette-tag">{preset.badge}</span>
+                  <span className={px.paletteTag}>{preset.badge}</span>
                 </div>
 
                 <button
                   type="button"
-                  className={`studio-btn is-small ${isActive ? 'is-ghost' : ''}`}
-                  style={{ width: '100%', marginTop: 8 }}
+                  aria-pressed={isActive}
+                  className={`${isActive ? ix.btnSmallOutline : ix.btnSmall} mt-1 w-full`}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleApplyPreset(preset);
@@ -209,62 +201,66 @@ export function StudioAiBox({
       </div>
 
       {/* Sub-generator: Tạo thêm ảnh minh họa bằng AI (Dành cho ai muốn vẽ thêm hình) */}
-      <div className="studio-image-addon-disclosure">
+      <div>
         <button
           type="button"
-          className="studio-link"
-          style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          className={`${ix.link} text-sm`}
+          aria-expanded={showImageSubGenerator}
           onClick={() => setShowImageSubGenerator((prev) => !prev)}
         >
-          <span>{showImageSubGenerator ? '▼ Thu gọn' : '▶ Tùy chọn nâng cao: Vẽ thêm hình minh họa bằng AI'}</span>
+          <ChevronRight
+            className="size-4 transition-transform duration-200 data-[open=true]:rotate-90 motion-reduce:transition-none"
+            data-open={showImageSubGenerator}
+            aria-hidden="true"
+          />
+          <span>
+            {showImageSubGenerator ? 'Thu gọn' : 'Tùy chọn nâng cao: Vẽ thêm hình minh họa bằng AI'}
+          </span>
         </button>
 
         {showImageSubGenerator && (
-          <div className="studio-image-addon-body" style={{ marginTop: 12, padding: 12, background: 'var(--hy-surface-subtle, #fcf9f7)', borderRadius: 8 }}>
-            <p className="studio-meta" style={{ margin: '0 0 8px' }}>
-              Mô tả hình minh họa để AI vẽ thêm ảnh độc bản (ví dụ: Cổng hoa hồng phong cách châu Âu...).
+          <div className={px.addonBody}>
+            <p className={ix.meta}>
+              Mô tả hình minh họa để AI vẽ thêm ảnh độc bản (ví dụ: Cổng hoa hồng phong cách châu
+              Âu...).
             </p>
             {mediaLikelyLocked && (
-              <p className="studio-hint studio-hint-warning" role="note">
+              <p className={ix.hintWarning} role="note">
                 Hạn chỉnh sửa ảnh (72h trước giờ khai tiệc) đã qua nên không thể tạo ảnh mới.
               </p>
             )}
-            <div className="studio-ai-prompt-row">
+            <div className={px.promptRow}>
               <input
                 type="text"
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
                 placeholder="Mô tả hình ảnh: Cổng hoa hồng hoàng gia, ánh hoàng hôn..."
                 disabled={aiJob.busy}
-                className="studio-input"
+                className={ix.input}
               />
               <button
                 type="button"
                 disabled={aiJob.busy || !aiPrompt.trim()}
                 onClick={handleAiGenerate}
-                className="studio-btn is-small"
+                className={ix.btnSmall}
               >
                 {aiJob.busy ? 'Đang vẽ...' : 'Vẽ ảnh'}
               </button>
             </div>
 
             {aiJob.job ? (
-              <div className="studio-ai-status" style={{ marginTop: 8 }}>
-                <span className="studio-meta">Tiến trình: {imageJobStatusText(aiJob.job)}</span>
+              <div className={px.aiStatus}>
+                <span className={ix.meta}>Tiến trình: {imageJobStatusText(aiJob.job)}</span>
                 {aiJob.job.status === 'RUNNING' && (
-                  <span className="studio-spinner" aria-hidden="true" />
+                  <span className={ix.spinner} aria-hidden="true" />
                 )}
               </div>
             ) : null}
 
             {restoredAiImage ? (
-              <div className="studio-ai-restored" role="status" style={{ marginTop: 8 }}>
+              <div className={px.aiRestored} role="status">
                 <p>Có ảnh tạo từ phiên trước sẵn sàng sử dụng.</p>
-                <button
-                  type="button"
-                  className="studio-btn is-small"
-                  onClick={applyRestoredAiImage}
-                >
+                <button type="button" className={ix.btnSmall} onClick={applyRestoredAiImage}>
                   Dùng ảnh này trên thiệp
                 </button>
               </div>

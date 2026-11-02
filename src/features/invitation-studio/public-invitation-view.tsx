@@ -1,4 +1,3 @@
-import styles from './invitation.module.css';
 import { InvitationContents, type InvitationContent } from './invitation-content';
 export type { InvitationContent } from './invitation-content';
 
@@ -9,18 +8,14 @@ export function PublicInvitationView({
   recipientGreeting,
 }: Readonly<{ invitation: InvitationContent; apiBase: string; recipientGreeting?: string }>) {
   return (
-    <div className="v0-workspace">
-      <main className={styles.shell}>
-        <div className="public-invitation-layout" style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
-          <article className="hy-invite-card">
-            <InvitationContents
-              invitation={invitation}
-              apiBase={apiBase}
-              {...(recipientGreeting ? { recipientGreeting } : {})}
-            />
-          </article>
-        </div>
-      </main>
-    </div>
+    <main className="mx-auto my-8 w-[min(100%-2rem,68rem)] max-[600px]:my-4">
+      <article className="hy-invite-card overflow-hidden rounded-[var(--hy-radius-lg)] shadow-hy-2 animate-in duration-600 ease-hy-decelerate fade-in fill-mode-backwards slide-in-from-bottom-2 motion-reduce:animate-none">
+        <InvitationContents
+          invitation={invitation}
+          apiBase={apiBase}
+          {...(recipientGreeting ? { recipientGreeting } : {})}
+        />
+      </article>
+    </main>
   );
 }

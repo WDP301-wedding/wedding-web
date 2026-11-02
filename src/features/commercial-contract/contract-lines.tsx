@@ -4,14 +4,11 @@ import React from 'react';
 import { formatVnd } from '../couple-workspace/use-couple-workspace';
 import type { ContractPreview } from './contract-preview-api';
 import type { Catalog, ContractLine, ContractLineInput } from './contract-api';
-import {
-  categoryLabels,
-  ContractLinesTable,
-  unitLabel,
-} from './contract-lines-table';
+import { categoryLabels, ContractLinesTable, unitLabel } from './contract-lines-table';
 import { SelectorTable } from './line-selector-table';
 import { LineSelectorPreview } from './line-selector-preview';
 import { keyOf, useLineSelector } from './use-line-selector';
+import { cx } from './contract-classes';
 
 export { categoryLabels, ContractLinesTable, unitLabel };
 
@@ -84,7 +81,7 @@ export function LineSelector({
     return (
       <input
         aria-label={`Số lượng ${label}`}
-        className="cw-inline-input"
+        className={cx.inlineInput}
         inputMode="numeric"
         min={0}
         max={10000}
@@ -99,13 +96,13 @@ export function LineSelector({
   };
 
   return (
-    <form className="cw-form" onSubmit={handleSubmit}>
-      <p className="cw-note">
+    <form className={cx.form} onSubmit={handleSubmit}>
+      <p className={cx.note}>
         Sảnh chứa tối đa {maxGuests} khách · số khách dự kiến hiện tại {planningHeadcount}. Đơn giá
         lấy theo danh mục đang bán; thành tiền và tổng do hệ thống tính sau khi lưu.
       </p>
       {missing.length > 0 ? (
-        <p className="cw-alert">
+        <p className={cx.alert}>
           Có {missing.length} hạng mục trong bản trước không còn trong danh mục đang bán (hoặc đã
           đổi giá). Hãy chọn lại hạng mục thay thế.
         </p>
@@ -119,15 +116,15 @@ export function LineSelector({
               <br />
               <small>{menu.description}</small>
             </td>
-            <td className="num">
+            <td className={cx.num}>
               {formatVnd(frozen.get(keyOf('MENU', menu.id))?.unitPriceVnd ?? menu.priceVndPerTable)}{' '}
               / bàn
             </td>
-            <td className="num">{quantityInput('MENU', menu.id, menu.name)}</td>
+            <td className={cx.num}>{quantityInput('MENU', menu.id, menu.name)}</td>
           </tr>
         ))}
       </SelectorTable>
-      <p className="cw-note">Tổng số bàn đang chọn: {tableCount}</p>
+      <p className={cx.note}>Tổng số bàn đang chọn: {tableCount}</p>
 
       <SelectorTable title="Dịch vụ đi kèm" emptyText="Chưa có dịch vụ đi kèm.">
         {catalog.services.map((service) => (
@@ -137,14 +134,14 @@ export function LineSelector({
               <br />
               <small>{service.description}</small>
             </td>
-            <td className="num">
+            <td className={cx.num}>
               {formatVnd(
                 frozen.get(keyOf('SERVICE', service.serviceId))?.unitPriceVnd ??
                   service.unitPriceVnd,
               )}{' '}
               / {unitLabel(service.unit)}
             </td>
-            <td className="num">{quantityInput('SERVICE', service.serviceId, service.name)}</td>
+            <td className={cx.num}>{quantityInput('SERVICE', service.serviceId, service.name)}</td>
           </tr>
         ))}
       </SelectorTable>
@@ -159,13 +156,13 @@ export function LineSelector({
                 Mẫu {print.templateTitle} · {print.printType} · {print.material}
               </small>
             </td>
-            <td className="num">
+            <td className={cx.num}>
               {formatVnd(
                 frozen.get(keyOf('PRINT', print.offeringId))?.unitPriceVnd ?? print.unitPriceVnd,
               )}{' '}
               / bản
             </td>
-            <td className="num">{quantityInput('PRINT', print.offeringId, print.name)}</td>
+            <td className={cx.num}>{quantityInput('PRINT', print.offeringId, print.name)}</td>
           </tr>
         ))}
       </SelectorTable>
@@ -179,16 +176,16 @@ export function LineSelector({
                 <br />
                 <small>{categoryLabels[line.category]} · giữ giá đã chốt</small>
               </td>
-              <td className="num">
+              <td className={cx.num}>
                 {formatVnd(line.unitPriceVnd)} / {unitLabel(line.unit)}
               </td>
-              <td className="num">{quantityInput(line.category, line.sourceId, line.name)}</td>
+              <td className={cx.num}>{quantityInput(line.category, line.sourceId, line.name)}</td>
             </tr>
           ))}
         </SelectorTable>
       ) : null}
       {frozenLines ? (
-        <p className="cw-note">Hạng mục đã có trong thoả thuận được giữ nguyên đơn giá đã chốt.</p>
+        <p className={cx.note}>Hạng mục đã có trong thoả thuận được giữ nguyên đơn giá đã chốt.</p>
       ) : null}
 
       {onPreview ? (
@@ -204,12 +201,12 @@ export function LineSelector({
 
       {extraFields}
       {localError ? (
-        <p className="cw-alert" role="alert">
+        <p className={cx.alert} role="alert">
           {localError}
         </p>
       ) : null}
-      <div className="cw-actions">
-        <button className="button" disabled={pending} type="submit">
+      <div className={cx.actions}>
+        <button className={cx.button} disabled={pending} type="submit">
           {pending ? 'Đang lưu…' : submitLabel}
         </button>
       </div>

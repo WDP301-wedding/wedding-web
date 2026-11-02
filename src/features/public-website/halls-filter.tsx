@@ -2,6 +2,10 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { cn } from 'cn';
+
+import { Button } from '../../components/ui/button';
+import { control, field } from './public-classes';
 
 /**
  * Lọc sảnh theo số khách (`/sanh?khach=280`).
@@ -23,7 +27,7 @@ export function HallsFilter({
   return (
     <>
       <form
-        className="hy-filter"
+        className="mb-8 flex flex-wrap items-end gap-x-3 gap-y-2"
         role="search"
         onSubmit={(event) => {
           event.preventDefault();
@@ -34,9 +38,10 @@ export function HallsFilter({
           });
         }}
       >
-        <label>
+        <label className={field}>
           Số khách dự kiến
           <input
+            className={cn(control, 'w-44 tabular-nums')}
             name="khach"
             type="number"
             min={1}
@@ -46,11 +51,11 @@ export function HallsFilter({
             placeholder="Ví dụ 280"
           />
         </label>
-        <button className="button button-secondary" type="submit">
+        <Button className="h-12" variant="outline" type="submit">
           Lọc sảnh
-        </button>
+        </Button>
         {active ? (
-          <p role="status">
+          <p className="w-full text-sm text-muted-foreground" role="status">
             {shown > 0
               ? `${shown} sảnh đủ chỗ cho ${guests} khách`
               : `Chưa có sảnh nào đủ ${guests} khách — gửi yêu cầu để được tư vấn phương án.`}
@@ -58,7 +63,7 @@ export function HallsFilter({
         ) : null}
       </form>
       {/* Thẻ sảnh (`card`) đã được Server Component render sẵn; ở đây chỉ chọn thẻ nào hiện. */}
-      <div className="hy-hall-grid">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {visible.map((hall) => (
           <div key={hall.id}>{hall.card}</div>
         ))}

@@ -5,15 +5,6 @@ import { readPublicEnv } from '../../lib/env';
 import { createPublicGateway, type Hall, type Menu, type Restaurant } from './public-api';
 
 /**
- * Thời gian làm mới ISR cho các trang công khai (giây).
- *
- * Vì sao 300s: ảnh catalog là signed URL hết hạn sau 15 phút (CATALOG signedReadTtlSeconds = 900
- * ở backend). Trang phải được dựng lại trước khi URL ảnh hết hạn, nên chọn 5 phút — đủ để gần như
- * mọi lượt xem nhận HTML có sẵn (nhanh), nhưng URL ảnh không bao giờ quá ~10 phút tuổi.
- */
-export const catalogRevalidateSeconds = 0; // Luôn render động để URL ảnh không bị hết hạn 15 phút
-
-/**
  * Base URL khi gọi API từ SERVER (lúc build và khi ISR làm mới).
  *
  * NEXT_PUBLIC_API_BASE_URL thường trỏ về chính web (`/api/v1`, đi qua rewrite để giữ cookie) —

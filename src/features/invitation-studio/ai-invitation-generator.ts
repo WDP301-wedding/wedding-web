@@ -11,111 +11,7 @@
  * - Phong cách & bảng màu (Theme, Khung viền nghệ thuật, Typography)
  */
 
-export type CardThemeId =
-  | 'royal-burgundy'
-  | 'sage-minimalist'
-  | 'blush-floral'
-  | 'traditional-red'
-  | 'celestial-navy'
-  | 'champagne-luxury';
-
-export interface GeneratedInvitationDesign {
-  title: string;
-  brideName: string;
-  groomName: string;
-  greeting: string;
-  message: string;
-  footer: string;
-  theme: CardThemeId;
-  themeName: string;
-  badge: string;
-  accentColor: string;
-  summary: string;
-}
-
-export interface AiDesignPreset {
-  id: CardThemeId;
-  name: string;
-  tagline: string;
-  icon: string;
-  badge: string;
-  palette: readonly string[];
-  description: string;
-  design: GeneratedInvitationDesign;
-}
-
-/** 3 biến thể gợi ý chuẩn Enterprise từ AI */
-export const AI_DESIGN_PRESETS: readonly AiDesignPreset[] = [
-  {
-    id: 'royal-burgundy',
-    name: 'Hoàng Gia & Cổ Điển',
-    tagline: 'Royal Burgundy & Gold',
-    icon: '👑',
-    badge: 'Sang trọng bậc nhất',
-    palette: ['#7A1F3D', '#C9A46A', '#FFFDF9', '#4A1224'],
-    description: 'Tone đỏ rượu vang quý phái kết hợp hoa văn chỉ vàng kim hoàng gia, câu chữ trang trọng, quyền quý.',
-    design: {
-      title: 'Thư Báo Hỷ · Dạ Tiệc Hoàng Gia',
-      brideName: 'Lan Anh',
-      groomName: 'Minh Quân',
-      greeting: 'Trân trọng kính mời quý khách đến chung vui cùng gia đình chúng tôi',
-      message:
-        'Tình yêu là khởi đầu của một hành trình vĩnh cửu. Chúng tôi vô cùng hạnh phúc được đón tiếp những người thân yêu nhất đến chứng kiến khoảnh khắc hẹn ước thiêng liêng và chúc phúc cho tương lai chung đôi.',
-      footer: 'Sự hiện diện của quý khách là niềm vinh hạnh to lớn đối với hai bên gia đình.',
-      theme: 'royal-burgundy',
-      themeName: 'Hoàng Gia & Cổ Điển',
-      badge: 'Royal Burgundy',
-      accentColor: '#C9A46A',
-      summary: 'Phong cách quý phái với viền vàng ánh kim, typography uy nghiêm và lời mời trang trọng.',
-    },
-  },
-  {
-    id: 'sage-minimalist',
-    name: 'Hiện Đại & Tối Giản',
-    tagline: 'Sage Minimalist',
-    icon: '🌿',
-    badge: 'Tinh tế & Hiện đại',
-    palette: ['#556B5D', '#A38368', '#F7F7F4', '#2C3E35'],
-    description: 'Tone xanh xô thơm pastel thanh lịch, đường nét tinh giản mộc mạc, câu chữ nhẹ nhàng, sâu lắng.',
-    design: {
-      title: 'Save Our Date · Khoảnh Khắc Gắn Kết',
-      brideName: 'Thảo Vy',
-      groomName: 'Đức Huy',
-      greeting: 'Kính mời quý khách tới tham dự buổi tiệc cưới thân mật',
-      message:
-        'Mộc mạc nhưng chân thành, dịu dàng như sớm mai. Dưới sự chứng kiến của những người bạn trân quý nhất, chúng tôi chính thức cùng nhau viết tiếp chương mới của cuộc đời với trọn vẹn tình yêu và niềm tin.',
-      footer: 'Rất mong được đón tiếp bạn với tất cả nụ cười và sự ấm áp.',
-      theme: 'sage-minimalist',
-      themeName: 'Hiện Đại & Tối Giản',
-      badge: 'Sage Minimalist',
-      accentColor: '#556B5D',
-      summary: 'Thiết kế thanh thoát với khung viền mộc mạc, câu chữ chân phương và bố cục phóng khoáng.',
-    },
-  },
-  {
-    id: 'blush-floral',
-    name: 'Hoa Cỏ & Lãng Mạn',
-    tagline: 'Blush Floral Romance',
-    icon: '🌸',
-    badge: 'Ngọt ngào bay bổng',
-    palette: ['#D48B97', '#7E9F85', '#FFFBFB', '#8C3D52'],
-    description: 'Tone hồng cánh đào dịu ngọt, họa tiết hoa lá mùa xuân tươi trẻ, văn phong lãng mạn như thơ ca.',
-    design: {
-      title: 'Ngày Chung Đôi · Giai Điệu Mùa Yêu',
-      brideName: 'Mai Chi',
-      groomName: 'Tuấn Kiệt',
-      greeting: 'Thân thương gửi lời mời trân trọng nhất đến bạn và người thân',
-      message:
-        'Như ngàn đóa hoa mùa xuân khoe sắc rạng rỡ, tình yêu của chúng tôi đơm hoa kết trái trong sự yêu thương và chúc phúc. Hãy cùng chúng tôi hòa chung niềm hân hoan và lưu giữ những kỷ niệm ngọt ngào nhất.',
-      footer: 'Trân trọng cảm ơn tình cảm và sự hiện diện quý báu của bạn trong ngày vui của hai đứa.',
-      theme: 'blush-floral',
-      themeName: 'Hoa Cỏ & Lãng Mạn',
-      badge: 'Blush Floral',
-      accentColor: '#D48B97',
-      summary: 'Phong cách lãng mạn với hoa văn cánh đào, câu chúc ngọt ngào và tông màu ấm áp.',
-    },
-  },
-];
+import type { CardThemeId, GeneratedInvitationDesign } from './ai-design-presets';
 
 /** Bảng tên mẫu trực quan tương ứng với từng phong cách khi người dùng chưa điền tên */
 const SAMPLE_NAMES_BY_THEME: Record<CardThemeId, { bride: string; groom: string }> = {
@@ -278,11 +174,7 @@ export function inferThemeFromContent(
   ) {
     return 'celestial-navy';
   }
-  if (
-    text.includes('champagne') ||
-    text.includes('giao hưởng') ||
-    text.includes('nâng ly')
-  ) {
+  if (text.includes('champagne') || text.includes('giao hưởng') || text.includes('nâng ly')) {
     return 'champagne-luxury';
   }
   return fallback;
@@ -378,13 +270,9 @@ export function generateDesignFromPrompt(
 
   // Tên cô dâu chú rể: Nếu chưa có từ prompt và chưa có trong context, lấy tên mẫu đẹp theo theme
   const bride =
-    rawNames.bride ||
-    currentContext.currentBrideName?.trim() ||
-    SAMPLE_NAMES_BY_THEME[theme].bride;
+    rawNames.bride || currentContext.currentBrideName?.trim() || SAMPLE_NAMES_BY_THEME[theme].bride;
   const groom =
-    rawNames.groom ||
-    currentContext.currentGroomName?.trim() ||
-    SAMPLE_NAMES_BY_THEME[theme].groom;
+    rawNames.groom || currentContext.currentGroomName?.trim() || SAMPLE_NAMES_BY_THEME[theme].groom;
 
   // 2. Tự động sinh nội dung câu chữ phù hợp với phong cách được chọn
   let title: string;
@@ -445,22 +333,23 @@ export function generateDesignFromPrompt(
 
   // 3. Tùy biến chi tiết nếu người dùng chỉ định rõ ràng trong prompt
   // Tiêu đề riêng (nếu có: tiêu đề: ..., tên thiệp: ...)
-  const titleMatch =
-    /(?:tiêu đề|tựa đề|tên thiệp)[:\s]+["“'‘]?([^"”'’\n.,;]{4,80})["”'’]?/i.exec(prompt);
+  const titleMatch = /(?:tiêu đề|tựa đề|tên thiệp)[:\s]+["“'‘]?([^"”'’\n.,;]{4,80})["”'’]?/i.exec(
+    prompt,
+  );
   if (titleMatch?.[1]?.trim()) {
     title = titleMatch[1].trim();
   }
 
   // Lời mời riêng (nếu có: lời mời: ..., mở đầu: ...)
-  const greetingMatch =
-    /(?:lời mời|mở đầu)[:\s]+["“'‘]?([^"”'’\n.,;]{4,120})["”'’]?/i.exec(prompt);
+  const greetingMatch = /(?:lời mời|mở đầu)[:\s]+["“'‘]?([^"”'’\n.,;]{4,120})["”'’]?/i.exec(prompt);
   if (greetingMatch?.[1]?.trim()) {
     greeting = greetingMatch[1].trim();
   }
 
   // Lời kết riêng (nếu có: lời kết: ..., cuối thiệp: ..., dặn dò: ...)
-  const footerMatch =
-    /(?:lời kết|cuối thiệp|dặn dò)[:\s]+["“'‘]?([^"”'’\n]{4,150})["”'’]?/i.exec(prompt);
+  const footerMatch = /(?:lời kết|cuối thiệp|dặn dò)[:\s]+["“'‘]?([^"”'’\n]{4,150})["”'’]?/i.exec(
+    prompt,
+  );
   if (footerMatch?.[1]?.trim()) {
     footer = footerMatch[1].trim();
   }
@@ -471,8 +360,9 @@ export function generateDesignFromPrompt(
   if (quoteMatch?.[1]?.trim()) {
     customWish = quoteMatch[1].trim();
   } else {
-    const labelMatch =
-      /(?:lời chúc|lời nhắn|thông điệp|câu chúc)[:\s]+([^.,;\n]{6,150})/i.exec(prompt);
+    const labelMatch = /(?:lời chúc|lời nhắn|thông điệp|câu chúc)[:\s]+([^.,;\n]{6,150})/i.exec(
+      prompt,
+    );
     if (labelMatch?.[1]?.trim()) {
       customWish = labelMatch[1].trim();
     }
@@ -496,4 +386,3 @@ export function generateDesignFromPrompt(
     summary: `Thiết kế tùy biến tự động từ mô tả của bạn theo phong cách ${themeName}.`,
   };
 }
-

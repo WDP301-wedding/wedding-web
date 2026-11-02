@@ -14,6 +14,7 @@ import { ContractProgress } from './contract-progress';
 import { CustomerSelections } from './customer-selections';
 import { ContractCard } from './contract-card';
 import { HistoryCard } from './contract-history-card';
+import { cx } from './contract-classes';
 
 /** `names` / `contract`: web v2 tách "Tên cô dâu chú rể" và "Hợp đồng" thành 2 bước của Thoả thuận. */
 export type ContractSection = 'all' | 'names' | 'contract';
@@ -37,12 +38,7 @@ const sectionCopy: Record<ContractSection, { title: string; description: string 
 
 export function ContractPage({ section = 'all' }: Readonly<{ section?: ContractSection }> = {}) {
   return (
-    <CouplePage
-      active="contract"
-      eyebrow="Thống nhất"
-      title={sectionCopy[section].title}
-      description={sectionCopy[section].description}
-    >
+    <CouplePage title={sectionCopy[section].title} description={sectionCopy[section].description}>
       {(proposal, reload) => (
         <ContractWorkspace
           key={proposal.bookingId}
@@ -111,9 +107,9 @@ function ContractWorkspace({
         />
       ) : null}
       {section === 'names' ? (
-        <div className="cw-next-step cw-next-step-stack">
+        <div className={cx.nextStep}>
           <p>{namesMissing ? 'Lưu đủ tên hai bạn để tiếp tục.' : 'Tên đã sẵn sàng.'}</p>
-          <Link className="button" href={withBooking(routes.contract, proposal.bookingId)}>
+          <Link className={cx.button} href={withBooking(routes.contract, proposal.bookingId)}>
             Tiếp tục tới Hợp đồng
           </Link>
         </div>

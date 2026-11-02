@@ -117,6 +117,8 @@ const codeMessages: Record<string, string> = {
     'Bản thiết kế vừa thay đổi trong lúc tạo file in. Hãy tạo lại file in.',
   PRINTABLE_SEATING_DIGEST_CONFLICT:
     'Sơ đồ bàn đã có bản xác nhận mới hơn. Hãy tải lại rồi tạo file in theo bản mới.',
+  CONTRACT_PRINT_TEMPLATE_CONFLICT:
+    'Thiết kế thiệp hiện tại chưa dùng đúng mẫu in trong hợp đồng nên chưa gửi yêu cầu in được. Hãy liên hệ nhà hàng để được hỗ trợ.',
   CONTRACT_PRINT_SOURCE_CONFLICT:
     'Mẫu/giá in không còn khớp với hợp đồng. Hãy tải lại và chọn đúng mẫu in trong hợp đồng.',
   // Thông báo

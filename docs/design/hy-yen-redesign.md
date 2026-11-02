@@ -7,14 +7,15 @@ Prototypes remain design references only; application UI and data use the produc
 ## Nguyên tắc
 
 - Chỉ đổi phần trình bày. Không đổi API, hook dữ liệu, route, query param, thông báo lỗi.
-- Màu, bo góc, bóng, motion lấy từ token trong `:root` (`app/globals.css`); lớp giao diện ở `app/hy-yen.css`
-  (nạp sau cùng trong `app/layout.tsx`, phủ lên CSS v0 cũ).
+- Màu, bo góc, bóng, motion lấy từ token trong `:root` (`app/styles/tokens.css`). Giao diện dùng Tailwind v4 + shadcn/ui
+  (`app/ui-v3.css`: theme, reset, keyframe dùng chung); class đặt trong file `*-classes.ts` của từng màn.
+  Hình tấm thiệp (khung, hoa văn, 6 theme) giữ CSS riêng ở `app/styles/invitation-card*.css`.
 - Chữ tiếng Việt: luôn dùng `--font-display` / `--font-body` (Be Vietnam Pro) theo `AGENTS.md`.
   Prototype dùng Playfair Display cho tiêu đề và số tiền → trong repo thay bằng Be Vietnam Pro 600–700.
   Playfair chỉ dùng cho monogram "HY" (`.latin-wordmark`, `lang="en"`) qua `--font-wordmark`.
 - Champagne `#C9A46A` và đào `#F4B9A7` không dùng cho chữ thường trên nền kem (tương phản < 4.5:1).
 
-## Token chính (globals.css)
+## Token chính (styles/tokens.css)
 
 | Token                                               | Giá trị                                          | Dùng cho                                      |
 | --------------------------------------------------- | ------------------------------------------------ | --------------------------------------------- |
@@ -29,17 +30,17 @@ Prototypes remain design references only; application UI and data use the produc
 | `--hy-dur-fast/medium/medium2/long`                 | 150 / 250 / 300 / 400ms                          | Nhấn nút / card / chuyển trang / Hero         |
 | `--hy-ease-emphasized/decelerate/accelerate`        | Material 3                                       | Vào: decelerate · ra: accelerate              |
 
-Biến cũ (`--navy`, `--paper`, `--primary`, `--canvas`, `--rule`…) vẫn giữ tên nhưng trỏ sang giá trị Hỷ Yến,
-nên CSS v0 cũ tự đổi tông. Khi viết CSS mới, dùng thẳng biến `--hy-*`.
+CSS v0/v1/v2 cũ và các biến alias (`--navy`, `--paper`…) đã xoá (W4, 11/2026). Tailwind và shadcn đọc màu qua
+`@theme inline` trỏ về `--hy-*`; khi cần CSS riêng, dùng thẳng biến `--hy-*`.
 
 ## Chuyển động (prototype ghi widget Flutter → bản CSS ở đây)
 
 | Prototype                                | wedding-web                                                                    |
 | ---------------------------------------- | ------------------------------------------------------------------------------ |
 | Press scale 0.97 / 150ms                 | `:active { transform: scale(0.97) }` trên nút                                  |
-| Shared axis / fade-through khi đổi trang | `.content-inner` animation `hy-enter` 300ms                                    |
+| Shared axis / fade-through khi đổi trang | CSS `animate-in` (tw-animate-css) trên khung trang                             |
 | Danh sách stagger 50ms × 8               | `animation-delay` theo `:nth-child` (bảng, danh sách, thẻ sảnh)                |
-| Thanh tiến độ hành trình 450ms           | `.hy-journey-track span` scaleX                                                |
+| Thanh tiến độ hành trình 450ms           | `.hy-grow-x` scaleX (`app/ui-v3.css`)                                          |
 | Cánh hoa ≤ 1,2s, một lần                 | `src/design-system/celebrate.tsx` (đặt cọc thành công, hợp đồng duyệt đủ)      |
 | Giảm chuyển động                         | `@media (prefers-reduced-motion: reduce)` → fade ≤ 150ms, không trượt/phóng to |
 

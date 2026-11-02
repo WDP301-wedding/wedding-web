@@ -1,7 +1,9 @@
 import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import { useCommand } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type AttendanceSummary, type CheckInSettings } from './guest-api';
-import styles from './guests.module.css';
+import { cx } from '../commercial-contract/contract-classes';
+import { groupLabel } from './group-labels';
+import { gx } from './guest-classes';
 
 export function CheckInCard({
   bookingId,
@@ -18,32 +20,32 @@ export function CheckInCard({
   const { confirm, dialog } = useConfirmDialog();
   const enabled = settings.checkInMode === 'BY_GUEST_NAME';
   return (
-    <section className="cw-card">
-      <div className="cw-card-header">
+    <section className={cx.card}>
+      <div className={cx.cardHeader}>
         <h2>Check-in theo tên tại tiệc</h2>
-        <span className="status status-champagne">{enabled ? 'Đang bật' : 'Đang tắt'}</span>
+        <span className={cx.status}>{enabled ? 'Đang bật' : 'Đang tắt'}</span>
       </div>
       <p>
         Mặc định nhà hàng không ghi nhận ai đã đến. Nếu bật, nhân viên được phân công sẽ tìm và đánh
         dấu từng khách có tên trong danh sách. Sau lần check-in đầu tiên, không thể tắt lại.
       </p>
       {enabled && attendance.byGuestGroup.length > 0 ? (
-        <ul>
+        <ul className={cx.list}>
           {attendance.byGuestGroup.map((row) => (
             <li key={row.guestGroupId}>
               <span
-                className={`cw-swatch ${styles.swatch}`}
+                className={gx.swatch}
                 style={{ background: row.groupColorSnapshot }}
                 aria-hidden="true"
               />
-              {row.groupNameSnapshot}: {row.checkedInGuestCount} tên đã check-in
+              {groupLabel(row.groupNameSnapshot)}: {row.checkedInGuestCount} tên đã check-in
             </li>
           ))}
         </ul>
       ) : null}
-      <div className="cw-actions">
+      <div className={cx.actions}>
         <button
-          className="button button-secondary"
+          className={cx.buttonOutline}
           type="button"
           disabled={command.pending || settings.locked}
           onClick={() =>

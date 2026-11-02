@@ -11,6 +11,9 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 
+import { buttonVariants } from '../components/ui/button';
+import { dialog } from './dialog-classes';
+
 /**
  * Hộp thoại xác nhận / nhập liệu thay cho `window.confirm` và `window.prompt` của trình duyệt.
  *
@@ -144,13 +147,13 @@ function ConfirmDialogView({
   // Portal ra <body>: tránh bị cắt/đè bởi phần tử cha có overflow/transform/z-index.
   return createPortal(
     <div
-      className="hy-dialog-backdrop"
+      className={dialog.backdrop}
       onMouseDown={onCancel}
       onClick={(event) => event.stopPropagation()}
     >
       <div
         ref={panel}
-        className={`hy-dialog${danger ? ' is-danger' : ''}`}
+        className={danger ? `${dialog.panel} ${dialog.danger}` : dialog.panel}
         role={danger ? 'alertdialog' : 'dialog'}
         aria-modal="true"
         aria-labelledby={titleId}
@@ -171,12 +174,12 @@ function ConfirmDialogView({
         >
           <h2 id={titleId}>{options.title}</h2>
           {options.description ? (
-            <div id={descriptionId} className="hy-dialog-description">
+            <div id={descriptionId} className={dialog.description}>
               {options.description}
             </div>
           ) : null}
           {pending.kind === 'prompt' ? (
-            <label htmlFor={inputId} className="hy-dialog-field">
+            <label htmlFor={inputId} className={dialog.field}>
               {pending.options.label}
               <input
                 id={inputId}
@@ -189,10 +192,10 @@ function ConfirmDialogView({
               />
             </label>
           ) : null}
-          <div className="hy-dialog-actions">
+          <div className={dialog.actions}>
             <button
               type="button"
-              className="button button-secondary"
+              className={buttonVariants({ variant: 'outline' })}
               data-cancel
               onClick={onCancel}
             >
@@ -200,7 +203,7 @@ function ConfirmDialogView({
             </button>
             <button
               type="submit"
-              className={`button${danger ? ' button-danger' : ''}`}
+              className={buttonVariants({ variant: danger ? 'destructive' : 'default' })}
               data-confirm
               disabled={!canSubmit}
             >

@@ -5,10 +5,15 @@ import { formatVnd } from '../couple-workspace/use-couple-workspace';
 import { currentRevision, type ContractList } from './contract-api';
 import type { CustomerSelection } from './selection-wire';
 import { SelectionAccessNotice } from './selection-access-notice';
-import { ContractLinesTable, categoryLabels, unitLabel } from './contract-lines-table';
+import {
+  ContractLinesTable,
+  categoryLabels,
+  lineDescription,
+  unitLabel,
+} from './contract-lines-table';
 import { useSelectionCatalog } from './use-selection-catalog';
 import { selectionKey, useCustomerSelection } from './use-customer-selection';
-import styles from './customer-selections.module.css';
+import { cx } from './contract-classes';
 
 type Props = {
   contracts: ContractList;
@@ -30,10 +35,10 @@ export function CustomerSelections(props: Readonly<Props>) {
       ? changedLines(selection, current.document.lines)
       : [];
   return (
-    <section className="cw-card" aria-labelledby="customer-selection-heading">
-      <div className="cw-card-header">
+    <section className={cx.card} aria-labelledby="customer-selection-heading">
+      <div className={cx.cardHeader}>
         <h2 id="customer-selection-heading">Lựa chọn thực đơn & dịch vụ</h2>
-        <span className="status status-champagne">
+        <span className={cx.status}>
           {selection.status === 'SUBMITTED'
             ? 'Đã gửi nhà hàng'
             : selection.status === 'DRAFT'
@@ -73,7 +78,7 @@ export function CustomerSelections(props: Readonly<Props>) {
         </>
       )}
       {changes.length ? (
-        <aside className={styles.changes}>
+        <aside className={cx.changes}>
           <h3>Nhà hàng đã điều chỉnh so với lựa chọn bạn gửi</h3>
           <ul>
             {changes.map((change) => (
@@ -188,7 +193,7 @@ function SelectionEditor(
       <InlineError error={state.previewError} />
       {state.previewError ? (
         <button
-          className="button button-secondary"
+          className={cx.buttonOutline}
           type="button"
           disabled={busy}
           onClick={state.retryPreview}
@@ -198,14 +203,14 @@ function SelectionEditor(
       ) : null}
       <InlineError error={state.catalogError} />
       {state.catalogError ? (
-        <button className="button button-secondary" type="button" onClick={state.reloadCatalog}>
+        <button className={cx.buttonOutline} type="button" onClick={state.reloadCatalog}>
           Tải lại danh mục
         </button>
       ) : null}
       {state.choices ? (
         <>
           <button
-            className="button button-secondary"
+            className={cx.buttonOutline}
             type="button"
             disabled={busy}
             onClick={state.reloadCatalog}
@@ -213,7 +218,7 @@ function SelectionEditor(
             Cập nhật danh mục đang bán
           </button>
           {state.missing.map((line) => (
-            <p className="cw-alert" key={selectionKey(line)}>
+            <p className={cx.alert} key={selectionKey(line)}>
               Hạng mục{' '}
               {props.selection.lines.find((value) => selectionKey(value) === selectionKey(line))
                 ?.name ?? line.sourceId}{' '}
@@ -224,13 +229,13 @@ function SelectionEditor(
             </p>
           ))}
           {state.stale ? (
-            <p className="cw-alert">
+            <p className={cx.alert}>
               Có hạng mục đã đổi phiên bản giá. Kiểm tra đơn giá và chọn “Dùng giá hiện hành” trước
               khi tiếp tục.
             </p>
           ) : null}
-          <div className={styles.catalog}>
-            <table className="cw-table">
+          <div className={cx.catalog}>
+            <table className={cx.table}>
               <thead>
                 <tr>
                   <th>Hạng mục</th>
@@ -248,7 +253,7 @@ function SelectionEditor(
                       <td>
                         <strong>{choice.name}</strong>
                         <small>
-                          {categoryLabels[choice.category]} · {choice.description}
+                          {categoryLabels[choice.category]} · {lineDescription(choice.description)}
                         </small>
                       </td>
                       <td>
@@ -283,13 +288,13 @@ function SelectionEditor(
             </table>
           </div>
           {state.dirty ? (
-            <p className="cw-note">
+            <p className={cx.note}>
               Có thay đổi chưa lưu. Lưu nháp trước khi gửi lựa chọn cho nhà hàng.
             </p>
           ) : null}
           {state.dirty ? (
             <button
-              className="button button-secondary"
+              className={cx.buttonOutline}
               type="button"
               disabled={busy}
               onClick={() =>
@@ -309,9 +314,9 @@ function SelectionEditor(
               Bỏ thay đổi chưa lưu
             </button>
           ) : null}
-          <div className="cw-actions">
+          <div className={cx.actions}>
             <button
-              className="button button-secondary"
+              className={cx.buttonOutline}
               type="button"
               disabled={
                 busy ||
@@ -325,7 +330,7 @@ function SelectionEditor(
               Lưu nháp
             </button>
             <button
-              className="button"
+              className={cx.button}
               type="button"
               disabled={
                 busy ||
@@ -352,7 +357,7 @@ function SelectionEditor(
               Gửi lựa chọn cho nhà hàng
             </button>
           </div>
-          <p className="cw-note">
+          <p className={cx.note}>
             Lưu nháp để chọn tiếp bất cứ lúc nào. Chỉ “Gửi lựa chọn cho nhà hàng” mới khóa chỉnh sửa
             phía bạn.
           </p>

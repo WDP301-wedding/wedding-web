@@ -32,9 +32,7 @@ export function removeDerivedAssetFromDesigns(
 ): readonly DesignView[] {
   const currentDesign = designs[0];
   if (!currentDesign) return designs;
-  const updatedSections = currentDesign.sections.filter(
-    (s) => s.derivedAssetId !== derivedAssetId,
-  );
+  const updatedSections = currentDesign.sections.filter((s) => s.derivedAssetId !== derivedAssetId);
   return [
     {
       ...currentDesign,
@@ -43,4 +41,3 @@ export function removeDerivedAssetFromDesigns(
     ...designs.slice(1),
   ];
 }
-

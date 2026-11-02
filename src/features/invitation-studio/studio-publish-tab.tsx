@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { CopyButton } from '../../design-system/copy-button';
 import { getApiBaseUrl } from './invitation-studio-utils';
 import type { InvitationStudioState } from './use-invitation-studio';
+import { px } from './studio-panel-classes';
+import { ix } from './studio-classes';
 
 export type StudioPublishTabProps = Readonly<{
   studio: InvitationStudioState;
@@ -30,16 +32,16 @@ export function StudioPublishTab({ studio }: StudioPublishTabProps) {
   } = studio;
 
   return (
-    <section aria-labelledby="publish-heading" className="studio-stack">
-      <div className="studio-card">
-        <h2 id="publish-heading" className="studio-title">
+    <section aria-labelledby="publish-heading" className={ix.stack}>
+      <div className={ix.card}>
+        <h2 id="publish-heading" className={ix.title}>
           Chia sẻ thiệp
         </h2>
-        <p className="studio-hint">
+        <p className={ix.hint}>
           Xuất bản phiên bản thiệp cưới để khách mời có thể xem trang web trực tuyến và quét mã QR.
         </p>
 
-        <p className="studio-publication-state" role="status">
+        <p className={px.publicationState} role="status">
           {publicationState === 'stale_conflict'
             ? 'Thông tin xuất bản vừa thay đổi. Đang chờ đồng bộ bản mới nhất.'
             : publicationRevision === null
@@ -48,14 +50,14 @@ export function StudioPublishTab({ studio }: StudioPublishTabProps) {
                 ? 'Đã xuất bản · Khách có thể mở liên kết thiệp.'
                 : 'Chưa xuất bản · Thiệp chưa có liên kết để gửi khách.'}
         </p>
-        <div className="studio-actions">
+        <div className={ix.actions}>
           <button
             type="button"
             onClick={() => {
               void handlePublish();
             }}
             disabled={isPublishing || saving || !currentDesign || publicationRevision === null}
-            className="studio-btn"
+            className={ix.btn}
           >
             {isPublishing ? 'Đang xử lý...' : 'Xuất bản thiệp'}
           </button>
@@ -66,7 +68,7 @@ export function StudioPublishTab({ studio }: StudioPublishTabProps) {
                 void handleUnpublish();
               }}
               disabled={isPublishing || publicationRevision === null}
-              className="studio-btn is-danger-outline"
+              className={ix.btnDanger}
             >
               Ngừng chia sẻ
             </button>
@@ -74,9 +76,9 @@ export function StudioPublishTab({ studio }: StudioPublishTabProps) {
         </div>
 
         {publishedSlug ? (
-          <div className="studio-published">
-            <div className="studio-qr-block">
-              <div className="studio-qr">
+          <div className={px.published}>
+            <div className={px.qrBlock}>
+              <div className={px.qr}>
                 <Image
                   src={(() => {
                     const base = getApiBaseUrl().replace(/\/+$/, '');
@@ -93,71 +95,67 @@ export function StudioPublishTab({ studio }: StudioPublishTabProps) {
               <button
                 type="button"
                 onClick={() => void handleDownloadQr()}
-                className="studio-btn is-small is-ghost"
+                className={ix.btnSmallOutline}
               >
                 Tải mã QR (PNG)
               </button>
             </div>
-            <div className="studio-published-copy">
-              <div className="studio-published-status">
-                <span className="hy-chip is-success">Trực tuyến</span>
-                <h4 className="studio-subtitle-sm">Thiệp đang được chia sẻ</h4>
+            <div className={px.publishedCopy}>
+              <div className={px.publishedStatus}>
+                <span className={ix.chipSuccess}>Trực tuyến</span>
+                <h4 className={ix.subtitleSm}>Thiệp đang được chia sẻ</h4>
               </div>
-              <p className="studio-hint">
+              <p className={ix.hint}>
                 Đường dẫn công khai:{' '}
                 <a
                   href={`/t/${publishedSlug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="studio-link"
+                  className={ix.link}
                 >
                   /t/{publishedSlug}
                 </a>
               </p>
-              <div className="studio-share-bar">
+              <div className={px.shareBar}>
                 <CopyButton
                   text={
                     typeof window !== 'undefined'
                       ? `${window.location.origin}/t/${publishedSlug}`
                       : `/t/${publishedSlug}`
                   }
-                  className="studio-btn is-small"
+                  className={ix.btnSmall}
                 />
-                <button
-                  type="button"
-                  onClick={handleShareZalo}
-                  className="studio-btn is-small is-ghost studio-zalo-btn"
-                >
+                <button type="button" onClick={handleShareZalo} className={ix.btnSmallOutline}>
                   Chia sẻ Zalo
                 </button>
                 <button
                   type="button"
                   onClick={() => void handleNativeShare()}
-                  className="studio-btn is-small is-ghost"
+                  className={ix.btnSmallOutline}
                 >
                   Gửi tin nhắn
                 </button>
               </div>
-              <p className="studio-meta">Mã QR an toàn, không chứa thông tin cá nhân khách mời.</p>
+              <p className={ix.meta}>Mã QR an toàn, không chứa thông tin cá nhân khách mời.</p>
 
-              <details className="studio-og-preview studio-disclosure">
+              <details className={ix.disclosure}>
                 <summary>Nội dung tham khảo khi chia sẻ</summary>
-                <p className="studio-meta">
+                <p className={ix.meta}>
                   Dựa trên nội dung đang chỉnh; bản công khai là bản đã xuất bản.
                 </p>
-                <div className="studio-og-card">
-                  <div className="studio-og-badge">Thiệp cưới báo hỷ</div>
-                  <div className="studio-og-title">{title}</div>
-                  <div className="studio-og-subtitle">
+                <div className={px.ogCard}>
+                  <div className={px.ogBadge}>Thiệp cưới báo hỷ</div>
+                  <div className={px.ogTitle}>{title}</div>
+                  <div className={px.ogSubtitle}>
                     {groomName || 'Chú rể'} &amp; {brideName || 'Cô dâu'}
                   </div>
                   {event?.eventDate ? (
-                    <div className="studio-og-meta">
+                    <div className={px.ogMeta}>
                       Ngày tổ chức: {new Date(event.eventDate).toLocaleDateString('vi-VN')} · Sảnh{' '}
                       {event.hallName}
                     </div>
                   ) : null}
-                  <div className="studio-og-link">
+                  <div className={px.ogLink}>
                     {typeof window !== 'undefined' ? window.location.host : 'hy-yen.vn'}/t/
                     {publishedSlug}
                   </div>
@@ -166,23 +164,23 @@ export function StudioPublishTab({ studio }: StudioPublishTabProps) {
             </div>
           </div>
         ) : publicationState === 'stale_conflict' ? (
-          <div className="studio-callout is-warning">
-            <p className="studio-callout-title">Thiệp vừa được cập nhật ở nơi khác</p>
+          <div className={ix.calloutWarning}>
+            <p className={ix.calloutTitle}>Thiệp vừa được cập nhật ở nơi khác</p>
             <p>
               Hãy đợi trạng thái đồng bộ trước khi xuất bản lại. Nội dung đang chỉnh của bạn được
               giữ nguyên.
             </p>
           </div>
         ) : publicationState === 'unpublished' ? (
-          <div className="studio-callout">
-            <p className="studio-callout-title">Thiệp chưa được chia sẻ</p>
+          <div className={ix.callout}>
+            <p className={ix.calloutTitle}>Thiệp chưa được chia sẻ</p>
             <p>
               Thiệp cưới hiện đang ở trạng thái riêng tư. Khách mời không thể truy cập liên kết công
               khai cũ.
             </p>
           </div>
         ) : (
-          <div className="studio-callout">
+          <div className={ix.callout}>
             <p>
               Đang xác định trạng thái chia sẻ. Chờ đồng bộ trước khi xuất bản hoặc gửi liên kết cho
               khách.

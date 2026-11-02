@@ -1,45 +1,12 @@
+import { Eye, EyeOff } from 'lucide-react';
+import Image from 'next/image';
 import React, { useState, type FormEvent } from 'react';
-import fieldStyles from './identity-field.module.css';
+import { cn } from 'cn';
+
+import { Button } from '../../components/ui/button';
+import { control, field, fieldError } from '../public-website/public-classes';
 import { PublicHeader } from '../public-website/public-shell';
 import type { WebIdentitySession } from './session';
-
-export function EyeIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-export function EyeOffIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
-  );
-}
 
 export function Field({
   label,
@@ -57,9 +24,9 @@ export function Field({
   const id = `identity-${name}`;
   const errorId = error ? `${id}-error` : undefined;
   return (
-    <div className="field">
+    <div className={field}>
       <label htmlFor={id}>{label}</label>
-      <div className={fieldStyles.inputWrap}>
+      <div className="relative">
         <input
           {...input}
           type={password && visible ? 'text' : input.type}
@@ -67,15 +34,12 @@ export function Field({
           name={name}
           aria-invalid={Boolean(error)}
           aria-describedby={errorId}
-          className={
-            `${className ?? ''} ${password ? fieldStyles.passwordInput : ''} ${error ? fieldStyles.inputError : ''}`.trim() ||
-            undefined
-          }
+          className={cn(control, password && 'pr-12', className)}
           required
         />
         {password ? (
           <button
-            className={fieldStyles.toggle}
+            className="absolute top-1/2 right-1 inline-flex size-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             type="button"
             aria-label={visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
             title={visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
@@ -83,12 +47,16 @@ export function Field({
             aria-pressed={visible}
             onClick={() => setVisible((value) => !value)}
           >
-            {visible ? <EyeOffIcon /> : <EyeIcon />}
+            {visible ? (
+              <EyeOff className="size-5" aria-hidden="true" />
+            ) : (
+              <Eye className="size-5" aria-hidden="true" />
+            )}
           </button>
         ) : null}
       </div>
       {error ? (
-        <p id={errorId} className={fieldStyles.fieldError} role="alert">
+        <p id={errorId} className={fieldError} role="alert">
           {error}
         </p>
       ) : null}
@@ -112,50 +80,56 @@ export function AuthForm({
   title: string;
 }>) {
   return (
-    <form className="identity-form" onSubmit={onSubmit}>
-      <span className="preview-label">Tài khoản Hỷ Yến</span>
-      <p className="script-heading">Hành trình của hai bạn</p>
-      <h1>{title}</h1>
-      <p className="invitation-lead">{description}</p>
-      <div className="identity-fields">{children}</div>
-      <button className="primary-action" type="submit" disabled={pending}>
+    <form className="flex flex-col gap-5" onSubmit={onSubmit}>
+      <div className="flex flex-col gap-2">
+        <h1 className="text-xl font-bold sm:text-2xl">{title}</h1>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      <div className="flex flex-col gap-4">{children}</div>
+      <Button type="submit" size="lg" disabled={pending}>
         {pending ? 'Đang xử lý…' : submitLabel}
-        <span aria-hidden="true">→</span>
-      </button>
-      <p className="form-security-note">Thông tin đăng nhập không được lưu trong trình duyệt.</p>
+      </Button>
+      <p className="text-xs text-muted-foreground">
+        Thông tin đăng nhập không được lưu trong trình duyệt.
+      </p>
     </form>
   );
 }
 
+/** Khung trang tài khoản: header công khai, ảnh cưới bên trái (màn rộng), form bên phải. */
 export function PublicShell({
   children,
   session,
 }: Readonly<{ children: React.ReactNode; session: WebIdentitySession }>) {
   return (
-    <>
-      <a className="skip-link" href="#identity-content">
+    <div className="flex min-h-dvh flex-col bg-background">
+      <a
+        className="sr-only z-50 rounded-lg bg-card px-4 py-2 text-sm font-semibold text-primary shadow-hy-2 focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+        href="#identity-content"
+      >
         Đi đến nội dung chính
       </a>
-      <PublicHeader
-        className={fieldStyles.authHeader ?? ''}
-        session={session}
-        restoreSession={false}
-      />
-      <div className="invitation-ribbon">Một nơi riêng tư cho mọi quyết định quan trọng</div>
-      <main id="identity-content" className={'identity-layout ' + fieldStyles.authLayout}>
-        <section
-          className="invitation-visual"
-          role="img"
-          aria-label="Hình ảnh cặp đôi trong ngày cưới"
-        >
-          <div className="visual-caption">
-            <span>Bảo mật</span>
-            <strong>Riêng tư</strong>
-            <span>Đồng hành</span>
+      <PublicHeader session={session} restoreSession={false} />
+      <main
+        id="identity-content"
+        className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(480px,560px)]"
+      >
+        <div className="relative max-lg:hidden">
+          <Image
+            className="object-cover"
+            src="/images/khoanh-khac/co-dau-chu-re.webp"
+            alt="Hình ảnh cặp đôi trong ngày cưới"
+            fill
+            sizes="(max-width: 1024px) 0px, 60vw"
+            priority
+          />
+        </div>
+        <section className="flex flex-col justify-center bg-card px-4 py-10 sm:px-12 lg:px-16">
+          <div className="mx-auto flex w-full max-w-md animate-in duration-300 ease-hy-decelerate fade-in fill-mode-backwards slide-in-from-bottom-2 motion-reduce:animate-none flex-col gap-4">
+            {children}
           </div>
         </section>
-        <section className="invitation-content">{children}</section>
       </main>
-    </>
+    </div>
   );
 }

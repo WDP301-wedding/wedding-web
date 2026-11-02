@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { consultationHref, menuEstimates, suitableHalls, tableCount } from './estimate';
+import {
+  consultationHref,
+  dishCategory,
+  formatDate,
+  menuEstimates,
+  suitableHalls,
+  tableCount,
+} from './estimate';
 import type { Hall, Menu } from './public-api';
 
 const hall = (id: string, maxGuests: number) =>
@@ -40,5 +47,16 @@ describe('estimator', () => {
       }),
     ).toBe('/tu-van?sanh=h1&thuc-don=m1&ngay=2026-12-20&khach=280&ca=trua');
     expect(consultationHref({})).toBe('/tu-van');
+  });
+});
+
+describe('nhãn hiển thị', () => {
+  it('đổi mã nhóm món mẫu sang tiếng Việt và giữ nhãn nhà hàng tự đặt', () => {
+    expect(dishCategory('APPETIZER')).toBe('Khai vị');
+    expect(dishCategory('Món nướng')).toBe('Món nướng');
+  });
+
+  it('định dạng ngày theo kiểu Việt Nam', () => {
+    expect(formatDate('2027-03-15')).toBe('15/03/2027');
   });
 });

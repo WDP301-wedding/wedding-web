@@ -6,6 +6,7 @@ import { formatVnd } from '../couple-workspace/use-couple-workspace';
 import type { FriendlyError } from '../../lib/api/api-errors';
 import type { ContractPreview } from './contract-preview-api';
 import { ContractLinesTable } from './contract-lines-table';
+import { cx } from './contract-classes';
 
 export function LineSelectorPreview({
   preview,
@@ -23,11 +24,11 @@ export function LineSelectorPreview({
   onRequestPreview: () => void;
 }>) {
   return (
-    <section className="cw-card" aria-label="Xem trước chi phí" aria-busy={previewPending}>
+    <section className={cx.card} aria-label="Xem trước chi phí" aria-busy={previewPending}>
       <h3>Xem trước chi phí chưa lưu</h3>
       <p>
-        Tính từ giá chính thức trên máy chủ. Không tạo bản hợp đồng, không gửi duyệt và không
-        ghi nhận thanh toán.
+        Tính từ giá chính thức trên máy chủ. Không tạo bản hợp đồng, không gửi duyệt và không ghi
+        nhận thanh toán.
       </p>
       {preview && previewCurrent ? (
         <>
@@ -41,8 +42,8 @@ export function LineSelectorPreview({
             <strong>{formatVnd(preview.data.document.depositAmountVnd)}</strong>
           </p>
           <p>{preview.data.document.incidentalClause}</p>
-          <p className="muted">
-            Giá, quyền và revision được kiểm tra lại khi lưu. Phát sinh tương lai chưa ghi nhận
+          <p className={cx.muted}>
+            Giá, quyền và phiên bản được kiểm tra lại khi lưu. Phát sinh tương lai chưa ghi nhận
             không nằm trong tổng này.
           </p>
         </>
@@ -55,18 +56,13 @@ export function LineSelectorPreview({
       )}
       <InlineError error={previewError} />
       <button
-        className="button button-secondary"
+        className={cx.buttonOutline}
         type="button"
         disabled={pending || previewPending}
         onClick={onRequestPreview}
       >
-        {previewPending
-          ? 'Đang tính chi phí…'
-          : preview
-            ? 'Tính lại chi phí'
-            : 'Xem trước chi phí'}
+        {previewPending ? 'Đang tính chi phí…' : preview ? 'Tính lại chi phí' : 'Xem trước chi phí'}
       </button>
     </section>
   );
 }
-

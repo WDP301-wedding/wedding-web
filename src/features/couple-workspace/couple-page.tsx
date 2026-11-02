@@ -1,12 +1,14 @@
 'use client';
-
 import { InlineError } from '../../design-system/inline-error';
 import { Illustration, type IllustrationName } from '../../design-system/illustrations';
+
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { cn } from 'cn';
 
+import { Badge } from '../../components/ui/badge';
+import { buttonVariants } from '../../components/ui/button';
 import type { FriendlyError } from '../../lib/api/api-errors';
-import { WorkspaceShell, type Section } from './workspace-shell';
 import {
   formatEventDate,
   shiftLabel,
@@ -14,6 +16,7 @@ import {
   type Proposal,
 } from './use-couple-workspace';
 import { Skeleton } from '../../design-system/skeleton';
+import { panel } from './space-classes';
 import { useInSpace } from './space-provider';
 
 const phaseLabels: Record<Proposal['phase'], string> = {
@@ -25,8 +28,6 @@ const phaseLabels: Record<Proposal['phase'], string> = {
 };
 
 type CouplePageProps = Readonly<{
-  active: Section;
-  eyebrow: string;
   title: string;
   description?: string;
   /** Trang chỉ dùng được khi Couple đã có quyền FULL (sau khi cọc được xác nhận). */
@@ -35,35 +36,28 @@ type CouplePageProps = Readonly<{
 }>;
 
 /**
- * Khung chung cho các trang Couple: thanh điều hướng, tiêu đề, và đủ các trạng thái
- * (đang tải, chưa đăng nhập, chọn tiệc, lỗi, chưa đủ quyền). Trang con chỉ lo nội dung chính.
+ * Khung chung cho các trang Couple: tiêu đề và đủ các trạng thái (đang tải, chưa đăng nhập,
+ * chọn tiệc, lỗi, chưa đủ quyền). Trang con chỉ lo nội dung chính.
  */
-export function CouplePage({
-  active,
-  eyebrow,
-  title,
-  description,
-  requireFull,
-  children,
-}: CouplePageProps) {
-  const { state, reload, bookingId } = useCoupleWorkspace();
+export function CouplePage({ title, description, requireFull, children }: CouplePageProps) {
+  const { state, reload } = useCoupleWorkspace();
   // Trong /khong-gian thanh trên đã hiện sảnh, ngày, ca → không lặp lại dải thông tin tiệc.
   const inSpace = useInSpace();
-
   return (
-    <WorkspaceShell active={active} bookingId={bookingId ?? undefined}>
-      <div className="cw-page">
-        <header className="cw-heading">
-          <p className="eyebrow">{eyebrow}</p>
-          <h1>{title}</h1>
-          {description ? <p className="lead">{description}</p> : null}
+    <>
+      <div className="flex flex-col gap-6">
+        <header className="flex flex-col gap-2">
+          <h1 className="text-xl font-bold text-balance sm:text-2xl">{title}</h1>
+          {description ? (
+            <p className="max-w-3xl text-sm text-muted-foreground">{description}</p>
+          ) : null}
           {state.status === 'ready' && !inSpace ? <BookingStrip proposal={state.proposal} /> : null}
         </header>
         {state.status === 'loading' ? <Skeleton label="Đang tải dữ liệu tiệc cưới…" /> : null}
         {state.status === 'anonymous' ? (
           <EmptyPanel title="Cần đăng nhập">
             <p>Đăng nhập bằng tài khoản đã được nhà hàng mời để tiếp tục.</p>
-            <Link className="button" href="/dang-nhap">
+            <Link className={buttonVariants({ className: 'self-start' })} href="/dang-nhap">
               Đăng nhập
             </Link>
           </EmptyPanel>
@@ -73,17 +67,23 @@ export function CouplePage({
           state.bookings.length === 0 ? (
             <EmptyPanel title="Chưa có tiệc cưới" illustration="empty-tiec">
               <p>Nhà hàng sẽ mở hồ sơ sau buổi tư vấn. Bạn có thể gửi yêu cầu tư vấn mới.</p>
-              <Link className="button button-secondary" href="/tu-van">
+              <Link
+                className={buttonVariants({ variant: 'outline', className: 'self-start' })}
+                href="/tu-van"
+              >
                 Gửi yêu cầu tư vấn
               </Link>
             </EmptyPanel>
           ) : (
-            <section className="cw-card">
-              <h2>Chọn tiệc cưới</h2>
-              <ul className="cw-list">
+            <section className={cn(panel, 'flex flex-col gap-3')}>
+              <h2 className="text-lg font-bold">Chọn tiệc cưới</h2>
+              <ul className="flex flex-col divide-y divide-border">
                 {state.bookings.map((booking) => (
                   <li key={booking.bookingId}>
-                    <Link href={`?bookingId=${booking.bookingId}`}>
+                    <Link
+                      className="block py-3 text-sm hover:text-primary"
+                      href={`?bookingId=${booking.bookingId}`}
+                    >
                       <strong>{booking.hallName}</strong> · {formatEventDate(booking.eventDate)} ·{' '}
                       {shiftLabel(booking.shiftCode)} · {phaseLabels[booking.phase]}
                     </Link>
@@ -100,15 +100,15 @@ export function CouplePage({
                 Chức năng này dành cho tiệc đã được xác nhận. Sau khi khoản cọc được nhà hàng ghi
                 nhận, không gian của hai bạn sẽ tự mở đầy đủ.
               </p>
-              <div className="cw-actions">
+              <div className="flex flex-wrap gap-2">
                 <Link
-                  className="button"
+                  className={buttonVariants()}
                   href={`/khong-gian/thoa-thuan/hop-dong?bookingId=${state.proposal.bookingId}`}
                 >
                   Xem hợp đồng
                 </Link>
                 <Link
-                  className="button button-secondary"
+                  className={buttonVariants({ variant: 'outline' })}
                   href={`/khong-gian/thanh-toan?bookingId=${state.proposal.bookingId}`}
                 >
                   Thanh toán cọc
@@ -120,25 +120,25 @@ export function CouplePage({
           )
         ) : null}
       </div>
-    </WorkspaceShell>
+    </>
   );
 }
 
 function BookingStrip({ proposal }: Readonly<{ proposal: Proposal }>) {
   return (
-    <p className="cw-strip">
-      <span className="status status-champagne">{phaseLabels[proposal.phase]}</span>
+    <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+      <Badge variant="brand">{phaseLabels[proposal.phase]}</Badge>
       <span>{proposal.proposal.hall.name}</span>
       <span>{formatEventDate(proposal.eventDate)}</span>
       <span>
         {shiftLabel(proposal.proposal.shift.code)} {proposal.proposal.shift.startTime}–
         {proposal.proposal.shift.endTime}
       </span>
-      <span className="status status-muted">
+      <Badge>
         {proposal.capabilities.accessLevel === 'FULL'
           ? 'Quyền đầy đủ'
           : 'Quyền hạn chế (trước cọc)'}
-      </span>
+      </Badge>
     </p>
   );
 }
@@ -149,9 +149,9 @@ export function EmptyPanel({
   illustration,
 }: Readonly<{ title: string; children?: ReactNode; illustration?: IllustrationName }>) {
   return (
-    <section className="cw-card cw-empty">
+    <section className={cn(panel, 'flex flex-col items-start gap-3 text-sm text-muted-foreground')}>
       {illustration ? <Illustration name={illustration} /> : null}
-      <h2>{title}</h2>
+      <h2 className="text-lg font-bold text-foreground">{title}</h2>
       {children}
     </section>
   );
@@ -163,5 +163,3 @@ export function ErrorPanel({
 }: Readonly<{ error: FriendlyError; onRetry?: () => void }>) {
   return <InlineError error={error} onRetry={onRetry} />;
 }
-
-/** Hiển thị kết quả của lệnh ghi gần nhất (thành công hoặc lỗi). */

@@ -2,7 +2,8 @@
 
 import React from 'react';
 import type { Guest, GuestGroup } from './guest-api';
-import styles from './guests.module.css';
+import { cx } from '../commercial-contract/contract-classes';
+import { gx } from './guest-classes';
 
 export interface GuestCardListProps {
   visible: Guest[];
@@ -28,46 +29,38 @@ export function GuestCardList({
   onToggleStatus,
 }: GuestCardListProps) {
   return (
-    <div className={styles.mobileOnly}>
+    <div className={gx.mobileOnly}>
       {visible.map((guest) => {
         const isSelected = selectedIds.has(guest.guestId);
         const grp = groupMap.get(guest.guestGroupId);
         return (
-          <div
-            key={guest.guestId}
-            className={styles.guestCard}
-            style={isSelected ? { borderColor: 'var(--hy-wine)' } : undefined}
-          >
-            <div className={styles.guestCardHeader}>
-              <label className={styles.checkboxLabel}>
+          <div key={guest.guestId} className={gx.guestCard} data-selected={isSelected}>
+            <div className={gx.guestCardHeader}>
+              <label className={gx.checkboxLabel}>
                 <input
                   type="checkbox"
                   checked={isSelected}
                   onChange={() => onToggleSelectOne(guest.guestId)}
-                  style={{ marginRight: 8 }}
+                  className="mr-2"
                 />
-                <span className={styles.guestCardName}>{guest.name}</span>
+                <span className={gx.guestCardName}>{guest.name}</span>
               </label>
-              <span className={styles.guestCardGroup}>
-                <span
-                  className={`cw-swatch ${styles.swatch}`}
-                  style={{ background: grp?.color, marginRight: 4 }}
-                  aria-hidden="true"
-                />
+              <span className={gx.guestCardGroup}>
+                <span className={gx.swatch} style={{ background: grp?.color }} aria-hidden="true" />
                 {grp?.name ?? '—'}
               </span>
             </div>
 
-            <div className={styles.guestCardDetails}>
+            <div className={gx.guestCardDetails}>
               {guest.phone ? <div>Điện thoại: {guest.phone}</div> : null}
               {guest.operationalNote ? <div>Ghi chú: {guest.operationalNote}</div> : null}
             </div>
 
-            <div className={styles.guestCardActions}>
+            <div className={gx.guestCardActions}>
               {guest.status === 'ACTIVE' ? (
                 <>
                   <button
-                    className="cw-text-button"
+                    className={cx.textButton}
                     type="button"
                     disabled={pending}
                     onClick={() => onEdit(guest)}
@@ -75,7 +68,7 @@ export function GuestCardList({
                     Sửa
                   </button>
                   <button
-                    className="cw-text-button"
+                    className={cx.textButton}
                     type="button"
                     disabled={pending}
                     onClick={() => onIssueLink(guest)}
@@ -83,7 +76,7 @@ export function GuestCardList({
                     Lấy link thiệp
                   </button>
                   <button
-                    className="cw-text-button"
+                    className={cx.textButton}
                     type="button"
                     disabled={pending}
                     onClick={() => onSendEmail(guest)}
@@ -93,7 +86,7 @@ export function GuestCardList({
                 </>
               ) : null}
               <button
-                className="cw-text-button"
+                className={cx.textButton}
                 type="button"
                 disabled={pending}
                 onClick={() => onToggleStatus(guest)}

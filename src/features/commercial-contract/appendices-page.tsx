@@ -1,5 +1,8 @@
 'use client';
 
+import Link from 'next/link';
+
+import { routes, withBooking } from '../../routes';
 import { LiveUpdateNotice } from '../realtime/use-live-refresh';
 import { CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
 import { formatVnd, type Proposal } from '../couple-workspace/use-couple-workspace';
@@ -7,12 +10,11 @@ import { ContractLinesTable, LineSelector } from './contract-lines';
 import { Skeleton } from '../../design-system/skeleton';
 import { useAppendicesWorkspace } from './use-appendices-workspace';
 import { AppendixCurrentCard, AppendixHistoryCard } from './appendix-cards';
+import { cx } from './contract-classes';
 
 export function AppendicesPage() {
   return (
     <CouplePage
-      active="appendices"
-      eyebrow="Sau đặt cọc"
       title="Phụ lục hợp đồng"
       description="Thay đổi thực đơn, số bàn, dịch vụ hoặc số thiệp in sau khi đã cọc. Hợp đồng gốc không bị sửa; mỗi thay đổi là một phụ lục có lý do và hai bên cùng duyệt."
       requireFull
@@ -54,6 +56,24 @@ function AppendicesWorkspace({
     handleApproveAppendix,
   } = useAppendicesWorkspace(proposal, reloadBooking);
 
+  // Trạng thái nghiệp vụ, không phải lỗi: thử lại cũng không đổi nên chỉ báo lý do và lối đi tiếp.
+  if (loadError?.code === 'SETTLED_CONTRACT_REQUIRED')
+    return (
+      <aside className={cx.accessNotice} aria-label="Phụ lục chưa mở">
+        <p role="status">
+          Tiệc chưa có bản hợp đồng đặt cọc được xác nhận. Phụ lục chỉ lập được sau khi hai bên
+          duyệt hợp đồng và khoản cọc theo hợp đồng đó được ghi nhận.
+        </p>
+        <div className={cx.actions}>
+          <Link
+            className={cx.buttonOutline}
+            href={withBooking(routes.contract, proposal.bookingId)}
+          >
+            Xem hợp đồng
+          </Link>
+        </div>
+      </aside>
+    );
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
   if (!appendices) return <Skeleton label="Đang tải phụ lục…" />;
 
@@ -61,8 +81,8 @@ function AppendicesWorkspace({
     <>
       <LiveUpdateNotice waiting={live.waiting} />
       {creating && command.error ? <ErrorPanel error={command.error} /> : null}
-      <section className="cw-card">
-        <div className="cw-card-header">
+      <section className={cx.card}>
+        <div className={cx.cardHeader}>
           <h2>Thoả thuận đang hiệu lực</h2>
           <strong>{formatVnd(appendices.effectiveTotalVnd)}</strong>
         </div>
@@ -71,25 +91,25 @@ function AppendicesWorkspace({
           totalVnd={appendices.effectiveTotalVnd}
           totalLabel="Tổng thoả thuận"
         />
-        <p className="cw-note">
+        <p className={cx.note}>
           Phụ lục không thu thêm tiền cọc; chênh lệch được cộng/trừ vào số tiền còn phải thanh toán.
           Chi phí phát sinh trong tiệc do nhà hàng ghi nhận riêng sau khi tiệc kết thúc.
         </p>
         {isClosed ? (
-          <p className="cw-note">
+          <p className={cx.note}>
             Tiệc cưới đã hoàn thành tất toán. Hợp đồng gốc và các phụ lục đã được chốt và lưu trữ.
           </p>
         ) : null}
         {!open && !creating && !isClosed ? (
-          <div className="cw-actions">
-            <button className="button" type="button" onClick={handleStartCreate}>
+          <div className={cx.actions}>
+            <button className={cx.button} type="button" onClick={handleStartCreate}>
               Tạo phụ lục thay đổi
             </button>
           </div>
         ) : null}
         {creating ? (
           <button
-            className="button button-secondary"
+            className={cx.buttonOutline}
             type="button"
             disabled={command.pending}
             onClick={handleCancelCreate}

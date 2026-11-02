@@ -9,7 +9,8 @@ import {
   type SeatingTable,
 } from './seating-api';
 import { useSeatingPan } from './use-seating-pan';
-import styles from './seating.module.css';
+import { Maximize2, Minimize2, Minus, Plus } from 'lucide-react';
+import { sx } from './seating-classes';
 
 export function SeatingSvg({
   plan,
@@ -41,58 +42,49 @@ export function SeatingSvg({
 
   const content = (
     <>
-      <div
-        className={`hy-zoom-bar ${styles.zoomToolbar}`}
-        role="group"
-        aria-label="Thu phóng sơ đồ"
-      >
+      <div className={sx.zoomBar} role="group" aria-label="Thu phóng sơ đồ">
         <button
           type="button"
-          className="button button-secondary"
+          className={sx.zoomButton}
           aria-label="Thu nhỏ"
           disabled={view.zoom <= minZoom}
           onClick={zoomOut}
         >
-          −
+          <Minus aria-hidden="true" />
         </button>
-        <span className={styles.zoomValue} aria-live="polite">
+        <span className={sx.zoomValue} aria-live="polite">
           {Math.round(view.zoom * 100)}%
         </span>
         <button
           type="button"
-          className="button button-secondary"
+          className={sx.zoomButton}
           aria-label="Phóng to"
           disabled={view.zoom >= maxZoom}
           onClick={zoomIn}
         >
-          +
+          <Plus aria-hidden="true" />
         </button>
-        <button type="button" className="cw-text-button" onClick={resetZoom}>
+        <button type="button" className={sx.textButton} onClick={resetZoom}>
           Vừa khung
         </button>
-        <button
-          type="button"
-          className="button button-secondary"
-          style={{ padding: '4px 10px', fontSize: 13 }}
-          onClick={toggleFullscreen}
-        >
-          {isFullscreen ? 'Thu nhỏ cửa sổ' : '⛶ Toàn màn hình'}
+        <button type="button" className={sx.fullscreenButton} onClick={toggleFullscreen}>
+          {isFullscreen ? <Minimize2 aria-hidden="true" /> : <Maximize2 aria-hidden="true" />}
+          {isFullscreen ? 'Thu nhỏ cửa sổ' : 'Toàn màn hình'}
         </button>
-        <small className={styles.zoomHint}>
-          Kéo để di chuyển · Giữ Ctrl + cuộn chuột để thu phóng
-        </small>
+        <small className={sx.zoomHint}>Kéo để di chuyển · Giữ Ctrl + cuộn chuột để thu phóng</small>
       </div>
 
       <svg
         ref={svgRef}
-        className={'cw-seating' + (view.zoom > 1 ? ' hy-pannable' : '')}
+        data-wide
+        className={view.zoom > 1 ? `${sx.svg} ${sx.svgPannable}` : sx.svg}
         viewBox={zoomedViewBox(viewBoxOf(plan.renderSnapshot), view.zoom, view.x, view.y)}
         onPointerDown={startPan}
         onPointerMove={movePan}
         onPointerUp={endPan}
         onPointerCancel={endPan}
         onWheel={onWheel}
-        role="img"
+        role="group"
         aria-label={`Sơ đồ ${plan.renderSnapshot.length} bàn. Chọn một bàn để gắn nhóm.`}
       >
         {plan.renderSnapshot.map((table) => {
@@ -100,12 +92,17 @@ export function SeatingSvg({
           const cy = table.y + table.height / 2;
           const isSelected = table.layoutTableId === selected;
           const groupName = groupNameOf?.(table);
+          // Nhãn mẫu có thể đã gồm chữ "Bàn" (Bàn 01) hoặc chỉ là mã (G1).
+          const tableName = /^bàn\s/iu.test(table.tableLabel)
+            ? table.tableLabel
+            : `Bàn ${table.tableLabel}`;
           const hasGroup = Boolean(groupName);
 
-          // Tính toán kích thước font chữ phù hợp với mặt bàn
+          // Cỡ chữ theo mặt bàn; mẫu vẽ bằng đơn vị lớn (vd. bàn 1000) thì nới giới hạn theo tỉ lệ k.
           const minDim = Math.min(table.width, table.height);
-          const labelFontSize = Math.max(10, Math.min(18, minDim / (hasGroup ? 4.2 : 3.5)));
-          const groupFontSize = Math.max(8, Math.min(12, minDim / 6.2));
+          const k = Math.max(1, minDim / 100);
+          const labelFontSize = Math.max(10 * k, Math.min(18 * k, minDim / (hasGroup ? 4.2 : 3.5)));
+          const groupFontSize = Math.max(8 * k, Math.min(12 * k, minDim / 6.2));
 
           return (
             <g
@@ -113,8 +110,8 @@ export function SeatingSvg({
               transform={`translate(${cx} ${cy}) rotate(${table.rotationDegrees})`}
               tabIndex={0}
               role="button"
-              aria-label={`Bàn ${table.tableLabel}${groupName ? `, Nhóm: ${groupName}` : ''}`}
-              className={styles.tableInteractive}
+              aria-label={`${tableName}${groupName ? `, Nhóm: ${groupName}` : ''}`}
+              className={sx.table}
               onClick={() => {
                 if (panned.current) {
                   panned.current = false;
@@ -130,9 +127,7 @@ export function SeatingSvg({
               }}
             >
               <title>
-                {`Bàn ${table.tableLabel}${
-                  groupName ? ` · Nhóm: ${groupName}` : ' · (Chưa gán nhóm)'
-                }`}
+                {`${tableName}${groupName ? ` · Nhóm: ${groupName}` : ' · (Chưa gán nhóm)'}`}
               </title>
 
               {table.shape === 'ROUND' ? (
@@ -167,7 +162,7 @@ export function SeatingSvg({
                 fontWeight={700}
                 fill="#2B1D22"
                 stroke="#ffffff"
-                strokeWidth={3}
+                strokeWidth={3 * k}
                 paintOrder="stroke"
               >
                 {table.tableLabel}
@@ -184,7 +179,7 @@ export function SeatingSvg({
                   fontWeight={600}
                   fill="#4A353D"
                   stroke="#ffffff"
-                  strokeWidth={2.5}
+                  strokeWidth={2.5 * k}
                   paintOrder="stroke"
                 >
                   {groupName && groupName.length > 12 ? `${groupName.slice(0, 11)}…` : groupName}
@@ -198,7 +193,11 @@ export function SeatingSvg({
   );
 
   if (isFullscreen) {
-    return <div className={styles.fullscreenContainer}>{content}</div>;
+    return (
+      <div className={sx.fullscreen} data-fullscreen>
+        {content}
+      </div>
+    );
   }
 
   return content;

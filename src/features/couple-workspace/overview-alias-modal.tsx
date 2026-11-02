@@ -1,19 +1,22 @@
 'use client';
 
-import React from 'react';
+import type { FormEvent, RefObject } from 'react';
+
+import { Button } from '../../components/ui/button';
 import { InlineError } from '../../design-system/inline-error';
 import type { FriendlyError } from '../../lib/api/api-errors';
+import { control, field, fieldHint } from '../public-website/public-classes';
 
 export interface OverviewAliasModalProps {
   isOpen: boolean;
-  dialogRef: React.RefObject<HTMLDialogElement | null>;
+  dialogRef: RefObject<HTMLDialogElement | null>;
   hasExistingAlias: boolean;
   aliasInput: string;
   setAliasInput: (val: string) => void;
   savingAlias: boolean;
   aliasError: FriendlyError | null;
   onClose: () => void;
-  onSave: (e: React.FormEvent) => void;
+  onSave: (e: FormEvent) => void;
 }
 
 export function OverviewAliasModal({
@@ -32,7 +35,7 @@ export function OverviewAliasModal({
   return (
     <dialog
       ref={dialogRef}
-      className="hy-alias-dialog"
+      className="m-auto w-[min(480px,calc(100vw-32px))] animate-in rounded-2xl bg-card p-0 text-foreground shadow-[0_32px_64px_rgb(43_29_34/0.32)] duration-300 ease-hy-decelerate fade-in zoom-in-98 backdrop:bg-hy-ink/55 motion-reduce:animate-none"
       aria-labelledby="alias-modal-title"
       aria-describedby="alias-modal-description"
       onCancel={(event) => {
@@ -40,60 +43,54 @@ export function OverviewAliasModal({
         if (!savingAlias) onClose();
       }}
     >
-      <div className="hy-alias-dialog-header">
-        <div>
-          <h3 id="alias-modal-title">
+      <div className="flex items-start justify-between gap-4 border-b border-border p-5">
+        <div className="flex flex-col gap-1">
+          <h3 id="alias-modal-title" className="text-lg font-bold">
             {hasExistingAlias ? 'Đổi tên gợi nhớ' : 'Đặt tên gợi nhớ'}
           </h3>
-          <p id="alias-modal-description">
-            Giúp hai bạn phân biệt các tiệc trong danh sách. Tên này không thay đổi thông tin
-            sảnh hay hợp đồng.
+          <p id="alias-modal-description" className="text-xs text-muted-foreground">
+            Giúp hai bạn phân biệt các tiệc trong danh sách. Tên này không thay đổi thông tin sảnh
+            hay hợp đồng.
           </p>
         </div>
-        <button
+        <Button
           type="button"
-          className="hy-alias-close"
+          variant="ghost"
+          size="sm"
           onClick={onClose}
           disabled={savingAlias}
           aria-label="Đóng hộp thoại đặt tên"
         >
           Đóng
-        </button>
+        </Button>
       </div>
-      <form onSubmit={onSave} className="hy-alias-form">
-        <label htmlFor="booking-alias-input" className="form-label">
+      <form onSubmit={onSave} className="flex flex-col gap-3 p-5">
+        <label htmlFor="booking-alias-input" className={field}>
           Tên gợi nhớ (tối đa 120 ký tự)
         </label>
         <input
           id="booking-alias-input"
           type="text"
           maxLength={120}
-          className="form-input"
+          className={control}
           placeholder="VD: Lễ thành hôn (Nhà gái), Tiệc báo hỷ..."
           value={aliasInput}
           disabled={savingAlias}
-          aria-describedby={
-            aliasError ? 'alias-input-hint alias-save-error' : 'alias-input-hint'
-          }
+          aria-describedby={aliasError ? 'alias-input-hint alias-save-error' : 'alias-input-hint'}
           onChange={(e) => setAliasInput(e.target.value)}
           autoFocus
         />
-        <p id="alias-input-hint" className="hy-alias-hint">
+        <p id="alias-input-hint" className={fieldHint}>
           Để trống và lưu để dùng lại tên mặc định.
         </p>
         <InlineError id="alias-save-error" error={aliasError} />
-        <div className="hy-alias-form-actions">
-          <button
-            type="button"
-            className="button button-ghost"
-            onClick={onClose}
-            disabled={savingAlias}
-          >
+        <div className="mt-2 flex justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={onClose} disabled={savingAlias}>
             Hủy
-          </button>
-          <button type="submit" className="button" disabled={savingAlias}>
+          </Button>
+          <Button type="submit" disabled={savingAlias}>
             {savingAlias ? 'Đang lưu…' : 'Lưu tên gợi nhớ'}
-          </button>
+          </Button>
         </div>
       </form>
     </dialog>

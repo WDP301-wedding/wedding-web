@@ -6,7 +6,15 @@ import { ApiClientError } from '../../lib/api/client';
 import { browserSession } from '../identity-access/browser-session';
 import { createExperienceGateway } from '../identity-access/experience-api';
 import { DatePicker } from '../../design-system/date-picker';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from 'cn';
+
+import { Badge } from '../../components/ui/badge';
+import { Button, buttonVariants } from '../../components/ui/button';
+import { alert, choice, control, field, fieldHint } from './public-classes';
+
+const textField = cn(field, 'min-w-0');
 
 export type ContactPrefill = Readonly<{ displayName: string | null; email: string }>;
 
@@ -160,32 +168,41 @@ export function ConsultationForm({
   }
   if (state === 'success')
     return (
-      <section className="consultation-success" role="status">
-        <span className="public-kicker">Đã tiếp nhận</span>
-        <h2>Cảm ơn bạn đã mở lời.</h2>
-        <p>
+      <section
+        className="flex animate-in flex-col items-start gap-3 rounded-2xl bg-card p-6 duration-300 fade-in sm:p-8 motion-reduce:animate-none"
+        role="status"
+      >
+        <h2 className="text-xl font-bold">Cảm ơn bạn đã mở lời.</h2>
+        <p className="text-sm text-muted-foreground">
           Nhà hàng sẽ xem lại mong muốn của bạn và liên hệ qua thông tin đã cung cấp. Khi hồ sơ tư
           vấn được mở, bạn sẽ nhận lời mời vào không gian riêng.
         </p>
-        <Link className="public-button" href="/sanh">
+        <Link className={buttonVariants()} href="/sanh">
           Khám phá không gian tiệc
         </Link>
       </section>
     );
   return (
-    <form className="consultation-form" onSubmit={(event) => void send(event)}>
+    <form
+      className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 sm:p-7"
+      onSubmit={(event) => void send(event)}
+    >
       {selectedHall || selectedMenu ? (
-        <p className="hy-choice-summary">
-          <span>Lựa chọn của bạn:</span>
-          {selectedHall ? <span className="hy-chip">{selectedHall.name}</span> : null}
-          {selectedMenu ? <span className="hy-chip">{selectedMenu.name}</span> : null}
-          <span>Có thể đổi hoặc bỏ lựa chọn bên dưới.</span>
+        <p className="flex flex-wrap items-center gap-2 rounded-lg bg-accent px-3.5 py-3 text-xs">
+          <span className="font-semibold">Lựa chọn của bạn:</span>
+          {selectedHall ? <Badge variant="brand">{selectedHall.name}</Badge> : null}
+          {selectedMenu ? <Badge variant="brand">{selectedMenu.name}</Badge> : null}
+          <span className="text-muted-foreground">Có thể đổi hoặc bỏ lựa chọn bên dưới.</span>
         </p>
       ) : null}
-      <div className="public-form-grid">
-        <label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className={textField}>
           Sảnh quan tâm (không bắt buộc)
-          <select value={hallId} onChange={(event) => setHallId(event.target.value)}>
+          <select
+            className={control}
+            value={hallId}
+            onChange={(event) => setHallId(event.target.value)}
+          >
             <option value="">Chưa chọn sảnh · nhờ tư vấn</option>
             {halls.map((hall) => (
               <option key={hall.id} value={hall.id}>
@@ -194,9 +211,13 @@ export function ConsultationForm({
             ))}
           </select>
         </label>
-        <label>
+        <label className={textField}>
           Thực đơn quan tâm (không bắt buộc)
-          <select value={menuVersionId} onChange={(event) => setMenuVersionId(event.target.value)}>
+          <select
+            className={control}
+            value={menuVersionId}
+            onChange={(event) => setMenuVersionId(event.target.value)}
+          >
             <option value="">Chưa chọn thực đơn · nhờ tư vấn</option>
             {menus.map((menu) => (
               <option key={menu.versionId} value={menu.versionId}>
@@ -205,9 +226,10 @@ export function ConsultationForm({
             ))}
           </select>
         </label>
-        <label>
+        <label className={textField}>
           Họ và tên
           <input
+            className={control}
             ref={nameInput}
             name="displayName"
             required
@@ -216,9 +238,10 @@ export function ConsultationForm({
             placeholder="Họ và tên"
           />
         </label>
-        <label>
+        <label className={textField}>
           Email
           <input
+            className={control}
             ref={emailInput}
             name="email"
             required
@@ -228,9 +251,10 @@ export function ConsultationForm({
             placeholder="example@email.com"
           />
         </label>
-        <label>
+        <label className={textField}>
           Số điện thoại
           <input
+            className={control}
             name="phone"
             type="tel"
             maxLength={30}
@@ -239,7 +263,7 @@ export function ConsultationForm({
             placeholder="Số điện thoại (không bắt buộc)"
           />
         </label>
-        <label>
+        <label className={textField}>
           Ngày tổ chức dự kiến
           <DatePicker
             name="preferredDate"
@@ -248,11 +272,14 @@ export function ConsultationForm({
             placeholder="dd/mm/yyyy (không bắt buộc)"
             ariaDescribedby="preferred-date-help"
           />
-          <span id="preferred-date-help">Chọn từ ngày mốt trở đi (theo giờ Việt Nam).</span>
+          <span id="preferred-date-help" className={fieldHint}>
+            Chọn từ ngày mốt trở đi (theo giờ Việt Nam).
+          </span>
         </label>
-        <label>
+        <label className={textField}>
           Số khách dự kiến
           <input
+            className={control}
             name="expectedGuests"
             type="number"
             min={1}
@@ -261,26 +288,30 @@ export function ConsultationForm({
             placeholder="Số lượng khách (không bắt buộc)"
           />
         </label>
-        <fieldset className="hy-shift-picker">
-          <legend>Ca mong muốn</legend>
-          <div className="hy-shift-options">
+        <fieldset className="flex min-w-0 flex-col">
+          <legend className="mb-1.5 text-xs font-semibold">Ca mong muốn</legend>
+          <div className="grid grid-cols-2 gap-3">
             {(['LUNCH', 'DINNER'] as const).map((code) => (
-              <label key={code} className={shift === code ? 'is-selected' : undefined}>
+              <label key={code} className={cn(choice, 'h-12 justify-center')}>
                 <input
+                  className="sr-only"
                   type="radio"
                   name="shift"
                   value={code}
                   checked={shift === code}
                   onChange={() => setShift(code)}
                 />
-                <strong>{code === 'LUNCH' ? 'Ca trưa' : 'Ca tối'}</strong>
+                <strong className="text-sm group-has-checked:text-primary">
+                  {code === 'LUNCH' ? 'Ca trưa' : 'Ca tối'}
+                </strong>
               </label>
             ))}
           </div>
         </fieldset>
-        <label className="consultation-full-width">
+        <label className={cn(textField, 'sm:col-span-2')}>
           Điều bạn mong muốn
           <textarea
+            className={cn(control, 'h-auto min-h-24 py-2.5')}
             name="message"
             maxLength={2000}
             rows={3}
@@ -288,14 +319,24 @@ export function ConsultationForm({
           />
         </label>
       </div>
-      <p className="public-muted">
+      <p className={fieldHint}>
         Thông tin được dùng để tiếp nhận và liên hệ tư vấn. Gửi yêu cầu chưa giữ chỗ hay xác nhận
         đặt tiệc.
       </p>
-      {error ? <p role="alert">{error}</p> : null}
-      <button className="public-button" type="submit" disabled={state === 'pending'}>
-        {state === 'pending' ? 'Đang gửi…' : 'Gửi lời hẹn tư vấn'} <span aria-hidden="true">→</span>
-      </button>
+      {error ? (
+        <p className={alert} role="alert">
+          {error}
+        </p>
+      ) : null}
+      <Button
+        className="self-end max-sm:w-full"
+        size="lg"
+        type="submit"
+        disabled={state === 'pending'}
+      >
+        {state === 'pending' ? 'Đang gửi…' : 'Gửi lời hẹn tư vấn'}
+        <ArrowRight aria-hidden="true" />
+      </Button>
     </form>
   );
 }

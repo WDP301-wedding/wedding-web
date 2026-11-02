@@ -1,6 +1,6 @@
 import type { ContractList } from './contract-api';
 import { currentRevision } from './contract-api';
-import styles from './customer-selections.module.css';
+import { cx } from './contract-classes';
 
 export function ContractProgress({
   contracts,
@@ -8,7 +8,7 @@ export function ContractProgress({
 }: Readonly<{ contracts: ContractList; phase: string }>) {
   if (phase === 'CANCELLED')
     return (
-      <p className="cw-note">Tiệc đã hủy. Hợp đồng và lịch sử chi phí được giữ lại để đối chiếu.</p>
+      <p className={cx.note}>Tiệc đã hủy. Hợp đồng và lịch sử chi phí được giữ lại để đối chiếu.</p>
     );
   if (contracts.modelVersion === 'LEGACY_PROPOSAL_V1' && !contracts.selectionAccess?.canEdit)
     return null;
@@ -36,17 +36,31 @@ export function ContractProgress({
   ];
   return (
     <nav aria-label="Tiến trình hợp đồng">
-      <ol className={styles.progress}>
-        {labels.map((label, index) => (
-          <li
-            key={index}
-            aria-current={index === step ? 'step' : undefined}
-            data-complete={index < step || paid}
-          >
-            <span aria-hidden="true">{index + 1}</span>
-            <strong>{label}</strong>
-          </li>
-        ))}
+      <ol className={cx.progress}>
+        {labels.map((label, index) => {
+          const done = index < step || paid;
+          const current = index === step;
+          return (
+            <li
+              key={index}
+              className="flex min-w-0 flex-col gap-2"
+              aria-current={current ? 'step' : undefined}
+              data-complete={done}
+            >
+              <span
+                className={`hy-grow-x h-1 rounded-full ${done ? 'bg-hy-success' : current ? 'bg-primary' : 'bg-border'}`}
+                style={{ animationDelay: `${index * 60}ms` }}
+                aria-hidden="true"
+              />
+              <strong
+                className={`text-xs ${current ? 'font-bold text-foreground' : done ? 'font-medium text-hy-success' : 'font-medium text-muted-foreground'}`}
+              >
+                <span className="sr-only">Bước {index + 1}: </span>
+                {label}
+              </strong>
+            </li>
+          );
+        })}
       </ol>
     </nav>
   );

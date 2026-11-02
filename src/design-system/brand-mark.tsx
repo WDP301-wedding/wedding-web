@@ -8,17 +8,19 @@ import Image from 'next/image';
  */
 export function BrandMark({ tagline, compact = false }: { tagline?: string; compact?: boolean }) {
   return (
-    <span className={'hy-brand' + (compact ? ' hy-brand-compact' : '')}>
+    <span className="inline-flex items-center gap-3 text-foreground">
       <Image
-        className="hy-brand-logo"
+        className={compact ? 'block h-11 w-auto flex-none' : 'block h-[52px] w-auto flex-none'}
         src="/images/hy-yen-logo.png"
         alt=""
         width={394}
         height={414}
       />
-      <span className="hy-brand-text">
-        <strong>Hỷ Yến</strong>
-        {tagline ? <small>{tagline}</small> : null}
+      <span className="grid leading-tight">
+        <strong className={compact ? 'text-lg font-bold' : 'text-[19px] font-bold sm:text-[22px]'}>
+          Hỷ Yến
+        </strong>
+        {tagline ? <small className="text-2xs text-muted-foreground">{tagline}</small> : null}
       </span>
     </span>
   );

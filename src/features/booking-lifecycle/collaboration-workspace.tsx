@@ -2,15 +2,17 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { cn } from 'cn';
+
+import { Badge } from '../../components/ui/badge';
+import { buttonVariants } from '../../components/ui/button';
+import { alert, control, field } from '../public-website/public-classes';
 import { Skeleton } from '../../design-system/skeleton';
 import { useToastFeedback } from '../../design-system/toast';
 import { useRealtimeSubscription } from '../realtime/use-realtime';
 import { useRefreshQueue } from '../realtime/refresh-queue';
 import { ApiClientError } from '../../lib/api/client';
-import type {
-  CollaborationGateway,
-  ProposalView,
-} from './collaboration-api';
+import type { CollaborationGateway, ProposalView } from './collaboration-api';
 import {
   type Authorize,
   type BookingChoice,
@@ -167,23 +169,30 @@ export function CollaborationWorkspace({
   };
 
   return (
-    <div className="collab-shell">
-      <a className="skip-link" href="#proposal-content">
+    <div className="flex flex-col gap-6">
+      <a
+        className="sr-only rounded-lg bg-card px-4 py-2 text-sm font-semibold text-primary focus:not-sr-only focus:self-start"
+        href="#proposal-content"
+      >
         Đi đến đề xuất
       </a>
-      <section className="collab-intro">
-        <div>
-          <p className="script-heading">Thống nhất</p>
-          <h1>Đề xuất & kịch bản</h1>
-          <span className="collab-access">
-            {access === 'full' ? 'Không gian cặp đôi' : 'Không gian tư vấn'}
-          </span>
-          <p>Xem lại lựa chọn của tiệc, cùng nhà hàng duyệt kịch bản và gửi yêu cầu khi cần.</p>
+      <section className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex max-w-3xl flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-xl font-bold sm:text-2xl">Đề xuất & kịch bản</h1>
+            <Badge variant={access === 'full' ? 'brand' : 'info'}>
+              {access === 'full' ? 'Không gian cặp đôi' : 'Không gian tư vấn'}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Xem lại lựa chọn của tiệc, cùng nhà hàng duyệt kịch bản và gửi yêu cầu khi cần.
+          </p>
         </div>
         {availableBookings && availableBookings.length > 1 ? (
-          <label className="collab-switch">
+          <label className={field}>
             Đổi tiệc cưới
             <select
+              className={cn(control, 'h-11 w-auto min-w-64')}
               value={proposal?.bookingId ?? ''}
               disabled={pending}
               onChange={(event) => {
@@ -200,11 +209,19 @@ export function CollaborationWorkspace({
           </label>
         ) : null}
       </section>
-      <div className="collab-live" aria-live="polite">
-        {pending ? <p role="status">Đang đồng bộ hồ sơ…</p> : null}
-        {error ? <p role="alert">{error}</p> : null}
+      <div className="empty:hidden" aria-live="polite">
+        {pending ? (
+          <p className="text-xs text-muted-foreground" role="status">
+            Đang đồng bộ hồ sơ…
+          </p>
+        ) : null}
+        {error ? (
+          <p className={alert} role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
-      <section id="proposal-content">
+      <section id="proposal-content" className="mx-0 max-w-none scroll-mt-24 p-0">
         {!loaded ? (
           <Skeleton label="Đang mở đề xuất của hai bạn…" />
         ) : proposal === null && availableBookings?.length === 0 && !error ? (
@@ -212,7 +229,7 @@ export function CollaborationWorkspace({
             title="Chưa có hồ sơ tiệc cưới"
             body="Nhà hàng sẽ mở đề xuất sau buổi tư vấn và gửi lời mời vào không gian cưới qua email."
           >
-            <Link className="button" href="/tu-van">
+            <Link className={buttonVariants({ className: 'self-start' })} href="/tu-van">
               Liên hệ tư vấn
             </Link>
           </EmptyState>

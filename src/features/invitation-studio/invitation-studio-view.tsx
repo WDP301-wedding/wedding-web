@@ -7,7 +7,7 @@ import { StudioDesignTab } from './studio-design-tab';
 import { StudioMediaTab } from './studio-media-tab';
 import { StudioPublishTab } from './studio-publish-tab';
 import { StudioPrintTab } from './studio-print-tab';
-import styles from './studio-workspace.module.css';
+import { ix } from './studio-classes';
 
 export type InvitationStudioViewProps = UseInvitationStudioOptions;
 
@@ -28,7 +28,7 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
 
   return (
     <div
-      className={`invitation-live ${styles.workspace}`}
+      className={ix.root}
       onChangeCapture={() => {
         if (activeTab === 'design') setDesignDirty(true);
       }}
@@ -40,7 +40,7 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
       {designLive.waiting && designDirty ? (
         <button
           type="button"
-          className="studio-btn"
+          className={ix.btn}
           disabled={writing}
           onClick={() => {
             void confirm({
@@ -60,20 +60,20 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
       ) : null}
 
       {/* Header */}
-      <header className="page-heading">
+      <header className={ix.heading}>
         <h1>Thiệp & in</h1>
-        <p className="studio-lead">
+        <p className={ix.lead}>
           Chỉnh nội dung, thêm hình ảnh, chia sẻ thiệp và theo dõi đơn in của hai bạn.
         </p>
       </header>
 
       {/* Navigation Tabs */}
-      <nav aria-label="Các mục thiệp và in" className="studio-tabs">
+      <nav aria-label="Các mục thiệp và in" className={ix.tabs}>
         <button
           type="button"
           onClick={() => selectTab('design')}
           aria-pressed={activeTab === 'design'}
-          className="studio-tab"
+          className={ix.tab}
         >
           Nội dung thiệp
         </button>
@@ -81,7 +81,7 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
           type="button"
           onClick={() => selectTab('media')}
           aria-pressed={activeTab === 'media'}
-          className="studio-tab"
+          className={ix.tab}
         >
           Hình ảnh
         </button>
@@ -89,7 +89,7 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
           type="button"
           onClick={() => selectTab('publish')}
           aria-pressed={activeTab === 'publish'}
-          className="studio-tab"
+          className={ix.tab}
         >
           Chia sẻ
         </button>
@@ -97,17 +97,19 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
           type="button"
           onClick={() => selectTab('print')}
           aria-pressed={activeTab === 'print'}
-          className="studio-tab"
+          className={ix.tab}
         >
           {orders ? `Đặt in (${orders.length})` : 'Đặt in'}
         </button>
       </nav>
 
       {/* Active Tab Content */}
-      {activeTab === 'design' && <StudioDesignTab studio={studio} />}
-      {activeTab === 'media' && <StudioMediaTab studio={studio} />}
-      {activeTab === 'publish' && <StudioPublishTab studio={studio} />}
-      {activeTab === 'print' && <StudioPrintTab studio={studio} />}
+      <div key={activeTab} className={ix.tabPanel}>
+        {activeTab === 'design' && <StudioDesignTab studio={studio} />}
+        {activeTab === 'media' && <StudioMediaTab studio={studio} />}
+        {activeTab === 'publish' && <StudioPublishTab studio={studio} />}
+        {activeTab === 'print' && <StudioPrintTab studio={studio} />}
+      </div>
 
       {dialog}
     </div>
