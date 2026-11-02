@@ -84,7 +84,8 @@ export default function PersonalInvitationPage() {
     unavailable:
       'Liên kết thiệp không khả dụng. Liên kết có thể đã hết hạn hoặc đã được thay bằng liên kết mới — hãy liên hệ cô dâu chú rể.',
     'rate-limited': 'Bạn mở liên kết quá nhiều lần. Vui lòng thử lại sau ít phút.',
-    error: 'Chưa mở được thiệp do lỗi kết nối. Vui lòng tải lại trang.',
+    // Mã đã bị xoá khỏi địa chỉ ngay khi mở, nên tải lại trang không giúp được: hướng dẫn mở lại liên kết.
+    error: 'Hệ thống chưa mở được thiệp lúc này. Hãy mở lại liên kết trong tin nhắn sau ít phút.',
   };
   return (
     <main className="mx-auto my-20 flex max-w-[560px] flex-col gap-3 px-4 text-center [&_h1]:text-xl [&_h1]:font-bold [&_p]:text-muted-foreground">

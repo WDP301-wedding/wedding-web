@@ -25,6 +25,8 @@ export interface UseInvitationStudioOptions {
   readonly initialDesigns?: readonly DesignView[] | undefined;
   readonly initialOrders?: readonly PrintOrderView[] | undefined;
   readonly mediaCutoffEstimate?: string | null | undefined;
+  /** Tên cô dâu/chú rể đã nhập ở Thoả thuận: điền sẵn khi thiết kế chưa có tên. */
+  readonly coupleNames?: { brideName?: string | null; groomName?: string | null } | undefined;
 }
 
 export function useInvitationStudio({
@@ -38,6 +40,7 @@ export function useInvitationStudio({
   initialDesigns = [],
   initialOrders,
   mediaCutoffEstimate = null,
+  coupleNames,
 }: UseInvitationStudioOptions) {
   const [openedAt] = useState(() => Date.now());
   const mediaLikelyLocked =
@@ -68,6 +71,7 @@ export function useInvitationStudio({
     accessToken,
     gateway,
     initialDesigns,
+    coupleNames,
   });
 
   // 2. Media gallery & assets sub-hook

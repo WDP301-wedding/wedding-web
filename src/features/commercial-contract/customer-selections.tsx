@@ -5,7 +5,12 @@ import { formatVnd } from '../couple-workspace/use-couple-workspace';
 import { currentRevision, type ContractList } from './contract-api';
 import type { CustomerSelection } from './selection-wire';
 import { SelectionAccessNotice } from './selection-access-notice';
-import { ContractLinesTable, categoryLabels, unitLabel } from './contract-lines-table';
+import {
+  ContractLinesTable,
+  categoryLabels,
+  lineDescription,
+  unitLabel,
+} from './contract-lines-table';
 import { useSelectionCatalog } from './use-selection-catalog';
 import { selectionKey, useCustomerSelection } from './use-customer-selection';
 import { cx } from './contract-classes';
@@ -248,7 +253,7 @@ function SelectionEditor(
                       <td>
                         <strong>{choice.name}</strong>
                         <small>
-                          {categoryLabels[choice.category]} · {choice.description}
+                          {categoryLabels[choice.category]} · {lineDescription(choice.description)}
                         </small>
                       </td>
                       <td>

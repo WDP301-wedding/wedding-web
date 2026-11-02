@@ -216,6 +216,7 @@ export function CoupleInvitationsPage() {
         }
         timeline={proposal?.timeline?.items ?? []}
         mediaCutoffEstimate={mediaCutoffEstimate}
+        coupleNames={workspace.bookings.find((item) => item.bookingId === bookingId)}
         bookingId={bookingId}
         accessToken={token}
         gateway={gateway}

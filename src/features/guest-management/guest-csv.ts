@@ -1,3 +1,5 @@
+import { groupLabel } from './group-labels';
+
 /**
  * Đọc file CSV danh sách khách thành các dòng gửi lên API import.
  *
@@ -9,8 +11,8 @@
  */
 export const csvTemplate =
   'ma,ho_ten,nhom,so_dien_thoai,ghi_chu\n' +
-  'K001,Nguyễn Văn An,Groom Side,0901234567,Bạn đại học\n' +
-  'K002,Trần Thị Bình,Bride Side,,\n';
+  'K001,Nguyễn Văn An,Nhà trai,0901234567,Bạn đại học\n' +
+  'K002,Trần Thị Bình,Nhà gái,,\n';
 
 export type ImportRow = {
   externalRowKey: string;
@@ -104,7 +106,7 @@ export function csvToImportRows(
   const groupByName = new Map(
     groups
       .filter((group) => group.status === 'ACTIVE')
-      .map((group) => [normalizeName(group.name), group.guestGroupId]),
+      .map((group) => [normalizeName(groupLabel(group.name)), group.guestGroupId]),
   );
   const seenKeys = new Set<string>();
 
@@ -123,7 +125,7 @@ export function csvToImportRows(
     if (name.length > 120) problems.push('họ tên quá 120 ký tự');
     if ([key, name, note].some((value) => formulaLike.test(value)))
       problems.push('ô bắt đầu bằng = + - @');
-    const guestGroupId = groupByName.get(normalizeName(groupName));
+    const guestGroupId = groupByName.get(normalizeName(groupLabel(groupName)));
     if (!guestGroupId) problems.push(`không có nhóm "${groupName}"`);
     let phone: string | null = null;
     try {

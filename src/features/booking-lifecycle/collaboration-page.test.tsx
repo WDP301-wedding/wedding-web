@@ -140,7 +140,7 @@ describe('Booking collaboration workspace', () => {
     );
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
     // Thông báo thành công hiển thị bằng toast (bất đồng bộ).
-    expect(await screen.findByText('Đã lưu revision kịch bản mới.')).toBeVisible();
+    expect(await screen.findByText('Đã lưu bản kịch bản mới.')).toBeVisible();
   });
   it('opens a valid booking link through the authenticated gateway', async () => {
     const id = '20000000-0000-4000-8000-000000000011';
@@ -188,9 +188,7 @@ describe('Booking collaboration workspace', () => {
     const gateway = fakeGateway();
     await open(gateway, { ...proposal, timeline: null });
     expect(screen.getByText('Chưa có mốc chương trình')).toBeVisible();
-    expect(
-      screen.queryByRole('button', { name: 'Phê duyệt revision này' }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Phê duyệt bản này' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Lưu kịch bản mới' }));
     await waitFor(() =>
       expect(gateway.saveTimeline).toHaveBeenCalledWith('couple-token', {
@@ -286,12 +284,12 @@ describe('Booking collaboration workspace', () => {
       const gateway = fakeGateway();
       await open(gateway);
       vi.mocked(gateway.approve).mockRejectedValue(error);
-      fireEvent.click(screen.getByRole('button', { name: 'Phê duyệt revision này' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Phê duyệt bản này' }));
       expect(await screen.findByRole('alert')).toHaveTextContent(message);
       if (error instanceof ApiClientError && [401, 403, 404].includes(error.status ?? 0)) {
         expect(screen.queryByText('Sảnh Ánh Dương')).not.toBeInTheDocument();
       } else {
-        expect(screen.getByRole('button', { name: 'Phê duyệt revision này' })).toBeEnabled();
+        expect(screen.getByRole('button', { name: 'Phê duyệt bản này' })).toBeEnabled();
       }
     },
   );
@@ -322,7 +320,7 @@ describe('Booking collaboration workspace', () => {
     expect(
       screen.getByText(/Kịch bản đã được duyệt hoặc có giao dịch cọc đang xử lý/),
     ).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Phê duyệt revision này' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Phê duyệt bản này' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Rút phê duyệt' })).toBeDisabled();
   });
 
@@ -404,7 +402,7 @@ describe('Booking collaboration workspace', () => {
     expect(listBookings).not.toHaveBeenCalled();
     expect(gateway.load).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Phê duyệt revision này' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Phê duyệt bản này' }));
     await waitFor(() => expect(onProposalUpdated).toHaveBeenCalledTimes(1));
     // Khi nhúng, trang cha làm mới qua onProposalUpdated; trang không tự tải lại đề xuất.
     expect(gateway.load).not.toHaveBeenCalled();
@@ -436,7 +434,7 @@ describe('Booking collaboration workspace', () => {
         listBookings={only(proposal.bookingId)}
       />,
     );
-    fireEvent.click(await screen.findByRole('button', { name: 'Phê duyệt revision này' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Phê duyệt bản này' }));
 
     await waitFor(() =>
       expect(gateway.approve).toHaveBeenCalledWith('couple-token', {

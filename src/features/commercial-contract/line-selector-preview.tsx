@@ -43,7 +43,7 @@ export function LineSelectorPreview({
           </p>
           <p>{preview.data.document.incidentalClause}</p>
           <p className={cx.muted}>
-            Giá, quyền và revision được kiểm tra lại khi lưu. Phát sinh tương lai chưa ghi nhận
+            Giá, quyền và phiên bản được kiểm tra lại khi lưu. Phát sinh tương lai chưa ghi nhận
             không nằm trong tổng này.
           </p>
         </>

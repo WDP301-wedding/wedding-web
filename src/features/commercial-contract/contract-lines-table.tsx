@@ -11,6 +11,9 @@ export const categoryLabels: Record<ContractLine['category'], string> = {
 
 const unitLabels: Record<string, string> = { table: 'bàn', copy: 'bản' };
 export const unitLabel = (unit: string) => unitLabels[unit] ?? unit;
+// BE ghép mã mẫu (UUID) vào cuối mô tả dòng thiệp in; không hiện mã kỹ thuật này cho người dùng.
+export const lineDescription = (text: string) =>
+  text.replace(/ · [0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/iu, '');
 
 /** Bảng các dòng hợp đồng/phụ lục. Thành tiền và tổng lấy NGUYÊN từ backend. */
 export function ContractLinesTable({
@@ -42,7 +45,9 @@ export function ContractLinesTable({
               <td>{categoryLabels[line.category]}</td>
               <td>
                 <strong>{line.name}</strong>
-                {line.description ? <p className={cx.muted}>{line.description}</p> : null}
+                {line.description ? (
+                  <p className={cx.muted}>{lineDescription(line.description)}</p>
+                ) : null}
               </td>
               <td className={cx.num}>
                 {line.quantity} {unitLabel(line.unit)}

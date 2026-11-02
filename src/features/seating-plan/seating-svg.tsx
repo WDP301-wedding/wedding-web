@@ -92,6 +92,10 @@ export function SeatingSvg({
           const cy = table.y + table.height / 2;
           const isSelected = table.layoutTableId === selected;
           const groupName = groupNameOf?.(table);
+          // Nhãn mẫu có thể đã gồm chữ "Bàn" (Bàn 01) hoặc chỉ là mã (G1).
+          const tableName = /^bàn\s/iu.test(table.tableLabel)
+            ? table.tableLabel
+            : `Bàn ${table.tableLabel}`;
           const hasGroup = Boolean(groupName);
 
           // Cỡ chữ theo mặt bàn; mẫu vẽ bằng đơn vị lớn (vd. bàn 1000) thì nới giới hạn theo tỉ lệ k.
@@ -106,7 +110,7 @@ export function SeatingSvg({
               transform={`translate(${cx} ${cy}) rotate(${table.rotationDegrees})`}
               tabIndex={0}
               role="button"
-              aria-label={`Bàn ${table.tableLabel}${groupName ? `, Nhóm: ${groupName}` : ''}`}
+              aria-label={`${tableName}${groupName ? `, Nhóm: ${groupName}` : ''}`}
               className={sx.table}
               onClick={() => {
                 if (panned.current) {
@@ -123,9 +127,7 @@ export function SeatingSvg({
               }}
             >
               <title>
-                {`Bàn ${table.tableLabel}${
-                  groupName ? ` · Nhóm: ${groupName}` : ' · (Chưa gán nhóm)'
-                }`}
+                {`${tableName}${groupName ? ` · Nhóm: ${groupName}` : ' · (Chưa gán nhóm)'}`}
               </title>
 
               {table.shape === 'ROUND' ? (

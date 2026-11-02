@@ -14,6 +14,7 @@ export interface UseInvitationDesignOptions {
   accessToken: string;
   gateway: InvitationGateway;
   initialDesigns?: readonly DesignView[] | undefined;
+  coupleNames?: { brideName?: string | null; groomName?: string | null } | undefined;
 }
 
 export function useInvitationDesign({
@@ -21,13 +22,18 @@ export function useInvitationDesign({
   accessToken,
   gateway,
   initialDesigns = [],
+  coupleNames,
 }: UseInvitationDesignOptions) {
   const [designs, setDesigns] = useState<readonly DesignView[]>(initialDesigns);
   const currentDesign = designs[0];
 
   const [title, setTitle] = useState(designs[0]?.title ?? 'Thiệp Cưới Hạnh Phúc');
-  const [brideName, setBrideName] = useState(designs[0]?.textFields?.brideName ?? '');
-  const [groomName, setGroomName] = useState(designs[0]?.textFields?.groomName ?? '');
+  const [brideName, setBrideName] = useState(
+    designs[0]?.textFields?.brideName || coupleNames?.brideName || '',
+  );
+  const [groomName, setGroomName] = useState(
+    designs[0]?.textFields?.groomName || coupleNames?.groomName || '',
+  );
   const [greeting, setGreeting] = useState(
     designs[0]?.textFields?.greeting ?? 'Trân trọng kính mời',
   );

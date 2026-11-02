@@ -38,6 +38,7 @@ export function ProposalWorkspace({
   const { confirm, dialog } = useConfirmDialog();
   const timeline = proposal.timeline;
   const billingHref = `/khong-gian/thanh-toan?bookingId=${proposal.bookingId}`;
+  const contractHref = `/khong-gian/thoa-thuan/hop-dong?bookingId=${proposal.bookingId}`;
   const bothApproved = Boolean(timeline?.managerApprovedAt && timeline?.coupleApprovedAt);
   const confirmed = proposal.phase === 'CONFIRMED';
 
@@ -65,7 +66,16 @@ export function ProposalWorkspace({
         href={billingHref}
         action="Xem công nợ & thanh toán số dư →"
       />
-    ) : proposal.phase === 'AWAITING_DEPOSIT' || (proposal.phase === 'DRAFT' && bothApproved) ? (
+    ) : proposal.phase === 'DRAFT' && bothApproved ? (
+      // Đặt cọc cần cả hợp đồng được hai bên duyệt (TML-005), nên bước kế tiếp là hợp đồng.
+      <NextStep
+        tone="done"
+        title="Đã thống nhất kịch bản"
+        body="Kịch bản đã được cả hai bên phê duyệt. Bước tiếp theo: chọn thực đơn, dịch vụ và cùng nhà hàng duyệt hợp đồng, sau đó mới đặt cọc."
+        href={contractHref}
+        action="Sang hợp đồng →"
+      />
+    ) : proposal.phase === 'AWAITING_DEPOSIT' ? (
       <NextStep
         tone="done"
         title="Đã thống nhất kịch bản"
@@ -156,9 +166,7 @@ export function ProposalWorkspace({
                       confirmed
                         ? gateway.requestChange(token, { ...input, reason })
                         : gateway.saveTimeline(token, input),
-                    confirmed
-                      ? 'Đã gửi yêu cầu thay đổi kịch bản.'
-                      : 'Đã lưu revision kịch bản mới.',
+                    confirmed ? 'Đã gửi yêu cầu thay đổi kịch bản.' : 'Đã lưu bản kịch bản mới.',
                   );
                 }}
               />

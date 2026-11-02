@@ -132,7 +132,7 @@ function OverviewContent() {
             <span className={heroChip}>{bookingPhaseLabel(proposal.phase)}</span>
             <span className={heroChip}>{proposal.planningHeadcount} khách dự kiến</span>
             <span className={heroChip}>{offer.tableCount} bàn</span>
-            <span className={heroChip}>{menuLines(offer).length} món</span>
+            <span className={heroChip}>{menuLines(offer).length} thực đơn</span>
           </div>
         </div>
       </header>

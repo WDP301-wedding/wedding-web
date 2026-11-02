@@ -43,11 +43,11 @@ export function ProposalDecisionsSection({
                     revisionId: timeline.revisionId,
                     expectedRevision: proposal.revision,
                   }),
-                'Đã ghi nhận phê duyệt revision hiện tại.',
+                'Đã ghi nhận phê duyệt bản kịch bản hiện tại.',
               )
             }
           >
-            Phê duyệt revision này
+            Phê duyệt bản này
           </Button>
           <details className="group border-t border-border pt-1">
             <summary className={summary}>

@@ -2,6 +2,7 @@ import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import { useCommand } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type AttendanceSummary, type CheckInSettings } from './guest-api';
 import { cx } from '../commercial-contract/contract-classes';
+import { groupLabel } from './group-labels';
 import { gx } from './guest-classes';
 
 export function CheckInCard({
@@ -37,7 +38,7 @@ export function CheckInCard({
                 style={{ background: row.groupColorSnapshot }}
                 aria-hidden="true"
               />
-              {row.groupNameSnapshot}: {row.checkedInGuestCount} tên đã check-in
+              {groupLabel(row.groupNameSnapshot)}: {row.checkedInGuestCount} tên đã check-in
             </li>
           ))}
         </ul>
