@@ -96,8 +96,9 @@ export function notificationHref(item: InboxItem): string | null {
       return '/khong-gian/chuan-bi/khach' + q;
     case 'TIMELINE_REVIEW':
     case 'TIMELINE_CHANGED':
-    case 'CANCELLATION_NOTICE':
       return '/khong-gian/thoa-thuan/kich-ban' + q;
+    case 'CANCELLATION_NOTICE':
+      return '/khong-gian' + q;
     default:
       return '/khong-gian' + q;
   }

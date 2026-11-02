@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { cn } from 'cn';
 
 import { Badge } from '../../components/ui/badge';
@@ -11,6 +11,7 @@ import { InlineError } from '../../design-system/inline-error';
 import { JourneyStepper, journeyIndex, journeySteps } from '../../design-system/journey-stepper';
 import { routes, withBooking } from '../../routes';
 import { notificationHref } from '../notifications/notification-api';
+import { CancellationModal } from './cancellation-modal';
 import { OverviewAliasModal } from './overview-alias-modal';
 import { OverviewMultiBookings } from './overview-multi-bookings';
 import { daysUntil, nextTasks } from './overview-tasks';
@@ -56,6 +57,27 @@ function OverviewContent() {
     aliasDialog,
     aliasTrigger,
   );
+  const proposalPhase = ready ? state.proposal.phase : undefined;
+  const [cancellationModalOpen, setCancellationModalOpen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    if (!bookingId || proposalPhase !== 'CANCELLED') return false;
+    try {
+      return !localStorage.getItem(`wedding.cancellation_ack.${bookingId}`);
+    } catch {
+      return false;
+    }
+  });
+
+  const handleCloseCancellationModal = () => {
+    setCancellationModalOpen(false);
+    if (bookingId) {
+      try {
+        localStorage.setItem(`wedding.cancellation_ack.${bookingId}`, 'true');
+      } catch {
+        // Storage blocked
+      }
+    }
+  };
 
   if (!ready) return null;
   const proposal = state.proposal;
@@ -67,10 +89,38 @@ function OverviewContent() {
   return (
     <div className="flex flex-col gap-6 lg:gap-7">
       <h1 className="sr-only">Tổng quan tiệc cưới</h1>
+      <CancellationModal
+        isOpen={cancellationModalOpen}
+        onClose={handleCloseCancellationModal}
+        bookingId={proposal.bookingId}
+        hallName={offer.hall.name}
+        eventDate={proposal.eventDate}
+        shiftCode={offer.shift.code}
+        publicPhone={restaurant?.publicPhone}
+      />
       {proposal.phase === 'CANCELLED' ? (
-        <p className="rounded-lg bg-hy-error-bg px-4 py-3 text-sm text-hy-error" role="status">
-          Tiệc đã huỷ. Hồ sơ được giữ lại để hai bạn xem lịch sử.
-        </p>
+        <div
+          className="flex flex-col gap-2.5 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive"
+          role="status"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 font-bold">
+              <span className="flex size-2 rounded-full bg-destructive" aria-hidden="true" />
+              Tiệc cưới đã huỷ
+            </div>
+            <button
+              type="button"
+              onClick={() => setCancellationModalOpen(true)}
+              className="text-xs font-semibold text-destructive underline transition hover:opacity-80"
+            >
+              Xem chi tiết thông báo
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Hồ sơ tiệc cưới này được lưu trữ để hai bạn xem lại hợp đồng và giao dịch. Các chức năng
+            chuẩn bị khách mời, sơ đồ bàn và in thiệp đã ngừng hoạt động.
+          </p>
+        </div>
       ) : null}
 
       <div className="flex flex-col gap-1">
