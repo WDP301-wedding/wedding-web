@@ -84,7 +84,7 @@ export function SeatingSvg({
         onPointerUp={endPan}
         onPointerCancel={endPan}
         onWheel={onWheel}
-        role="img"
+        role="group"
         aria-label={`Sơ đồ ${plan.renderSnapshot.length} bàn. Chọn một bàn để gắn nhóm.`}
       >
         {plan.renderSnapshot.map((table) => {

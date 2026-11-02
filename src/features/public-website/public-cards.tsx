@@ -72,14 +72,14 @@ export function Contact({ restaurant }: Readonly<{ restaurant: Restaurant | null
       ) : null}
       {restaurant.publicPhone ? (
         <a
-          className="font-semibold text-primary"
+          className="inline-block py-1 font-semibold text-primary"
           href={`tel:${restaurant.publicPhone.replace(/[^+\d]/gu, '')}`}
         >
           Hotline: {restaurant.publicPhone}
         </a>
       ) : null}
       {restaurant.publicEmail ? (
-        <a className="text-primary" href={`mailto:${restaurant.publicEmail}`}>
+        <a className="inline-block py-1 text-primary" href={`mailto:${restaurant.publicEmail}`}>
           {restaurant.publicEmail}
         </a>
       ) : null}

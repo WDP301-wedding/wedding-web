@@ -25,7 +25,7 @@ export function SpaceGate({
   if (state.status === 'anonymous')
     return (
       <section className={cx.empty}>
-        <h2>Cần đăng nhập</h2>
+        <h1>Cần đăng nhập</h1>
         <p>Đăng nhập bằng tài khoản đã được nhà hàng mời để tiếp tục.</p>
         <Link className={cx.button} href={routes.login}>
           Đăng nhập
@@ -35,7 +35,7 @@ export function SpaceGate({
   if (state.status === 'choose-booking')
     return (
       <section className={cx.empty}>
-        <h2>Chưa có tiệc cưới</h2>
+        <h1>Chưa có tiệc cưới</h1>
         <p>Nhà hàng sẽ mở hồ sơ sau buổi tư vấn. Bạn có thể gửi yêu cầu tư vấn mới.</p>
         <Link className={cx.buttonOutline} href={routes.consultation}>
           Gửi yêu cầu tư vấn

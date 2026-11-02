@@ -16,7 +16,8 @@ export const cx = {
     'inline-flex w-fit items-center rounded-full bg-accent px-2.5 py-0.5 text-2xs font-semibold text-primary',
   chipWarning:
     'inline-flex w-fit items-center rounded-full bg-hy-warning-bg px-2.5 py-0.5 text-2xs font-semibold text-hy-warning',
-  tableWrap: 'overflow-x-auto rounded-lg border border-border',
+  tableWrap:
+    'overflow-x-auto rounded-lg border border-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
   table:
     'w-full min-w-[560px] border-collapse text-sm [&_td]:border-t [&_td]:border-border [&_td]:px-3 [&_td]:py-3 [&_td]:align-top [&_tfoot_td]:font-bold [&_th]:bg-muted [&_th]:px-3 [&_th]:py-2.5 [&_th]:text-start [&_th]:text-xs [&_th]:font-semibold [&_th]:text-muted-foreground [&_small]:block [&_small]:text-xs [&_small]:text-muted-foreground',
   num: 'text-right! tabular-nums',
@@ -40,7 +41,7 @@ export const cx = {
   /** Thanh tiến trình hợp đồng: thanh màu từng bước + nhãn. */
   progress: 'grid grid-cols-2 gap-2 sm:grid-cols-4',
   empty:
-    'flex flex-col items-start gap-2 rounded-xl border border-dashed border-input bg-muted/60 p-6 text-sm text-muted-foreground [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-foreground',
+    'flex flex-col items-start gap-2 rounded-xl border border-dashed border-input bg-muted/60 p-6 text-sm text-muted-foreground [&_:is(h1,h2)]:text-base [&_:is(h1,h2)]:font-bold [&_:is(h1,h2)]:text-foreground',
   statusMuted:
     'inline-flex w-fit items-center rounded-full bg-secondary px-2.5 py-0.5 text-2xs font-semibold text-muted-foreground',
   page: 'flex flex-col gap-6',

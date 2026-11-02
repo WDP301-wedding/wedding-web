@@ -94,7 +94,7 @@ export function BillingHistory({ view }: Readonly<{ view: BillingView }>) {
       {view.history.length === 0 ? (
         <p>Chưa có giao dịch</p>
       ) : (
-        <div className={bx.tableScroll}>
+        <div className={bx.tableScroll} tabIndex={0} role="region" aria-label="Chi tiết giao dịch">
           <table>
             <caption>Chi tiết giao dịch</caption>
             <thead>

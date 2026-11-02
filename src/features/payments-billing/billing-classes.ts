@@ -22,7 +22,7 @@ export const bx = {
   summary:
     '[&_dl]:grid [&_dl]:grid-cols-1 [&_dl]:overflow-hidden [&_dl]:rounded-xl [&_dl]:border [&_dl]:border-border [&_dl]:bg-card min-[400px]:[&_dl]:grid-cols-2 sm:[&_dl]:grid-cols-3 [&_dl>div]:border-b [&_dl>div]:border-border [&_dl>div]:p-4 [&_dt]:text-xs [&_dt]:text-muted-foreground [&_dd]:mt-1 [&_dd]:text-base [&_dd]:font-bold [&_dd]:whitespace-nowrap [&_dd]:tabular-nums',
   tableScroll:
-    'max-w-full overflow-x-auto rounded-lg border border-border [&_caption]:px-3 [&_caption]:py-2.5 [&_caption]:text-left [&_caption]:text-xs [&_caption]:text-muted-foreground [&_table]:w-full [&_table]:min-w-[640px] [&_table]:border-collapse [&_table]:text-sm [&_td]:border-t [&_td]:border-border [&_td]:px-3 [&_td]:py-3 [&_td_small]:block [&_td_small]:text-xs [&_td_small]:text-muted-foreground [&_th]:bg-muted [&_th]:px-3 [&_th]:py-2.5 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:text-muted-foreground',
+    'max-w-full overflow-x-auto rounded-lg border border-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&_caption]:px-3 [&_caption]:py-2.5 [&_caption]:text-left [&_caption]:text-xs [&_caption]:text-muted-foreground [&_table]:w-full [&_table]:min-w-[640px] [&_table]:border-collapse [&_table]:text-sm [&_td]:border-t [&_td]:border-border [&_td]:px-3 [&_td]:py-3 [&_td_small]:block [&_td_small]:text-xs [&_td_small]:text-muted-foreground [&_th]:bg-muted [&_th]:px-3 [&_th]:py-2.5 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:text-muted-foreground',
   confirm:
     'flex flex-col gap-3 rounded-xl border border-hy-champagne/60 bg-muted p-5 [&>strong]:text-2xl [&>strong]:font-bold [&>strong]:text-primary [&>strong]:tabular-nums',
   confirmActions: 'flex flex-wrap gap-2',
@@ -49,5 +49,6 @@ export const bx = {
     'border-t border-border pt-2 text-xs [&>summary]:cursor-pointer [&>summary]:py-2 [&>summary]:font-semibold [&>p]:text-muted-foreground',
   costTable:
     'w-full border-collapse text-xs [&_caption]:pb-2 [&_caption]:text-left [&_caption]:font-semibold [&_caption]:text-muted-foreground [&_td]:border-t [&_td]:border-border [&_td]:px-2 [&_td]:py-2.5 [&_td]:text-right [&_td]:whitespace-nowrap [&_td]:tabular-nums [&_td:first-child]:pl-3 [&_td:first-child]:text-left [&_td:first-child]:font-semibold [&_td:first-child]:whitespace-normal [&_td:last-child]:pr-3 [&_tbody_td:last-child]:font-semibold [&_tbody_td:last-child]:text-primary [&_tfoot_td]:bg-muted [&_tfoot_td]:font-bold [&_tfoot_td]:text-primary [&_th]:bg-muted [&_th]:px-2 [&_th]:py-2.5 [&_th]:text-right [&_th]:font-semibold [&_th:first-child]:pl-3 [&_th:first-child]:text-left [&_th:last-child]:pr-3',
-  costScroll: 'max-w-full min-w-0 overflow-x-auto rounded-lg border border-border',
+  costScroll:
+    'max-w-full min-w-0 overflow-x-auto rounded-lg border border-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
 } as const;

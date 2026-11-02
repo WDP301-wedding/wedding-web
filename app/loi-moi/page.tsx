@@ -13,5 +13,10 @@ import { routes } from '../../src/routes';
 export default function InvitationPage() {
   const router = useRouter();
   const openSpace = useCallback(() => router.replace(routes.space), [router]);
-  return <PublicIdentityPage onAuthenticated={openSpace} />;
+  return (
+    <PublicIdentityPage
+      onAuthenticated={openSpace}
+      loginHint="Liên kết này thiếu mã lời mời. Hãy mở lại đúng liên kết trong email nhà hàng gửi, hoặc đăng nhập nếu bạn đã nhận lời mời trước đó."
+    />
+  );
 }

@@ -182,7 +182,7 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
         {data.expenses.lines.length === 0 ? (
           <p className={cx.note}>Chưa có chi phí phát sinh nào.</p>
         ) : (
-          <div className={cx.tableWrap}>
+          <div className={cx.tableWrap} tabIndex={0} role="region" aria-label="Hoá đơn quyết toán">
             <table className={cx.table}>
               <thead>
                 <tr>

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useOverlayFocus } from '../../design-system/use-overlay-focus';
 import { InvitationContents } from './invitation-content';
 import { getApiBaseUrl } from './invitation-studio-utils';
 import type { InvitationStudioState } from './use-invitation-studio';
@@ -29,6 +30,7 @@ export function StudioDesignPreview({
 
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const fullscreenRef = useOverlayFocus<HTMLDivElement>(isFullscreen, () => setIsFullscreen(false));
   const [activeSection, setActiveSection] = React.useState<string>('header');
 
   const scrollToSection = (sectionId: string, sectionKey: string) => {
@@ -173,7 +175,7 @@ export function StudioDesignPreview({
             if (e.target === e.currentTarget) setIsFullscreen(false);
           }}
         >
-          <div className={ix.modalContent}>
+          <div className={ix.modalContent} ref={fullscreenRef}>
             <div className={ix.modalHeader}>
               <h3>Trải nghiệm thiệp cưới trên di động</h3>
               <button

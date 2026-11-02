@@ -167,7 +167,12 @@ export function ImportCard({
             </button>
           </div>
 
-          <div className={cx.tableWrap}>
+          <div
+            className={cx.tableWrap}
+            tabIndex={0}
+            role="region"
+            aria-label="Xem trước danh sách nhập"
+          >
             <table className={cx.table}>
               <thead>
                 <tr>

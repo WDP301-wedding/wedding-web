@@ -261,8 +261,6 @@ export function DatePicker({
           aria-describedby={ariaDescribedby}
           aria-labelledby={ariaLabelledby}
           aria-label={ariaLabel}
-          aria-expanded={isOpen}
-          aria-haspopup="dialog"
           onClick={handleToggle}
           onChange={handleInputChange}
           onBlur={handleBlur}
@@ -273,6 +271,8 @@ export function DatePicker({
           type="button"
           tabIndex={-1}
           aria-label="Chọn ngày từ lịch"
+          aria-expanded={isOpen}
+          aria-haspopup="dialog"
           disabled={disabled}
           className={dp.iconButton}
           onClick={handleToggle}

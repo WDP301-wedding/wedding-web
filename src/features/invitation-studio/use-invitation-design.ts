@@ -6,11 +6,8 @@ import { previewAssetId } from './invitation-api';
 import { useImageJob, type SucceededImageJob } from './use-image-job';
 import { getOrGenerateKey, invitationErrorMessage } from './invitation-studio-utils';
 import { notify } from '../../design-system/toast';
-import {
-  type CardThemeId,
-  type GeneratedInvitationDesign,
-  inferThemeFromContent,
-} from './ai-invitation-generator';
+import type { CardThemeId, GeneratedInvitationDesign } from './ai-design-presets';
+import { inferThemeFromContent } from './ai-invitation-generator';
 
 export interface UseInvitationDesignOptions {
   bookingId: string;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { maxZoom, minZoom } from './seating-api';
 
 export function useSeatingPan() {
@@ -62,6 +62,16 @@ export function useSeatingPan() {
       }
     }
   }, []);
+
+  // Toàn màn hình: Esc để thoát như một lớp phủ.
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsFullscreen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isFullscreen]);
 
   const toggleFullscreen = useCallback(() => {
     setIsFullscreen((prev) => !prev);

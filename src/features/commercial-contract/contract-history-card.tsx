@@ -24,7 +24,7 @@ export function HistoryCard({ contracts, bookingId }: HistoryCardProps) {
   return (
     <section className={cx.card}>
       <h2>Lịch sử phiên bản</h2>
-      <div className={cx.tableWrap}>
+      <div className={cx.tableWrap} tabIndex={0} role="region" aria-label="Lịch sử hợp đồng">
         <table className={cx.table}>
           <thead>
             <tr>

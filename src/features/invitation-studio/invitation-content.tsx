@@ -110,7 +110,7 @@ export function InvitationContents({
             >
               {section.imageUrl ? photo(section.imageUrl, 'image') : null}
               {section.textKey ? (
-                <p style={{ whiteSpace: 'pre-wrap' }}>{text[section.textKey]}</p>
+                <p className="whitespace-pre-wrap">{text[section.textKey]}</p>
               ) : null}
               {section.kind === 'HERO' &&
               sections.findIndex((item) => item.kind === 'HERO') === index ? (
@@ -124,7 +124,7 @@ export function InvitationContents({
                 </>
               ) : null}
               {section.kind === 'MESSAGE' && section.textKey !== 'message' ? (
-                <p style={{ whiteSpace: 'pre-wrap' }}>{text.message}</p>
+                <p className="whitespace-pre-wrap">{text.message}</p>
               ) : null}
               {section.kind === 'EVENT' ? (
                 <>
@@ -162,7 +162,7 @@ export function InvitationContents({
                         <li key={item.order}>
                           <time>{item.startTime}</time> {item.title}
                           {item.description ? (
-                            <p style={{ whiteSpace: 'pre-wrap' }}>{item.description}</p>
+                            <p className="whitespace-pre-wrap">{item.description}</p>
                           ) : null}
                         </li>
                       ))}
@@ -176,7 +176,7 @@ export function InvitationContents({
                 </p>
               ) : null}
               {section.kind === 'FOOTER' && section.textKey !== 'footer' && text.footer ? (
-                <footer style={{ whiteSpace: 'pre-wrap' }}>{text.footer}</footer>
+                <footer className="whitespace-pre-wrap">{text.footer}</footer>
               ) : null}
             </section>
           ))}

@@ -11,6 +11,7 @@ import {
   type BookingSummary,
 } from './use-couple-workspace';
 import { chipClass, countBadge, navLink, sheetBackdrop, sheetPanel } from './space-classes';
+import { useOverlayFocus } from '../../design-system/use-overlay-focus';
 import { Icon, SupportCard } from './space-icons';
 import type { Chip } from './space-nav-config';
 
@@ -29,12 +30,14 @@ export function SpaceMoreSheet({
   phone: string | null;
   unread: number | null;
 }>) {
+  const sheetRef = useOverlayFocus<HTMLDivElement>(moreOpen, onClose);
   if (!moreOpen) return null;
 
   return (
     <div className={sheetBackdrop} onClick={onClose}>
       <div
         id="space-more-sheet"
+        ref={sheetRef}
         className={cn(sheetPanel, 'flex flex-col gap-1')}
         role="dialog"
         aria-modal="true"
@@ -87,12 +90,14 @@ export function SpaceBookingSwitcherSheet({
   onSelectBooking: (bookingId: string) => void;
   switcherOpen: boolean;
 }>) {
+  const sheetRef = useOverlayFocus<HTMLDivElement>(switcherOpen, onClose);
   if (!switcherOpen) return null;
 
   return (
     <div className={sheetBackdrop} onClick={onClose}>
       <div
         id="booking-switch-sheet"
+        ref={sheetRef}
         className={cn(sheetPanel, 'flex flex-col gap-4')}
         role="dialog"
         aria-modal="true"

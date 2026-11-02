@@ -63,7 +63,12 @@ export function DepositBreakdown({ context }: Readonly<{ context: BillingContext
       {document ? (
         <ContractLinesTable lines={document.lines} totalVnd={document.contractTotalVnd} />
       ) : (
-        <div className={bx.costScroll}>
+        <div
+          className={bx.costScroll}
+          tabIndex={0}
+          role="region"
+          aria-label="Chi tiết thực đơn theo đề xuất"
+        >
           <table className={bx.costTable}>
             <caption>Chi tiết thực đơn theo đề xuất</caption>
             <thead>

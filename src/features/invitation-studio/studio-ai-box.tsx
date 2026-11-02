@@ -4,11 +4,8 @@ import React, { useState } from 'react';
 import { Check, ChevronRight } from 'lucide-react';
 import { imageJobStatusText } from './use-image-job';
 import type { InvitationStudioState } from './use-invitation-studio';
-import {
-  AI_DESIGN_PRESETS,
-  generateDesignFromPrompt,
-  type AiDesignPreset,
-} from './ai-invitation-generator';
+import { AI_DESIGN_PRESETS, type AiDesignPreset } from './ai-design-presets';
+import { generateDesignFromPrompt } from './ai-invitation-generator';
 import { px } from './studio-panel-classes';
 import { ix } from './studio-classes';
 
@@ -156,16 +153,8 @@ export function StudioAiBox({
                 key={preset.id}
                 className={px.presetCard}
                 data-active={isActive}
-                aria-pressed={isActive}
+                // Bấm cả thẻ để chọn cho tiện; bàn phím và trình đọc màn hình dùng nút bên dưới.
                 onClick={() => handleApplyPreset(preset)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleApplyPreset(preset);
-                  }
-                }}
               >
                 <div className={px.presetHead}>
                   <div className={px.presetMeta}>
@@ -188,7 +177,7 @@ export function StudioAiBox({
                       key={idx}
                       className={px.paletteDot}
                       style={{ backgroundColor: color }}
-                      title={color}
+                      aria-hidden="true"
                     />
                   ))}
                   <span className={px.paletteTag}>{preset.badge}</span>
@@ -196,6 +185,7 @@ export function StudioAiBox({
 
                 <button
                   type="button"
+                  aria-pressed={isActive}
                   className={`${isActive ? ix.btnSmallOutline : ix.btnSmall} mt-1 w-full`}
                   onClick={(e) => {
                     e.stopPropagation();

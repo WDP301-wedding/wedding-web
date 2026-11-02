@@ -19,7 +19,7 @@ export function ContractLinesTable({
   totalLabel = 'Tổng hợp đồng',
 }: Readonly<{ lines: readonly ContractLine[]; totalVnd: number; totalLabel?: string }>) {
   return (
-    <div className={cx.tableWrap}>
+    <div className={cx.tableWrap} tabIndex={0} role="region" aria-label="Các hạng mục hợp đồng">
       <table className={cx.table}>
         <thead>
           <tr>

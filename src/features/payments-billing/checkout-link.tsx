@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { AttemptView, CheckoutView } from './billing-api';
+import { cn } from 'cn';
 import { bx } from './billing-classes';
 
 type AttemptStatusCode = AttemptView['status'];
@@ -115,12 +116,7 @@ export function CheckoutLinkPanel({
             thanh toán mới (15 phút) hoặc liên hệ nhà hàng để được hỗ trợ.
           </p>
           {onResetExpired && (
-            <button
-              type="button"
-              className={bx.buttonOutline}
-              onClick={onResetExpired}
-              style={{ marginTop: '0.5rem' }}
-            >
+            <button type="button" className={cn(bx.buttonOutline, 'mt-2')} onClick={onResetExpired}>
               Thanh toán lại (phiên 15 phút mới)
             </button>
           )}

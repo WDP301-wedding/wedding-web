@@ -33,14 +33,18 @@ type IdentityExperienceProps = Readonly<{
    * chuyển thẳng vào /khong-gian thay vì hiện trang hồ sơ. Để trống → hiện hồ sơ như cũ.
    */
   onAuthenticated?: (() => void) | undefined;
+  /** Ghi chú hiện trên form đăng nhập (ví dụ `/loi-moi` mở mà không có mã lời mời). */
+  loginHint?: string | undefined;
 }>;
 
 export function PublicIdentityPage({
   startView = 'login',
   onAuthenticated,
+  loginHint,
 }: Readonly<{
   startView?: 'login' | 'reset-request';
   onAuthenticated?: (() => void) | undefined;
+  loginHint?: string | undefined;
 }> = {}) {
   useLayoutEffect(removeCredentialFragmentAfterHydration, []);
   return (
@@ -49,6 +53,7 @@ export function PublicIdentityPage({
       initialCredential={browserCredential}
       startView={startView}
       onAuthenticated={onAuthenticated}
+      loginHint={browserCredential === null ? loginHint : undefined}
     />
   );
 }
@@ -73,6 +78,7 @@ export function IdentityExperience({
   initialCredential,
   startView = 'login',
   onAuthenticated,
+  loginHint,
 }: IdentityExperienceProps) {
   const {
     snapshot,
@@ -103,6 +109,12 @@ export function IdentityExperience({
           <StatusPanel title="Đang khôi phục hành trình">
             Hỷ Yến đang kiểm tra phiên an toàn của bạn.
           </StatusPanel>
+        ) : null}
+
+        {view === 'login' && loginHint ? (
+          <p className="rounded-lg bg-hy-info-bg px-4 py-3 text-sm text-hy-info" role="status">
+            {loginHint}
+          </p>
         ) : null}
 
         {view === 'login' ? (

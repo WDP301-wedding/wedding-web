@@ -2,7 +2,7 @@
 import { ConnectionFeedback } from '../realtime/connection-feedback';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { withBooking } from '../../routes';
 import { useSpaceExtras } from './space-provider';
@@ -28,18 +28,6 @@ export function SpaceShell({ children }: Readonly<{ children: ReactNode }>) {
   const { unread, restaurant } = useSpaceExtras();
   const [moreOpen, setMoreOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
-
-  useEffect(() => {
-    if (!moreOpen && !switcherOpen) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setMoreOpen(false);
-        setSwitcherOpen(false);
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [moreOpen, switcherOpen]);
 
   const proposal = state.status === 'ready' ? state.proposal : undefined;
   const summary = bookings.find((booking) => booking.bookingId === effectiveBookingId);

@@ -9,7 +9,7 @@ import { PublicHeader } from './public-header';
 
 export { PublicHeader } from './public-header';
 
-const footerLink = 'text-white/80 transition-colors hover:text-white';
+const footerLink = 'inline-block py-1 text-white/80 transition-colors hover:text-white';
 const footerHeading = 'mb-1 text-sm font-semibold text-white';
 
 /**

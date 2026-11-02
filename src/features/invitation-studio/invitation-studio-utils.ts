@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { describeApiError } from '../../lib/api/api-errors';
 import { ApiClientError } from '../../lib/api/client';
 import { readPublicEnv } from '../../lib/env';
 import { ix } from './studio-classes';
@@ -16,7 +17,8 @@ export const publicationSnapshotSchema = z.object({
 
 export function invitationErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiClientError) {
-    const meta = ` (Mã: ${err.code}${err.status ? `, HTTP ${err.status}` : ''}${err.requestId ? `, RequestId: ${err.requestId.slice(0, 8)}` : ''})`;
+    // Chỉ kèm mã hỗ trợ (requestId) để nhà hàng tra log; không hiện mã lỗi/HTTP kỹ thuật cho khách.
+    const meta = err.requestId ? ` (Mã hỗ trợ: ${err.requestId.slice(0, 8)})` : '';
     if (err.code === 'INVITATION_DESIGN_STALE')
       return `Bản thiết kế thiệp đã có phiên bản mới hơn trên máy chủ. Vui lòng làm mới trang để nhận bản mới nhất.${meta}`;
     if (err.code === 'INVITATION_PUBLICATION_STALE')
@@ -42,7 +44,7 @@ export function invitationErrorMessage(err: unknown, fallback: string): string {
     if (err.code === 'IDEMPOTENCY_KEY_REUSED')
       return `Khóa thao tác đã được sử dụng cho một yêu cầu khác. Vui lòng làm mới trang.${meta}`;
     if (err.code === 'IDEMPOTENCY_KEY_REQUIRED')
-      return `Yêu cầu cần có mã nhận diện thao tác idempotency.${meta}`;
+      return `Thao tác thiếu mã xác nhận. Vui lòng tải lại trang rồi thử lại.${meta}`;
     if (err.code === 'REQUEST_IN_PROGRESS')
       return `Một yêu cầu tương tự đang được xử lý trên máy chủ. Vui lòng chờ trong giây lát.${meta}`;
     if (err.code === 'RATE_LIMIT_EXCEEDED')
@@ -58,7 +60,7 @@ export function invitationErrorMessage(err: unknown, fallback: string): string {
     if (err.status === 403)
       return `Bạn không có quyền thực hiện thao tác này trên hồ sơ tiệc cưới.${meta}`;
     if (err.status === 404) return `Không tìm thấy tài nguyên yêu cầu trên máy chủ.${meta}`;
-    if (err.message) return `${err.message}${meta}`;
+    return `${describeApiError(err).message}${meta}`;
   }
   return err instanceof Error ? err.message : fallback;
 }
