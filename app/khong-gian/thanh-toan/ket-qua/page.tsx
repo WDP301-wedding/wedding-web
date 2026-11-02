@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useSyncExternalStore } from 'react';
 
 import { routes } from '../../../../src/routes';
 import { lastCheckoutKey } from '../../../../src/features/payments-billing/billing-page';
 import { cx } from '../../../../src/features/commercial-contract/contract-classes';
+import { browserSession } from '../../../../src/features/identity-access/browser-session';
 
 /**
  * Trang VNPay chuyển người dùng về sau khi thanh toán (cấu hình `VNPAY_RETURN_URL` ở backend,
@@ -34,21 +36,22 @@ function computeTarget(): string | null {
     if (!raw) {
       raw = localStorage.getItem(lastCheckoutKey);
     }
-    if (!raw) return null;
     let bookingId: string | undefined;
     let attemptId: string | undefined;
-    try {
-      const parsed = JSON.parse(raw) as { bookingId?: unknown; attemptId?: unknown } | string;
-      if (typeof parsed === 'string') {
-        bookingId = parsed;
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as { bookingId?: unknown; attemptId?: unknown } | string;
+        if (typeof parsed === 'string') {
+          bookingId = parsed;
+          attemptId = txnRef ?? undefined;
+        } else if (parsed && typeof parsed === 'object') {
+          if (typeof parsed.bookingId === 'string') bookingId = parsed.bookingId;
+          if (typeof parsed.attemptId === 'string') attemptId = parsed.attemptId;
+        }
+      } catch {
+        bookingId = raw;
         attemptId = txnRef ?? undefined;
-      } else if (parsed && typeof parsed === 'object') {
-        if (typeof parsed.bookingId === 'string') bookingId = parsed.bookingId;
-        if (typeof parsed.attemptId === 'string') attemptId = parsed.attemptId;
       }
-    } catch {
-      bookingId = raw;
-      attemptId = txnRef ?? undefined;
     }
     if (bookingId && attemptId) {
       if (txnRef) {
@@ -60,6 +63,10 @@ function computeTarget(): string | null {
       }
       return `${routes.payment}?${new URLSearchParams({ bookingId, attemptId }).toString()}`;
     }
+    // Dự phòng an toàn: nếu storage bị xoá giữa chừng nhưng có mã giao dịch trên URL từ VNPay
+    if (txnRef) {
+      return `${routes.payment}?${new URLSearchParams({ attemptId: txnRef }).toString()}`;
+    }
   } catch {
     // Storage bị chặn hoặc dữ liệu hỏng.
   }
@@ -67,16 +74,35 @@ function computeTarget(): string | null {
 }
 
 export default function PaymentReturnPage() {
+  const router = useRouter();
   // useSyncExternalStore: phía server trả `undefined` (đang kiểm tra), phía trình duyệt đọc
   // localStorage → tránh lệch nội dung giữa server render và hydration.
   const target = useSyncExternalStore(noSubscribe, readSavedTarget, () => undefined);
 
   useEffect(() => {
     if (target === undefined) return;
+    let active = true;
+
     // Xoá vnp_* khỏi thanh địa chỉ để không bị chia sẻ/ghi lại trong lịch sử.
-    window.history.replaceState(null, '', window.location.pathname);
-    if (target) window.location.replace(target);
-  }, [target]);
+    try {
+      window.history.replaceState(null, '', window.location.pathname);
+    } catch {
+      // Bỏ qua lỗi history nếu bị chặn
+    }
+
+    // Đảm bảo phiên đăng nhập được khôi phục chắc chắn trước khi chuyển trang client-side
+    void browserSession.restore().finally(() => {
+      if (!active) return;
+      if (target) {
+        router.replace(target);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [target, router]);
+
   const missing = target === null;
 
   return (
