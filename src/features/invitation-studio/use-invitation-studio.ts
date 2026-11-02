@@ -1,5 +1,7 @@
 'use client';
 
+import { DEFAULT_PRESENTATION } from './invitation-presentation';
+
 import { useEffect, useRef, useState } from 'react';
 import { useLiveRefresh } from '../realtime/use-live-refresh';
 import { sharedCoupleRealtime } from '../realtime/realtime-client';
@@ -92,6 +94,7 @@ export function useInvitationStudio({
   // Active mutations lock
   const writing =
     design.saving ||
+    design.suggestionBusy ||
     media.isUploadingMedia ||
     media.detachingAssetId !== null ||
     media.derivingAssetId !== null;
@@ -158,6 +161,7 @@ export function useInvitationStudio({
         );
         if (first) {
           design.setTitle(first.title);
+          design.setPresentation(first.presentation ?? DEFAULT_PRESENTATION);
           design.setIncludesSeating(first.includesSeating);
           design.setBrideName(first.textFields.brideName || null);
           design.setGroomName(first.textFields.groomName || null);
@@ -173,7 +177,7 @@ export function useInvitationStudio({
     {
       scope: bookingId,
       bookingId,
-      blocked: writing || design.designDirty,
+      blocked: writing || design.designDirty || design.suggestionBusy,
       invalidateOnBlock: true,
       types: ['print_order.updated', 'booking.updated'],
     },

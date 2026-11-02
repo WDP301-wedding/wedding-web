@@ -1,3 +1,5 @@
+import { InteractiveInvitation } from './interactive-invitation';
+import type { InvitationPresentation } from './invitation-presentation';
 import { InvitationSeatingView } from './invitation-seating-view';
 import type { InvitationSeating } from './print-purchase-api';
 import Image from 'next/image';
@@ -23,6 +25,7 @@ export type InvitationSection = Readonly<{
 }>;
 export type InvitationContent = Readonly<{
   title: string;
+  presentation?: InvitationPresentation;
   seating?: InvitationSeating | null;
   textFields: InvitationText;
   event: InvitationEvent | null;
@@ -43,6 +46,14 @@ export function InvitationContents({
   apiBase,
   recipientGreeting,
 }: Readonly<{ invitation: InvitationContent; apiBase: string; recipientGreeting?: string }>) {
+  if (invitation.presentation)
+    return (
+      <InteractiveInvitation
+        invitation={invitation}
+        apiBase={apiBase}
+        {...(recipientGreeting ? { recipientGreeting } : {})}
+      />
+    );
   const { title, textFields: text, event, timeline, assets, theme } = invitation;
   const currentTheme = theme || inferThemeFromContent(title, text.message ?? undefined);
   const groomInitial = Array.from(text.groomName?.trim() || 'H')[0]?.toUpperCase() ?? 'H';

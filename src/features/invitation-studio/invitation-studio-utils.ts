@@ -19,6 +19,12 @@ export function invitationErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiClientError) {
     // Chỉ kèm mã hỗ trợ (requestId) để nhà hàng tra log; không hiện mã lỗi/HTTP kỹ thuật cho khách.
     const meta = err.requestId ? ` (Mã hỗ trợ: ${err.requestId.slice(0, 8)})` : '';
+    if (err.code === 'AI_DESIGN_DISABLED')
+      return `Tính năng thiết kế AI chưa được nhà hàng cấu hình. Bạn vẫn có thể chọn và chỉnh mẫu có sẵn.${meta}`;
+    if (err.code === 'AI_DESIGN_OUTCOME_UNKNOWN')
+      return `Chưa xác định được kết quả thiết kế trước. Hệ thống không tự tạo lại để tránh tính phí hai lần. Bạn có thể dùng mẫu có sẵn hoặc liên hệ nhà hàng.${meta}`;
+    if (err.code === 'AI_DESIGN_DAILY_LIMIT')
+      return `Đã đạt giới hạn tạo thiết kế trong ngày. Bạn vẫn có thể chỉnh thiệp hoặc chọn mẫu có sẵn.${meta}`;
     if (err.code === 'INVITATION_DESIGN_STALE')
       return `Bản thiết kế thiệp đã có phiên bản mới hơn trên máy chủ. Vui lòng làm mới trang để nhận bản mới nhất.${meta}`;
     if (err.code === 'INVITATION_PUBLICATION_STALE')

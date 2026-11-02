@@ -5,7 +5,9 @@ import { Check, ChevronRight } from 'lucide-react';
 import { imageJobStatusText } from './use-image-job';
 import type { InvitationStudioState } from './use-invitation-studio';
 import { AI_DESIGN_PRESETS, type AiDesignPreset } from './ai-design-presets';
-import { generateDesignFromPrompt } from './ai-invitation-generator';
+import { InteractiveInvitation } from './interactive-invitation';
+import { getApiBaseUrl } from './invitation-studio-utils';
+import { DESIGN_LAYOUTS } from './invitation-presentation';
 import { px } from './studio-panel-classes';
 import { ix } from './studio-classes';
 
@@ -26,54 +28,32 @@ export function StudioAiBox({
     cardTheme,
     brideName,
     groomName,
-    event,
   } = studio;
 
   const [customPrompt, setCustomPrompt] = useState('');
-  const [isGeneratingCard, setIsGeneratingCard] = useState(false);
+  const isGeneratingCard = studio.suggestionBusy;
   const [showImageSubGenerator, setShowImageSubGenerator] = useState(false);
 
-  // Xử lý tạo thiệp theo prompt tùy chỉnh của người dùng
   const handleGenerateCustomCard = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const promptText = customPrompt.trim();
-    if (!promptText) return;
-
-    setIsGeneratingCard(true);
-    try {
-      const generated = generateDesignFromPrompt(promptText, {
-        currentBrideName: brideName,
-        currentGroomName: groomName,
-        hallName: event?.hallName,
-        eventDate: event?.eventDate,
-      });
-
-      applyAiDesign(generated);
-    } finally {
-      setIsGeneratingCard(false);
-    }
+    e?.preventDefault();
+    if (customPrompt.trim().length < 10) return;
+    void studio.generateSuggestion(customPrompt.trim());
   };
-
-  // Xử lý áp dụng 1 trong 3 biến thể AI gợi ý
   const handleApplyPreset = (preset: AiDesignPreset) => {
-    // Kế thừa tên cô dâu chú rể hiện có nếu có, nếu chưa có thì dùng tên mẫu gợi ý
-    const designToApply = {
-      ...preset.design,
-      brideName: brideName.trim() || preset.design.brideName,
-      groomName: groomName.trim() || preset.design.groomName,
-    };
-    applyAiDesign(designToApply);
+    if (studio.writing) return;
+    applyAiDesign({ ...preset.design, brideName, groomName });
   };
 
   return (
-    <div className={px.aiCard}>
+    <fieldset disabled={studio.writing} className={px.aiCard}>
       {/* Header */}
       <div className="flex flex-col gap-1">
         <div>
           <h3 className={ix.subtitle}>Thiết kế toàn bộ thiệp cưới</h3>
           <p className={ix.meta}>
             Nhập mô tả ý tưởng của bạn (phong cách, tông màu, lời chúc...) hoặc bấm chọn nhanh 1
-            trong 3 biến thể gợi ý bên dưới để AI tự động thiết kế trọn vẹn thiệp cưới.
+            trong 3 mẫu có sẵn. Mẫu dùng ngay không cần AI; AI đề xuất bố cục, màu và lời mời, giữ
+            nguyên thông tin hồ sơ.
           </p>
         </div>
       </div>
@@ -89,16 +69,18 @@ export function StudioAiBox({
             type="text"
             value={customPrompt}
             onChange={(e) => setCustomPrompt(e.target.value)}
-            placeholder="Ví dụ: Thiệp cưới phong cách hoàng gia sang trọng tone đỏ rượu và vàng gold cho chú rể Minh Quân và cô dâu Lan Anh..."
+            placeholder="Ví dụ: Thiệp mở hai cánh, màu đỏ rượu và vàng, lời mời trang trọng"
+            maxLength={2000}
+            minLength={10}
             disabled={isGeneratingCard}
             className={ix.input}
           />
           <button
             type="submit"
-            disabled={isGeneratingCard || !customPrompt.trim()}
+            disabled={isGeneratingCard || customPrompt.trim().length < 10}
             className={ix.btn}
           >
-            {isGeneratingCard ? 'Đang thiết kế...' : 'Tạo thiết kế'}
+            {isGeneratingCard ? 'Đang thiết kế...' : 'Đề xuất thiết kế bằng AI'}
           </button>
         </div>
 
@@ -138,10 +120,58 @@ export function StudioAiBox({
         </div>
       </form>
 
-      {/* 3 Biến thể gợi ý từ AI */}
+      {studio.suggestionError ? (
+        <p role="alert" className={ix.meta}>
+          {studio.suggestionError}
+        </p>
+      ) : null}
+      {studio.suggestion ? (
+        <div className={px.aiCard} role="status">
+          <strong>Thiết kế AI đã sẵn sàng</strong>
+          <InteractiveInvitation
+            apiBase={getApiBaseUrl()}
+            invitation={{
+              title: studio.suggestion.title,
+              textFields: {
+                brideName,
+                groomName,
+                greeting: studio.suggestion.greeting,
+                message: studio.suggestion.message,
+                footer: studio.suggestion.footer,
+              },
+              event: studio.event,
+              timeline: studio.timeline,
+              assets: [],
+              presentation: studio.suggestion.presentation,
+            }}
+          />
+          <p>
+            {studio.suggestion.title} · {studio.suggestion.presentation.layout}
+          </p>
+          <p>{studio.suggestion.message}</p>
+          <button type="button" className={ix.btn} onClick={studio.applySuggestion}>
+            Áp dụng vào thiệp
+          </button>
+        </div>
+      ) : null}
+      <div role="group" aria-label="Cách mở thiệp" className={px.ideasRow}>
+        <span className={ix.label}>Cách mở thiệp</span>
+        {DESIGN_LAYOUTS.map((layout) => (
+          <button
+            type="button"
+            key={layout.id}
+            className={px.chipButton}
+            aria-pressed={studio.presentation.layout === layout.id}
+            onClick={() => studio.setCardLayout(layout.id)}
+          >
+            {layout.label}
+          </button>
+        ))}
+      </div>
+      {/* Mẫu có sẵn không sử dụng tên khách mẫu. */}
       <div className={px.presetsSection}>
         <div className={px.presetsLabelRow}>
-          <span className={ix.label}>Hoặc chọn 1 trong 3 biến thể phong cách gợi ý từ AI:</span>
+          <span className={ix.label}>Hoặc chọn mẫu thiết kế có sẵn:</span>
           <span className={ix.meta}>(Bấm để áp dụng ngay vào thiệp)</span>
         </div>
 
@@ -281,11 +311,7 @@ export function StudioAiBox({
 
             {aiJob.stalled ? (
               <div className={ix.actions}>
-                <button
-                  type="button"
-                  className={ix.btnSmall}
-                  onClick={aiJob.checkAgain}
-                >
+                <button type="button" className={ix.btnSmall} onClick={aiJob.checkAgain}>
                   Kiểm tra lại
                 </button>
               </div>
@@ -302,6 +328,6 @@ export function StudioAiBox({
           </div>
         )}
       </div>
-    </div>
+    </fieldset>
   );
 }

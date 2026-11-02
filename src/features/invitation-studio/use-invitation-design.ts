@@ -7,7 +7,13 @@ import { useImageJob, type SucceededImageJob } from './use-image-job';
 import { getOrGenerateKey, invitationErrorMessage } from './invitation-studio-utils';
 import { notify } from '../../design-system/toast';
 import type { CardThemeId, GeneratedInvitationDesign } from './ai-design-presets';
-import { inferThemeFromContent } from './ai-invitation-generator';
+import {
+  DEFAULT_PRESENTATION,
+  type InvitationPresentation,
+  type DesignSuggestion,
+} from './invitation-presentation';
+import { suggestInvitationDesign } from './design-suggestion-api';
+import { browserSession } from '../identity-access/browser-session';
 
 export interface UseInvitationDesignOptions {
   bookingId: string;
@@ -52,47 +58,80 @@ export function useInvitationDesign({
   const [saving, setSaving] = useState(false);
   const [designDirty, setDesignDirty] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
-  const [cardTheme, setCardTheme] = useState<CardThemeId>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(`invitation-theme:${bookingId}`);
-      if (saved) return saved as CardThemeId;
-    }
-    return inferThemeFromContent(
-      initialDesigns[0]?.title,
-      initialDesigns[0]?.textFields?.message ?? undefined,
-    );
-  });
-
+  const [presentation, setPresentation] = useState<InvitationPresentation>(
+    initialDesigns[0]?.presentation ?? DEFAULT_PRESENTATION,
+  );
+  const cardTheme = presentation.theme;
   const handleSetCardTheme = (theme: CardThemeId) => {
-    setCardTheme(theme);
+    setPresentation((current) => ({ ...current, theme }));
     setDesignDirty(true);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`invitation-theme:${bookingId}`, theme);
-    }
   };
-
+  const setCardLayout = (layout: InvitationPresentation['layout']) => {
+    setPresentation((current) => ({ ...current, layout }));
+    setDesignDirty(true);
+  };
   const applyAiDesign = (generated: GeneratedInvitationDesign) => {
     setTitle(generated.title);
-    if (generated.brideName) setBrideName(generated.brideName);
-    if (generated.groomName) setGroomName(generated.groomName);
     setGreeting(generated.greeting);
     setMessageText(generated.message);
     setFooter(generated.footer);
-    setCardTheme(generated.theme);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`invitation-theme:${bookingId}`, generated.theme);
-    }
+    setPresentation((current) => ({ ...current, theme: generated.theme }));
     setDesignDirty(true);
-    notify.success(
-      `Đã áp dụng thiết kế "${generated.themeName}"! Xem thiệp trực quan ở khung bên phải.`,
-    );
+    notify.success('Đã áp dụng mẫu. Lưu thiết kế để giữ mẫu khi xuất bản.');
+  };
+  const [suggestionBusy, setSuggestionBusy] = useState(false);
+  const suggestionLock = useRef(false);
+  const suggestionKey = useRef<{ signature: string; key: string } | null>(null);
+  const [suggestion, setSuggestion] = useState<DesignSuggestion | null>(null);
+  const [suggestionError, setSuggestionError] = useState<string | null>(null);
+  const generateSuggestion = async (prompt: string) => {
+    if (suggestionLock.current) return;
+    suggestionLock.current = true;
+    setSuggestionBusy(true);
+    setSuggestionError(null);
+    setSuggestion(null);
+    try {
+      const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(prompt));
+      const promptDigest = Array.from(new Uint8Array(bytes), (value) =>
+        value.toString(16).padStart(2, '0'),
+      ).join('');
+      const storageKey = `invitation-design-intent:${bookingId}:${promptDigest}`;
+      const existing = sessionStorage.getItem(storageKey);
+      const key = existing ?? getOrGenerateKey(suggestionKey, promptDigest, 'design-suggestion');
+      sessionStorage.setItem(storageKey, key);
+      const result = await browserSession.authorize((token) =>
+        suggestInvitationDesign(token, bookingId, prompt, key),
+      );
+      setSuggestion(result);
+    } catch (error) {
+      setSuggestionError(
+        invitationErrorMessage(
+          error,
+          'Chưa nhận được thiết kế. Bạn có thể chọn mẫu có sẵn. Yêu cầu AI cũ không tự động tạo lại.',
+        ),
+      );
+    } finally {
+      setSuggestionBusy(false);
+      suggestionLock.current = false;
+    }
+  };
+  const applySuggestion = () => {
+    if (!suggestion) return;
+    setPresentation(suggestion.presentation);
+    setTitle(suggestion.title);
+    setGreeting(suggestion.greeting);
+    setMessageText(suggestion.message);
+    setFooter(suggestion.footer);
+    setSuggestion(null);
+    setDesignDirty(true);
+    notify.success('Đã áp dụng thiết kế AI. Kiểm tra thông tin và lưu trước khi xuất bản.');
   };
 
   const saveKeyRef = useRef<{ signature: string; key: string } | null>(null);
 
   const handleSaveDesign = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (saving) return;
+    if (saving || suggestionBusy) return;
     setSaving(true);
     const sanitizedSections = (currentDesign?.sections ?? []).filter(
       (section) => !section.derivedAssetId || derivedAssetIds.includes(section.derivedAssetId),
@@ -107,7 +146,7 @@ export function useInvitationDesign({
         ? [{ kind: 'SEATING' as const, textKey: null, derivedAssetId: null }]
         : []),
     ];
-    const signature = `${currentDesign?.designId ?? 'new'}:${currentDesign?.revisionNumber ?? 0}:${title}:${brideName}:${groomName}:${greeting}:${message}:${footer}:${derivedAssetIds.join(',')}:${includesSeating}`;
+    const signature = `${currentDesign?.designId ?? 'new'}:${currentDesign?.revisionNumber ?? 0}:${title}:${brideName}:${groomName}:${greeting}:${message}:${footer}:${derivedAssetIds.join(',')}:${includesSeating}:${JSON.stringify(presentation)}`;
     const key = getOrGenerateKey(saveKeyRef, signature, 'save-design');
     try {
       if (currentDesign) {
@@ -130,6 +169,7 @@ export function useInvitationDesign({
               sections: finalSections,
               derivedAssetIds,
               includesSeating,
+              presentation,
             },
           },
           key,
@@ -148,6 +188,7 @@ export function useInvitationDesign({
             sections: finalSections,
             derivedAssetIds,
             includesSeating,
+            presentation,
           },
           key,
         );
@@ -245,6 +286,14 @@ export function useInvitationDesign({
     handleAiGenerate,
     restoredAiImage,
     applyRestoredAiImage,
+    presentation,
+    setPresentation,
+    setCardLayout,
+    suggestionBusy,
+    suggestion,
+    suggestionError,
+    generateSuggestion,
+    applySuggestion,
     cardTheme,
     setCardTheme: handleSetCardTheme,
     applyAiDesign,
