@@ -84,6 +84,7 @@ export function createInvitationPrintRequestMethods(
       const blob = await fetchPrivateFile(
         `/bookings/${encodeURIComponent(bookingId)}/printable-revisions/${encodeURIComponent(printableRevisionId)}/file`,
         accessToken,
+        30000,
       );
       if (!blob.type.includes('application/pdf'))
         throw new Error('Bản in trả về không đúng định dạng PDF.');

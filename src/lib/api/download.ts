@@ -2,11 +2,15 @@ import { readPublicEnv } from '../env';
 import { ApiClientError, defaultTimeoutMs } from './client';
 
 /** Private binary reads use the same bounded deadline and typed errors as JSON requests. */
-export async function fetchPrivateFile(path: string, accessToken: string): Promise<Blob> {
+export async function fetchPrivateFile(
+  path: string,
+  accessToken: string,
+  timeoutMs = defaultTimeoutMs,
+): Promise<Blob> {
   const base = readPublicEnv().NEXT_PUBLIC_API_BASE_URL.replace(/\/+$/, '');
   const requestId = crypto.randomUUID();
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), defaultTimeoutMs);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(base + path, {
       headers: { Authorization: `Bearer ${accessToken}`, 'x-request-id': requestId },
