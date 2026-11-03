@@ -159,7 +159,7 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
               ? null
               : {
                   revisionNumber: approved.revisionNumber,
-                  document: { ...approved.document, lines: Array.from(approved.document.lines) },
+                  document: { ...approved.document, lines: Array.from(approved.document.lines ?? []) },
                 },
         },
         contractRequired: contracts?.modelVersion === 'FULL_CONTRACT_V1' && approved === null,

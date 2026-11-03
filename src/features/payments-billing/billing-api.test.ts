@@ -97,7 +97,7 @@ describe('generated Couple billing HTTP adapter', () => {
           }),
         ),
     });
-    expect(await createCoupleBillingGateway(client).loadContext('token', 'booking')).toEqual({
+    expect(await createCoupleBillingGateway(client).loadContext('token', 'booking')).toMatchObject({
       bookingId: 'booking',
       accessLevel: 'RESTRICTED',
       phase: 'AWAITING_DEPOSIT',

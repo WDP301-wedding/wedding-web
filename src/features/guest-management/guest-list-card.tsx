@@ -1,4 +1,5 @@
 'use client';
+import { HySelect } from '../../components/ui/select-field';
 
 import React from 'react';
 import { guestApi, type Guest, type GuestGroup } from './guest-api';
@@ -113,7 +114,7 @@ export function GuestListCard({
         <div className={gx.filterRow}>
           <label className="inline-flex items-center gap-1.5">
             <span className={cx.muted}>Trạng thái</span>
-            <select
+            <HySelect
               className={gx.filterSelect}
               value={status}
               onChange={(e) => {
@@ -123,12 +124,12 @@ export function GuestListCard({
             >
               <option value="ACTIVE">Đang mời</option>
               <option value="ARCHIVED">Đã lưu trữ</option>
-            </select>
+            </HySelect>
           </label>
 
           <label className="inline-flex items-center gap-1.5">
             <span className={cx.muted}>Nhóm</span>
-            <select
+            <HySelect
               className={gx.filterSelect}
               value={groupFilter}
               onChange={(e) => setGroupFilter(e.target.value)}
@@ -139,7 +140,7 @@ export function GuestListCard({
                   {group.name}
                 </option>
               ))}
-            </select>
+            </HySelect>
           </label>
         </div>
       </div>
@@ -205,7 +206,7 @@ export function GuestListCard({
             {status === 'ACTIVE' ? (
               <label className="inline-flex items-center gap-1.5">
                 <span className={cx.muted}>Chuyển sang:</span>
-                <select
+                <HySelect
                   className={`${gx.filterSelect} h-9`}
                   defaultValue=""
                   onChange={(e) => {
@@ -223,7 +224,7 @@ export function GuestListCard({
                       {g.name}
                     </option>
                   ))}
-                </select>
+                </HySelect>
               </label>
             ) : null}
 

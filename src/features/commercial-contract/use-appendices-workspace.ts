@@ -84,14 +84,15 @@ export function useAppendicesWorkspace(proposal: Proposal, reloadBooking: () => 
   };
 
   const handleCreateDraft = (nextLines: ContractLineInput[], form: FormData) => {
-    if (!data?.appendices.effectiveRevisionId) return;
-    const predecessorRevisionId = data.appendices.effectiveRevisionId;
+    if (!data) return;
+    const effectiveRevisionId = data.appendices.effectiveRevisionId;
+    if (!effectiveRevisionId) return;
     void command
       .run(
         (token, key) =>
           appendixApi.create(token, key, bookingId, {
             expectedRevision: data.appendices.bookingRevision,
-            predecessorRevisionId,
+            predecessorRevisionId: effectiveRevisionId,
             reason: formText(form, 'reason'),
             lines: nextLines,
           }),

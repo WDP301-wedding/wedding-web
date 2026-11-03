@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-import { routes } from '../../routes';
+import { routes, withBooking } from '../../routes';
 import { Skeleton } from '../../design-system/skeleton';
 import { browserSession as session } from '../identity-access/browser-session';
 import { ApiClientError } from '../../lib/api/client';
@@ -97,10 +97,12 @@ export function CoupleInvitationsPage() {
     setDesigns([]);
   }
 
+  const isCancelled = proposal?.phase === 'CANCELLED';
+
   // Fetch data only when rawBookingId changes or on initial auth restore
   useEffect(() => {
     let active = true;
-    if (!rawBookingId) {
+    if (!rawBookingId || isCancelled) {
       return;
     }
 
@@ -136,13 +138,33 @@ export function CoupleInvitationsPage() {
     return () => {
       active = false;
     };
-  }, [rawBookingId, reloadKey]);
+  }, [rawBookingId, reloadKey, isCancelled]);
 
   const retry = () => {
     setError(null);
     setState('loading');
     setReloadKey((value) => value + 1);
   };
+
+  if (isCancelled) {
+    return (
+      <section className={cx.empty}>
+        <h2>Tiệc cưới đã huỷ</h2>
+        <p>
+          Hồ sơ tiệc cưới này đã được xác nhận huỷ. Tính năng thiết kế thiệp và đặt in thiệp cho
+          tiệc này đã đóng lại.
+        </p>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Link className={cx.button} href={withBooking(routes.space, bookingId)}>
+            Về trang Tổng quan
+          </Link>
+          <Link className={cx.buttonOutline} href={withBooking(routes.contract, bookingId)}>
+            Xem hồ sơ hợp đồng
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   if (state === 'loading') {
     return (

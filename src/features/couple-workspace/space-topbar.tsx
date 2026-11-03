@@ -1,4 +1,5 @@
 'use client';
+import { HySelect } from '../../components/ui/select-field';
 
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
@@ -84,7 +85,7 @@ export function SpaceTopbar({
         <>
           <label className="relative max-lg:hidden">
             <span className="sr-only">Đổi tiệc cưới</span>
-            <select
+            <HySelect
               className="h-10 max-w-[360px] cursor-pointer appearance-none truncate rounded-lg border border-input bg-card pr-9 pl-3 text-xs font-medium text-foreground transition-colors hover:border-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
               value={bookingId}
               onChange={(event) => onSwitch(event.target.value)}
@@ -96,7 +97,7 @@ export function SpaceTopbar({
                   {bookingPhaseLabel(booking.phase)}]
                 </option>
               ))}
-            </select>
+            </HySelect>
             <ChevronDown
               className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
               aria-hidden="true"

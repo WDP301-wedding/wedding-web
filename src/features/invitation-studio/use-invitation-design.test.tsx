@@ -10,6 +10,7 @@ const first: DesignView = {
   revisionId: 'r1',
   revisionNumber: 1,
   title: 'Mẫu thứ nhất',
+  presentation: { version: 1, theme: 'blush-floral', layout: 'album' },
   textFields: { brideName: 'Lan', groomName: 'Tùng' },
   sections: [],
   derivedAssetIds: [],
@@ -51,6 +52,7 @@ describe('multiple invitation designs', () => {
     );
     act(() => result.current.selectDesign('first'));
     expect(result.current.title).toBe('Mẫu thứ nhất');
+    expect(result.current.presentation).toEqual(first.presentation);
     await act(() =>
       result.current.handleSaveDesign({ preventDefault: vi.fn() } as unknown as React.FormEvent),
     );
@@ -58,7 +60,9 @@ describe('multiple invitation designs', () => {
       'token',
       'booking',
       'first',
-      expect.anything(),
+      expect.objectContaining({
+        content: expect.objectContaining({ presentation: first.presentation }),
+      }),
       expect.any(String),
     );
     expect(result.current.designs.map((design) => design.designId)).toEqual(['second', 'first']);

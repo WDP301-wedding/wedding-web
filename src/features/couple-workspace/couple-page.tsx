@@ -94,7 +94,28 @@ export function CouplePage({ title, description, requireFull, children }: Couple
           )
         ) : null}
         {state.status === 'ready' ? (
-          requireFull && state.proposal.capabilities.accessLevel !== 'FULL' ? (
+          state.proposal.phase === 'CANCELLED' && requireFull ? (
+            <EmptyPanel title="Tiệc cưới đã huỷ" illustration="empty-tiec">
+              <p>
+                Hồ sơ tiệc cưới này đã được xác nhận huỷ. Các hoạt động chuẩn bị tiệc (lập danh sách
+                khách mời, sơ đồ sắp xếp bàn và phụ lục) đã ngừng hoạt động.
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Link
+                  className={buttonVariants()}
+                  href={`/khong-gian?bookingId=${state.proposal.bookingId}`}
+                >
+                  Về trang Tổng quan
+                </Link>
+                <Link
+                  className={buttonVariants({ variant: 'outline' })}
+                  href={`/khong-gian/thoa-thuan/hop-dong?bookingId=${state.proposal.bookingId}`}
+                >
+                  Xem hồ sơ hợp đồng
+                </Link>
+              </div>
+            </EmptyPanel>
+          ) : requireFull && state.proposal.capabilities.accessLevel !== 'FULL' ? (
             <EmptyPanel title="Mở sau khi đặt cọc">
               <p>
                 Chức năng này dành cho tiệc đã được xác nhận. Sau khi khoản cọc được nhà hàng ghi

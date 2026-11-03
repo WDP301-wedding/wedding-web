@@ -130,6 +130,14 @@ export function PublicHeader({
                       <strong className="truncate text-sm">{snapshot.actor.displayEmail}</strong>
                       <span className="text-xs text-muted-foreground">Cặp đôi Hỷ Yến</span>
                     </div>
+                    <Link
+                      className={menuItem}
+                      href="/tiec-da-huy"
+                      role="menuitem"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      Tiệc đã hủy
+                    </Link>
                     <div className="my-1 h-px bg-border" />
                     <Link
                       className={menuItem}

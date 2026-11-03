@@ -44,8 +44,8 @@ export const AI_DESIGN_PRESETS: readonly AiDesignPreset[] = [
       'Tone đỏ rượu vang quý phái kết hợp hoa văn chỉ vàng kim hoàng gia, câu chữ trang trọng, quyền quý.',
     design: {
       title: 'Thư Báo Hỷ · Dạ Tiệc Hoàng Gia',
-      brideName: 'Lan Anh',
-      groomName: 'Minh Quân',
+      brideName: '',
+      groomName: '',
       greeting: 'Trân trọng kính mời quý khách đến chung vui cùng gia đình chúng tôi',
       message:
         'Tình yêu là khởi đầu của một hành trình vĩnh cửu. Chúng tôi vô cùng hạnh phúc được đón tiếp những người thân yêu nhất đến chứng kiến khoảnh khắc hẹn ước thiêng liêng và chúc phúc cho tương lai chung đôi.',
@@ -68,8 +68,8 @@ export const AI_DESIGN_PRESETS: readonly AiDesignPreset[] = [
       'Tone xanh xô thơm pastel thanh lịch, đường nét tinh giản mộc mạc, câu chữ nhẹ nhàng, sâu lắng.',
     design: {
       title: 'Save Our Date · Khoảnh Khắc Gắn Kết',
-      brideName: 'Thảo Vy',
-      groomName: 'Đức Huy',
+      brideName: '',
+      groomName: '',
       greeting: 'Kính mời quý khách tới tham dự buổi tiệc cưới thân mật',
       message:
         'Mộc mạc nhưng chân thành, dịu dàng như sớm mai. Dưới sự chứng kiến của những người bạn trân quý nhất, chúng tôi chính thức cùng nhau viết tiếp chương mới của cuộc đời với trọn vẹn tình yêu và niềm tin.',
@@ -92,8 +92,8 @@ export const AI_DESIGN_PRESETS: readonly AiDesignPreset[] = [
       'Tone hồng cánh đào dịu ngọt, họa tiết hoa lá mùa xuân tươi trẻ, văn phong lãng mạn như thơ ca.',
     design: {
       title: 'Ngày Chung Đôi · Giai Điệu Mùa Yêu',
-      brideName: 'Mai Chi',
-      groomName: 'Tuấn Kiệt',
+      brideName: '',
+      groomName: '',
       greeting: 'Thân thương gửi lời mời trân trọng nhất đến bạn và người thân',
       message:
         'Như ngàn đóa hoa mùa xuân khoe sắc rạng rỡ, tình yêu của chúng tôi đơm hoa kết trái trong sự yêu thương và chúc phúc. Hãy cùng chúng tôi hòa chung niềm hân hoan và lưu giữ những kỷ niệm ngọt ngào nhất.',

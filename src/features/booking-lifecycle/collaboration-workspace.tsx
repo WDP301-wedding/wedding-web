@@ -1,4 +1,5 @@
 'use client';
+import { HySelect } from '../../components/ui/select-field';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -51,7 +52,7 @@ export function CollaborationWorkspace({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useToastFeedback(message, null);
+  useToastFeedback(message, error);
   const [availableBookings, setAvailableBookings] = useState<readonly BookingChoice[] | null>(null);
   const requestedRef = useRef(embedded);
   const activeRequestIdRef = useRef<string | null>(null);
@@ -191,7 +192,7 @@ export function CollaborationWorkspace({
         {availableBookings && availableBookings.length > 1 ? (
           <label className={field}>
             Đổi tiệc cưới
-            <select
+            <HySelect
               className={cn(control, 'h-11 w-auto min-w-64')}
               value={proposal?.bookingId ?? ''}
               disabled={pending}
@@ -205,7 +206,7 @@ export function CollaborationWorkspace({
                   {item.label}
                 </option>
               ))}
-            </select>
+            </HySelect>
           </label>
         ) : null}
       </section>

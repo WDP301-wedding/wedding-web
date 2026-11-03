@@ -12,6 +12,7 @@ import { invitationErrorMessage } from './invitation-studio-utils';
 import { useInvitationDesign } from './use-invitation-design';
 import { useInvitationMedia } from './use-invitation-media';
 import { useInvitationPublish } from './use-invitation-publish';
+import { useInvitationSeating } from './use-invitation-seating';
 import { useInvitationPrint } from './use-invitation-print';
 
 export interface UseInvitationStudioOptions {
@@ -90,6 +91,7 @@ export function useInvitationStudio({
   // Active mutations lock
   const writing =
     design.saving ||
+    design.suggestionBusy ||
     media.isUploadingMedia ||
     media.detachingAssetId !== null ||
     media.derivingAssetId !== null;
@@ -119,6 +121,8 @@ export function useInvitationStudio({
     confirm,
   });
 
+  const seating = useInvitationSeating(bookingId, design.includesSeating);
+
   // View modes
   const [mobileViewMode, setMobileViewMode] = useState<'editor' | 'preview'>('editor');
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'desktop'>('mobile');
@@ -143,7 +147,7 @@ export function useInvitationStudio({
     {
       scope: bookingId,
       bookingId,
-      blocked: writing || design.designDirty,
+      blocked: writing || design.designDirty || design.suggestionBusy,
       invalidateOnBlock: true,
       types: ['print_order.updated', 'booking.updated'],
     },
@@ -164,6 +168,7 @@ export function useInvitationStudio({
     ...publish,
     // Print
     ...print,
+    seating,
     // UI view modes
     mobileViewMode,
     setMobileViewMode,

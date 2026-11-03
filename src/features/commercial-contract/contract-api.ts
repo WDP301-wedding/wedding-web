@@ -1,29 +1,9 @@
-import { z } from 'zod';
-import {
-  customerSelectionSchema,
-  selectionLineSchema,
-  selectionAccessSchema,
-} from './selection-wire';
 import type { ApiBody, ApiData } from '../../lib/api/types';
 import { fetchPrivateFile } from '../../lib/api/download';
 import { bearer, coupleApi, unwrap } from '../couple-workspace/use-couple-workspace';
 
 export type CoupleProfile = ApiData<'/consultations/{consultationId}/couple-profile', 'get'>;
-const capabilityEnvelope = z.object({
-  customerSelection: customerSelectionSchema.optional(),
-  selectionAccess: selectionAccessSchema.optional(),
-  draftSeed: z.array(selectionLineSchema).optional(),
-  capabilities: z
-    .object({
-      canManageDraft: z.boolean(),
-      canEditSelections: z.boolean().optional(),
-      canApprove: z.boolean(),
-      canWithdrawApproval: z.boolean(),
-    })
-    .optional(),
-});
-export type ContractList = ApiData<'/bookings/{bookingId}/contracts', 'get'> &
-  z.infer<typeof capabilityEnvelope>;
+export type ContractList = ApiData<'/bookings/{bookingId}/contracts', 'get'>;
 export type ContractRevision = ContractList['revisions'][number];
 export type ContractLine = ContractRevision['document']['lines'][number];
 export type ContractLineInput = ApiBody<'/bookings/{bookingId}/contracts', 'post'>['lines'][number];
@@ -69,15 +49,13 @@ export const contractApi = {
     );
   },
   async list(token: string, bookingId: string) {
-    const data = unwrap<ContractList>(
+    return unwrap<ContractList>(
       await coupleApi().GET('/bookings/{bookingId}/contracts', {
         headers: bearer(token),
         params: { path: { bookingId } },
         cache: 'no-store',
       }),
     );
-    capabilityEnvelope.parse(data);
-    return data;
   },
   async approve(
     token: string,
@@ -116,7 +94,7 @@ export const contractApi = {
       token,
     );
   },
-  /** Danh mục đang bán để chọn vào hợp đồng (menu công khai; dịch vụ và mẫu in cần đăng nhập). */
+  /** Hợp đồng ban đầu chỉ chọn menu và dịch vụ; in thiệp qua phụ lục sau đặt cọc. */
   async catalog(token: string): Promise<Catalog> {
     const [menus, services] = await Promise.all([
       coupleApi()

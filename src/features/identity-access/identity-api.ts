@@ -48,6 +48,16 @@ export function createIdentityApi(client?: ApiClient): IdentityApi {
       });
       return normalizeIssuedSession(requireData(data).data);
     },
+    async getInvitationDetails(token) {
+      try {
+        const { data } = await api().GET('/workspace-invitations/details', {
+          params: { query: { invitationToken: token } },
+        });
+        return data?.data ? { maskedEmail: data.data.maskedEmail } : null;
+      } catch {
+        return null;
+      }
+    },
     async createSession(email, password) {
       const { data } = await api().POST('/auth/web-sessions', {
         body: { email, password },

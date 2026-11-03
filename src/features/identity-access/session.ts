@@ -9,10 +9,12 @@ import {
 import {
   COUPLE_AUTH_CHANNEL,
   COUPLE_REFRESH_LOCK,
-  clearCachedCoupleToken,
+  clearPersistedCoupleSession,
   isCoupleTokenFresh,
   readCachedCoupleToken,
+  readPersistedCoupleSession,
   saveCachedCoupleToken,
+  savePersistedCoupleSession,
 } from './session-token-cache';
 
 export * from './session-types';
@@ -47,9 +49,16 @@ export class WebIdentitySession {
             'expiresAt' in data &&
             typeof data.expiresAt === 'string'
           ) {
-            if (this.refreshRejected) return;
+            if (this.refreshRejected || data.token === this.accessToken) return;
             this.accessToken = data.token;
             this.scheduleProactiveRefresh(data.expiresAt);
+            const persisted = readPersistedCoupleSession();
+            if (persisted) {
+              savePersistedCoupleSession(
+                { ...persisted, accessToken: data.token, accessExpiresAt: data.expiresAt },
+                { broadcast: false },
+              );
+            }
             if (this.state.status === 'authenticated') sharedCoupleRealtime.connect(data.token);
           }
         };
@@ -58,7 +67,7 @@ export class WebIdentitySession {
       }
     }
     sharedCoupleRealtime.setTokenRefreshHandler(async () => {
-      return await this.renewAccessToken();
+      return await this.renewAccessToken(this.accessToken ?? undefined);
     });
   }
 
@@ -92,15 +101,29 @@ export class WebIdentitySession {
   }
 
   /**
-   * Khôi phục phiên từ cookie refresh — chỉ gọi mạng khi thật sự cần.
+   * Khôi phục phiên từ storage hoặc cookie refresh — chỉ gọi mạng khi thật sự cần.
    *
-   * Nhiều trang/khung cùng gọi `restore()` khi mở; trước đây mỗi lần đều refresh + `auth/me`
-   * dù phiên còn hạn (≈12 refresh / 9 phút). Nay: đã đăng nhập thì trả ngay trạng thái hiện có
-   * (token hết hạn do `authorize` và hẹn giờ làm mới lo); cookie đã bị backend từ chối (401) thì
-   * nhớ là chưa đăng nhập đến khi đăng nhập lại. Lỗi mạng không được nhớ để lần sau thử lại.
+   * Nhiều trang/khung cùng gọi `restore()` khi mở. Nếu phiên còn hạn trong storage,
+   * trả ngay trạng thái hiện có để tránh xoay refresh token không cần thiết hoặc bị mất
+   * phiên khi quay lại từ cổng thanh toán bên thứ ba (VNPay). Cookie đã bị backend từ chối
+   * (401) thì nhớ là chưa đăng nhập đến khi đăng nhập lại. Lỗi mạng không được nhớ để lần sau thử lại.
    */
   restore(): Promise<WebSessionSnapshot> {
     if (this.state.status === 'authenticated' && this.accessToken !== null) {
+      return Promise.resolve(this.state);
+    }
+    const persisted = readPersistedCoupleSession();
+    if (persisted && isCoupleTokenFresh(persisted.accessExpiresAt)) {
+      this.accessToken = persisted.accessToken;
+      this.refreshRejected = false;
+      this.updateSnapshot({
+        status: 'authenticated',
+        access: persisted.access,
+        actor: persisted.actor,
+        denial: null,
+      });
+      this.scheduleProactiveRefresh(persisted.accessExpiresAt);
+      void sharedCoupleRealtime.connect(persisted.accessToken);
       return Promise.resolve(this.state);
     }
     if (this.refreshRejected) return Promise.resolve(this.state);
@@ -130,13 +153,29 @@ export class WebIdentitySession {
    * Lệnh ghi được chạy lại an toàn vì dùng cùng Idempotency-Key (backend không tạo bản ghi trùng).
    */
   async authorize<T>(operation: (accessToken: string) => Promise<T>): Promise<T> {
+    if (this.accessToken === null) {
+      const persisted = readPersistedCoupleSession();
+      if (persisted && isCoupleTokenFresh(persisted.accessExpiresAt)) {
+        this.accessToken = persisted.accessToken;
+        this.refreshRejected = false;
+        this.updateSnapshot({
+          status: 'authenticated',
+          access: persisted.access,
+          actor: persisted.actor,
+          denial: null,
+        });
+        this.scheduleProactiveRefresh(persisted.accessExpiresAt);
+        void sharedCoupleRealtime.connect(persisted.accessToken);
+      }
+    }
     if (this.accessToken === null) throw new Error('Authentication is required.');
 
+    const attemptedToken = this.accessToken;
     try {
-      return await operation(this.accessToken);
+      return await operation(attemptedToken);
     } catch (error) {
       if (error instanceof ApiClientError && error.status === 401) {
-        const renewed = await this.renewAccessToken();
+        const renewed = await this.renewAccessToken(attemptedToken);
         if (renewed === null) throw error;
         try {
           return await operation(renewed);
@@ -169,7 +208,7 @@ export class WebIdentitySession {
     }, delay);
   }
 
-  private async renewAccessToken(): Promise<string | null> {
+  private async renewAccessToken(rejectedToken?: string): Promise<string | null> {
     if (this.refreshRejected) return null;
     if (typeof window === 'undefined') return null;
 
@@ -184,7 +223,7 @@ export class WebIdentitySession {
           return await navigator.locks.request(COUPLE_REFRESH_LOCK, async () => {
             if (generation !== this.authGeneration) return null;
             const cached = readCachedCoupleToken();
-            if (cached && isCoupleTokenFresh(cached.expiresAt)) {
+            if (cached && cached.token !== rejectedToken && isCoupleTokenFresh(cached.expiresAt)) {
               this.accessToken = cached.token;
               this.scheduleProactiveRefresh(cached.expiresAt);
               sharedCoupleRealtime.updateToken(cached.token);
@@ -194,7 +233,7 @@ export class WebIdentitySession {
           });
         }
         const cached = readCachedCoupleToken();
-        if (cached && isCoupleTokenFresh(cached.expiresAt)) {
+        if (cached && cached.token !== rejectedToken && isCoupleTokenFresh(cached.expiresAt)) {
           this.accessToken = cached.token;
           this.scheduleProactiveRefresh(cached.expiresAt);
           sharedCoupleRealtime.updateToken(cached.token);
@@ -216,6 +255,15 @@ export class WebIdentitySession {
       if (generation !== this.authGeneration) return null;
       this.accessToken = credential.accessToken;
       saveCachedCoupleToken(credential.accessToken, credential.accessExpiresAt);
+      const persisted = readPersistedCoupleSession();
+      if (persisted) {
+        savePersistedCoupleSession({
+          ...persisted,
+          accessToken: credential.accessToken,
+          accessExpiresAt: credential.accessExpiresAt,
+          sessionId: credential.sessionId,
+        });
+      }
       this.scheduleProactiveRefresh(credential.accessExpiresAt);
       void sharedCoupleRealtime.connect(credential.accessToken);
       return credential.accessToken;
@@ -227,6 +275,10 @@ export class WebIdentitySession {
       }
       return null;
     }
+  }
+
+  async getInvitationDetails(token: string): Promise<{ maskedEmail: string } | null> {
+    return this.api.getInvitationDetails ? await this.api.getInvitationDetails(token) : null;
   }
 
   private handleDenial(error: unknown): void {
@@ -267,14 +319,21 @@ export class WebIdentitySession {
     const generation = this.authGeneration;
     this.refreshRejected = false;
     this.accessToken = credential.accessToken;
-    saveCachedCoupleToken(credential.accessToken, credential.accessExpiresAt);
     this.scheduleProactiveRefresh(credential.accessExpiresAt);
     try {
       const actor = await this.api.getCurrentUser(credential.accessToken);
       if (generation !== this.authGeneration) return this.state;
+      const access = actor.roles.includes('COUPLE') ? 'full' : 'restricted';
+      savePersistedCoupleSession({
+        accessToken: credential.accessToken,
+        accessExpiresAt: credential.accessExpiresAt,
+        sessionId: credential.sessionId,
+        actor,
+        access,
+      });
       this.updateSnapshot({
         status: 'authenticated',
-        access: actor.roles.includes('COUPLE') ? 'full' : 'restricted',
+        access,
         actor,
         denial: null,
       });
@@ -293,7 +352,7 @@ export class WebIdentitySession {
       this.proactiveTimer = null;
     }
     this.accessToken = null;
-    clearCachedCoupleToken();
+    clearPersistedCoupleSession();
     sharedCoupleRealtime.disconnect();
     this.updateSnapshot(anonymousSnapshot);
   }

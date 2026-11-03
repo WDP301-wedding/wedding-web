@@ -9,6 +9,7 @@ import { Badge } from '../../components/ui/badge';
 import { Button, buttonVariants } from '../../components/ui/button';
 import { ProposalMenus } from '../couple-workspace/proposal-menus';
 import { control, field as fieldClass } from '../public-website/public-classes';
+import { formatDate } from '../couple-workspace/workspace-helpers';
 import type { CollaborationGateway, ProposalView } from './collaboration-api';
 import { card, hint, summary } from './collab-classes';
 import { phaseLabels } from './collaboration-utils';
@@ -27,9 +28,7 @@ export function Approval({ label, value }: Readonly<{ label: string; value: stri
     <div className="flex items-center justify-between gap-3 text-sm">
       <span>{label}</span>
       <Badge variant={value === null ? 'warning' : 'success'}>
-        {value === null
-          ? 'Chờ duyệt'
-          : `Đã duyệt · ${new Intl.DateTimeFormat('vi-VN').format(new Date(value))}`}
+        {value === null ? 'Chờ duyệt' : `Đã duyệt · ${formatDate(value)}`}
       </Badge>
     </div>
   );
@@ -99,7 +98,7 @@ export function ProposalSummarySection({
         </span>
         <h2 className="text-xl font-bold">{proposal.proposal.hall.name}</h2>
         <p className="text-xs text-white/85 tabular-nums">
-          {proposal.eventDate.split('-').reverse().join('/')} ·{' '}
+          {formatDate(proposal.eventDate)} ·{' '}
           {proposal.proposal.shift.code === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối'}{' '}
           {proposal.proposal.shift.startTime}–{proposal.proposal.shift.endTime}
         </p>

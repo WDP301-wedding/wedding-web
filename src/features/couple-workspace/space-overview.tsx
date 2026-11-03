@@ -1,18 +1,16 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { cn } from 'cn';
 
-import { Badge } from '../../components/ui/badge';
 import { buttonVariants } from '../../components/ui/button';
-import { InlineError } from '../../design-system/inline-error';
 import { JourneyStepper, journeyIndex, journeySteps } from '../../design-system/journey-stepper';
-import { routes, withBooking } from '../../routes';
-import { notificationHref } from '../notifications/notification-api';
+import { CancellationModal } from './cancellation-modal';
 import { OverviewAliasModal } from './overview-alias-modal';
 import { OverviewMultiBookings } from './overview-multi-bookings';
+import { OverviewNextSteps } from './overview-next-steps';
+import { OverviewNotifications } from './overview-notifications';
 import { daysUntil, nextTasks } from './overview-tasks';
 import { menuLines } from './proposal-menus';
 import { panel, panelTitle } from './space-classes';
@@ -23,7 +21,6 @@ import {
   bookingDisplayName,
   bookingPhaseLabel,
   eventTypeLabel,
-  formatDateTime,
   formatEventDate,
   shiftLabel,
   useCoupleWorkspace,
@@ -56,6 +53,27 @@ function OverviewContent() {
     aliasDialog,
     aliasTrigger,
   );
+  const proposalPhase = ready ? state.proposal.phase : undefined;
+  const [cancellationModalOpen, setCancellationModalOpen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    if (!bookingId || proposalPhase !== 'CANCELLED') return false;
+    try {
+      return !localStorage.getItem(`wedding.cancellation_ack.${bookingId}`);
+    } catch {
+      return false;
+    }
+  });
+
+  const handleCloseCancellationModal = () => {
+    setCancellationModalOpen(false);
+    if (bookingId) {
+      try {
+        localStorage.setItem(`wedding.cancellation_ack.${bookingId}`, 'true');
+      } catch {
+        // Storage blocked
+      }
+    }
+  };
 
   if (!ready) return null;
   const proposal = state.proposal;
@@ -67,10 +85,38 @@ function OverviewContent() {
   return (
     <div className="flex flex-col gap-6 lg:gap-7">
       <h1 className="sr-only">Tổng quan tiệc cưới</h1>
+      <CancellationModal
+        isOpen={cancellationModalOpen}
+        onClose={handleCloseCancellationModal}
+        bookingId={proposal.bookingId}
+        hallName={offer.hall.name}
+        eventDate={proposal.eventDate}
+        shiftCode={offer.shift.code}
+        publicPhone={restaurant?.publicPhone}
+      />
       {proposal.phase === 'CANCELLED' ? (
-        <p className="rounded-lg bg-hy-error-bg px-4 py-3 text-sm text-hy-error" role="status">
-          Tiệc đã huỷ. Hồ sơ được giữ lại để hai bạn xem lịch sử.
-        </p>
+        <div
+          className="flex flex-col gap-2.5 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive"
+          role="status"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 font-bold">
+              <span className="flex size-2 rounded-full bg-destructive" aria-hidden="true" />
+              Tiệc cưới đã huỷ
+            </div>
+            <button
+              type="button"
+              onClick={() => setCancellationModalOpen(true)}
+              className="text-xs font-semibold text-destructive underline transition hover:opacity-80"
+            >
+              Xem chi tiết thông báo
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Hồ sơ tiệc cưới này được lưu trữ để hai bạn xem lại hợp đồng và giao dịch. Các chức năng
+            chuẩn bị khách mời, sơ đồ bàn và in thiệp đã ngừng hoạt động.
+          </p>
+        </div>
       ) : null}
 
       <div className="flex flex-col gap-1">
@@ -147,120 +193,12 @@ function OverviewContent() {
           </span>
         </div>
         <JourneyStepper current={step} />
+        <OverviewNextSteps tasks={tasks} />
       </section>
-
-      {tasks.length > 0 ? (
-        <section className="flex flex-col gap-4" aria-labelledby="tasks-title">
-          <h2 id="tasks-title" className={panelTitle}>
-            Việc cần làm ngay
-          </h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            {tasks.map((task) => (
-              <article
-                key={task.title}
-                className={cn(
-                  panel,
-                  'flex flex-col gap-2 transition-[translate,box-shadow] duration-250 ease-hy-emphasized hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgb(43_29_34/0.1)] motion-reduce:hover:translate-y-0',
-                  task.status === 'wait' && 'border-hy-warning/40',
-                )}
-              >
-                {task.status === 'wait' ? <Badge variant="warning">Chờ bạn</Badge> : null}
-                <h3 className="text-base font-bold">{task.title}</h3>
-                <p className="flex-1 text-sm text-muted-foreground">{task.detail}</p>
-                {task.href ? (
-                  <Link
-                    className={buttonVariants({
-                      variant: task.status === 'wait' ? 'default' : 'secondary',
-                      size: 'sm',
-                      className: 'self-start',
-                    })}
-                    href={task.href}
-                  >
-                    {task.action}
-                  </Link>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       <OverviewMultiBookings bookings={bookings} proposal={proposal} />
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <section className={cn(panel, 'flex flex-col gap-3')} aria-labelledby="latest-title">
-          <header className="flex items-baseline justify-between gap-3">
-            <h2 id="latest-title" className="text-base font-bold">
-              Thông báo mới
-            </h2>
-            <Link
-              className="text-xs font-semibold text-primary hover:underline"
-              href={withBooking(routes.notifications, proposal.bookingId)}
-            >
-              Xem tất cả
-            </Link>
-          </header>
-          <InlineError error={inbox.latestError} onRetry={inbox.retry} />
-          {inbox.latest === null && inbox.latestError ? null : inbox.latest === null ? (
-            <p className="text-sm text-muted-foreground" role="status">
-              Đang tải thông báo…
-            </p>
-          ) : inbox.latest.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Chưa có thông báo nào.</p>
-          ) : (
-            <ul className="flex flex-col divide-y divide-border">
-              {inbox.latest.map((item) => {
-                const href = notificationHref(item);
-                return (
-                  <li key={item.id} className="flex flex-col gap-0.5 py-2.5 first:pt-0 last:pb-0">
-                    <span
-                      className={cn('text-sm', item.readAt ? 'text-foreground' : 'font-semibold')}
-                    >
-                      {href ? (
-                        <Link className="hover:text-primary" href={href}>
-                          {item.title}
-                        </Link>
-                      ) : (
-                        item.title
-                      )}
-                    </span>
-                    <small className="text-xs text-muted-foreground">
-                      {formatDateTime(item.createdAt)}
-                    </small>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
-        <section
-          className="flex flex-col gap-2 rounded-xl bg-accent p-5 sm:p-6"
-          aria-labelledby="contact-title"
-        >
-          <h2 id="contact-title" className="text-base font-bold">
-            Liên hệ nhà hàng
-          </h2>
-          <p className="text-sm">{restaurant?.displayName ?? 'Nhà hàng Hỷ Yến'}</p>
-          <div className="mt-1 flex flex-wrap gap-2">
-            {restaurant?.publicPhone ? (
-              <a
-                className={buttonVariants({ size: 'sm' })}
-                href={`tel:${restaurant.publicPhone.replace(/[^+\d]/gu, '')}`}
-              >
-                Gọi {restaurant.publicPhone}
-              </a>
-            ) : null}
-            {restaurant?.publicEmail ? (
-              <a
-                className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                href={`mailto:${restaurant.publicEmail}`}
-              >
-                Email
-              </a>
-            ) : null}
-          </div>
-        </section>
-      </div>
+      <OverviewNotifications inbox={inbox} bookingId={proposal.bookingId} />
 
       <OverviewAliasModal
         isOpen={alias.open}

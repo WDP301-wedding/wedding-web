@@ -87,25 +87,26 @@ export function nextTasks(
           status: 'wait',
         },
       ];
-    case 'CONFIRMED':
-      if (days < 0)
-        return [
-          {
-            title: 'Chờ nhà hàng quyết toán',
-            detail: 'Tiệc đã diễn ra. Nhà hàng sẽ chốt chi phí phát sinh và hoá đơn cuối.',
-            href: withBooking(routes.settle, id),
-            action: 'Xem quyết toán',
-            status: 'wait',
-          },
-          {
-            title: 'Thanh toán phần còn lại',
-            detail: 'Khi hoá đơn cuối được chốt, hai bạn thanh toán phần còn lại tại đây.',
-            href: withBooking(routes.payment, id),
-            action: 'Đi tới Thanh toán',
-            status: 'info',
-          },
-        ];
+    case 'CONFIRMED': {
+      const settlementTasks: Task[] = [
+        {
+          title: 'Chờ nhà hàng quyết toán',
+          detail: 'Nhà hàng chốt chi phí phát sinh và hoá đơn quyết toán cuối của tiệc.',
+          href: withBooking(routes.settle, id),
+          action: 'Xem quyết toán',
+          status: 'wait',
+        },
+        {
+          title: 'Thanh toán phần còn lại',
+          detail: 'Khi hoá đơn cuối được chốt, hai bạn thanh toán phần còn lại tại đây.',
+          href: withBooking(routes.payment, id),
+          action: 'Đi tới Thanh toán',
+          status: 'info',
+        },
+      ];
+      if (days < 0) return settlementTasks;
       return [
+        ...settlementTasks,
         {
           title: 'Số khách & nhóm khách',
           detail: 'Chốt số khách dự kiến và chia nhóm để xếp bàn.',
@@ -128,6 +129,7 @@ export function nextTasks(
           status: 'info',
         },
       ];
+    }
     case 'COMPLETED':
       return [
         {

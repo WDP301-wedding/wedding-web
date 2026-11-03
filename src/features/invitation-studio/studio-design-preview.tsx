@@ -31,16 +31,6 @@ export function StudioDesignPreview({
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const fullscreenRef = useOverlayFocus<HTMLDivElement>(isFullscreen, () => setIsFullscreen(false));
-  const [activeSection, setActiveSection] = React.useState<string>('header');
-
-  const scrollToSection = (sectionId: string, sectionKey: string) => {
-    setActiveSection(sectionKey);
-    const target = scrollContainerRef.current?.querySelector(`#${sectionId}`);
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
   const invitationData = React.useMemo(
     () => ({
       title,
@@ -54,6 +44,8 @@ export function StudioDesignPreview({
       })),
       assets: studioAssets,
       theme: studio.cardTheme,
+      presentation: studio.presentation,
+      seating: studio.includesSeating ? studio.seating.tables : null,
     }),
     [
       title,
@@ -68,6 +60,9 @@ export function StudioDesignPreview({
       assetPreviewMap,
       studioAssets,
       studio.cardTheme,
+      studio.presentation,
+      studio.includesSeating,
+      studio.seating.tables,
     ],
   );
 
@@ -111,42 +106,6 @@ export function StudioDesignPreview({
           </div>
         </div>
 
-        {/* Thanh chuyển nhanh các phân đoạn thiệp cưới */}
-        <div className={ix.stepper} role="tablist" aria-label="Các phân đoạn thiệp cưới">
-          <button
-            type="button"
-            className={ix.stepPill}
-            data-active={activeSection === 'header'}
-            onClick={() => scrollToSection('hy-invite-sec-header', 'header')}
-          >
-            Trang bìa
-          </button>
-          <button
-            type="button"
-            className={ix.stepPill}
-            data-active={activeSection === 'message'}
-            onClick={() => scrollToSection('hy-invite-sec-message', 'message')}
-          >
-            Lời nhắn
-          </button>
-          <button
-            type="button"
-            className={ix.stepPill}
-            data-active={activeSection === 'event'}
-            onClick={() => scrollToSection('hy-invite-sec-event', 'event')}
-          >
-            Thời gian & sảnh
-          </button>
-          <button
-            type="button"
-            className={ix.stepPill}
-            data-active={activeSection === 'timeline'}
-            onClick={() => scrollToSection('hy-invite-sec-timeline', 'timeline')}
-          >
-            Lịch trình
-          </button>
-        </div>
-
         {/* Khung mô phỏng thiết bị di động chuẩn công thái học */}
         <div className={ix.phone}>
           <div className={ix.bezel} data-device={previewDevice}>
@@ -156,7 +115,8 @@ export function StudioDesignPreview({
                 <InvitationContents apiBase={getApiBaseUrl()} invitation={invitationData} />
                 <p className={ix.previewNote}>
                   Bản xem trước nội dung đang chỉnh. Khi xuất bản, hệ thống áp dụng thông tin và
-                  lịch trình chính thức.
+                  lịch trình chính thức. Mở thiệp và dùng các nút chuyển trang hoặc vuốt ngang. Bản
+                  in là bố cục A5 tĩnh riêng; luôn kiểm tra PDF trước khi đặt in.
                 </p>
               </div>
             </div>

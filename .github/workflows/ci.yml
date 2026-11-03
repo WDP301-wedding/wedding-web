@@ -119,6 +119,9 @@ jobs:
       - name: Audit locked dependencies
         run: npm run audit:ci
 
+      - name: Verify public and Couple regressions, including Vietnamese typography
+        run: npm test -- --maxWorkers=2
+
       # Main is built once, with the real production environment, in deploy.
       - name: Restore PR build cache
         if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'

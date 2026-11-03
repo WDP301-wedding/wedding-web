@@ -16,6 +16,39 @@ import {
 export const selectionKey = (line: Pick<ContractLineInput, 'category' | 'sourceId'>) =>
   line.category + ':' + line.sourceId.toLowerCase();
 const PREVIEW_DELAY_MS = 400;
+function validateSelection(
+  lines: readonly ContractLineInput[],
+  choicesLoaded: boolean,
+  catalogError: FriendlyError | null,
+  missing: readonly ContractLineInput[],
+  stale: boolean,
+): string | null {
+  if (!choicesLoaded)
+    return catalogError
+      ? 'Chưa tải được danh mục. Hãy tải lại thực đơn và dịch vụ.'
+      : 'Đang tải thực đơn và dịch vụ.';
+  if (!lines.length) return 'Chọn ít nhất một thực đơn và nhập số bàn lớn hơn 0.';
+  if (!lines.some((line) => line.category === 'MENU'))
+    return 'Cần chọn ít nhất một thực đơn và nhập số bàn lớn hơn 0; chỉ chọn dịch vụ thì chưa thể lưu.';
+  if (lines.length > 50)
+    return 'Mỗi lựa chọn tối đa 50 hạng mục. Hãy bỏ bớt hạng mục trước khi lưu.';
+  if (
+    lines.some(
+      (line) =>
+        !Number.isSafeInteger(line.quantity) ||
+        line.quantity < 1 ||
+        line.quantity > (line.category === 'MENU' ? 500 : 10000),
+    )
+  )
+    return 'Số lượng phải là số nguyên dương, tối đa 500 bàn cho mỗi thực đơn hoặc 10.000 đơn vị dịch vụ.';
+  if (missing.some((line) => line.category === 'PRINT'))
+    return 'Thiệp in đã chuyển sang đặt sau cọc. Bỏ mục thiệp in cũ khỏi bản nháp bằng nút ở trên trước khi lưu.';
+  if (missing.length)
+    return 'Có hạng mục không còn trong danh mục đang bán. Bỏ hoặc chọn lại hạng mục được báo ở trên.';
+  if (stale)
+    return 'Có hạng mục đã đổi phiên bản giá. Chọn “Dùng giá hiện hành” ở hạng mục tương ứng.';
+  return null;
+}
 export function useCustomerSelection({
   selection,
   bookingId,
@@ -29,7 +62,7 @@ export function useCustomerSelection({
   catalog: ReturnType<typeof useSelectionCatalog>;
   bookingId: string;
   bookingRevision: number;
-  onChanged: () => void;
+  onChanged: (result?: SelectionResult) => void;
   onDirtyChange: (value: boolean) => void;
   onWritingChange: (value: boolean) => void;
 }) {
@@ -53,7 +86,6 @@ export function useCustomerSelection({
     signature: string;
     error: FriendlyError;
   } | null>(null);
-  const [waitingRefresh, setWaitingRefresh] = useState(false);
   const command = useCommand({ errorPresentation: 'inline' });
   const attempt = useRef<{ signature: string; key: string } | null>(null);
   const dirty = JSON.stringify(lines) !== JSON.stringify(initial);
@@ -65,29 +97,23 @@ export function useCustomerSelection({
     onWritingChange(command.pending);
     return () => onWritingChange(false);
   }, [command.pending, onWritingChange]);
-  const missing = lines.filter(
-    (line) => !choices?.some((choice) => selectionKey(choice) === selectionKey(line)),
+  const choicesByKey = useMemo(
+    () => new Map(choices?.map((choice) => [selectionKey(choice), choice]) ?? []),
+    [choices],
   );
-  const stale = lines.some((line) =>
-    choices?.some(
-      (choice) =>
-        selectionKey(choice) === selectionKey(line) &&
-        line.sourceRevisionId !== choice.sourceRevisionId,
-    ),
+  const missing = choices ? lines.filter((line) => !choicesByKey.has(selectionKey(line))) : [];
+  const stale = lines.some((line) => {
+    const choice = choicesByKey.get(selectionKey(line));
+    return choice !== undefined && line.sourceRevisionId !== choice.sourceRevisionId;
+  });
+  const validationMessage = validateSelection(
+    lines,
+    choices !== null,
+    catalogError,
+    missing,
+    stale,
   );
-  const invalid =
-    !choices ||
-    lines.length === 0 ||
-    lines.length > 50 ||
-    !lines.some((line) => line.category === 'MENU') ||
-    lines.some(
-      (line) =>
-        !Number.isSafeInteger(line.quantity) ||
-        line.quantity < 1 ||
-        line.quantity > (line.category === 'MENU' ? 500 : 10000),
-    ) ||
-    missing.length > 0 ||
-    stale;
+  const invalid = validationMessage !== null;
   const body = useMemo(
     () => ({ expectedRevision: bookingRevision, lines }),
     [bookingRevision, lines],
@@ -99,7 +125,7 @@ export function useCustomerSelection({
   const blockedAccess: SelectionAccess | null = block.success
     ? { canEdit: false, blockReason: block.data, nextAction: selectionRecoveryActions[block.data] }
     : null;
-  const eligible = !invalid && !command.pending && !waitingRefresh && !blockedAccess;
+  const eligible = !invalid && !command.pending && !blockedAccess;
   const previewPending = eligible && !priced && !priceError;
   useEffect(() => {
     if (!eligible || priced || priceError) return;
@@ -123,7 +149,7 @@ export function useCustomerSelection({
     };
   }, [eligible, priced, priceError, bookingId, body, signature]);
   const update = (choice: SelectionChoice, quantity: number) => {
-    if (blockedAccess) return;
+    if (blockedAccess || command.pending) return;
     setLines((prev) => [
       ...prev.filter((line) => selectionKey(line) !== selectionKey(choice)),
       ...(quantity > 0
@@ -138,11 +164,13 @@ export function useCustomerSelection({
         : []),
     ]);
     setPreview(null);
+    setPreviewError(null);
     command.setError(null);
   };
   async function save() {
-    if (blockedAccess || invalid || !priced || previewPending || priceError || waitingRefresh)
-      return;
+    // A draft is priced and validated again by the server. A failed/slow optional
+    // preview must not make an otherwise valid draft impossible to save.
+    if (blockedAccess || invalid || command.pending) return;
     const identity = 'save:' + signature;
     if (attempt.current?.signature !== identity)
       attempt.current = { signature: identity, key: crypto.randomUUID() };
@@ -153,15 +181,14 @@ export function useCustomerSelection({
     );
     if (result) {
       attempt.current = null;
-      setWaitingRefresh(true);
       onDirtyChange(false);
-      onChanged();
+      onChanged(result);
     }
   }
   async function submit() {
     if (
       blockedAccess ||
-      waitingRefresh ||
+      command.pending ||
       priceError ||
       dirty ||
       selection.status !== 'DRAFT' ||
@@ -182,14 +209,12 @@ export function useCustomerSelection({
     );
     if (result) {
       attempt.current = null;
-      setWaitingRefresh(true);
       onDirtyChange(false);
-      onChanged();
+      onChanged(result);
     }
   }
   return {
     blockedAccess,
-    waitingRefresh,
     discard: () => {
       setLines(initial);
       setPreview(null);
@@ -201,7 +226,13 @@ export function useCustomerSelection({
     lines,
     choices,
     catalogError,
-    reloadCatalog,
+    reloadCatalog: () => {
+      if (blockedAccess || command.pending) return;
+      setPreview(null);
+      setPreviewError(null);
+      reloadCatalog();
+    },
+    validationMessage,
     missing,
     stale,
     invalid,
@@ -213,8 +244,11 @@ export function useCustomerSelection({
     dirty,
     update,
     remove: (line: ContractLineInput) => {
-      if (!blockedAccess)
-        setLines((prev) => prev.filter((value) => selectionKey(value) !== selectionKey(line)));
+      if (blockedAccess || command.pending) return;
+      setLines((prev) => prev.filter((value) => selectionKey(value) !== selectionKey(line)));
+      setPreview(null);
+      setPreviewError(null);
+      command.setError(null);
     },
     save,
     submit,

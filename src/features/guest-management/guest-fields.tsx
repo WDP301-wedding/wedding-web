@@ -1,3 +1,4 @@
+import { HySelect } from '../../components/ui/select-field';
 import type { Guest, GuestGroup } from './guest-api';
 import { cx } from '../commercial-contract/contract-classes';
 
@@ -16,7 +17,7 @@ export function GuestFields({
       </label>
       <label>
         Nhóm
-        <select
+        <HySelect
           name="guestGroupId"
           required
           defaultValue={guest?.guestGroupId ?? groups[0]?.guestGroupId}
@@ -26,7 +27,7 @@ export function GuestFields({
               {group.name}
             </option>
           ))}
-        </select>
+        </HySelect>
       </label>
       <label>
         Điện thoại

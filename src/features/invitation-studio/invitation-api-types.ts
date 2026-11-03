@@ -1,3 +1,4 @@
+import type { InvitationPresentation } from './invitation-presentation';
 import type { operations } from '../../lib/api/generated/schema';
 import type {
   PrintRequestInputLine,
@@ -11,11 +12,15 @@ export type {
 } from './invitation-print-request-types';
 
 export type DesignView =
-  operations['getWeddingInvitation']['responses'][200]['content']['application/json']['data'];
+  operations['getWeddingInvitation']['responses'][200]['content']['application/json']['data'] & {
+    readonly presentation?: InvitationPresentation;
+  };
 export type PrintOrderView =
   operations['getPrintOrder']['responses'][200]['content']['application/json']['data'];
 export type PublicInvitationView =
-  operations['getPublicInvitation']['responses'][200]['content']['application/json']['data'];
+  operations['getPublicInvitation']['responses'][200]['content']['application/json']['data'] & {
+    readonly presentation?: InvitationPresentation;
+  };
 export type TemplateItemView =
   operations['listInvitationTemplates']['responses'][200]['content']['application/json']['data']['items'][number];
 export type MediaAssetView =
@@ -46,12 +51,12 @@ export type DesignSection = {
 };
 
 export type DesignContentInput = {
-  presentation?: NonNullable<DesignView['presentation']>;
   title: string;
   textFields: DesignTextFields;
   sections: readonly DesignSection[];
   derivedAssetIds: readonly string[];
   includesSeating: boolean;
+  presentation?: InvitationPresentation;
 };
 
 export type ReviseDesignInput = {

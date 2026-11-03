@@ -1,4 +1,5 @@
 'use client';
+import { HySelect } from '../../components/ui/select-field';
 
 import React from 'react';
 import type { GuestGroup } from '../guest-management/guest-api';
@@ -83,7 +84,7 @@ export function PlanEditorSidebar({
             <div className={sx.selectedName}>Bàn {selectedTable.tableLabel}</div>
             <label className={sx.selectedField}>
               Nhóm khách cho bàn này:
-              <select
+              <HySelect
                 disabled={pending}
                 value={labels[selectedTable.layoutTableId] ?? ''}
                 onChange={(event) => {
@@ -96,7 +97,7 @@ export function PlanEditorSidebar({
                     {group.name}
                   </option>
                 ))}
-              </select>
+              </HySelect>
             </label>
           </div>
         ) : (

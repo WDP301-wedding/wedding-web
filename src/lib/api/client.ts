@@ -1,3 +1,5 @@
+import { apiErrorMessage, localizeErrorDetails } from './error-presentation';
+import { enforceActiveBooking, ArchivedBookingError } from './booking-navigation';
 import createClient, { type Client } from 'openapi-fetch';
 import { z } from 'zod';
 
@@ -42,6 +44,7 @@ type ApiClientErrorOptions = Readonly<{
 
 export class ApiClientError extends Error {
   readonly kind: ApiClientErrorKind;
+  readonly backendMessage: string;
   readonly code: string;
   readonly requestId: string;
   readonly status: number | undefined;
@@ -49,14 +52,15 @@ export class ApiClientError extends Error {
   readonly details: readonly ApiErrorDetails[] | undefined;
 
   constructor(options: ApiClientErrorOptions) {
-    super(options.message, { cause: options.cause });
+    super(apiErrorMessage(options), { cause: options.cause });
     this.name = 'ApiClientError';
+    this.backendMessage = options.message;
     this.kind = options.kind;
     this.code = options.code;
     this.requestId = options.requestId;
     this.status = options.status;
     this.retryAfterSeconds = options.retryAfterSeconds;
-    this.details = options.details;
+    this.details = localizeErrorDetails(options.details);
   }
 }
 
@@ -105,6 +109,7 @@ async function validateResponse(response: Response, sentRequestId: string): Prom
   }
 
   if (response.ok) {
+    enforceActiveBooking(payload);
     return;
   }
 
@@ -237,7 +242,7 @@ function createFetchWithPolicy(
       await validateResponse(response, sentRequestId);
       return response;
     } catch (error) {
-      if (error instanceof ApiClientError) {
+      if (error instanceof ApiClientError || error instanceof ArchivedBookingError) {
         throw error;
       }
 

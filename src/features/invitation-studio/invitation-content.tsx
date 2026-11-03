@@ -1,4 +1,9 @@
+import { InteractiveInvitation } from './interactive-invitation';
+import type { InvitationPresentation } from './invitation-presentation';
+import { InvitationSeatingView } from './invitation-seating-view';
+import type { InvitationSeating } from './print-purchase-api';
 import Image from 'next/image';
+import { formatDate } from '../couple-workspace/workspace-helpers';
 import { inferThemeFromContent } from './ai-invitation-generator';
 
 export type InvitationEvent = Readonly<{
@@ -21,6 +26,8 @@ export type InvitationSection = Readonly<{
 }>;
 export type InvitationContent = Readonly<{
   title: string;
+  presentation?: InvitationPresentation;
+  seating?: InvitationSeating | null;
   textFields: InvitationText;
   event: InvitationEvent | null;
   timeline: readonly Readonly<{
@@ -40,6 +47,14 @@ export function InvitationContents({
   apiBase,
   recipientGreeting,
 }: Readonly<{ invitation: InvitationContent; apiBase: string; recipientGreeting?: string }>) {
+  if (invitation.presentation)
+    return (
+      <InteractiveInvitation
+        invitation={invitation}
+        apiBase={apiBase}
+        {...(recipientGreeting ? { recipientGreeting } : {})}
+      />
+    );
   const { title, textFields: text, event, timeline, assets, theme } = invitation;
   const currentTheme = theme || inferThemeFromContent(title, text.message ?? undefined);
   const groomInitial = Array.from(text.groomName?.trim() || 'H')[0]?.toUpperCase() ?? 'H';
@@ -67,11 +82,7 @@ export function InvitationContents({
       />
     );
   };
-  const date = event
-    ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'long', timeZone: 'UTC' }).format(
-        new Date(event.eventDate + 'T00:00:00Z'),
-      )
-    : null;
+  const date = event ? formatDate(event.eventDate) : null;
   return (
     <div className={`hy-invite-card-canvas hy-theme-${currentTheme}`}>
       <div className="hy-card-border-outer">
@@ -169,7 +180,7 @@ export function InvitationContents({
                   </ol>
                 </>
               ) : null}
-              {section.kind === 'SEATING' && !section.imageUrl ? (
+              {section.kind === 'SEATING' && !section.imageUrl && !invitation.seating ? (
                 <p>
                   Sơ đồ bàn chưa có hình ảnh trong nội dung xuất bản này. Vui lòng liên hệ người tổ
                   chức để được hướng dẫn chỗ ngồi.
@@ -180,6 +191,7 @@ export function InvitationContents({
               ) : null}
             </section>
           ))}
+          {invitation.seating ? <InvitationSeatingView tables={invitation.seating} /> : null}
           {assets
             .filter((asset) => !assigned.has(asset.url))
             .map((asset) => photo(asset.url, asset.url))}

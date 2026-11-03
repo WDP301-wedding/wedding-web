@@ -23,7 +23,7 @@ const sectionCopy: Record<ContractSection, { title: string; description: string 
   all: {
     title: 'Hợp đồng tiệc cưới',
     description:
-      'Thông tin cô dâu & chú rể, thực đơn, dịch vụ và thiệp in; hai bên cùng duyệt một phiên bản trước khi đặt cọc.',
+      'Thông tin cô dâu & chú rể, thực đơn và dịch vụ; hai bên cùng duyệt một phiên bản trước khi đặt cọc. Thiệp in được đặt riêng sau đặt cọc.',
   },
   names: {
     title: 'Tên cô dâu & chú rể',
@@ -32,7 +32,7 @@ const sectionCopy: Record<ContractSection, { title: string; description: string 
   contract: {
     title: 'Hợp đồng tiệc cưới',
     description:
-      'Thông tin cô dâu & chú rể, thực đơn, dịch vụ và thiệp in; hai bên cùng duyệt một phiên bản trước khi đặt cọc.',
+      'Thông tin cô dâu & chú rể, thực đơn và dịch vụ; hai bên cùng duyệt một phiên bản trước khi đặt cọc. Thiệp in được đặt riêng sau đặt cọc.',
   },
 };
 
@@ -69,7 +69,10 @@ function ContractWorkspace({
           authorizedRead((token) => contractApi.profile(token, proposal.consultationId)),
         ]);
         if (!isCurrent()) return;
-        setContracts(list);
+        // A read started before saving must not overwrite the acknowledged draft.
+        setContracts((current) =>
+          current && current.bookingRevision > list.bookingRevision ? current : list,
+        );
         setProfile(coupleProfile);
         setLoadError(null);
       } catch (error) {
@@ -121,7 +124,19 @@ function ContractWorkspace({
           bookingId={proposal.bookingId}
           onDirtyChange={setEditing}
           onWritingChange={setWriting}
-          onChanged={() => {
+          onChanged={(result) => {
+            // Apply the acknowledged server revision before the background refresh.
+            // Otherwise the editor waits for a read that dirty/write guards may defer.
+            if (result)
+              setContracts((current) =>
+                current
+                  ? {
+                      ...current,
+                      bookingRevision: result.bookingRevision,
+                      customerSelection: result.selection,
+                    }
+                  : current,
+              );
             reload();
             reloadBooking();
           }}

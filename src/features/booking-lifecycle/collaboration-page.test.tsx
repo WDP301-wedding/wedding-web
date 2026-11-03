@@ -121,8 +121,7 @@ describe('Booking collaboration workspace', () => {
       target: { value: 'Giữ ghi chú này' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Lưu kịch bản mới' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('17:00');
-    expect(screen.getByRole('alert')).toHaveTextContent('trước 22:00');
+    expect(await screen.findByRole('alert')).toHaveTextContent('khung giờ của tiệc');
     expect(screen.getByLabelText('Giờ bắt đầu mốc 1')).toHaveValue('09:00');
     expect(screen.getByLabelText('Ghi chú mốc 1')).toHaveValue('Giữ ghi chú này');
     expect(screen.getByRole('button', { name: 'Lưu kịch bản mới' })).toBeEnabled();
@@ -270,14 +269,14 @@ describe('Booking collaboration workspace', () => {
     [failure('TIMELINE_APPROVAL_REQUIRES_ITEM', 422), 'Hãy thêm và lưu ít nhất một mốc'],
     [failure('TIMELINE_ITEM_COUNT_INVALID', 422), 'tối đa 100 mốc'],
     [failure('TIMELINE_ITEM_TEXT_INVALID', 422), '1–120 ký tự'],
-    [failure('TIMELINE_REVISION_SUPERSEDED', 409), 'Đề xuất vừa được cập nhật'],
-    [failure('STALE_BOOKING_REVISION', 409), 'Đề xuất vừa được cập nhật'],
-    [failure('DEPOSIT_INTENT_ACTIVE', 409), 'Đang có giao dịch tiền cọc'],
-    [failure('FORBIDDEN', 403), 'Không tìm thấy hồ sơ'],
+    [failure('TIMELINE_REVISION_SUPERSEDED', 409), 'Kịch bản đã có phiên bản mới hơn'],
+    [failure('STALE_BOOKING_REVISION', 409), 'Hồ sơ tiệc vừa được cập nhật ở nơi khác'],
+    [failure('DEPOSIT_INTENT_ACTIVE', 409), 'Đang có giao dịch đặt cọc chưa rõ kết quả'],
+    [failure('FORBIDDEN', 403), 'Bạn không có quyền thực hiện thao tác này'],
     [failure('BOOKING_NOT_FOUND', 404), 'Không tìm thấy hồ sơ'],
-    [failure('SESSION_EXPIRED', 401), 'Yêu cầu chưa hoàn tất'],
-    [failure('UNKNOWN'), 'Yêu cầu chưa hoàn tất'],
-    [new Error('offline'), 'Không thể đồng bộ hồ sơ'],
+    [failure('SESSION_EXPIRED', 401), 'Phiên làm việc đã hết hạn'],
+    [failure('UNKNOWN'), 'Không thể hoàn tất thao tác'],
+    [new Error('offline'), 'Không thể hoàn tất thao tác'],
   ])(
     'handles command failure and allows recovery with valid access: %s',
     async (error, message) => {
@@ -298,7 +297,7 @@ describe('Booking collaboration workspace', () => {
     const gateway = fakeGateway();
     await open(gateway);
     vi.mocked(gateway.load).mockRejectedValue(failure('BOOKING_NOT_FOUND', 404));
-    fireEvent.change(screen.getByLabelText('Đổi tiệc cưới'), {
+    fireEvent.change(screen.getByLabelText('Đổi tiệc cưới', { selector: 'select' }), {
       target: { value: '00000000-0000-4000-8000-000000000999' },
     });
     expect(await screen.findByText('Chưa thể mở đề xuất')).toBeVisible();
@@ -572,7 +571,9 @@ describe('Booking collaboration workspace', () => {
     expect(onBookingChange).toHaveBeenCalledWith(bookingAId);
 
     // 2. Switch to Booking B
-    fireEvent.change(screen.getByLabelText('Đổi tiệc cưới'), { target: { value: bookingBId } });
+    fireEvent.change(screen.getByLabelText('Đổi tiệc cưới', { selector: 'select' }), {
+      target: { value: bookingBId },
+    });
 
     expect(await screen.findByText('Sảnh Kim Cương')).toBeVisible();
     expect(screen.queryByText('Sảnh Ánh Dương')).not.toBeInTheDocument();
@@ -605,12 +606,12 @@ describe('Booking collaboration workspace', () => {
     expect(await screen.findByText('Sảnh Ánh Dương')).toBeVisible();
 
     // 2. Try loading Booking B (fails)
-    fireEvent.change(screen.getByLabelText('Đổi tiệc cưới'), { target: { value: bookingBId } });
+    fireEvent.change(screen.getByLabelText('Đổi tiệc cưới', { selector: 'select' }), {
+      target: { value: bookingBId },
+    });
 
     // Must show error and empty state; must NOT retain proposal A
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Không thể đồng bộ hồ sơ. Nội dung bạn nhập vẫn được giữ lại.',
-    );
+    expect(await screen.findByRole('alert')).toHaveTextContent('Hồ sơ không tồn tại');
     expect(screen.queryByText('Sảnh Ánh Dương')).not.toBeInTheDocument();
   });
 });

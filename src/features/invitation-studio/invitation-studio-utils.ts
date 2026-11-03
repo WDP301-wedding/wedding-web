@@ -17,61 +17,10 @@ export const publicationSnapshotSchema = z.object({
 
 export function invitationErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof Error && err.cause instanceof ApiClientError) err = err.cause;
-  if (err instanceof ApiClientError) {
-    // Chỉ kèm mã hỗ trợ (requestId) để nhà hàng tra log; không hiện mã lỗi/HTTP kỹ thuật cho khách.
-    const meta = err.requestId ? ` (Mã hỗ trợ: ${err.requestId.slice(0, 8)})` : '';
-    if (err.code === 'INVITATION_DESIGN_STALE')
-      return `Bản thiết kế thiệp đã có phiên bản mới hơn trên máy chủ. Vui lòng làm mới trang để nhận bản mới nhất.${meta}`;
-    if (err.code === 'INVITATION_PUBLICATION_STALE')
-      return `Phiên bản xuất bản thiệp không đồng bộ với máy chủ. Vui lòng thử lại hoặc tải lại trang.${meta}`;
-    if (err.code === 'PRINT_ORDER_STATE_INVALID')
-      return `Trạng thái đơn in hiện tại không cho phép thực hiện thao tác này.${meta}`;
-    if (err.code === 'PRINT_QUOTE_EXPIRED')
-      return `Bản xem trước chi phí đã hết hạn. Vui lòng xem lại nội dung và chi phí trước khi xác nhận.${meta}`;
-    if (err.code === 'PRINT_QUOTE_STALE')
-      return `Thiết kế hoặc chi phí đã thay đổi. Vui lòng lấy bản xem trước mới rồi xác nhận lại.${meta}`;
-    if (err.code === 'PRINT_APPENDIX_PENDING')
-      return `Đang có phụ lục chờ duyệt. Hoàn tất hoặc rút yêu cầu đó trước khi đặt in tiếp.${meta}`;
-    if (err.code === 'SETTLED_CONTRACT_REQUIRED')
-      return `Chỉ có thể đặt in sau khi nhà hàng xác nhận đã nhận tiền cọc của hợp đồng.${meta}`;
-    if (err.code === 'COMMERCIAL_PREDECESSOR_STALE')
-      return `Thoả thuận vừa được cập nhật. Hãy tải lại và xem trước chi phí theo phiên bản mới.${meta}`;
-    if (err.code === 'PRINT_APPENDIX_CHANGE_REQUIRED')
-      return `Đơn in đã có phụ lục hiệu lực. Muốn thay đổi hoặc hủy, hãy lập phụ lục điều chỉnh.${meta}`;
-    if (err.code === 'PRINT_CANCELLATION_NOT_ALLOWED')
-      return `Đơn in đang trong quá trình sản xuất hoặc đã hoàn tất, không thể hủy.${meta}`;
-    if (err.code === 'PRINTABLE_TIMELINE_NOT_EFFECTIVE')
-      return `Kịch bản tiệc chưa có hiệu lực hoặc chưa được cả hai bên phê duyệt, chưa thể xuất bản thiệp.${meta}`;
-    if (err.code === 'PRINTABLE_SEATING_REQUIRES_REVIEW')
-      return `Sơ đồ sắp bàn cần được rà soát trước khi xuất bản thiệp.${meta}`;
-    if (err.code === 'MEDIA_QUOTA_EXCEEDED')
-      return `Đã vượt quá hạn ngạch hình ảnh cho phép (tối đa 100 ảnh hoặc 1 GiB mỗi tiệc).${meta}`;
-    if (err.code === 'MEDIA_CUTOFF_REACHED')
-      return `Đã hết hạn tải ảnh lên cho tiệc cưới (hạn chót khóa trước giờ tiệc 72 giờ).${meta}`;
-    if (err.code === 'MEDIA_REVISION_STALE')
-      return `Tệp hình ảnh không đồng bộ phiên bản với máy chủ. Vui lòng thử lại.${meta}`;
-    if (err.code === 'IDEMPOTENCY_KEY_REUSED')
-      return `Khóa thao tác đã được sử dụng cho một yêu cầu khác. Vui lòng làm mới trang.${meta}`;
-    if (err.code === 'IDEMPOTENCY_KEY_REQUIRED')
-      return `Thao tác thiếu mã xác nhận. Vui lòng tải lại trang rồi thử lại.${meta}`;
-    if (err.code === 'REQUEST_IN_PROGRESS')
-      return `Một yêu cầu tương tự đang được xử lý trên máy chủ. Vui lòng chờ trong giây lát.${meta}`;
-    if (err.code === 'RATE_LIMIT_EXCEEDED')
-      return `Thao tác quá nhanh. Vui lòng đợi ${err.retryAfterSeconds ?? 'vài'} giây rồi thử lại.${meta}`;
-    if (err.code === 'REQUEST_TIMEOUT')
-      return `Yêu cầu máy chủ đã quá thời gian chờ (10 giây). Vui lòng kiểm tra lại đường truyền internet.${meta}`;
-    if (err.code === 'NETWORK_ERROR')
-      return `Không thể kết nối tới máy chủ. Vui lòng kiểm tra lại đường truyền internet.${meta}`;
-    if (err.code === 'VALIDATION_ERROR')
-      return `Dữ liệu gửi lên không đúng định dạng quy định. Vui lòng kiểm tra lại.${meta}`;
-    if (err.status === 401 || err.code === 'AUTHENTICATION_REQUIRED')
-      return `Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.${meta}`;
-    if (err.status === 403)
-      return `Bạn không có quyền thực hiện thao tác này trên hồ sơ tiệc cưới.${meta}`;
-    if (err.status === 404) return `Không tìm thấy tài nguyên yêu cầu trên máy chủ.${meta}`;
-    return `${describeApiError(err).message}${meta}`;
-  }
-  return err instanceof Error ? err.message : fallback;
+  const parsed = describeApiError(err);
+  if (err instanceof ApiClientError)
+    return parsed.message + (parsed.requestId ? ' (Mã hỗ trợ: ' + parsed.requestId + ')' : '');
+  return err instanceof Error ? parsed.message : fallback;
 }
 
 export function getApiBaseUrl(): string {

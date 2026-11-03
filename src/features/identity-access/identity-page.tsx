@@ -92,6 +92,7 @@ export function IdentityExperience({
     setNotice,
     handleLogin,
     handleInvitation,
+    maskedEmail,
   } = useIdentityExperience({ session, initialCredential, startView, onAuthenticated });
 
   if (snapshot.status === 'authenticated') {
@@ -145,7 +146,11 @@ export function IdentityExperience({
         {view === 'invitation' ? (
           <AuthForm
             title="Hoàn tất lời mời của bạn"
-            description="Tài khoản mới sẽ dùng mật khẩu này. Nếu đã có tài khoản, hãy nhập mật khẩu hiện tại."
+            description={
+              maskedEmail
+                ? `Lời mời được gửi tới ${maskedEmail}. Tài khoản mới sẽ dùng mật khẩu này. Nếu đã có tài khoản, hãy nhập mật khẩu hiện tại.`
+                : 'Tài khoản mới sẽ dùng mật khẩu này. Nếu đã có tài khoản, hãy nhập mật khẩu hiện tại.'
+            }
             submitLabel="Xác nhận lời mời"
             pending={pending || credentialConsumed}
             onSubmit={handleInvitation}

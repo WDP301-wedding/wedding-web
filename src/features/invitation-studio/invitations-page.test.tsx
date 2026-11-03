@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import React from 'react';
 import { CoupleInvitationsPage as Page } from './invitations-page';
 import { browserSession as session } from '../identity-access/browser-session';
@@ -7,6 +7,10 @@ import { ApiClientError } from '../../lib/api/client';
 import type * as CoupleWorkspaceModule from '../couple-workspace/use-couple-workspace';
 
 const mockSearchParams = new URLSearchParams();
+// Compile the real lazy chunk before timing assertions about tab rendering.
+beforeAll(async () => {
+  await import('./invitation-studio-view');
+});
 vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
 }));

@@ -12,6 +12,7 @@ export function useAvailableBookings(
   embedded: boolean,
   onError: (caught: unknown) => void,
 ) {
+  const reportError = useEffectEvent(onError);
   const [availableBookings, setAvailableBookings] = useState<
     readonly { bookingId: string; label: string }[]
   >([]);
@@ -24,12 +25,12 @@ export function useAvailableBookings(
         if (active) setAvailableBookings(mapped);
       })
       .catch((caught: unknown) => {
-        if (active) onError(caught);
+        if (active) reportError(caught);
       });
     return () => {
       active = false;
     };
-  }, [authorize, embedded, onError]);
+  }, [authorize, embedded]);
 
   return availableBookings;
 }
@@ -133,4 +134,3 @@ export function useBillingRealtimeSync({
     },
   });
 }
-
