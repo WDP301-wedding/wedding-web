@@ -1,19 +1,16 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { cn } from 'cn';
 
-import { Badge } from '../../components/ui/badge';
 import { buttonVariants } from '../../components/ui/button';
-import { InlineError } from '../../design-system/inline-error';
 import { JourneyStepper, journeyIndex, journeySteps } from '../../design-system/journey-stepper';
-import { routes, withBooking } from '../../routes';
-import { notificationHref } from '../notifications/notification-api';
 import { CancellationModal } from './cancellation-modal';
 import { OverviewAliasModal } from './overview-alias-modal';
 import { OverviewMultiBookings } from './overview-multi-bookings';
+import { OverviewNextSteps } from './overview-next-steps';
+import { OverviewNotifications } from './overview-notifications';
 import { daysUntil, nextTasks } from './overview-tasks';
 import { menuLines } from './proposal-menus';
 import { panel, panelTitle } from './space-classes';
@@ -24,7 +21,6 @@ import {
   bookingDisplayName,
   bookingPhaseLabel,
   eventTypeLabel,
-  formatDateTime,
   formatEventDate,
   shiftLabel,
   useCoupleWorkspace,
@@ -197,120 +193,12 @@ function OverviewContent() {
           </span>
         </div>
         <JourneyStepper current={step} />
+        <OverviewNextSteps tasks={tasks} />
       </section>
-
-      {tasks.length > 0 ? (
-        <section className="flex flex-col gap-4" aria-labelledby="tasks-title">
-          <h2 id="tasks-title" className={panelTitle}>
-            Việc cần làm ngay
-          </h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            {tasks.map((task) => (
-              <article
-                key={task.title}
-                className={cn(
-                  panel,
-                  'flex flex-col gap-2 transition-[translate,box-shadow] duration-250 ease-hy-emphasized hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgb(43_29_34/0.1)] motion-reduce:hover:translate-y-0',
-                  task.status === 'wait' && 'border-hy-warning/40',
-                )}
-              >
-                {task.status === 'wait' ? <Badge variant="warning">Chờ bạn</Badge> : null}
-                <h3 className="text-base font-bold">{task.title}</h3>
-                <p className="flex-1 text-sm text-muted-foreground">{task.detail}</p>
-                {task.href ? (
-                  <Link
-                    className={buttonVariants({
-                      variant: task.status === 'wait' ? 'default' : 'secondary',
-                      size: 'sm',
-                      className: 'self-start',
-                    })}
-                    href={task.href}
-                  >
-                    {task.action}
-                  </Link>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       <OverviewMultiBookings bookings={bookings} proposal={proposal} />
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <section className={cn(panel, 'flex flex-col gap-3')} aria-labelledby="latest-title">
-          <header className="flex items-baseline justify-between gap-3">
-            <h2 id="latest-title" className="text-base font-bold">
-              Thông báo mới
-            </h2>
-            <Link
-              className="text-xs font-semibold text-primary hover:underline"
-              href={withBooking(routes.notifications, proposal.bookingId)}
-            >
-              Xem tất cả
-            </Link>
-          </header>
-          <InlineError error={inbox.latestError} onRetry={inbox.retry} />
-          {inbox.latest === null && inbox.latestError ? null : inbox.latest === null ? (
-            <p className="text-sm text-muted-foreground" role="status">
-              Đang tải thông báo…
-            </p>
-          ) : inbox.latest.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Chưa có thông báo nào.</p>
-          ) : (
-            <ul className="flex flex-col divide-y divide-border">
-              {inbox.latest.map((item) => {
-                const href = notificationHref(item);
-                return (
-                  <li key={item.id} className="flex flex-col gap-0.5 py-2.5 first:pt-0 last:pb-0">
-                    <span
-                      className={cn('text-sm', item.readAt ? 'text-foreground' : 'font-semibold')}
-                    >
-                      {href ? (
-                        <Link className="hover:text-primary" href={href}>
-                          {item.title}
-                        </Link>
-                      ) : (
-                        item.title
-                      )}
-                    </span>
-                    <small className="text-xs text-muted-foreground">
-                      {formatDateTime(item.createdAt)}
-                    </small>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
-        <section
-          className="flex flex-col gap-2 rounded-xl bg-accent p-5 sm:p-6"
-          aria-labelledby="contact-title"
-        >
-          <h2 id="contact-title" className="text-base font-bold">
-            Liên hệ nhà hàng
-          </h2>
-          <p className="text-sm">{restaurant?.displayName ?? 'Nhà hàng Hỷ Yến'}</p>
-          <div className="mt-1 flex flex-wrap gap-2">
-            {restaurant?.publicPhone ? (
-              <a
-                className={buttonVariants({ size: 'sm' })}
-                href={`tel:${restaurant.publicPhone.replace(/[^+\d]/gu, '')}`}
-              >
-                Gọi {restaurant.publicPhone}
-              </a>
-            ) : null}
-            {restaurant?.publicEmail ? (
-              <a
-                className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                href={`mailto:${restaurant.publicEmail}`}
-              >
-                Email
-              </a>
-            ) : null}
-          </div>
-        </section>
-      </div>
+      <OverviewNotifications inbox={inbox} bookingId={proposal.bookingId} />
 
       <OverviewAliasModal
         isOpen={alias.open}

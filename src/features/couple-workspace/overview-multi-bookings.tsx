@@ -1,6 +1,6 @@
 'use client';
 
-import { Check } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from 'cn';
 
@@ -54,7 +54,7 @@ export function OverviewMultiBookings({ bookings, proposal }: OverviewMultiBooki
           </div>
         ))}
       </dl>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {bookings.map((b) => {
           const isCurrent = b.bookingId === proposal.bookingId;
           const bDays = daysUntil(b.eventDate);
@@ -64,18 +64,15 @@ export function OverviewMultiBookings({ bookings, proposal }: OverviewMultiBooki
               : b.phase === 'CANCELLED'
                 ? 'off'
                 : 'wait';
-          return (
-            <article
-              key={b.bookingId}
-              className={cn(
-                'flex flex-col gap-3 rounded-lg border p-4',
-                isCurrent ? 'border-primary bg-accent/40' : 'border-border',
-              )}
-            >
+
+          const cardBody = (
+            <>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 flex-col">
-                  <h3 className="truncate text-sm font-bold">{bookingDisplayName(b)}</h3>
-                  <p className="text-xs text-muted-foreground">
+                  <h3 className="break-words text-sm font-bold leading-relaxed text-foreground">
+                    {bookingDisplayName(b)}
+                  </h3>
+                  <p className="break-words text-xs text-muted-foreground">
                     {b.hallName} · {shiftLabel(b.shiftCode)}
                   </p>
                 </div>
@@ -83,13 +80,15 @@ export function OverviewMultiBookings({ bookings, proposal }: OverviewMultiBooki
               </div>
               <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs tabular-nums">
                 <dt className="text-muted-foreground">Ngày tổ chức:</dt>
-                <dd className="font-semibold">{formatEventDate(b.eventDate)}</dd>
+                <dd className="font-semibold text-foreground">{formatEventDate(b.eventDate)}</dd>
                 <dt className="text-muted-foreground">Thời gian:</dt>
-                <dd>{bDays > 0 ? `Còn ${bDays} ngày` : bDays === 0 ? 'Hôm nay' : 'Đã diễn ra'}</dd>
+                <dd className="min-w-0 break-words text-foreground">
+                  {bDays > 0 ? `Còn ${bDays} ngày` : bDays === 0 ? 'Hôm nay' : 'Đã diễn ra'}
+                </dd>
                 {b.totalVnd !== undefined ? (
                   <>
                     <dt className="text-muted-foreground">Chi phí tiệc:</dt>
-                    <dd>
+                    <dd className="text-foreground">
                       <strong>{formatVnd(b.totalVnd)}</strong>
                       {b.depositPaidVnd ? (
                         <span className="text-muted-foreground">
@@ -102,19 +101,47 @@ export function OverviewMultiBookings({ bookings, proposal }: OverviewMultiBooki
                 ) : null}
               </dl>
               {isCurrent ? (
-                <span className="flex items-center gap-1 text-xs font-semibold text-hy-success">
-                  <Check className="size-3.5" aria-hidden="true" />
-                  Đang thao tác tiệc này
-                </span>
+                <div className="mt-auto pt-1">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-hy-success">
+                    <Check className="size-3.5" aria-hidden="true" />
+                    Đang thao tác tiệc này
+                  </span>
+                </div>
               ) : (
-                <Link
-                  href={withBooking(routes.space, b.bookingId)}
-                  className="self-start text-xs font-semibold text-primary hover:underline"
-                >
-                  Chuyển tới tiệc này
-                </Link>
+                <div className="mt-auto pt-1">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition-colors group-hover:underline">
+                    Chuyển tới tiệc này
+                    <ArrowRight
+                      className="size-3.5 transition-transform group-hover:translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </div>
               )}
-            </article>
+            </>
+          );
+
+          if (isCurrent) {
+            return (
+              <article
+                key={b.bookingId}
+                className="flex min-w-0 flex-col gap-3 rounded-xl border border-primary bg-accent/40 p-4 shadow-2xs"
+                aria-current="true"
+              >
+                {cardBody}
+              </article>
+            );
+          }
+
+          return (
+            <Link
+              key={b.bookingId}
+              href={withBooking(routes.space, b.bookingId)}
+              className="group flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 transition-all duration-150 hover:border-primary hover:bg-accent/15 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+              aria-label={`Chuyển tới không gian tiệc ${bookingDisplayName(b)}`}
+            >
+              {cardBody}
+            </Link>
           );
         })}
       </div>

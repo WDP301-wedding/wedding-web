@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { Toaster, toast } from 'sonner';
+import { presentError } from '../lib/api/error-presentation';
 
 /**
  * Thông báo nổi (toast) dùng chung toàn hệ thống, xây trên thư viện `sonner`.
@@ -46,10 +47,12 @@ export const notify = {
   /**
    * @param requestId mã yêu cầu backend trả về (nếu có) — hiển thị dạng "Mã hỗ trợ: …".
    */
-  error(message: string, requestId?: string | null) {
-    return toast.error(message, {
+  error(error: unknown, requestId?: string | null) {
+    const parsed = presentError(error);
+    const supportId = parsed.requestId ?? requestId;
+    return toast.error(parsed.message, {
       duration: 7000,
-      ...(requestId ? { description: `Mã hỗ trợ: ${requestId}` } : {}),
+      ...(supportId ? { description: `Mã hỗ trợ: ${supportId}` } : {}),
     });
   },
   info(message: string) {

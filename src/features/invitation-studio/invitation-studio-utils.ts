@@ -16,68 +16,10 @@ export const publicationSnapshotSchema = z.object({
 });
 
 export function invitationErrorMessage(err: unknown, fallback: string): string {
-  if (err instanceof ApiClientError) {
-    // Chỉ kèm mã hỗ trợ (requestId) để nhà hàng tra log; không hiện mã lỗi/HTTP kỹ thuật cho khách.
-    const meta = err.requestId ? ` (Mã hỗ trợ: ${err.requestId.slice(0, 8)})` : '';
-    if (err.code === 'AI_DESIGN_DISABLED')
-      return `Tính năng thiết kế AI chưa được nhà hàng cấu hình. Bạn vẫn có thể chọn và chỉnh mẫu có sẵn.${meta}`;
-    if (err.code === 'AI_DESIGN_OUTCOME_UNKNOWN')
-      return `Chưa xác định được kết quả thiết kế trước. Hệ thống không tự tạo lại để tránh tính phí hai lần. Bạn có thể dùng mẫu có sẵn hoặc liên hệ nhà hàng.${meta}`;
-    if (err.code === 'AI_DESIGN_DAILY_LIMIT')
-      return `Đã đạt giới hạn tạo thiết kế trong ngày. Bạn vẫn có thể chỉnh thiệp hoặc chọn mẫu có sẵn.${meta}`;
-    if (err.code === 'INVITATION_DESIGN_STALE')
-      return `Bản thiết kế thiệp đã có phiên bản mới hơn trên máy chủ. Vui lòng làm mới trang để nhận bản mới nhất.${meta}`;
-    if (err.code === 'INVITATION_PUBLICATION_STALE')
-      return `Phiên bản xuất bản thiệp không đồng bộ với máy chủ. Vui lòng thử lại hoặc tải lại trang.${meta}`;
-    if (err.code === 'PRINT_ORDER_STATE_INVALID')
-      return `Trạng thái đơn in hiện tại không cho phép thực hiện thao tác này.${meta}`;
-    if (err.code === 'PRINT_QUOTE_EXPIRED')
-      return `Báo giá in thiệp đã hết hạn (quá 7 ngày). Vui lòng gửi yêu cầu báo giá mới.${meta}`;
-    if (err.code === 'PRINT_QUOTE_STALE')
-      return `Báo giá đã thay đổi hoặc không còn hiệu lực. Vui lòng làm mới đơn hàng.${meta}`;
-    if (err.code === 'PRINT_CANCELLATION_NOT_ALLOWED')
-      return `Đơn in đang trong quá trình sản xuất hoặc đã hoàn tất, không thể hủy.${meta}`;
-    if (err.code === 'PRINTABLE_TIMELINE_NOT_EFFECTIVE')
-      return `Kịch bản tiệc chưa có hiệu lực hoặc chưa được cả hai bên phê duyệt, chưa thể xuất bản thiệp.${meta}`;
-    if (err.code === 'PRINTABLE_SEATING_REQUIRES_REVIEW')
-      return `Sơ đồ sắp bàn cần được rà soát trước khi xuất bản thiệp.${meta}`;
-    if (err.code === 'MEDIA_QUOTA_EXCEEDED')
-      return `Đã vượt quá hạn ngạch hình ảnh cho phép (tối đa 100 ảnh hoặc 1 GiB mỗi tiệc).${meta}`;
-    if (err.code === 'MEDIA_CUTOFF_REACHED')
-      return `Đã hết hạn tải ảnh lên cho tiệc cưới (hạn chót khóa trước giờ tiệc 72 giờ).${meta}`;
-    if (err.code === 'MEDIA_REVISION_STALE')
-      return `Tệp hình ảnh không đồng bộ phiên bản với máy chủ. Vui lòng thử lại.${meta}`;
-    if (err.code === 'IDEMPOTENCY_KEY_REUSED')
-      return `Khóa thao tác đã được sử dụng cho một yêu cầu khác. Vui lòng làm mới trang.${meta}`;
-    if (err.code === 'IDEMPOTENCY_KEY_REQUIRED')
-      return `Thao tác thiếu mã xác nhận. Vui lòng tải lại trang rồi thử lại.${meta}`;
-    if (err.code === 'REQUEST_IN_PROGRESS')
-      return `Một yêu cầu tương tự đang được xử lý trên máy chủ. Vui lòng chờ trong giây lát.${meta}`;
-    if (err.code === 'RATE_LIMIT_EXCEEDED')
-      return `Thao tác quá nhanh. Vui lòng đợi ${err.retryAfterSeconds ?? 'vài'} giây rồi thử lại.${meta}`;
-    if (err.code === 'REQUEST_TIMEOUT')
-      return `Yêu cầu máy chủ đã quá thời gian chờ (10 giây). Vui lòng kiểm tra lại đường truyền internet.${meta}`;
-    if (err.code === 'NETWORK_ERROR')
-      return `Không thể kết nối tới máy chủ. Vui lòng kiểm tra lại đường truyền internet.${meta}`;
-    if (err.code === 'VALIDATION_ERROR')
-      return `Dữ liệu gửi lên không đúng định dạng quy định. Vui lòng kiểm tra lại.${meta}`;
-    if (err.status === 401 || err.code === 'AUTHENTICATION_REQUIRED')
-      return `Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.${meta}`;
-    if (err.status === 403)
-      return `Bạn không có quyền thực hiện thao tác này trên hồ sơ tiệc cưới.${meta}`;
-    if (err.status === 404) return `Không tìm thấy tài nguyên yêu cầu trên máy chủ.${meta}`;
-    return `${describeApiError(err).message}${meta}`;
-  }
-  if (err instanceof Error) {
-    if (
-      err.message &&
-      /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(err.message)
-    ) {
-      return err.message;
-    }
-    return fallback;
-  }
-  return fallback;
+  const parsed = describeApiError(err);
+  if (err instanceof ApiClientError)
+    return parsed.message + (parsed.requestId ? ' (Mã hỗ trợ: ' + parsed.requestId + ')' : '');
+  return err instanceof Error ? parsed.message : fallback;
 }
 
 export function getApiBaseUrl(): string {
