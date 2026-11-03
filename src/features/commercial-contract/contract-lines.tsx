@@ -146,26 +146,9 @@ export function LineSelector({
         ))}
       </SelectorTable>
 
-      <SelectorTable title="In thiệp (số bản)" emptyText="Chưa có mẫu in nào.">
-        {catalog.prints.map((print) => (
-          <tr key={print.offeringId}>
-            <td>
-              <strong>{print.name}</strong>
-              <br />
-              <small>
-                Mẫu {print.templateTitle} · {print.printType} · {print.material}
-              </small>
-            </td>
-            <td className={cx.num}>
-              {formatVnd(
-                frozen.get(keyOf('PRINT', print.offeringId))?.unitPriceVnd ?? print.unitPriceVnd,
-              )}{' '}
-              / bản
-            </td>
-            <td className={cx.num}>{quantityInput('PRINT', print.offeringId, print.name)}</td>
-          </tr>
-        ))}
-      </SelectorTable>
+      <p className={cx.note}>
+        Đặt in thiệp được thực hiện sau đặt cọc tại mục Thiệp và in, theo phụ lục hai bên duyệt.
+      </p>
 
       {frozenOnly.length > 0 ? (
         <SelectorTable title="Hạng mục đã chốt (nay không còn bán)" emptyText="">

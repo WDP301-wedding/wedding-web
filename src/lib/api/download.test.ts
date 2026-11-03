@@ -88,7 +88,9 @@ describe('describeApiError fallbacks', () => {
     expect(describeApiError(new Error('Số điện thoại không hợp lệ')).message).toBe(
       'Số điện thoại không hợp lệ',
     );
-    expect(describeApiError('boom').message).toBe('Đã có lỗi không mong muốn. Hãy thử lại.');
+    expect(describeApiError('boom').message).toBe(
+      'Không thể hoàn tất thao tác. Hãy kiểm tra trạng thái và liên hệ nhà hàng kèm mã hỗ trợ nếu cần.',
+    );
     const unknownStatus = new ApiClientError({
       kind: 'api',
       code: 'X',
@@ -96,7 +98,9 @@ describe('describeApiError fallbacks', () => {
       requestId: 'r',
       status: 418,
     });
-    expect(describeApiError(unknownStatus).message).toBe('Máy chủ từ chối yêu cầu.');
+    expect(describeApiError(unknownStatus).message).toBe(
+      'Không thể hoàn tất thao tác. Hãy kiểm tra trạng thái và liên hệ nhà hàng kèm mã hỗ trợ nếu cần.',
+    );
     const forbidden = new ApiClientError({
       kind: 'api',
       code: 'X',
@@ -104,7 +108,7 @@ describe('describeApiError fallbacks', () => {
       requestId: 'r',
       status: 403,
     });
-    expect(describeApiError(forbidden).message).toContain('chưa có quyền');
+    expect(describeApiError(forbidden).message).toContain('không có quyền');
     const noStatus = new ApiClientError({
       kind: 'malformed-response',
       code: 'MALFORMED',
@@ -112,7 +116,7 @@ describe('describeApiError fallbacks', () => {
       requestId: 'r',
     });
     expect(describeApiError(noStatus).message).toBe(
-      'Máy chủ trả về dữ liệu chưa hợp lệ. Hãy thử lại hoặc gửi mã hỗ trợ cho nhà hàng.',
+      'Máy chủ trả về dữ liệu chưa hợp lệ. Vui lòng thử lại sau.',
     );
     const conflict = new ApiClientError({
       kind: 'api',

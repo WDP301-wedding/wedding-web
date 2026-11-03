@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import React from 'react';
 import { CoupleInvitationsPage as Page } from './invitations-page';
 import { browserSession as session } from '../identity-access/browser-session';
@@ -7,6 +7,10 @@ import { ApiClientError } from '../../lib/api/client';
 import type * as CoupleWorkspaceModule from '../couple-workspace/use-couple-workspace';
 
 const mockSearchParams = new URLSearchParams();
+// Compile the real lazy chunk before timing assertions about tab rendering.
+beforeAll(async () => {
+  await import('./invitation-studio-view');
+});
 vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
 }));
@@ -34,6 +38,7 @@ const { mockGateway } = vi.hoisted(() => ({
   mockGateway: {
     listDesigns: vi.fn(),
     listPrintOrders: vi.fn(),
+    listPrintRequests: vi.fn(),
     listImageJobs: vi.fn(),
     getPublicInvitation: vi.fn(),
   },
@@ -62,6 +67,7 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
       },
     ]);
     mockGateway.listPrintOrders.mockResolvedValue([]);
+    mockGateway.listPrintRequests.mockResolvedValue([]);
     mockGateway.listImageJobs.mockResolvedValue([]);
     mockGateway.getPublicInvitation.mockResolvedValue({});
     (session.restore as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -101,20 +107,19 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
     render(<Page />);
 
     expect(await screen.findByText('Yêu cầu in thiệp')).toBeInTheDocument();
-    expect(screen.getByText('Gửi yêu cầu in')).toBeInTheDocument();
+    expect(screen.getByText('Xem bản in và chi phí')).toBeInTheDocument();
   });
 
-  it('loads print orders and contracted print sources only after the print tab is opened', async () => {
+  it('loads print orders and appendix requests only after the print tab is opened', async () => {
     mockSearchParams.set('bookingId', bookingId);
     mockSearchParams.set('tab', 'design');
-    const contractedPrintSources = vi.fn().mockResolvedValue([]);
-    Object.assign(mockGateway, { contractedPrintSources });
+    const listPrintRequests = mockGateway.listPrintRequests;
 
     render(<Page />);
 
     expect(await screen.findByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
     expect(mockGateway.listPrintOrders).not.toHaveBeenCalled();
-    expect(contractedPrintSources).not.toHaveBeenCalled();
+    expect(listPrintRequests).not.toHaveBeenCalled();
 
     mockGateway.listPrintOrders.mockResolvedValue([
       { orderId: 'order-1', status: 'REQUESTED', lines: [] },
@@ -123,13 +128,12 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     expect(await screen.findByText('Đặt in (1)')).toBeInTheDocument();
     expect(mockGateway.listPrintOrders).toHaveBeenCalledWith('test-token', bookingId);
-    expect(contractedPrintSources).toHaveBeenCalledWith('test-token', bookingId);
+    expect(listPrintRequests).toHaveBeenCalledWith('test-token', bookingId);
 
     // Quay lại tab thiết kế rồi mở lại tab in: không tải lại.
     fireEvent.click(screen.getByRole('button', { name: 'Nội dung thiệp' }));
     fireEvent.click(screen.getByText('Đặt in (1)'));
     expect(mockGateway.listPrintOrders).toHaveBeenCalledTimes(1);
-    Reflect.deleteProperty(mockGateway, 'contractedPrintSources');
   });
 
   it('explains a slow server in Vietnamese and retries only the design request', async () => {

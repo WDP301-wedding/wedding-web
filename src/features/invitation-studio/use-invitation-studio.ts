@@ -1,7 +1,5 @@
 'use client';
 
-import { DEFAULT_PRESENTATION } from './invitation-presentation';
-
 import { useEffect, useRef, useState } from 'react';
 import { useLiveRefresh } from '../realtime/use-live-refresh';
 import { sharedCoupleRealtime } from '../realtime/realtime-client';
@@ -15,7 +13,6 @@ import { useInvitationDesign } from './use-invitation-design';
 import { useInvitationMedia } from './use-invitation-media';
 import { useInvitationPublish } from './use-invitation-publish';
 import { useInvitationSeating } from './use-invitation-seating';
-import { usePrintPurchase } from './use-print-purchase';
 import { useInvitationPrint } from './use-invitation-print';
 
 export interface UseInvitationStudioOptions {
@@ -117,7 +114,7 @@ export function useInvitationStudio({
     bookingId,
     accessToken,
     gateway,
-    currentDesign: design.currentDesign,
+    designs: design.designs,
     initialOrders,
     printVisited,
     writing: writing || publish.isPublishing,
@@ -125,18 +122,6 @@ export function useInvitationStudio({
   });
 
   const seating = useInvitationSeating(bookingId, design.includesSeating);
-  const purchase = usePrintPurchase(
-    bookingId,
-    design.currentDesign,
-    printVisited,
-    design.designDirty || writing,
-    confirm,
-    (order) =>
-      print.setOrders((orders) => [
-        order,
-        ...(orders ?? []).filter((item) => item.orderId !== order.orderId),
-      ]),
-  );
 
   // View modes
   const [mobileViewMode, setMobileViewMode] = useState<'editor' | 'preview'>('editor');
@@ -154,22 +139,7 @@ export function useInvitationStudio({
           gateway.listDesigns(token, bookingId),
         );
         if (!isCurrent()) return;
-        const currentId = design.currentDesign?.designId;
-        const first = loaded.find((item) => item.designId === currentId) ?? loaded[0];
-        design.setDesigns(
-          first ? [first, ...loaded.filter((item) => item.designId !== first.designId)] : [],
-        );
-        if (first) {
-          design.setTitle(first.title);
-          design.setPresentation(first.presentation ?? DEFAULT_PRESENTATION);
-          design.setIncludesSeating(first.includesSeating);
-          design.setBrideName(first.textFields.brideName || null);
-          design.setGroomName(first.textFields.groomName || null);
-          design.setGreeting(first.textFields.greeting ?? '');
-          design.setMessageText(first.textFields.message ?? '');
-          design.setFooter(first.textFields.footer ?? '');
-          design.setDerivedAssetIds(first.derivedAssetIds);
-        }
+        design.refreshDesigns(loaded);
       } catch (err) {
         if (isCurrent()) notify.error(invitationErrorMessage(err, 'Không thể cập nhật thiệp.'));
       }
@@ -198,7 +168,6 @@ export function useInvitationStudio({
     ...publish,
     // Print
     ...print,
-    purchase,
     seating,
     // UI view modes
     mobileViewMode,
@@ -210,7 +179,6 @@ export function useInvitationStudio({
       writing ||
       publish.isPublishing ||
       print.isOrdering ||
-      purchase.busy ||
       print.approvingOrderId !== null ||
       print.cancellingOrderId !== null,
     designLive,

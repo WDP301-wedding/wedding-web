@@ -1,5 +1,17 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { sharedCoupleRealtime } from '../features/realtime/realtime-client';
+beforeEach(() => {
+  localStorage.clear();
+  sessionStorage.clear();
+});
+beforeEach(() => {
+  vi.spyOn(sharedCoupleRealtime, 'connect').mockImplementation(() => {});
+});
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 import HomePage from '../../app/page';
 import { IdentityExperience, PublicIdentityPage } from '../features/identity-access/identity-page';
@@ -20,7 +32,7 @@ function createApi(roles: readonly ('MANAGER' | 'STAFF' | 'COUPLE')[] = []): Ide
   const issued = {
     account,
     accessToken: 'wia_access',
-    accessExpiresAt: '2026-10-04T10:10:00.000Z',
+    accessExpiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
     sessionId,
   };
 
@@ -31,7 +43,7 @@ function createApi(roles: readonly ('MANAGER' | 'STAFF' | 'COUPLE')[] = []): Ide
     logout: vi.fn().mockResolvedValue(undefined),
     refreshSession: vi.fn().mockResolvedValue({
       accessToken: 'wia_rotated',
-      accessExpiresAt: '2026-10-04T10:20:00.000Z',
+      accessExpiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
       sessionId,
     }),
   };
@@ -89,6 +101,9 @@ describe('Public identity session', () => {
     await session.restore();
     expect(api.refreshSession).not.toHaveBeenCalled();
 
+    // A separate browser without the first session's still-valid persisted token.
+    localStorage.clear();
+    sessionStorage.clear();
     const rejected = createApi();
     vi.mocked(rejected.refreshSession).mockRejectedValue(
       new ApiClientError({
@@ -176,7 +191,7 @@ describe('Public identity session', () => {
     expect(session.snapshot()).toEqual({ status: 'anonymous', denial: null });
   });
 
-  it('refreshes an expired access token once and retries the operation', async () => {
+  it('refreshes once after a backend 401 instead of reusing the same still-fresh cached token', async () => {
     const api = createApi(['COUPLE']);
     const session = new WebIdentitySession(api);
     await session.login('minhanh@example.com', 'a-safe-password');
@@ -197,6 +212,41 @@ describe('Public identity session', () => {
     expect(api.refreshSession).toHaveBeenCalledTimes(1);
     expect(operation).toHaveBeenLastCalledWith('wia_rotated');
     expect(session.snapshot()).toMatchObject({ status: 'authenticated' });
+  });
+  it('accepts a refreshed token from another tab without broadcasting it again', async () => {
+    const channels: TestChannel[] = [];
+    const messages: unknown[] = [];
+    class TestChannel {
+      onmessage: ((event: MessageEvent<unknown>) => void) | null = null;
+      constructor() {
+        channels.push(this);
+      }
+      postMessage(value: unknown) {
+        messages.push(value);
+      }
+      close() {
+        return undefined;
+      }
+    }
+    vi.stubGlobal('BroadcastChannel', TestChannel);
+    const session = new WebIdentitySession(createApi(['COUPLE']));
+    await session.login('minhanh@example.com', 'a-safe-password');
+    messages.length = 0;
+    const event = new MessageEvent('message', {
+      data: {
+        type: 'COUPLE_TOKEN_REFRESHED',
+        token: 'wia_other_tab',
+        expiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+      },
+    });
+    channels[0]?.onmessage?.(event);
+    channels[0]?.onmessage?.(event);
+    expect(messages).toEqual([]);
+    const operation = vi.fn().mockResolvedValue('ok');
+    await session.authorize(operation);
+    expect(operation).toHaveBeenCalledWith('wia_other_tab');
+    expect(localStorage.getItem('wedding_couple_session')).toContain('wia_other_tab');
+    session.discardRevokedSession();
   });
 });
 

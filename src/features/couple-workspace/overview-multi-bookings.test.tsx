@@ -60,7 +60,9 @@ describe('OverviewMultiBookings (Các sự kiện tiệc của hai bạn)', () =
 
     render(<OverviewMultiBookings bookings={bookings} proposal={makeProposal('b1')} />);
 
-    expect(screen.getByRole('heading', { name: 'Các sự kiện tiệc của hai bạn' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Các sự kiện tiệc của hai bạn' }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/Tài khoản đang quản lý 2 tiệc cưới\/báo hỷ/)).toBeInTheDocument();
 
     // Thẻ hiện tại (b1) có trạng thái đang thao tác
@@ -78,4 +80,3 @@ describe('OverviewMultiBookings (Các sự kiện tiệc của hai bạn)', () =
     expect(switchLink).toHaveTextContent('Chuyển tới tiệc này');
   });
 });
-

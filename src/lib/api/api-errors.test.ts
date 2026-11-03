@@ -26,6 +26,7 @@ describe('describeApiError', () => {
         'Số khách dự kiến vượt số ghế của sơ đồ hoặc sức chứa của sảnh. Hãy chọn mẫu đủ chỗ hoặc liên hệ nhà hàng; không thể duyệt ngoại lệ vượt sức chứa thực tế.',
       requestId: 'req-1',
       code: 'EXCEPTION_EXCEEDS_PHYSICAL_CAPACITY',
+      status: 409,
     });
   });
 
@@ -34,6 +35,7 @@ describe('describeApiError', () => {
       message: 'Cần nhập đủ tên cô dâu và chú rể trước khi gửi duyệt hợp đồng.',
       requestId: 'req-1',
       code: 'COUPLE_NAMES_INCOMPLETE',
+      status: 409,
     });
   });
 
@@ -41,7 +43,9 @@ describe('describeApiError', () => {
     const result = describeApiError(
       apiError('SOMETHING_NEW', 422, [{ code: 'too_big', message: 'x', path: 'lines.0.quantity' }]),
     );
-    expect(result.message).toContain('lines.0.quantity');
+    expect(result.message).toContain('Hạng mục');
+    expect(result.message).toContain('Số lượng');
+    expect(result.message).not.toContain('lines.0.quantity');
   });
 
   it('lets a screen override a message', () => {

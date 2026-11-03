@@ -16,6 +16,7 @@ export const publicationSnapshotSchema = z.object({
 });
 
 export function invitationErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.cause instanceof ApiClientError) err = err.cause;
   const parsed = describeApiError(err);
   if (err instanceof ApiClientError)
     return parsed.message + (parsed.requestId ? ' (Mã hỗ trợ: ' + parsed.requestId + ')' : '');

@@ -11,12 +11,7 @@ import {
   formText,
 } from '../couple-workspace/use-couple-workspace';
 import { contractApi, type Catalog, type ContractList } from './contract-api';
-import {
-  appendixApi,
-  effectiveLines,
-  type AppendixList,
-  type Appendix,
-} from './appendix-api';
+import { appendixApi, effectiveLines, type AppendixList, type Appendix } from './appendix-api';
 import type { ContractLineInput } from './contract-api';
 
 export function useAppendicesWorkspace(proposal: Proposal, reloadBooking: () => void) {
@@ -181,4 +176,3 @@ export function useAppendicesWorkspace(proposal: Proposal, reloadBooking: () => 
     handleApproveAppendix,
   };
 }
-

@@ -35,6 +35,7 @@ export function readPersistedCoupleSession(): PersistedCoupleSession | null {
 
 export function savePersistedCoupleSession(
   session: Omit<PersistedCoupleSession, 'savedAt'>,
+  options: { broadcast?: boolean } = {},
 ): void {
   if (typeof window === 'undefined') return;
   const record: PersistedCoupleSession = { ...session, savedAt: Date.now() };
@@ -49,7 +50,7 @@ export function savePersistedCoupleSession(
   } catch {
     // Storage may be restricted in private browsing mode
   }
-  saveCachedCoupleToken(session.accessToken, session.accessExpiresAt);
+  saveCachedCoupleToken(session.accessToken, session.accessExpiresAt, options);
 }
 
 export function clearPersistedCoupleSession(): void {
@@ -80,7 +81,11 @@ export function readCachedCoupleToken(): CachedCoupleToken | null {
   }
 }
 
-export function saveCachedCoupleToken(token: string, expiresAt: string): void {
+export function saveCachedCoupleToken(
+  token: string,
+  expiresAt: string,
+  { broadcast = true }: { broadcast?: boolean } = {},
+): void {
   if (typeof window === 'undefined') return;
   try {
     const record: CachedCoupleToken = { token, expiresAt, savedAt: Date.now() };
@@ -95,7 +100,7 @@ export function saveCachedCoupleToken(token: string, expiresAt: string): void {
     } catch {
       // Storage restricted
     }
-    if (typeof BroadcastChannel !== 'undefined') {
+    if (broadcast && typeof BroadcastChannel !== 'undefined') {
       const channel = new BroadcastChannel(COUPLE_AUTH_CHANNEL);
       channel.postMessage({ type: 'COUPLE_TOKEN_REFRESHED', token, expiresAt });
       channel.close();

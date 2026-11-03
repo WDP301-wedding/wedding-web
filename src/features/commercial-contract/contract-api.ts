@@ -94,26 +94,20 @@ export const contractApi = {
       token,
     );
   },
-  /** Danh mục đang bán để chọn vào hợp đồng (menu công khai; dịch vụ và mẫu in cần đăng nhập). */
+  /** Hợp đồng ban đầu chỉ chọn menu và dịch vụ; in thiệp qua phụ lục sau đặt cọc. */
   async catalog(token: string): Promise<Catalog> {
-    const [menus, services, prints] = await Promise.all([
+    const [menus, services] = await Promise.all([
       coupleApi()
         .GET('/catalog/menu-packages', { params: { query: { limit: 50 } } })
         .then((response) => unwrap<ApiData<'/catalog/menu-packages', 'get'>>(response).items),
       coupleApi()
         .GET('/catalog/services', { headers: bearer(token), params: { query: { limit: 50 } } })
         .then((response) => unwrap<ApiData<'/catalog/services', 'get'>>(response).items),
-      coupleApi()
-        .GET('/catalog/print-offerings', {
-          headers: bearer(token),
-          params: { query: { limit: 50 } },
-        })
-        .then((response) => unwrap<ApiData<'/catalog/print-offerings', 'get'>>(response).items),
     ]);
     return {
       menus,
       services: services.filter((item) => item.active),
-      prints: prints.filter((item) => item.active),
+      prints: [],
     };
   },
 };

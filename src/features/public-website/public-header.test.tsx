@@ -17,7 +17,7 @@ function fixture() {
   };
   const issued = {
     accessToken: 'test-access',
-    accessExpiresAt: '2026-10-09T10:00:00Z',
+    accessExpiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
     sessionId: actor.sessionId,
     account: actor,
   };

@@ -1,12 +1,22 @@
 import type { InvitationPresentation } from './invitation-presentation';
-import type { PurchaseOrder } from './print-purchase-api';
 import type { operations } from '../../lib/api/generated/schema';
+import type {
+  PrintRequestInputLine,
+  PrintRequestQuote,
+  PrintRequestView,
+} from './invitation-print-request-types';
+export type {
+  PrintRequestInputLine,
+  PrintRequestQuote,
+  PrintRequestView,
+} from './invitation-print-request-types';
 
 export type DesignView =
   operations['getWeddingInvitation']['responses'][200]['content']['application/json']['data'] & {
     readonly presentation?: InvitationPresentation;
   };
-export type PrintOrderView = PurchaseOrder;
+export type PrintOrderView =
+  operations['getPrintOrder']['responses'][200]['content']['application/json']['data'];
 export type PublicInvitationView =
   operations['getPublicInvitation']['responses'][200]['content']['application/json']['data'] & {
     readonly presentation?: InvitationPresentation;
@@ -74,6 +84,39 @@ export type PrintRequestLine = Readonly<{
 }>;
 
 export interface InvitationGateway {
+  previewPrintRequest(
+    this: void,
+    accessToken: string,
+    bookingId: string,
+    lines: readonly PrintRequestInputLine[],
+    idempotencyKey: string,
+  ): Promise<PrintRequestQuote>;
+  confirmPrintRequest(
+    this: void,
+    accessToken: string,
+    bookingId: string,
+    consent: { quoteId: string; digest: string; consent: true },
+    idempotencyKey: string,
+  ): Promise<PrintRequestView>;
+  listPrintRequests(
+    this: void,
+    accessToken: string,
+    bookingId: string,
+  ): Promise<readonly PrintRequestView[]>;
+  withdrawPrintRequest(
+    this: void,
+    accessToken: string,
+    bookingId: string,
+    requestId: string,
+    expectedRevision: number,
+    idempotencyKey: string,
+  ): Promise<PrintRequestView>;
+  getPrintableFile(
+    this: void,
+    accessToken: string,
+    bookingId: string,
+    printableRevisionId: string,
+  ): Promise<Blob>;
   listDesigns(this: void, accessToken: string, bookingId: string): Promise<readonly DesignView[]>;
   getDesign(
     this: void,

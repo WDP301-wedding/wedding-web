@@ -49,16 +49,15 @@ export class WebIdentitySession {
             'expiresAt' in data &&
             typeof data.expiresAt === 'string'
           ) {
-            if (this.refreshRejected) return;
+            if (this.refreshRejected || data.token === this.accessToken) return;
             this.accessToken = data.token;
             this.scheduleProactiveRefresh(data.expiresAt);
             const persisted = readPersistedCoupleSession();
             if (persisted) {
-              savePersistedCoupleSession({
-                ...persisted,
-                accessToken: data.token,
-                accessExpiresAt: data.expiresAt,
-              });
+              savePersistedCoupleSession(
+                { ...persisted, accessToken: data.token, accessExpiresAt: data.expiresAt },
+                { broadcast: false },
+              );
             }
             if (this.state.status === 'authenticated') sharedCoupleRealtime.connect(data.token);
           }
@@ -68,7 +67,7 @@ export class WebIdentitySession {
       }
     }
     sharedCoupleRealtime.setTokenRefreshHandler(async () => {
-      return await this.renewAccessToken();
+      return await this.renewAccessToken(this.accessToken ?? undefined);
     });
   }
 
@@ -171,11 +170,12 @@ export class WebIdentitySession {
     }
     if (this.accessToken === null) throw new Error('Authentication is required.');
 
+    const attemptedToken = this.accessToken;
     try {
-      return await operation(this.accessToken);
+      return await operation(attemptedToken);
     } catch (error) {
       if (error instanceof ApiClientError && error.status === 401) {
-        const renewed = await this.renewAccessToken();
+        const renewed = await this.renewAccessToken(attemptedToken);
         if (renewed === null) throw error;
         try {
           return await operation(renewed);
@@ -208,7 +208,7 @@ export class WebIdentitySession {
     }, delay);
   }
 
-  private async renewAccessToken(): Promise<string | null> {
+  private async renewAccessToken(rejectedToken?: string): Promise<string | null> {
     if (this.refreshRejected) return null;
     if (typeof window === 'undefined') return null;
 
@@ -223,7 +223,7 @@ export class WebIdentitySession {
           return await navigator.locks.request(COUPLE_REFRESH_LOCK, async () => {
             if (generation !== this.authGeneration) return null;
             const cached = readCachedCoupleToken();
-            if (cached && isCoupleTokenFresh(cached.expiresAt)) {
+            if (cached && cached.token !== rejectedToken && isCoupleTokenFresh(cached.expiresAt)) {
               this.accessToken = cached.token;
               this.scheduleProactiveRefresh(cached.expiresAt);
               sharedCoupleRealtime.updateToken(cached.token);
@@ -233,7 +233,7 @@ export class WebIdentitySession {
           });
         }
         const cached = readCachedCoupleToken();
-        if (cached && isCoupleTokenFresh(cached.expiresAt)) {
+        if (cached && cached.token !== rejectedToken && isCoupleTokenFresh(cached.expiresAt)) {
           this.accessToken = cached.token;
           this.scheduleProactiveRefresh(cached.expiresAt);
           sharedCoupleRealtime.updateToken(cached.token);

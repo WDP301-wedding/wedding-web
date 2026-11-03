@@ -31,7 +31,10 @@ export function useInvitationDesign({
   coupleNames,
 }: UseInvitationDesignOptions) {
   const [designs, setDesigns] = useState<readonly DesignView[]>(initialDesigns);
-  const currentDesign = designs[0];
+  const [selectedDesignId, setSelectedDesignId] = useState<string | null>(
+    initialDesigns[0]?.designId ?? null,
+  );
+  const currentDesign = designs.find((design) => design.designId === selectedDesignId);
   const [includesSeating, setIncludesSeating] = useState(designs[0]?.includesSeating ?? false);
 
   const [title, setTitle] = useState(designs[0]?.title ?? 'Thiệp Cưới Hạnh Phúc');
@@ -129,6 +132,47 @@ export function useInvitationDesign({
 
   const saveKeyRef = useRef<{ signature: string; key: string } | null>(null);
 
+  function selectDesign(designId: string) {
+    const selected = designs.find((design) => design.designId === designId);
+    if (!selected || saving || aiJob.busy || suggestionBusy) return;
+    setSelectedDesignId(designId);
+    setTitle(selected.title);
+    setBrideName(selected.textFields.brideName || null);
+    setGroomName(selected.textFields.groomName || null);
+    setGreeting(selected.textFields.greeting ?? '');
+    setMessageText(selected.textFields.message ?? '');
+    setFooter(selected.textFields.footer ?? '');
+    setDerivedAssetIds(selected.derivedAssetIds);
+    setPreviewUrl(null);
+    setRestoredAiImage(null);
+    setPresentation(selected.presentation ?? DEFAULT_PRESENTATION);
+    setIncludesSeating(selected.includesSeating);
+    setSuggestion(null);
+    setSuggestionError(null);
+    setDesignDirty(false);
+    saveKeyRef.current = null;
+  }
+
+  function startNewDesign() {
+    if (saving || aiJob.busy || suggestionBusy) return;
+    setSelectedDesignId(null);
+    setTitle('Thiệp cưới mới');
+    setBrideName(null);
+    setGroomName(null);
+    setGreeting('Trân trọng kính mời');
+    setMessageText('Đến tham dự buổi tiệc chung vui cùng gia đình chúng tôi');
+    setFooter('');
+    setDerivedAssetIds([]);
+    setPreviewUrl(null);
+    setRestoredAiImage(null);
+    setPresentation(DEFAULT_PRESENTATION);
+    setIncludesSeating(false);
+    setSuggestion(null);
+    setSuggestionError(null);
+    setDesignDirty(true);
+    saveKeyRef.current = null;
+  }
+
   const handleSaveDesign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (saving || suggestionBusy) return;
@@ -174,7 +218,9 @@ export function useInvitationDesign({
           },
           key,
         );
-        setDesigns([updated, ...designs.slice(1)]);
+        setDesigns((previous) =>
+          previous.map((design) => (design.designId === updated.designId ? updated : design)),
+        );
         setDesignDirty(false);
         saveKeyRef.current = null;
         notify.success('Đã lưu bản thiết kế thiệp thành công!');
@@ -192,7 +238,8 @@ export function useInvitationDesign({
           },
           key,
         );
-        setDesigns([created]);
+        setDesigns((previous) => [created, ...previous]);
+        setSelectedDesignId(created.designId);
         setDesignDirty(false);
         saveKeyRef.current = null;
         notify.success('Đã tạo thiết kế thiệp cưới mới!');
@@ -258,8 +305,29 @@ export function useInvitationDesign({
     includesSeating,
     setIncludesSeating,
     designs,
+    refreshDesigns(loaded: readonly DesignView[]) {
+      setDesigns(loaded);
+      if (selectedDesignId === null) return;
+      const selected = loaded.find((item) => item.designId === selectedDesignId) ?? loaded[0];
+      if (!selected) {
+        setSelectedDesignId(null);
+        return;
+      }
+      setSelectedDesignId(selected.designId);
+      setTitle(selected.title);
+      setBrideName(selected.textFields.brideName || null);
+      setGroomName(selected.textFields.groomName || null);
+      setGreeting(selected.textFields.greeting ?? '');
+      setMessageText(selected.textFields.message ?? '');
+      setFooter(selected.textFields.footer ?? '');
+      setDerivedAssetIds(selected.derivedAssetIds);
+      setPresentation(selected.presentation ?? DEFAULT_PRESENTATION);
+      setIncludesSeating(selected.includesSeating);
+    },
     setDesigns,
     currentDesign,
+    selectDesign,
+    startNewDesign,
     title,
     setTitle,
     brideName,

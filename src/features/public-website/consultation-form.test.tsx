@@ -175,8 +175,10 @@ describe('structured consultation choices', () => {
         ]}
       />,
     );
-    expect(screen.getByRole('combobox', { name: /Sảnh quan tâm/ })).toHaveValue('hall-1');
-    expect(screen.getByRole('combobox', { name: /Thực đơn quan tâm/ })).toHaveValue('menu-v1');
+    expect(screen.getByRole('combobox', { name: /Sảnh quan tâm/ })).toHaveTextContent('Sảnh vườn');
+    expect(screen.getByRole('combobox', { name: /Thực đơn quan tâm/ })).toHaveTextContent(
+      'Thực đơn xuân',
+    );
     fireEvent.change(screen.getByLabelText('Họ và tên'), { target: { value: 'Lan' } });
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'lan@example.test' } });
     fireEvent.click(screen.getByRole('button', { name: /Gửi lời hẹn/ }));

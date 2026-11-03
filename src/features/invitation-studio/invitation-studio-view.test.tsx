@@ -1,9 +1,26 @@
 import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
 import { InvitationStudioView } from './invitation-studio-view';
 import type { InvitationGateway, DesignView, ImageJobView, PrintOrderView } from './invitation-api';
 import { ApiClientError } from '../../lib/api/client';
+import { sharedCoupleRealtime, type RealtimeEvent } from '../realtime/realtime-client';
+
+const publicationListeners = new Set<(event: RealtimeEvent) => void>();
+beforeEach(() => {
+  vi.clearAllMocks();
+  publicationListeners.clear();
+  vi.spyOn(sharedCoupleRealtime, 'addEventListener').mockImplementation((listener) => {
+    publicationListeners.add(listener);
+    return () => {
+      publicationListeners.delete(listener);
+    };
+  });
+});
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
 
 /** Thao tác huỷ/gỡ/duyệt phải qua hộp thoại xác nhận: bấm nút xác nhận trong hộp thoại. */
 async function confirmInDialog(confirmLabel: string) {
@@ -18,6 +35,36 @@ async function confirmInDialog(confirmLabel: string) {
 describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
   const bookingId = '11111111-1111-1111-1111-111111111111';
   const accessToken = 'mock-token';
+  const publicSlug = 'a'.repeat(64);
+  async function receivePublication(publicationRevision: number, published: boolean) {
+    act(() => {
+      for (const listener of publicationListeners)
+        listener({
+          eventId: crypto.randomUUID(),
+          schemaVersion: 1,
+          type: 'print_order.updated',
+          scope: { bookingId, entityType: 'print_order' },
+          resources: [],
+          occurredAt: new Date().toISOString(),
+          payload: {
+            publication: {
+              publicationRevision,
+              published,
+              publicSlug: published ? publicSlug : null,
+              publishedRevisionId: published ? '00000000-0000-4000-8000-000000000001' : null,
+              designRevisionId: published ? '00000000-0000-4000-8000-000000000002' : null,
+            },
+          },
+        });
+    });
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', {
+          name: published ? 'Ngừng chia sẻ' : 'Xuất bản thiệp',
+        }),
+      ).toBeEnabled(),
+    );
+  }
 
   const initialDesign: DesignView = {
     designId: 'd-1',
@@ -57,15 +104,18 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
   };
 
   const mockGateway: InvitationGateway = {
+    previewPrintRequest: vi.fn(),
+    confirmPrintRequest: vi.fn(),
+    listPrintRequests: vi.fn().mockResolvedValue([]),
+    withdrawPrintRequest: vi.fn(),
+    getPrintableFile: vi.fn().mockResolvedValue(new Blob(['pdf'], { type: 'application/pdf' })),
     listDesigns: vi.fn().mockResolvedValue([initialDesign]),
     getDesign: vi.fn().mockResolvedValue(initialDesign),
     createDesign: vi.fn().mockResolvedValue(initialDesign),
     reviseDesign: vi
       .fn()
       .mockResolvedValue({ ...initialDesign, revisionNumber: 2, title: 'Tiêu đề mới' }),
-    publishDesign: vi
-      .fn()
-      .mockResolvedValue({ publicSlug: 'cuoi-lan-tung', publicationRevision: 1 }),
+    publishDesign: vi.fn().mockResolvedValue({ publicSlug, publicationRevision: 1 }),
     unpublishDesign: vi.fn().mockResolvedValue({
       publicationRevision: 2,
       publicInvitationId: 'pub-1',
@@ -223,6 +273,11 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
   const requestImage = (prompt = 'Hoa trắng') => {
+    if (!screen.queryByLabelText('Mô tả ảnh AI')) {
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Tùy chọn nâng cao: Vẽ thêm hình minh họa bằng AI' }),
+      );
+    }
     const expandBtn = screen.queryByRole('button', { name: /Vẽ thêm hình minh họa bằng AI/ });
     if (expandBtn) fireEvent.click(expandBtn);
     fireEvent.change(screen.getByLabelText('Mô tả ảnh AI'), { target: { value: prompt } });
@@ -242,7 +297,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     renderStudio({ enqueueImageJob, getImageJob, reviseDesign });
 
     requestImage();
-    expect(await screen.findByText('Đang xếp hàng chờ tạo ảnh…')).toBeInTheDocument();
+    expect(await screen.findByText(/Đang xếp hàng chờ tạo ảnh…/)).toBeInTheDocument();
     expect(enqueueImageJob).toHaveBeenCalledWith(
       accessToken,
       bookingId,
@@ -251,7 +306,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       expect.stringMatching(/^image-job:/),
     );
     await act(() => vi.advanceTimersByTimeAsync(3000));
-    expect(await screen.findByText('Đang tạo ảnh…')).toBeInTheDocument();
+    expect(await screen.findByText(/Đang tạo ảnh…/)).toBeInTheDocument();
     await act(() => vi.advanceTimersByTimeAsync(3000));
     await screen.findByText('Ảnh đã sẵn sàng. Lưu thiết kế để sử dụng ảnh trên thiệp.');
     expect(mockGateway.getMediaPreview).toHaveBeenCalledWith(
@@ -441,7 +496,8 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
     expect(screen.getByText('Chia sẻ thiệp')).toBeInTheDocument();
-
+    expect(screen.getByRole('button', { name: 'Xuất bản thiệp' })).toBeDisabled();
+    await receivePublication(0, false);
     fireEvent.click(screen.getByText('Xuất bản thiệp'));
 
     await waitFor(() => {
@@ -457,7 +513,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     });
 
     expect(await screen.findByText('Thiệp cưới đã được xuất bản trực tuyến!')).toBeInTheDocument();
-    expect(screen.getByText('/t/cuoi-lan-tung')).toBeInTheDocument();
+    expect(screen.getByText('/t/' + publicSlug)).toBeInTheDocument();
 
     // Unpublish
     fireEvent.click(screen.getByText('Ngừng chia sẻ'));
@@ -474,7 +530,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     expect(await screen.findByText('Đã hủy xuất bản thiệp cưới.')).toBeInTheDocument();
   });
 
-  it('restores publication state after reload from localStorage and unmount', async () => {
+  it('restores publication state from the server after reload, ignoring stale localStorage', async () => {
     const storageKey = `wedding_invitation_pub_${bookingId}_d-1`;
     localStorage.setItem(
       storageKey,
@@ -491,8 +547,10 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
+    expect(screen.queryByText('Ngừng chia sẻ')).not.toBeInTheDocument();
+    await receivePublication(1, true);
     expect(await screen.findByText('Ngừng chia sẻ')).toBeInTheDocument();
-    expect(screen.getByText('/t/cuoi-lan-tung')).toBeInTheDocument();
+    expect(screen.getByText('/t/' + publicSlug)).toBeInTheDocument();
 
     unmount();
     localStorage.removeItem(storageKey);
@@ -566,6 +624,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
+    await receivePublication(0, false);
     fireEvent.click(screen.getByText('Xuất bản thiệp'));
 
     await waitFor(() => {
@@ -582,7 +641,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     expect(await screen.findByText('Thiệp đang được chia sẻ')).toBeInTheDocument();
     unmount1();
 
-    // 2. Reload: component remounts with cached published state
+    // 2. Reload: the server sends its current publication snapshot.
     const { unmount: unmount2 } = render(
       <InvitationStudioView
         bookingId={bookingId}
@@ -593,6 +652,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
+    await receivePublication(1, true);
     expect(await screen.findByText('Ngừng chia sẻ')).toBeInTheDocument();
 
     // 3. Unpublish: calls unpublish with revision 1, gets next publicationRevision: 2
@@ -611,7 +671,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     expect(screen.getByText('Thiệp chưa được chia sẻ')).toBeInTheDocument();
     unmount2();
 
-    // 4. Reload after unpublish: remounts, reads localStorage with published: false, next revision: 2
+    // 4. Reload after unpublish: the server retains the next revision, 2.
     render(
       <InvitationStudioView
         bookingId={bookingId}
@@ -622,6 +682,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
+    await receivePublication(2, false);
     expect(await screen.findByText('Thiệp chưa được chia sẻ')).toBeInTheDocument();
 
     // 5. Republish: must send publicationRevision: 2, not 0!

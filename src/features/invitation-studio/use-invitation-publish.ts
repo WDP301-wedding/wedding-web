@@ -41,7 +41,7 @@ export function useInvitationPublish({
 }: UseInvitationPublishOptions) {
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
-  const [publicationRevision, setPublicationRevision] = useState<number | null>(0);
+  const [publicationRevision, setPublicationRevision] = useState<number | null>(null);
   const [publicationState, setPublicationState] = useState<
     'unknown' | 'unpublished' | 'published' | 'stale_conflict'
   >('unknown');

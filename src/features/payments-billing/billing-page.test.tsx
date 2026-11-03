@@ -321,7 +321,9 @@ describe('Couple billing experience', () => {
       target: { value: 'another-booking' },
     });
     expect(screen.queryByText('Còn phải thanh toán')).not.toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Chi tiết đặt cọc tiệc cưới' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('region', { name: 'Chi tiết đặt cọc tiệc cưới' }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Thanh toán còn lại' })).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Mã giao dịch thanh toán')).not.toBeInTheDocument();
     expect(api.startDeposit).not.toHaveBeenCalled();
@@ -808,7 +810,9 @@ describe('Couple billing experience', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Làm mới hồ sơ' }));
     await waitFor(() =>
-      expect(screen.queryByRole('region', { name: 'Chi tiết đặt cọc tiệc cưới' })).not.toBeInTheDocument(),
+      expect(
+        screen.queryByRole('region', { name: 'Chi tiết đặt cọc tiệc cưới' }),
+      ).not.toBeInTheDocument(),
     );
     expect(screen.getByRole('alert')).toHaveTextContent('quyền');
   });
@@ -850,7 +854,9 @@ describe('Couple billing inside Không gian cưới (embedded)', () => {
         embedded
       />,
     );
-    expect(await screen.findByRole('region', { name: 'Chi tiết đặt cọc tiệc cưới' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('region', { name: 'Chi tiết đặt cọc tiệc cưới' }),
+    ).toBeInTheDocument();
     expect(api.loadContext).toHaveBeenCalledWith('token', 'booking');
     expect(screen.queryByLabelText('Mã hồ sơ đặt tiệc')).not.toBeInTheDocument();
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
@@ -923,6 +929,7 @@ describe('Balance payment eligibility (BE PR #76)', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Thanh toán còn lại' }));
     fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
+    await waitFor(() => expect(api.startBalance).toHaveBeenCalledTimes(1));
     expect(await screen.findByRole('alert')).toHaveTextContent('chưa chốt hoá đơn cuối');
     await waitFor(() => expect(api.load).toHaveBeenCalledTimes(loadsBefore + 1));
     await waitFor(() =>
