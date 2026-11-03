@@ -135,6 +135,10 @@ jobs:
       - name: Build PR production output
         if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
         timeout-minutes: 8
+        env:
+          # Shared modules validate this public URL during PR prerendering.
+          # Production configuration is still pulled from Vercel during deploy.
+          NEXT_PUBLIC_API_BASE_URL: https://wedding-be-render-trial.onrender.com/api/v1
         run: npm run build
 
   deploy:
