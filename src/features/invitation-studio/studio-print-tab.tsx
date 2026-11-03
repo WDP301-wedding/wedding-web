@@ -1,259 +1,178 @@
 'use client';
 
-import React from 'react';
-import { InlineError } from '../../design-system/inline-error';
-import { orderStatusMap } from './invitation-studio-utils';
 import type { InvitationStudioState } from './use-invitation-studio';
-import { px } from './studio-panel-classes';
+import { PrintQuoteReview } from './print-quote-review';
+import { PrintRequestDetails } from './print-request-details';
+import { StudioPrintOrders } from './studio-print-orders';
 import { ix } from './studio-classes';
+import { px } from './studio-panel-classes';
 
-export type StudioPrintTabProps = Readonly<{
-  studio: InvitationStudioState;
-}>;
+export type StudioPrintTabProps = Readonly<{ studio: InvitationStudioState }>;
+
+const requestStates: Record<string, string> = {
+  DRAFT: 'Phụ lục đang soạn',
+  AWAITING_APPROVAL: 'Chờ nhà hàng duyệt phụ lục',
+  APPROVED: 'Phụ lục đã có hiệu lực',
+  SUPERSEDED: 'Đã rút hoặc thay thế',
+};
 
 export function StudioPrintTab({ studio }: StudioPrintTabProps) {
   const {
-    printSourcesError,
-    printLive,
-    sourcesReady,
-    handleRequestPrint,
-    printSources,
-    printSourceIndex,
-    setPrintSourceIndex,
-    printQuantity,
-    setPrintQuantity,
+    designs,
+    printSelections,
+    setPrintSelection,
+    selectedPrintLines,
+    printQuote,
+    printRequests,
+    printError,
     isOrdering,
-    orders,
+    writing,
+    printPreviewContext,
     ordersError,
-    approvingOrderId,
-    cancellingOrderId,
-    handleApproveQuote,
-    handleCancelOrder,
   } = studio;
-
+  const pending =
+    printRequests?.some(
+      (request) => request.state === 'DRAFT' || request.state === 'AWAITING_APPROVAL',
+    ) ?? false;
   return (
     <section aria-labelledby="print-heading" className={ix.stackSplit}>
-      <div className={ix.card}>
-        <h2 id="print-heading" className={ix.title}>
-          Yêu cầu in thiệp
-        </h2>
-        <p className={ix.hint}>
-          Chọn mẫu trong hợp đồng và số lượng cần in. Quy cách và chi phí áp dụng theo hợp đồng hoặc
-          báo giá được nhà hàng xác nhận.
-        </p>
-        <InlineError error={printSourcesError} onRetry={() => void printLive.refresh()} />
-        {!sourcesReady && !printSourcesError ? (
-          <p role="status">Đang tải lựa chọn in theo hợp đồng…</p>
-        ) : null}
-        <form
-          onSubmit={(e) => {
-            void handleRequestPrint(e);
-          }}
-          className={ix.form}
-        >
-          {printSources.length > 0 ? (
-            <div>
-              <label htmlFor="print-source" className={ix.label}>
-                Mẫu in theo hợp đồng
-              </label>
-              <select
-                id="print-source"
-                value={printSourceIndex}
-                onChange={(e) => {
-                  const index = Number(e.target.value);
-                  setPrintSourceIndex(index);
-                  setPrintQuantity(printSources[index]?.quantity ?? printQuantity);
-                }}
-                className={ix.input}
-              >
-                {printSources.map((source, index) => (
-                  <option key={source.offeringId} value={index}>
-                    {source.name} · {source.quantity} bản trong hợp đồng
-                  </option>
-                ))}
-              </select>
-              <p className={ix.meta}>
-                Số bản trong hợp đồng đã được tính tiền, nhà hàng không thu lại. Muốn in thêm hoặc
-                đổi mẫu, hãy tạo phụ lục hợp đồng.
-              </p>
-            </div>
+      <div className={ix.stack}>
+        <section className={ix.card}>
+          <h2 id="print-heading" className={ix.title}>
+            Yêu cầu in thiệp
+          </h2>
+          <p className={ix.hint}>
+            Chọn một hoặc nhiều mẫu đã lưu, nhập số lượng riêng cho từng mẫu. Giá chung 5.000đ/thiệp
+            theo chuẩn in của nhà hàng.
+          </p>
+          {!designs.length ? (
+            <p className={ix.empty}>Lưu ít nhất một mẫu ở mục Nội dung thiệp trước khi đặt in.</p>
           ) : null}
-          <div>
-            <div className={px.quantityHead}>
-              <label htmlFor="print-quantity" className={ix.label}>
-                Số lượng (1–10.000 bản)
-              </label>
-              <div className={px.quantityPresets} aria-label="Gợi ý số lượng bản in nhanh">
-                {[50, 100, 150, 200, 300, 500].map((num) => (
-                  <button
-                    key={num}
-                    type="button"
-                    className={px.chipButton}
-                    data-active={printQuantity === num}
-                    onClick={() => setPrintQuantity(num)}
-                  >
-                    {num} bản
-                  </button>
-                ))}
-              </div>
-            </div>
-            <input
-              id="print-quantity"
-              type="number"
-              min={1}
-              max={10000}
-              value={printQuantity}
-              onChange={(e) => setPrintQuantity(Number(e.target.value))}
-              required
-              className={ix.input}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isOrdering || !sourcesReady || printSourcesError !== null}
-            className={ix.btn}
+          <form
+            className={ix.form}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void studio.handlePreviewPrint();
+            }}
           >
-            {isOrdering ? 'Đang gửi...' : 'Gửi yêu cầu in'}
-          </button>
-        </form>
-      </div>
-
-      {/* Orders List */}
-      <div className={ix.card}>
-        <h3 className={ix.subtitle}>Đơn in của hai bạn</h3>
-        {orders === null ? (
-          ordersError ? (
-            <p role="alert">{ordersError}</p>
-          ) : (
-            <p className={ix.empty} role="status">
-              Đang tải đơn in…
-            </p>
-          )
-        ) : orders.length === 0 ? (
-          <p className={ix.empty}>Chưa có đơn in thiệp nào.</p>
-        ) : (
-          <div className={px.orders}>
-            {orders.map((order) => (
-              <div key={order.orderId} className={px.order}>
-                <div className={px.orderHead}>
-                  <span className={px.orderId}>Đơn hàng #{order.orderId.slice(0, 8)}</span>
-                  <span className={orderStatusMap[order.status]?.className ?? ix.chip}>
-                    {orderStatusMap[order.status]?.label ?? order.status}
-                  </span>
-                </div>
-
-                <p className={px.orderBrief}>
-                  <span>{order.lines.reduce((total, line) => total + line.quantity, 0)} bản</span>
-                  <strong>
-                    {order.currentCommercialRevision
-                      ? Number(order.currentCommercialRevision.orderTotalVnd).toLocaleString(
-                          'vi-VN',
-                        ) + ' đ'
-                      : 'Chưa có báo giá'}
-                  </strong>
-                </p>
-                <details className={ix.disclosure} open={order.status === 'QUOTED'}>
-                  <summary>Tiến trình và chi tiết báo giá</summary>
-                  {/* Production Stepper */}
-                  <div className={px.orderStepper} aria-label="Tiến trình sản xuất đơn in">
-                    {[
-                      { key: 'REQUESTED', label: '1. Gửi yêu cầu' },
-                      { key: 'QUOTED', label: '2. Đã báo giá' },
-                      { key: 'APPROVED', label: '3. Đã duyệt in' },
-                      { key: 'IN_PRODUCTION', label: '4. Đang in ấn' },
-                      { key: 'READY_FOR_HANDOVER', label: '5. Sẵn sàng bàn giao' },
-                      { key: 'HANDED_OVER', label: '6. Đã bàn giao' },
-                    ].map((step, idx) => {
-                      const orderSteps = [
-                        'REQUESTED',
-                        'QUOTED',
-                        'APPROVED',
-                        'IN_PRODUCTION',
-                        'READY_FOR_HANDOVER',
-                        'HANDED_OVER',
-                      ];
-                      const currentIdx = orderSteps.indexOf(order.status);
-                      const stepIdx = idx;
-                      const isPast = currentIdx >= stepIdx;
-                      const isCurrent = order.status === step.key;
-                      return (
-                        <div
-                          key={step.key}
-                          className={px.orderStep}
-                          data-state={isCurrent ? 'current' : isPast ? 'done' : 'todo'}
-                        >
-                          <span className={px.orderStepBar} aria-hidden="true" />
-                          <span>{step.label}</span>
-                        </div>
-                      );
-                    })}
+            <fieldset disabled={isOrdering || writing} className={ix.stack}>
+              <legend className={ix.label}>Các mẫu cần in (tối đa 20 mẫu)</legend>
+              {designs.map((design) => {
+                const selected = printSelections[design.designId] !== undefined;
+                return (
+                  <div key={design.designId} className={px.order}>
+                    <label className="flex items-center gap-2 text-sm font-semibold">
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        disabled={!selected && selectedPrintLines.length >= 20}
+                        onChange={(event) =>
+                          setPrintSelection(design.designId, event.target.checked ? 100 : null)
+                        }
+                      />
+                      {design.title}
+                    </label>
+                    <p className={ix.meta}>Bản lưu {design.revisionNumber}</p>
+                    {selected ? (
+                      <div>
+                        <label htmlFor={'quantity-' + design.designId} className={ix.label}>
+                          Số lượng {design.title}
+                        </label>
+                        <input
+                          id={'quantity-' + design.designId}
+                          type="number"
+                          required
+                          min={1}
+                          max={10000}
+                          step={1}
+                          value={printSelections[design.designId]}
+                          className={ix.input}
+                          onChange={(event) =>
+                            setPrintSelection(design.designId, Number(event.target.value))
+                          }
+                        />
+                      </div>
+                    ) : null}
                   </div>
-
-                  {order.currentCommercialRevision && (
-                    <div className={px.orderSummary}>
-                      <p>
-                        Tổng tiền:{' '}
-                        <strong>
-                          {Number(order.currentCommercialRevision.orderTotalVnd).toLocaleString(
-                            'vi-VN',
-                          )}{' '}
-                          VND
-                        </strong>
-                      </p>
-                      {order.lines?.[0]?.quantity ? (
-                        <p className={ix.meta}>
-                          Số lượng: {order.lines[0].quantity} bản (Ước tính ~
-                          {Math.round(
-                            Number(order.currentCommercialRevision.orderTotalVnd) /
-                              order.lines[0].quantity,
-                          ).toLocaleString('vi-VN')}{' '}
-                          đ/bản)
-                        </p>
-                      ) : null}
-                      <p className={ix.meta}>
-                        Hạn báo giá:{' '}
-                        {new Date(order.currentCommercialRevision.expiresAt).toLocaleDateString(
-                          'vi-VN',
-                        )}
-                      </p>
-                    </div>
-                  )}
-                </details>
-                <div className={ix.actions}>
-                  {order.status === 'QUOTED' && order.currentCommercialRevision && (
+                );
+              })}
+            </fieldset>
+            {pending ? (
+              <p role="status" className={ix.hintWarning}>
+                Đang có phụ lục in chờ duyệt. Hoàn tất hoặc rút yêu cầu đó trước khi gửi yêu cầu
+                mới.
+              </p>
+            ) : null}
+            <button
+              type="submit"
+              className={ix.btn}
+              disabled={isOrdering || writing || !selectedPrintLines.length || pending}
+            >
+              {isOrdering ? 'Đang xử lý…' : 'Xem bản in và chi phí'}
+            </button>
+          </form>
+          {printError ? (
+            <p role="alert" className={ix.hintWarning}>
+              {printError}
+            </p>
+          ) : null}
+          {printQuote ? (
+            <PrintQuoteReview
+              key={printQuote.quoteId}
+              quote={printQuote}
+              {...printPreviewContext}
+              busy={isOrdering || writing}
+              onConfirm={studio.handleConfirmPrint}
+            />
+          ) : null}
+        </section>
+        <section className={ix.card} aria-labelledby="print-requests-heading">
+          <h3 id="print-requests-heading" className={ix.subtitle}>
+            Yêu cầu in và phụ lục
+          </h3>
+          {ordersError ? <p role="alert">{ordersError}</p> : null}
+          {printRequests === null ? (
+            <p role="status">Đang tải yêu cầu in…</p>
+          ) : !printRequests.length ? (
+            <p className={ix.empty}>Chưa có yêu cầu in nào.</p>
+          ) : (
+            <div className={px.orders}>
+              {printRequests.map((request) => (
+                <article key={request.requestId} className={px.order}>
+                  <div className={px.orderHead}>
+                    <h4 className={ix.subtitleSm}>Yêu cầu #{request.requestId.slice(0, 8)}</h4>
+                    <span className={request.state === 'APPROVED' ? ix.chipSuccess : ix.chipMuted}>
+                      {requestStates[request.state]}
+                    </span>
+                  </div>
+                  <p className={px.orderBrief}>
+                    {request.document.lines.length} mẫu trong xác nhận ban đầu
+                    <strong>{request.document.totalVnd.toLocaleString('vi-VN')} đ</strong>
+                  </p>
+                  {request.state === 'AWAITING_APPROVAL' && !request.orderId ? (
+                    <p className={ix.meta}>
+                      Bạn đã đồng ý nội dung và chi phí. Chưa tạo đơn in; chờ nhà hàng duyệt phụ
+                      lục.
+                    </p>
+                  ) : null}
+                  <PrintRequestDetails request={request} {...printPreviewContext} />
+                  {request.state === 'AWAITING_APPROVAL' && !request.orderId ? (
                     <button
                       type="button"
-                      disabled={
-                        approvingOrderId === order.orderId || cancellingOrderId === order.orderId
-                      }
-                      onClick={() => {
-                        void handleApproveQuote(order);
-                      }}
-                      className={ix.btn}
-                    >
-                      {approvingOrderId === order.orderId ? 'Đang duyệt...' : 'Duyệt báo giá'}
-                    </button>
-                  )}
-                  {(order.status === 'REQUESTED' || order.status === 'QUOTED') && (
-                    <button
-                      type="button"
-                      disabled={
-                        approvingOrderId === order.orderId || cancellingOrderId === order.orderId
-                      }
-                      onClick={() => {
-                        void handleCancelOrder(order);
-                      }}
                       className={ix.btnDanger}
+                      disabled={isOrdering || writing}
+                      onClick={() => void studio.handleWithdrawPrint(request)}
                     >
-                      {cancellingOrderId === order.orderId ? 'Đang hủy...' : 'Hủy đơn'}
+                      Rút yêu cầu in
                     </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
+      <StudioPrintOrders studio={studio} />
     </section>
   );
 }

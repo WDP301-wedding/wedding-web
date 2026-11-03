@@ -25,7 +25,10 @@ export function useInvitationDesign({
   coupleNames,
 }: UseInvitationDesignOptions) {
   const [designs, setDesigns] = useState<readonly DesignView[]>(initialDesigns);
-  const currentDesign = designs[0];
+  const [selectedDesignId, setSelectedDesignId] = useState<string | null>(
+    initialDesigns[0]?.designId ?? null,
+  );
+  const currentDesign = designs.find((design) => design.designId === selectedDesignId);
 
   const [title, setTitle] = useState(designs[0]?.title ?? 'Thiệp Cưới Hạnh Phúc');
   // null = hai bạn chưa nhập tên trên thiệp → dùng tên ở hồ sơ tiệc (có thể tải về sau khi Studio mở).
@@ -52,11 +55,15 @@ export function useInvitationDesign({
   const [designDirty, setDesignDirty] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [cardTheme, setCardTheme] = useState<CardThemeId>(() => {
+    if (initialDesigns[0]?.presentation) return initialDesigns[0].presentation.theme;
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(`invitation-theme:${bookingId}`);
       if (saved) return saved as CardThemeId;
     }
-    return inferThemeFromContent(initialDesigns[0]?.title, initialDesigns[0]?.textFields?.message);
+    return inferThemeFromContent(
+      initialDesigns[0]?.title,
+      initialDesigns[0]?.textFields?.message ?? undefined,
+    );
   });
 
   const handleSetCardTheme = (theme: CardThemeId) => {
@@ -86,6 +93,44 @@ export function useInvitationDesign({
 
   const saveKeyRef = useRef<{ signature: string; key: string } | null>(null);
 
+  function selectDesign(designId: string) {
+    const selected = designs.find((design) => design.designId === designId);
+    if (!selected || saving || aiJob.busy) return;
+    setSelectedDesignId(designId);
+    setTitle(selected.title);
+    setBrideName(selected.textFields.brideName || null);
+    setGroomName(selected.textFields.groomName || null);
+    setGreeting(selected.textFields.greeting ?? '');
+    setMessageText(selected.textFields.message ?? '');
+    setFooter(selected.textFields.footer ?? '');
+    setDerivedAssetIds(selected.derivedAssetIds);
+    setPreviewUrl(null);
+    setRestoredAiImage(null);
+    setCardTheme(
+      selected.presentation?.theme ??
+        inferThemeFromContent(selected.title, selected.textFields.message ?? undefined),
+    );
+    setDesignDirty(false);
+    saveKeyRef.current = null;
+  }
+
+  function startNewDesign() {
+    if (saving || aiJob.busy) return;
+    setSelectedDesignId(null);
+    setTitle('Thiệp cưới mới');
+    setBrideName(null);
+    setGroomName(null);
+    setGreeting('Trân trọng kính mời');
+    setMessageText('Đến tham dự buổi tiệc chung vui cùng gia đình chúng tôi');
+    setFooter('');
+    setDerivedAssetIds([]);
+    setPreviewUrl(null);
+    setRestoredAiImage(null);
+    setCardTheme(inferThemeFromContent());
+    setDesignDirty(true);
+    saveKeyRef.current = null;
+  }
+
   const handleSaveDesign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (saving) return;
@@ -97,7 +142,7 @@ export function useInvitationDesign({
       .filter((id) => !sanitizedSections.some((section) => section.derivedAssetId === id))
       .map((id) => ({ kind: 'HERO' as const, textKey: null, derivedAssetId: id }));
     const finalSections = [...sanitizedSections, ...newImageSections];
-    const signature = `${currentDesign?.designId ?? 'new'}:${currentDesign?.revisionNumber ?? 0}:${title}:${brideName}:${groomName}:${greeting}:${message}:${footer}:${derivedAssetIds.join(',')}`;
+    const signature = `${currentDesign?.designId ?? 'new'}:${currentDesign?.revisionNumber ?? 0}:${cardTheme}:${title}:${brideName}:${groomName}:${greeting}:${message}:${footer}:${derivedAssetIds.join(',')}`;
     const key = getOrGenerateKey(saveKeyRef, signature, 'save-design');
     try {
       if (currentDesign) {
@@ -108,6 +153,11 @@ export function useInvitationDesign({
           {
             expectedRevision: currentDesign.revisionNumber,
             content: {
+              presentation: {
+                version: 1,
+                theme: cardTheme,
+                layout: currentDesign.presentation?.layout ?? 'envelope',
+              },
               title,
               textFields: {
                 ...currentDesign.textFields,
@@ -124,7 +174,9 @@ export function useInvitationDesign({
           },
           key,
         );
-        setDesigns([updated, ...designs.slice(1)]);
+        setDesigns((previous) =>
+          previous.map((design) => (design.designId === updated.designId ? updated : design)),
+        );
         setDesignDirty(false);
         saveKeyRef.current = null;
         notify.success('Đã lưu bản thiết kế thiệp thành công!');
@@ -133,6 +185,7 @@ export function useInvitationDesign({
           accessToken,
           bookingId,
           {
+            presentation: { version: 1, theme: cardTheme, layout: 'envelope' },
             title,
             textFields: { brideName, groomName, greeting, message, footer },
             sections: newImageSections,
@@ -141,7 +194,8 @@ export function useInvitationDesign({
           },
           key,
         );
-        setDesigns([created]);
+        setDesigns((previous) => [created, ...previous]);
+        setSelectedDesignId(created.designId);
         setDesignDirty(false);
         saveKeyRef.current = null;
         notify.success('Đã tạo thiết kế thiệp cưới mới!');
@@ -205,8 +259,31 @@ export function useInvitationDesign({
 
   return {
     designs,
+    refreshDesigns(loaded: readonly DesignView[]) {
+      setDesigns(loaded);
+      if (selectedDesignId === null) return;
+      const selected = loaded.find((item) => item.designId === selectedDesignId) ?? loaded[0];
+      if (!selected) {
+        setSelectedDesignId(null);
+        return;
+      }
+      setSelectedDesignId(selected.designId);
+      setTitle(selected.title);
+      setBrideName(selected.textFields.brideName || null);
+      setGroomName(selected.textFields.groomName || null);
+      setGreeting(selected.textFields.greeting ?? '');
+      setMessageText(selected.textFields.message ?? '');
+      setFooter(selected.textFields.footer ?? '');
+      setDerivedAssetIds(selected.derivedAssetIds);
+      setCardTheme(
+        selected.presentation?.theme ??
+          inferThemeFromContent(selected.title, selected.textFields.message ?? undefined),
+      );
+    },
     setDesigns,
     currentDesign,
+    selectDesign,
+    startNewDesign,
     title,
     setTitle,
     brideName,

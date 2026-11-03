@@ -7,6 +7,7 @@ import {
 } from './invitation-api-types';
 import { createInvitationJobMethods, toImageJob } from './invitation-job-api';
 import { createInvitationPrintMethods } from './invitation-print-api';
+import { createInvitationPrintRequestMethods } from './invitation-print-request-api';
 import { createInvitationMediaMethods } from './invitation-media-api';
 
 export * from './invitation-api-types';
@@ -36,6 +37,7 @@ export function createInvitationGateway(client?: ApiClient): InvitationGateway {
   const mediaMethods = createInvitationMediaMethods(api, headers, intent, required);
 
   return {
+    ...createInvitationPrintRequestMethods(api, headers, required),
     async listDesigns(accessToken, bookingId): Promise<readonly DesignView[]> {
       const { data, error } = await api().GET('/bookings/{bookingId}/invitations', {
         headers: headers(accessToken),

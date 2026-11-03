@@ -1,24 +1,25 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type {
   InvitationGateway,
   DesignView,
   PrintOrderView,
-  ContractedPrintSource,
+  PrintRequestQuote,
+  PrintRequestView,
 } from './invitation-api';
 import { getOrGenerateKey, invitationErrorMessage } from './invitation-studio-utils';
 import { useLiveRefresh } from '../realtime/use-live-refresh';
 import { browserSession } from '../identity-access/browser-session';
-import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import { notify } from '../../design-system/toast';
 import type { ConfirmOptions } from '../../design-system/confirm-dialog';
+import { useLegacyPrintActions } from './use-legacy-print-actions';
 
 export interface UseInvitationPrintOptions {
   bookingId: string;
   accessToken: string;
   gateway: InvitationGateway;
-  currentDesign?: DesignView | undefined;
+  designs: readonly DesignView[];
   initialOrders?: readonly PrintOrderView[] | undefined;
   printVisited: boolean;
   writing: boolean;
@@ -29,7 +30,7 @@ export function useInvitationPrint({
   bookingId,
   accessToken,
   gateway,
-  currentDesign,
+  designs,
   initialOrders,
   printVisited,
   writing,
@@ -37,197 +38,230 @@ export function useInvitationPrint({
 }: UseInvitationPrintOptions) {
   const [orders, setOrders] = useState<readonly PrintOrderView[] | null>(initialOrders ?? null);
   const [ordersError, setOrdersError] = useState<string | null>(null);
-  const [printQuantity, setPrintQuantity] = useState(100);
-  const [isOrdering, setIsOrdering] = useState(false);
-  const [approvingOrderId, setApprovingOrderId] = useState<string | null>(null);
-  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
-
-  const [printSources, setPrintSources] = useState<readonly ContractedPrintSource[]>([]);
-  const [printSourcesError, setPrintSourcesError] = useState<FriendlyError | null>(null);
-  const [sourcesReady, setSourcesReady] = useState(
-    () => gateway.contractedPrintSources === undefined,
+  const [printRequests, setPrintRequests] = useState<readonly PrintRequestView[] | null>(null);
+  const [printSelections, setSelections] = useState<Readonly<Record<string, number>>>({});
+  const [quoteState, setQuote] = useState<{ quote: PrintRequestQuote; signature: string } | null>(
+    null,
   );
-  const [printSourceIndex, setPrintSourceIndex] = useState(0);
-  const printSourcesLoaded = useRef(false);
-  const selectedPrintSource = printSources[printSourceIndex];
+  const [printError, setPrintError] = useState<string | null>(null);
+  const [isOrdering, setIsOrdering] = useState(false);
+  const commandBusy = useRef(false);
+  const previewEpoch = useRef(0);
+  const previewKey = useRef<{ signature: string; key: string } | null>(null);
+  const confirmKey = useRef<{ signature: string; key: string } | null>(null);
+  const withdrawKey = useRef<{ signature: string; key: string } | null>(null);
+  const selectedPrintLines = designs
+    .filter((design) => printSelections[design.designId] !== undefined)
+    .map((design) => ({
+      designId: design.designId,
+      designRevisionId: design.revisionId,
+      quantity: printSelections[design.designId]!,
+    }))
+    .sort((a, b) => a.designId.localeCompare(b.designId));
+  const signature = JSON.stringify(selectedPrintLines);
+  const currentSignature = useRef(signature);
+  useEffect(() => {
+    currentSignature.current = signature;
+  }, [signature]);
+  useEffect(
+    () => () => {
+      previewEpoch.current++;
+    },
+    [],
+  );
+  const printQuote = quoteState?.signature === signature ? quoteState.quote : null;
 
-  const orderKeyRef = useRef<{ signature: string; key: string } | null>(null);
-  const approveKeyRef = useRef<{ signature: string; key: string } | null>(null);
-  const cancelKeyRef = useRef<{ signature: string; key: string } | null>(null);
+  function setPrintSelection(designId: string, quantity: number | null) {
+    previewEpoch.current++;
+    setQuote(null);
+    setPrintError(null);
+    setSelections((previous) => {
+      const next = { ...previous };
+      if (quantity === null) delete next[designId];
+      else next[designId] = quantity;
+      return next;
+    });
+  }
 
-  const handleRequestPrint = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!sourcesReady || printSourcesError) return;
-    if (!currentDesign) {
-      notify.error('Cần lưu thiết kế trước khi đặt in.');
+  async function handlePreviewPrint() {
+    if (commandBusy.current || writing) return;
+    if (
+      !selectedPrintLines.length ||
+      selectedPrintLines.length > 20 ||
+      selectedPrintLines.some(
+        (line) => !Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 10000,
+      )
+    ) {
+      setPrintError('Chọn từ 1–20 mẫu đã lưu, mỗi mẫu từ 1–10.000 thiệp.');
       return;
     }
+    commandBusy.current = true;
     setIsOrdering(true);
-    const signature = `${currentDesign.designId}:${printQuantity}:${selectedPrintSource?.offeringId ?? ''}`;
-    const key = getOrGenerateKey(orderKeyRef, signature, 'request-print-order');
+    setQuote(null);
+    setPrintError(null);
+    const epoch = ++previewEpoch.current;
+    const key = getOrGenerateKey(previewKey, signature, 'preview-print-request');
     try {
-      const newOrder = await gateway.requestPrintOrder(
+      const quote = await gateway.previewPrintRequest(
         accessToken,
         bookingId,
-        [
-          {
-            designId: currentDesign.designId,
-            quantity: printQuantity,
-            ...(selectedPrintSource
-              ? {
-                  commercialSource: {
-                    agreementRevisionId: selectedPrintSource.agreementRevisionId,
-                    offeringId: selectedPrintSource.offeringId,
-                    sourceRevisionId: selectedPrintSource.sourceRevisionId,
-                  },
-                }
-              : {}),
-          },
-        ],
+        selectedPrintLines,
         key,
       );
-      setOrders([newOrder, ...(orders ?? [])]);
-      orderKeyRef.current = null;
-      notify.success('Đã gửi yêu cầu in thiệp giấy! Quản lý sẽ sớm báo giá.');
-    } catch (err: unknown) {
-      notify.error(invitationErrorMessage(err, 'Không thể đặt in.'));
+      if (previewEpoch.current === epoch && currentSignature.current === signature) {
+        setQuote({ quote, signature });
+        previewKey.current = null;
+      }
+    } catch (error) {
+      if (previewEpoch.current === epoch)
+        setPrintError(invitationErrorMessage(error, 'Không thể xem trước chi phí in.'));
     } finally {
+      commandBusy.current = false;
       setIsOrdering(false);
     }
-  };
+  }
 
-  const handleApproveQuote = async (order: PrintOrderView) => {
-    if (!order.currentCommercialRevision || approvingOrderId || cancellingOrderId) return;
-    const total = Number(order.currentCommercialRevision.orderTotalVnd).toLocaleString('vi-VN');
-    const agreed = await confirm({
-      title: 'Duyệt báo giá in thiệp?',
-      description: `Hai bạn đồng ý với báo giá ${total} đ. Sau khi duyệt, nhà hàng sẽ tiến hành in theo báo giá này.`,
-      confirmLabel: 'Duyệt báo giá',
-    });
-    if (!agreed) return;
-    setApprovingOrderId(order.orderId);
-    const signature = `${order.orderId}:${order.currentCommercialRevision.commercialRevisionId}:${order.revision}`;
-    const key = getOrGenerateKey(approveKeyRef, signature, 'approve-print-order');
+  async function handleConfirmPrint() {
+    if (!printQuote || commandBusy.current || writing) return;
+    if (Date.parse(printQuote.expiresAt) <= Date.now()) {
+      setQuote(null);
+      setPrintError('Bản xem trước đã hết hạn. Vui lòng xem lại nội dung và chi phí.');
+      return;
+    }
+    commandBusy.current = true;
+    setIsOrdering(true);
+    const epoch = previewEpoch.current;
     try {
-      const updated = await gateway.approvePrintOrder(
+      const agreed = await confirm({
+        title: 'Xác nhận đặt in và chi phí',
+        description:
+          'Bạn đồng ý với ' +
+          printQuote.document.lines.length +
+          ' mẫu in và tổng chi phí ' +
+          printQuote.document.totalVnd.toLocaleString('vi-VN') +
+          ' đ vừa hiển thị. Phụ lục ghi nhận sự đồng ý này; đơn in chỉ được tạo sau khi nhà hàng duyệt cùng phiên bản.',
+        confirmLabel: 'Xác nhận đặt in và chi phí',
+      });
+      if (!agreed || previewEpoch.current !== epoch || currentSignature.current !== signature)
+        return;
+      const key = getOrGenerateKey(
+        confirmKey,
+        printQuote.quoteId + ':' + printQuote.digest,
+        'confirm-print-request',
+      );
+      const request = await gateway.confirmPrintRequest(
         accessToken,
         bookingId,
-        order.orderId,
-        order.currentCommercialRevision.commercialRevisionId,
-        order.revision,
+        { quoteId: printQuote.quoteId, digest: printQuote.digest, consent: true },
         key,
       );
-      setOrders((orders ?? []).map((o) => (o.orderId === order.orderId ? updated : o)));
-      approveKeyRef.current = null;
-      notify.success('Đã duyệt báo giá in thiệp thành công! Đơn hàng bắt đầu sản xuất.');
-    } catch (err: unknown) {
-      notify.error(invitationErrorMessage(err, 'Không thể duyệt báo giá.'));
+      setPrintRequests((previous) => [
+        request,
+        ...(previous ?? []).filter((item) => item.requestId !== request.requestId),
+      ]);
+      confirmKey.current = null;
+      setQuote(null);
+      setSelections({});
+      setPrintError(null);
+      notify.success('Đã xác nhận chi phí trên phụ lục. Chờ nhà hàng duyệt để tạo đơn in.');
+    } catch (error) {
+      setPrintError(invitationErrorMessage(error, 'Không thể xác nhận yêu cầu in.'));
     } finally {
-      setApprovingOrderId(null);
+      commandBusy.current = false;
+      setIsOrdering(false);
     }
-  };
+  }
 
-  const handleCancelOrder = async (order: PrintOrderView) => {
-    if (approvingOrderId || cancellingOrderId) return;
-    const agreed = await confirm({
-      title: 'Huỷ đơn in thiệp?',
-      description:
-        'Đơn in thiệp này sẽ bị huỷ và không thể khôi phục. Muốn in lại, bạn cần tạo đơn mới.',
-      confirmLabel: 'Huỷ đơn in',
-      cancelLabel: 'Giữ đơn',
-      tone: 'danger',
-    });
-    if (!agreed) return;
-    setCancellingOrderId(order.orderId);
-    const signature = `${order.orderId}:${order.revision}`;
-    const key = getOrGenerateKey(cancelKeyRef, signature, 'cancel-print-order');
+  async function handleWithdrawPrint(request: PrintRequestView) {
+    if (commandBusy.current || writing || request.state !== 'AWAITING_APPROVAL') return;
+    commandBusy.current = true;
+    setIsOrdering(true);
     try {
-      await gateway.cancelPrintOrder(
+      const agreed = await confirm({
+        title: 'Rút yêu cầu in?',
+        description:
+          'Phụ lục chờ duyệt sẽ được rút cùng yêu cầu in. Bạn có thể chọn lại mẫu và số lượng sau đó.',
+        confirmLabel: 'Rút yêu cầu in',
+        tone: 'danger',
+      });
+      if (!agreed) return;
+      const key = getOrGenerateKey(
+        withdrawKey,
+        request.requestId + ':' + request.bookingRevision,
+        'withdraw-print-request',
+      );
+      const updated = await gateway.withdrawPrintRequest(
         accessToken,
         bookingId,
-        order.orderId,
-        order.revision,
-        'Khách hàng yêu cầu hủy đơn in',
+        request.requestId,
+        request.bookingRevision,
         key,
       );
-      const reloaded = await gateway.listPrintOrders(accessToken, bookingId);
-      setOrders(reloaded);
-      cancelKeyRef.current = null;
-      notify.success('Đã hủy đơn in thiệp thành công.');
-    } catch (err: unknown) {
-      notify.error(invitationErrorMessage(err, 'Không thể hủy đơn in.'));
+      setPrintRequests((previous) =>
+        (previous ?? []).map((item) => (item.requestId === request.requestId ? updated : item)),
+      );
+      withdrawKey.current = null;
+      notify.success('Đã rút yêu cầu in và phụ lục chờ duyệt.');
+    } catch (error) {
+      setPrintError(invitationErrorMessage(error, 'Không thể rút yêu cầu in.'));
     } finally {
-      setCancellingOrderId(null);
+      commandBusy.current = false;
+      setIsOrdering(false);
     }
-  };
+  }
 
   const printLive = useLiveRefresh(
     async (isCurrent) => {
       try {
-        const loaded = await browserSession.authorize((token) =>
-          gateway.listPrintOrders(token, bookingId),
+        const [loaded, requests] = await browserSession.authorize((token) =>
+          Promise.all([
+            gateway.listPrintOrders(token, bookingId),
+            gateway.listPrintRequests(token, bookingId),
+          ]),
         );
         if (!isCurrent()) return;
         setOrders(loaded);
+        setPrintRequests(requests);
         setOrdersError(null);
-        const loadSources = gateway.contractedPrintSources;
-        if (loadSources) {
-          try {
-            const sources = await browserSession.authorize((token) =>
-              loadSources(token, bookingId),
-            );
-            if (!isCurrent()) return;
-            const previous = printSources[printSourceIndex]?.offeringId;
-            setPrintSources(sources);
-            setPrintSourcesError(null);
-            setSourcesReady(true);
-            setPrintSourceIndex(
-              Math.max(
-                0,
-                sources.findIndex((source) => source.offeringId === previous),
-              ),
-            );
-            if (!printSourcesLoaded.current && sources[0]) setPrintQuantity(sources[0].quantity);
-            printSourcesLoaded.current = true;
-          } catch (error) {
-            if (isCurrent()) {
-              setSourcesReady(false);
-              setPrintSourcesError(describeApiError(error));
-            }
-          }
-        }
-      } catch (err) {
-        if (isCurrent()) setOrdersError(invitationErrorMessage(err, 'Không thể cập nhật đơn in.'));
+      } catch (error) {
+        if (isCurrent())
+          setOrdersError(invitationErrorMessage(error, 'Không thể cập nhật yêu cầu và đơn in.'));
       }
     },
     {
       scope: bookingId + ':print',
       bookingId,
       enabled: printVisited,
-      blocked: writing,
+      blocked: writing || isOrdering,
       invalidateOnBlock: true,
-      initial: initialOrders === undefined,
+      initial: true,
       types: ['print_order.updated', 'contract.updated', 'booking.updated', 'billing.updated'],
     },
   );
 
+  const legacy = useLegacyPrintActions({
+    accessToken,
+    bookingId,
+    gateway,
+    orders,
+    setOrders,
+    confirm,
+  });
   return {
     orders,
     ordersError,
-    printQuantity,
-    setPrintQuantity,
+    printRequests,
+    printSelections,
+    selectedPrintLines,
+    setPrintSelection,
+    printQuote,
+    printError,
     isOrdering,
-    printSources,
-    printSourcesError,
-    sourcesReady,
-    printSourceIndex,
-    setPrintSourceIndex,
-    selectedPrintSource,
-    handleRequestPrint,
-    approvingOrderId,
-    cancellingOrderId,
-    handleApproveQuote,
-    handleCancelOrder,
+    handlePreviewPrint,
+    handleConfirmPrint,
+    handleWithdrawPrint,
     printLive,
+    printPreviewContext: { bookingId, accessToken, gateway },
+    ...legacy,
   };
 }

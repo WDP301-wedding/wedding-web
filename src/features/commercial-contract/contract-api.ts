@@ -76,7 +76,8 @@ export const contractApi = {
         cache: 'no-store',
       }),
     );
-    return { ...data, ...capabilityEnvelope.parse(data) };
+    capabilityEnvelope.parse(data);
+    return data;
   },
   async approve(
     token: string,
@@ -117,24 +118,18 @@ export const contractApi = {
   },
   /** Danh mục đang bán để chọn vào hợp đồng (menu công khai; dịch vụ và mẫu in cần đăng nhập). */
   async catalog(token: string): Promise<Catalog> {
-    const [menus, services, prints] = await Promise.all([
+    const [menus, services] = await Promise.all([
       coupleApi()
         .GET('/catalog/menu-packages', { params: { query: { limit: 50 } } })
         .then((response) => unwrap<ApiData<'/catalog/menu-packages', 'get'>>(response).items),
       coupleApi()
         .GET('/catalog/services', { headers: bearer(token), params: { query: { limit: 50 } } })
         .then((response) => unwrap<ApiData<'/catalog/services', 'get'>>(response).items),
-      coupleApi()
-        .GET('/catalog/print-offerings', {
-          headers: bearer(token),
-          params: { query: { limit: 50 } },
-        })
-        .then((response) => unwrap<ApiData<'/catalog/print-offerings', 'get'>>(response).items),
     ]);
     return {
       menus,
       services: services.filter((item) => item.active),
-      prints: prints.filter((item) => item.active),
+      prints: [],
     };
   },
 };

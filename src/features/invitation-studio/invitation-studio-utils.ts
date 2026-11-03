@@ -16,6 +16,7 @@ export const publicationSnapshotSchema = z.object({
 });
 
 export function invitationErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.cause instanceof ApiClientError) err = err.cause;
   if (err instanceof ApiClientError) {
     // Chỉ kèm mã hỗ trợ (requestId) để nhà hàng tra log; không hiện mã lỗi/HTTP kỹ thuật cho khách.
     const meta = err.requestId ? ` (Mã hỗ trợ: ${err.requestId.slice(0, 8)})` : '';
@@ -26,9 +27,17 @@ export function invitationErrorMessage(err: unknown, fallback: string): string {
     if (err.code === 'PRINT_ORDER_STATE_INVALID')
       return `Trạng thái đơn in hiện tại không cho phép thực hiện thao tác này.${meta}`;
     if (err.code === 'PRINT_QUOTE_EXPIRED')
-      return `Báo giá in thiệp đã hết hạn (quá 7 ngày). Vui lòng gửi yêu cầu báo giá mới.${meta}`;
+      return `Bản xem trước chi phí đã hết hạn. Vui lòng xem lại nội dung và chi phí trước khi xác nhận.${meta}`;
     if (err.code === 'PRINT_QUOTE_STALE')
-      return `Báo giá đã thay đổi hoặc không còn hiệu lực. Vui lòng làm mới đơn hàng.${meta}`;
+      return `Thiết kế hoặc chi phí đã thay đổi. Vui lòng lấy bản xem trước mới rồi xác nhận lại.${meta}`;
+    if (err.code === 'PRINT_APPENDIX_PENDING')
+      return `Đang có phụ lục chờ duyệt. Hoàn tất hoặc rút yêu cầu đó trước khi đặt in tiếp.${meta}`;
+    if (err.code === 'SETTLED_CONTRACT_REQUIRED')
+      return `Chỉ có thể đặt in sau khi nhà hàng xác nhận đã nhận tiền cọc của hợp đồng.${meta}`;
+    if (err.code === 'COMMERCIAL_PREDECESSOR_STALE')
+      return `Thoả thuận vừa được cập nhật. Hãy tải lại và xem trước chi phí theo phiên bản mới.${meta}`;
+    if (err.code === 'PRINT_APPENDIX_CHANGE_REQUIRED')
+      return `Đơn in đã có phụ lục hiệu lực. Muốn thay đổi hoặc hủy, hãy lập phụ lục điều chỉnh.${meta}`;
     if (err.code === 'PRINT_CANCELLATION_NOT_ALLOWED')
       return `Đơn in đang trong quá trình sản xuất hoặc đã hoàn tất, không thể hủy.${meta}`;
     if (err.code === 'PRINTABLE_TIMELINE_NOT_EFFECTIVE')

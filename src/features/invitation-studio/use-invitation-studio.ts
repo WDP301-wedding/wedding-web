@@ -112,7 +112,7 @@ export function useInvitationStudio({
     bookingId,
     accessToken,
     gateway,
-    currentDesign: design.currentDesign,
+    designs: design.designs,
     initialOrders,
     printVisited,
     writing: writing || publish.isPublishing,
@@ -135,20 +135,7 @@ export function useInvitationStudio({
           gateway.listDesigns(token, bookingId),
         );
         if (!isCurrent()) return;
-        const currentId = design.currentDesign?.designId;
-        const first = loaded.find((item) => item.designId === currentId) ?? loaded[0];
-        design.setDesigns(
-          first ? [first, ...loaded.filter((item) => item.designId !== first.designId)] : [],
-        );
-        if (first) {
-          design.setTitle(first.title);
-          design.setBrideName(first.textFields.brideName || null);
-          design.setGroomName(first.textFields.groomName || null);
-          design.setGreeting(first.textFields.greeting ?? '');
-          design.setMessageText(first.textFields.message ?? '');
-          design.setFooter(first.textFields.footer ?? '');
-          design.setDerivedAssetIds(first.derivedAssetIds);
-        }
+        design.refreshDesigns(loaded);
       } catch (err) {
         if (isCurrent()) notify.error(invitationErrorMessage(err, 'Không thể cập nhật thiệp.'));
       }
