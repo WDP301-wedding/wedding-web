@@ -60,10 +60,11 @@ describe('multiple invitation designs', () => {
       'token',
       'booking',
       'first',
-      expect.objectContaining({
-        content: expect.objectContaining({ presentation: first.presentation }),
-      }),
+      expect.anything(),
       expect.any(String),
+    );
+    expect(vi.mocked(gateway.reviseDesign).mock.calls[0]?.[3]?.content?.presentation).toEqual(
+      first.presentation,
     );
     expect(result.current.designs.map((design) => design.designId)).toEqual(['second', 'first']);
   });
