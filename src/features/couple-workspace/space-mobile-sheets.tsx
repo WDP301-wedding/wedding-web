@@ -63,6 +63,9 @@ export function SpaceMoreSheet({
         <Link className={navLink} href={routes.profile} onClick={onClose}>
           <Icon name="person" /> Hồ sơ
         </Link>
+        <Link className={navLink} href="/tiec-da-huy" onClick={onClose}>
+          Tiệc đã hủy
+        </Link>
         <Link className={navLink} href={routes.home} onClick={onClose}>
           <Icon name="back" /> Trang chủ
         </Link>

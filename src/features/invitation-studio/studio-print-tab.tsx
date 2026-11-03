@@ -1,9 +1,11 @@
 'use client';
+import { HySelect } from '../../components/ui/select-field';
 
 import React from 'react';
 import { PrintPurchaseForm } from './print-purchase-form';
 import { InlineError } from '../../design-system/inline-error';
 import { orderStatusMap } from './invitation-studio-utils';
+import { formatDate } from '../couple-workspace/workspace-helpers';
 import type { InvitationStudioState } from './use-invitation-studio';
 import { px } from './studio-panel-classes';
 import { ix } from './studio-classes';
@@ -64,7 +66,7 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                   <label htmlFor="print-source" className={ix.label}>
                     Mẫu in theo hợp đồng
                   </label>
-                  <select
+                  <HySelect
                     id="print-source"
                     value={printSourceIndex}
                     onChange={(e) => {
@@ -79,7 +81,7 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                         {source.name} · {source.quantity} bản còn được in theo hợp đồng
                       </option>
                     ))}
-                  </select>
+                  </HySelect>
                   <p className={ix.meta}>
                     Số bản còn được in theo hợp đồng đã được tính tiền, nhà hàng không thu lại. Muốn
                     in thêm hoặc đổi mẫu, hãy tạo phụ lục hợp đồng.
@@ -222,10 +224,7 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                         </p>
                       ) : null}
                       <p className={ix.meta}>
-                        Hạn báo giá:{' '}
-                        {new Date(order.currentCommercialRevision.expiresAt).toLocaleDateString(
-                          'vi-VN',
-                        )}
+                        Hạn báo giá: {formatDate(order.currentCommercialRevision.expiresAt)}
                       </p>
                     </div>
                   )}

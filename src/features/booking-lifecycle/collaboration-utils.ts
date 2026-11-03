@@ -1,6 +1,7 @@
 import { ApiClientError } from '../../lib/api/client';
 import { describeApiError } from '../../lib/api/api-errors';
 import { createExperienceGateway } from '../identity-access/experience-api';
+import { formatDate } from '../couple-workspace/workspace-helpers';
 
 export type Authorize = <T>(operation: (accessToken: string) => Promise<T>) => Promise<T>;
 export type BookingChoice = Readonly<{ bookingId: string; label: string }>;
@@ -12,7 +13,7 @@ export const listCoupleBookings: ListBookings = async (authorize) => {
   const overview = await authorize((token) => createExperienceGateway().overview(token));
   return overview.data.map((item) => ({
     bookingId: item.bookingId,
-    label: `${item.hallName} · ${item.eventDate.split('-').reverse().join('/')} · ${
+    label: `${item.hallName} · ${formatDate(item.eventDate)} · ${
       item.shiftCode === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối'
     }`,
   }));

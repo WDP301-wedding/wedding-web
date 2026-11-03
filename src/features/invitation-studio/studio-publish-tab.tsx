@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { CopyButton } from '../../design-system/copy-button';
 import { getApiBaseUrl } from './invitation-studio-utils';
+import { formatDate } from '../couple-workspace/workspace-helpers';
 import type { InvitationStudioState } from './use-invitation-studio';
 import { px } from './studio-panel-classes';
 import { ix } from './studio-classes';
@@ -151,8 +152,7 @@ export function StudioPublishTab({ studio }: StudioPublishTabProps) {
                   </div>
                   {event?.eventDate ? (
                     <div className={px.ogMeta}>
-                      Ngày tổ chức: {new Date(event.eventDate).toLocaleDateString('vi-VN')} · Sảnh{' '}
-                      {event.hallName}
+                      Ngày tổ chức: {formatDate(event.eventDate)} · Sảnh {event.hallName}
                     </div>
                   ) : null}
                   <div className={px.ogLink}>

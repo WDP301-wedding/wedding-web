@@ -1,5 +1,6 @@
 import { blockedBalanceCopy } from './balance-eligibility';
 import { ApiClientError } from '../../lib/api/client';
+import { formatDateTime } from '../couple-workspace/workspace-helpers';
 import type { AttemptView, BillingView } from './billing-api';
 import { bx } from './billing-classes';
 
@@ -108,7 +109,7 @@ export function BillingHistory({ view }: Readonly<{ view: BillingView }>) {
             <tbody>
               {view.history.map((entry) => (
                 <tr key={entry.ledgerEntryId}>
-                  <td>{new Date(entry.occurredAt).toLocaleString('vi-VN')}</td>
+                  <td>{formatDateTime(entry.occurredAt)}</td>
                   <td>
                     {kinds[entry.kind]}
                     <small>{sources[entry.sourceType]}</small>

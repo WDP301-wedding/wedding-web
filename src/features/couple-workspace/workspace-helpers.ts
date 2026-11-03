@@ -172,18 +172,42 @@ export const formatVnd = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
-/** Hiển thị thời điểm UTC theo giờ Việt Nam. */
-export const formatDateTime = (iso: string) =>
-  new Date(iso).toLocaleString('vi-VN', {
+/** Định dạng ngày sang dd/mm/yyyy chuẩn Việt Nam. */
+export const formatDate = (value: string): string => {
+  if (!value) return '';
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (match) {
+    const [, y, m, d] = match;
+    return `${d}/${m}/${y}`;
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat('vi-VN', {
     timeZone: 'Asia/Ho_Chi_Minh',
-    dateStyle: 'short',
-    timeStyle: 'short',
-  });
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date);
+};
 
-/** `eventDate` là ngày địa phương (YYYY-MM-DD): KHÔNG đổi múi giờ, chỉ định dạng lại. */
-export const formatEventDate = (date: string) => {
-  const [year, month, day] = date.split('-');
-  return `${day}/${month}/${year}`;
+/** Hiển thị thời điểm UTC theo giờ Việt Nam định dạng dd/mm/yyyy HH:mm. */
+export const formatDateTime = (iso: string): string => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+};
+
+/** `eventDate` là ngày địa phương (YYYY-MM-DD): KHÔNG đổi múi giờ, định dạng dd/mm/yyyy. */
+export const formatEventDate = (date: string): string => {
+  return formatDate(date);
 };
 
 export function formText(data: FormData, name: string): string {

@@ -1,4 +1,6 @@
 'use client';
+import { HySelect } from '../../components/ui/select-field';
+
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import { createPublicGateway, type ConsultationRequest, type Hall, type Menu } from './public-api';
 import { minimumPreferredDate } from './consultation-date';
@@ -203,7 +205,7 @@ export function ConsultationForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <label className={textField}>
           Sảnh quan tâm (không bắt buộc)
-          <select
+          <HySelect
             className={control}
             value={hallId}
             onChange={(event) => setHallId(event.target.value)}
@@ -214,11 +216,11 @@ export function ConsultationForm({
                 {hall.name}
               </option>
             ))}
-          </select>
+          </HySelect>
         </label>
         <label className={textField}>
           Thực đơn quan tâm (không bắt buộc)
-          <select
+          <HySelect
             className={control}
             value={menuVersionId}
             onChange={(event) => setMenuVersionId(event.target.value)}
@@ -229,7 +231,7 @@ export function ConsultationForm({
                 {menu.name}
               </option>
             ))}
-          </select>
+          </HySelect>
         </label>
         <label className={textField}>
           Họ và tên

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { formatDateTime } from '../couple-workspace/workspace-helpers';
 import type { AttemptView, CheckoutView } from './billing-api';
 import { cn } from 'cn';
 import { bx } from './billing-classes';
@@ -60,14 +61,7 @@ function useCountdown(expiresAt: string): string | null {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-const timeFormat = (value: string) =>
-  new Date(value).toLocaleString('vi-VN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
+const timeFormat = (value: string) => formatDateTime(value);
 
 export function CheckoutLinkPanel({
   checkout,
@@ -104,7 +98,12 @@ export function CheckoutLinkPanel({
             Bạn sẽ chuyển sang VNPay trong tab hiện tại. Sau khi hoàn tất, chọn quay về website để
             xem trạng thái thanh toán đã xác minh.
           </p>
-          <a className={bx.primaryLink} href={checkout.checkoutUrl} target="_self" rel="noopener noreferrer">
+          <a
+            className={bx.primaryLink}
+            href={checkout.checkoutUrl}
+            target="_self"
+            rel="noopener noreferrer"
+          >
             Tiếp tục trên VNPay
           </a>
         </>

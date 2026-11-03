@@ -6,6 +6,7 @@ import Image from 'next/image';
 import type { InvitationContent } from './invitation-content';
 import { InvitationSeatingView } from './invitation-seating-view';
 import { DEFAULT_PRESENTATION } from './invitation-presentation';
+import { formatDate } from '../couple-workspace/workspace-helpers';
 import styles from './interactive-invitation.module.css';
 
 /** The editor and published guest link use this same declarative renderer. */
@@ -29,11 +30,7 @@ export function InteractiveInvitation({
   const presentation = invitation.presentation ?? DEFAULT_PRESENTATION;
   const text = invitation.textFields;
   const event = invitation.event;
-  const eventDate = event
-    ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'long', timeZone: 'UTC' }).format(
-        new Date(event.eventDate + 'T00:00:00Z'),
-      )
-    : null;
+  const eventDate = event ? formatDate(event.eventDate) : null;
   const image = (url: string, index: number) => {
     const asset = invitation.assets.find((a) => a.url === url);
     return (

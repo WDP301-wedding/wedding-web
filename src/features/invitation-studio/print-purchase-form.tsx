@@ -1,5 +1,8 @@
 'use client';
+import { HySelect } from '../../components/ui/select-field';
+
 import type { InvitationStudioState } from './use-invitation-studio';
+import { formatDateTime } from '../couple-workspace/workspace-helpers';
 import { ix } from './studio-classes';
 export function PrintPurchaseForm({ studio }: Readonly<{ studio: InvitationStudioState }>) {
   const p = studio.purchase;
@@ -71,7 +74,7 @@ export function PrintPurchaseForm({ studio }: Readonly<{ studio: InvitationStudi
       <label className={ix.label} htmlFor="purchase-offering">
         Quy cách và chất liệu
       </label>
-      <select
+      <HySelect
         id="purchase-offering"
         className={ix.input}
         value={p.offeringId}
@@ -85,7 +88,7 @@ export function PrintPurchaseForm({ studio }: Readonly<{ studio: InvitationStudi
             {item.unitPriceVnd.toLocaleString('vi-VN')} đ/thiệp
           </option>
         ))}
-      </select>
+      </HySelect>
       <label className={ix.label} htmlFor="purchase-quantity">
         Số lượng thiệp
       </label>
@@ -128,8 +131,8 @@ export function PrintPurchaseForm({ studio }: Readonly<{ studio: InvitationStudi
             <strong>{p.quote.value.document.line.lineTotalVnd.toLocaleString('vi-VN')} đ</strong>
           </p>
           <p className={ix.hint}>
-            Giá có hiệu lực đến {new Date(p.quote.value.expiresAt).toLocaleString('vi-VN')}. Thay
-            đổi lựa chọn cần xem và xác nhận lại.
+            Giá có hiệu lực đến {formatDateTime(p.quote.value.expiresAt)}. Thay đổi lựa chọn cần xem
+            và xác nhận lại.
           </p>
           <iframe title="Bản in thiệp chính thức" src={p.quote.pdfUrl} width="100%" height="460" />
           <a href={p.quote.pdfUrl} download="ban-in-thiep.pdf">

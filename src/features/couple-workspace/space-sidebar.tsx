@@ -102,6 +102,12 @@ export function SpaceSidebar({
             </Link>
           </li>
           <li>
+            <Link className={navLink} href="/tiec-da-huy">
+              <Icon name="back" />
+              <span>Tiệc đã hủy</span>
+            </Link>
+          </li>
+          <li>
             <Link className={navLink} href={routes.home}>
               <Icon name="back" />
               <span>Trang chủ</span>

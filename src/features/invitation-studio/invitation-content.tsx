@@ -3,6 +3,7 @@ import type { InvitationPresentation } from './invitation-presentation';
 import { InvitationSeatingView } from './invitation-seating-view';
 import type { InvitationSeating } from './print-purchase-api';
 import Image from 'next/image';
+import { formatDate } from '../couple-workspace/workspace-helpers';
 import { inferThemeFromContent } from './ai-invitation-generator';
 
 export type InvitationEvent = Readonly<{
@@ -81,11 +82,7 @@ export function InvitationContents({
       />
     );
   };
-  const date = event
-    ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'long', timeZone: 'UTC' }).format(
-        new Date(event.eventDate + 'T00:00:00Z'),
-      )
-    : null;
+  const date = event ? formatDate(event.eventDate) : null;
   return (
     <div className={`hy-invite-card-canvas hy-theme-${currentTheme}`}>
       <div className="hy-card-border-outer">

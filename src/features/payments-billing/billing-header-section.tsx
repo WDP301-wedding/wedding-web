@@ -1,4 +1,5 @@
 'use client';
+import { HySelect } from '../../components/ui/select-field';
 
 import Link from 'next/link';
 import React from 'react';
@@ -42,7 +43,7 @@ export function BillingIntroSection({
       {!embedded && availableBookings.length > 0 && (
         <div className={bx.selectWrapper}>
           <label htmlFor="billing-booking-select">Chọn hồ sơ tiệc cưới của bạn:</label>
-          <select
+          <HySelect
             id="billing-booking-select"
             value={currentBookingId}
             disabled={blocked}
@@ -57,7 +58,7 @@ export function BillingIntroSection({
                 {b.label} (#{b.bookingId.slice(0, 8)})
               </option>
             ))}
-          </select>
+          </HySelect>
         </div>
       )}
     </section>
