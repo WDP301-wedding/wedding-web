@@ -116,7 +116,8 @@ export function StudioDesignPreview({
                 <p className={ix.previewNote}>
                   Bản xem trước nội dung đang chỉnh. Khi xuất bản, hệ thống áp dụng thông tin và
                   lịch trình chính thức. Mở thiệp và dùng các nút chuyển trang hoặc vuốt ngang. Bản
-                  in là bố cục A5 tĩnh riêng; luôn kiểm tra PDF trước khi đặt in.
+                  in dùng cùng mẫu và nội dung đã lưu, trình bày thành các trang PDF tĩnh; luôn kiểm
+                  tra PDF trước khi đặt in.
                 </p>
               </div>
             </div>

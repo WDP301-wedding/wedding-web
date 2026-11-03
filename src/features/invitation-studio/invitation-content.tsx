@@ -1,11 +1,7 @@
 import { InteractiveInvitation } from './interactive-invitation';
+import { LegacyInvitationContents } from './legacy-invitation-contents';
 import type { InvitationPresentation } from './invitation-presentation';
-import { InvitationSeatingView } from './invitation-seating-view';
 import type { InvitationSeating } from './print-purchase-api';
-import Image from 'next/image';
-import { formatDate } from '../couple-workspace/workspace-helpers';
-import { inferThemeFromContent } from './ai-invitation-generator';
-
 export type InvitationEvent = Readonly<{
   eventDate: string;
   hallName: string;
@@ -42,165 +38,12 @@ export type InvitationContent = Readonly<{
 }>;
 
 /** Shared renderer for editable preview and the immutable published response. */
-export function InvitationContents({
-  invitation,
-  apiBase,
-  recipientGreeting,
-}: Readonly<{ invitation: InvitationContent; apiBase: string; recipientGreeting?: string }>) {
-  if (invitation.presentation)
-    return (
-      <InteractiveInvitation
-        invitation={invitation}
-        apiBase={apiBase}
-        {...(recipientGreeting ? { recipientGreeting } : {})}
-      />
-    );
-  const { title, textFields: text, event, timeline, assets, theme } = invitation;
-  const currentTheme = theme || inferThemeFromContent(title, text.message ?? undefined);
-  const groomInitial = Array.from(text.groomName?.trim() || 'H')[0]?.toUpperCase() ?? 'H';
-  const brideInitial = Array.from(text.brideName?.trim() || 'Y')[0]?.toUpperCase() ?? 'Y';
-  const configured = invitation.sections ?? [];
-  const kinds = ['HERO', 'MESSAGE', 'EVENT', 'TIMELINE', 'FOOTER'] as const;
-  const sections: readonly InvitationSection[] = [
-    ...configured,
-    ...kinds
-      .filter((kind) => !configured.some((section) => section.kind === kind))
-      .map((kind) => ({ kind, textKey: null, imageUrl: null })),
-  ];
-  const assigned = new Set(sections.map((section) => section.imageUrl));
-  const photo = (url: string, key: string) => {
-    const asset = assets.find((item) => item.url === url);
-    return (
-      <Image
-        key={key}
-        className="hy-invite-asset"
-        src={new URL(url, apiBase).href}
-        alt="Hình ảnh thiệp cưới"
-        width={asset?.width ?? 800}
-        height={asset?.height ?? 600}
-        unoptimized
-      />
-    );
-  };
-  const date = event ? formatDate(event.eventDate) : null;
-  return (
-    <div className={`hy-invite-card-canvas hy-theme-${currentTheme}`}>
-      <div className="hy-card-border-outer">
-        <div className="hy-card-border-inner">
-          {/* Decorative Corner Ornaments */}
-          <span className="hy-corner hy-corner-tl" aria-hidden="true">
-            ✦
-          </span>
-          <span className="hy-corner hy-corner-tr" aria-hidden="true">
-            ✦
-          </span>
-          <span className="hy-corner hy-corner-bl" aria-hidden="true">
-            ✦
-          </span>
-          <span className="hy-corner hy-corner-br" aria-hidden="true">
-            ✦
-          </span>
-
-          {/* Monogram Wedding Seal */}
-          <div className="hy-invite-monogram" aria-hidden="true">
-            <span className="hy-monogram-circle">
-              {groomInitial} &amp; {brideInitial}
-            </span>
-          </div>
-
-          <header id="hy-invite-sec-header" className="hy-invite-head">
-            <p className="hy-invite-overline">Thiệp cưới báo hỷ</p>
-            <h1>{title}</h1>
-          </header>
-          {recipientGreeting ? <p className="hy-invite-recipient">{recipientGreeting}</p> : null}
-          {sections.map((section, index) => (
-            <section
-              key={index}
-              id={'hy-invite-sec-' + section.kind.toLowerCase()}
-              className={'hy-invite-' + section.kind.toLowerCase()}
-            >
-              {section.imageUrl ? photo(section.imageUrl, 'image') : null}
-              {section.textKey ? (
-                <p className="whitespace-pre-wrap">{text[section.textKey]}</p>
-              ) : null}
-              {section.kind === 'HERO' &&
-              sections.findIndex((item) => item.kind === 'HERO') === index ? (
-                <>
-                  {section.textKey !== 'greeting' ? <p>{text.greeting}</p> : null}
-                  <p className="hy-invite-couple">
-                    <span>{text.groomName || 'Chưa bổ sung tên chú rể'}</span>
-                    <span aria-hidden="true"> &amp; </span>
-                    <span>{text.brideName || 'Chưa bổ sung tên cô dâu'}</span>
-                  </p>
-                </>
-              ) : null}
-              {section.kind === 'MESSAGE' && section.textKey !== 'message' ? (
-                <p className="whitespace-pre-wrap">{text.message}</p>
-              ) : null}
-              {section.kind === 'EVENT' ? (
-                <>
-                  <h2>Thời gian và địa điểm</h2>
-                  {event ? (
-                    <dl>
-                      <div>
-                        <dt>Ngày tổ chức</dt>
-                        <dd>{date}</dd>
-                      </div>
-                      <div>
-                        <dt>Sảnh tiệc</dt>
-                        <dd>{event.hallName}</dd>
-                      </div>
-                      <div>
-                        <dt>Buổi tiệc</dt>
-                        <dd>
-                          {event.shiftCode === 'LUNCH' ? 'Tiệc trưa' : 'Tiệc tối'}
-                          {event.startTime ? ' · ' + event.startTime : ''}
-                        </dd>
-                      </div>
-                    </dl>
-                  ) : (
-                    <p>Đang chờ thông tin tiệc từ hồ sơ.</p>
-                  )}
-                </>
-              ) : null}
-              {section.kind === 'TIMELINE' && timeline.length ? (
-                <>
-                  <h2>Chương trình tiệc cưới</h2>
-                  <ol>
-                    {[...timeline]
-                      .sort((a, b) => a.order - b.order)
-                      .map((item) => (
-                        <li key={item.order}>
-                          <time>{item.startTime}</time> {item.title}
-                          {item.description ? (
-                            <p className="whitespace-pre-wrap">{item.description}</p>
-                          ) : null}
-                        </li>
-                      ))}
-                  </ol>
-                </>
-              ) : null}
-              {section.kind === 'SEATING' && !section.imageUrl && !invitation.seating ? (
-                <p>
-                  Sơ đồ bàn chưa có hình ảnh trong nội dung xuất bản này. Vui lòng liên hệ người tổ
-                  chức để được hướng dẫn chỗ ngồi.
-                </p>
-              ) : null}
-              {section.kind === 'FOOTER' && section.textKey !== 'footer' && text.footer ? (
-                <footer className="whitespace-pre-wrap">{text.footer}</footer>
-              ) : null}
-            </section>
-          ))}
-          {invitation.seating ? <InvitationSeatingView tables={invitation.seating} /> : null}
-          {assets
-            .filter((asset) => !assigned.has(asset.url))
-            .map((asset) => photo(asset.url, asset.url))}
-
-          <div className="hy-card-end-flourish" aria-hidden="true">
-            <span>❧ ❖ ☙</span>
-          </div>
-        </div>
-      </div>
-    </div>
+export function InvitationContents(
+  props: Readonly<{ invitation: InvitationContent; apiBase: string; recipientGreeting?: string }>,
+) {
+  return props.invitation.presentation ? (
+    <InteractiveInvitation {...props} />
+  ) : (
+    <LegacyInvitationContents {...props} />
   );
 }

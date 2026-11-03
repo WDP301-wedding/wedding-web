@@ -5,6 +5,30 @@ import { describeApiError, isConflict } from './api-errors';
 import { fetchPrivateFile, openBlob } from './download';
 
 describe('fetchPrivateFile', () => {
+  it('allows a bounded longer deadline for queued print PDFs', async () => {
+    vi.useFakeTimers();
+    let finish: ((response: Response) => void) | undefined;
+    let signal: AbortSignal | null | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_input: unknown, init: RequestInit) =>
+          new Promise<Response>((resolve) => {
+            finish = resolve;
+            signal = init.signal;
+          }),
+      ),
+    );
+    try {
+      const pending = fetchPrivateFile('/printable-revisions/x/file', 't', 30000);
+      await vi.advanceTimersByTimeAsync(12000);
+      expect(signal?.aborted).toBe(false);
+      finish?.(new Response('PDF'));
+      expect(await (await pending).text()).toBe('PDF');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
   beforeEach(() => {
     vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'http://localhost:3000/api/v1/');
   });
@@ -45,6 +69,33 @@ describe('fetchPrivateFile', () => {
       code: 'FILE_DOWNLOAD_FAILED',
       status: 500,
     });
+  });
+
+  it('shows the specific print failure instead of hiding it behind a generic download message', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        Response.json(
+          {
+            error: {
+              code: 'PRINT_CONTENT_OVERFLOW',
+              requestId: 'print-overflow',
+              message: 'Content exceeds the accepted two-sided print format.',
+            },
+          },
+          { status: 422 },
+        ),
+      ),
+    );
+    const error: unknown = await fetchPrivateFile('/printable-revisions/x/file', 't').catch(
+      (e: unknown) => e,
+    );
+    const presented = describeApiError(error);
+    expect(presented).toMatchObject({
+      code: 'PRINT_CONTENT_OVERFLOW',
+      requestId: 'print-overflow',
+    });
+    expect(presented.message).toContain('khổ in');
   });
 
   it('falls back to the sent request id when the JSON error has no envelope', async () => {

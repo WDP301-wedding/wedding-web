@@ -1,0 +1,118 @@
+/* Content tab styles remain canonical. Only paper pagination differs from the screen. */
+@page {
+  size: A5;
+  margin: 8mm;
+}
+:root {
+  --font-body: 'BeVietnamPro', sans-serif;
+  --font-display: 'BeVietnamPro', sans-serif;
+  --font-script: 'BeVietnamPro', sans-serif;
+  --hy-surface: #fffdf9;
+  --hy-ink: #342a29;
+  --hy-ink-muted: #786c72;
+  --hy-wine: #7a1f3d;
+  --hy-champagne: #c9a46a;
+  --hy-outline: #e6d7ca;
+  --hy-surface-warm: #fff9f2;
+  --hy-radius-md: 8px;
+  --hy-radius-sm: 4px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+}
+img {
+  display: block;
+  max-width: 100%;
+}
+p,
+h1,
+h2,
+h3,
+dl,
+dd,
+ul,
+ol {
+  margin: 0;
+}
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+.whitespace-pre-wrap {
+  white-space: pre-wrap;
+}
+[data-invitation-print] {
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  overflow-wrap: anywhere;
+}
+[data-print] {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+}
+[data-print] > div {
+  display: block;
+}
+[data-print-page] {
+  break-before: page;
+  min-height: 190mm;
+  box-shadow: none;
+  backface-visibility: visible;
+  perspective: none;
+  box-decoration-break: slice;
+  -webkit-box-decoration-break: slice;
+}
+[data-print-page]:first-child {
+  break-before: auto;
+}
+[data-print-page]:not([data-print-page='Bìa thiệp']) {
+  display: block;
+  padding: 22px;
+}
+[data-print-page] > * + * {
+  margin-top: 22px;
+}
+[data-print-page='Bìa thiệp'] > * + * {
+  margin-top: 0;
+}
+[data-print-page] li,
+[data-print-page] dl > div,
+[data-print-page] img {
+  break-inside: avoid;
+}
+[data-print-page] img {
+  max-height: 140mm;
+}
+[data-print-page] svg {
+  width: 100%;
+  height: auto;
+  max-height: 130mm;
+  break-inside: avoid;
+}
+[data-print-page='Sơ đồ bàn'] li {
+  margin-top: 8px;
+}
+.hy-invite-seating {
+  break-before: page;
+}
+.hy-invite-card-canvas {
+  transition: none;
+}
+[data-print-qr] {
+  break-inside: avoid;
+  margin-top: 22px;
+  text-align: center;
+}
+[data-print-qr] img {
+  width: 30mm;
+  height: 30mm;
+  margin-inline: auto;
+}

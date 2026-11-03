@@ -171,7 +171,12 @@ export const codeMessages: Readonly<Record<string, string>> = {
   AI_GENERATION_PENDING: 'Ảnh AI trước vẫn đang được tạo. Hãy đợi xong rồi thử lại.',
   PRINT_ASSET_LIMIT:
     'Tổng dung lượng ảnh trên thiệp vượt giới hạn in. Hãy bớt ảnh hoặc dùng ảnh nhẹ hơn.',
-  PRINT_CONTENT_OVERFLOW: 'Nội dung quá dài so với khổ in. Hãy rút gọn chữ trên thiệp/sơ đồ.',
+  PRINT_CONTENT_OVERFLOW:
+    'Nội dung vượt giới hạn của khổ in. Hãy tạo lại bản xem trước từ mẫu đã lưu; nếu vẫn lỗi, liên hệ nhà hàng kèm mã hỗ trợ.',
+  PRINT_RENDERER_BUSY:
+    'Hệ thống đang tạo các bản in khác. Vui lòng đợi một lát rồi tải lại bản in.',
+  PRINT_RENDERER_TIMEOUT:
+    'Bản in mất nhiều thời gian hơn dự kiến. Vui lòng tải lại bản in; nếu vẫn lỗi, liên hệ nhà hàng kèm mã hỗ trợ.',
   PRINTABLE_DIGEST_CONFLICT:
     'Bản thiết kế vừa thay đổi trong lúc tạo file in. Hãy tạo lại file in.',
   PRINTABLE_SEATING_DIGEST_CONFLICT:

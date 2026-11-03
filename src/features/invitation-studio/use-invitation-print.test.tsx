@@ -24,7 +24,7 @@ const designs = ['a', 'b'].map((id) => ({
   updatedAt: '2026-11-04T00:00:00Z',
 })) satisfies DesignView[];
 
-function fixture() {
+function fixture(editingDesign?: { designId: string; dirty: boolean }) {
   const quote: PrintRequestQuote = {
     quoteId: 'quote-1',
     digest: 'a'.repeat(64),
@@ -78,12 +78,21 @@ function fixture() {
       printVisited: false,
       writing: false,
       confirm: vi.fn().mockResolvedValue(true),
+      ...(editingDesign ? { editingDesign } : {}),
     }),
   );
   return { ...hook, gateway, quote };
 }
 
 describe('multi-design print appendix consent', () => {
+  it('requires saving edits to a selected design before capturing its printable content', async () => {
+    const { result, gateway } = fixture({ designId: 'a', dirty: true });
+    act(() => result.current.setPrintSelection('a', 50));
+    await act(() => result.current.handlePreviewPrint());
+    expect(gateway.previewPrintRequest).not.toHaveBeenCalled();
+    expect(result.current.printError).toContain('Nội dung thiệp');
+    expect(result.current.printQuote).toBeNull();
+  });
   it('previews two saved designs and confirms a pending request without creating an order', async () => {
     const { result, gateway, quote } = fixture();
     act(() => {

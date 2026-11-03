@@ -6,6 +6,7 @@ import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import type { ApiData } from '../../lib/api/types';
 import { browserSession } from '../identity-access/browser-session';
 import { notify } from '../../design-system/toast';
+import { formatDate } from '../../lib/format-date';
 
 export type Proposal = ApiData<'/bookings/{bookingId}/proposal', 'get'>;
 export type BookingSummary = ApiData<'/couple/bookings', 'get'>[number] & {
@@ -172,23 +173,7 @@ export const formatVnd = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
-/** Định dạng ngày sang dd/mm/yyyy chuẩn Việt Nam. */
-export const formatDate = (value: string): string => {
-  if (!value) return '';
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (match) {
-    const [, y, m, d] = match;
-    return `${d}/${m}/${y}`;
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('vi-VN', {
-    timeZone: 'Asia/Ho_Chi_Minh',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date);
-};
+export { formatDate };
 
 /** Hiển thị thời điểm UTC theo giờ Việt Nam định dạng dd/mm/yyyy HH:mm. */
 export const formatDateTime = (iso: string): string => {

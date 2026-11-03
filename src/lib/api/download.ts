@@ -2,11 +2,15 @@ import { readPublicEnv } from '../env';
 import { ApiClientError, defaultTimeoutMs } from './client';
 
 /** Private binary reads use the same bounded deadline and typed errors as JSON requests. */
-export async function fetchPrivateFile(path: string, accessToken: string): Promise<Blob> {
+export async function fetchPrivateFile(
+  path: string,
+  accessToken: string,
+  timeoutMs = defaultTimeoutMs,
+): Promise<Blob> {
   const base = readPublicEnv().NEXT_PUBLIC_API_BASE_URL.replace(/\/+$/, '');
   const requestId = crypto.randomUUID();
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), defaultTimeoutMs);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(base + path, {
       headers: { Authorization: `Bearer ${accessToken}`, 'x-request-id': requestId },
@@ -15,10 +19,14 @@ export async function fetchPrivateFile(path: string, accessToken: string): Promi
     });
     if (!response.ok) {
       let code = 'FILE_DOWNLOAD_FAILED';
+      let message = 'File download failed.';
       let serverRequestId = response.headers.get('x-request-id') ?? requestId;
       try {
-        const body = (await response.json()) as { error?: { code?: string; requestId?: string } };
+        const body = (await response.json()) as {
+          error?: { code?: string; requestId?: string; message?: string };
+        };
         if (typeof body.error?.code === 'string') code = body.error.code;
+        if (typeof body.error?.message === 'string') message = body.error.message;
         if (typeof body.error?.requestId === 'string') serverRequestId = body.error.requestId;
       } catch {
         /* Non-JSON errors still retain their HTTP status and request ID. */
@@ -26,7 +34,7 @@ export async function fetchPrivateFile(path: string, accessToken: string): Promi
       throw new ApiClientError({
         kind: 'api',
         code,
-        message: 'Không tải được file.',
+        message,
         requestId: serverRequestId,
         status: response.status,
       });
