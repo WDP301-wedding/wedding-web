@@ -6,5 +6,6 @@ test-results/
 playwright-report/
 package-lock.json
 next-env.d.ts
+artifacts/invitation-print/
 # Prototype tham khảo từ Claude Design (không format lại)
 docs/design/hy-yen/

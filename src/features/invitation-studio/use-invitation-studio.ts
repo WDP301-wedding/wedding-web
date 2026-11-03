@@ -83,6 +83,9 @@ export function useInvitationStudio({
     derivedAssetIds: design.derivedAssetIds,
     setDerivedAssetIds: design.setDerivedAssetIds,
     designs: design.designs,
+    ...(design.currentDesign
+      ? { editingDesign: { designId: design.currentDesign.designId, dirty: design.designDirty } }
+      : {}),
     setDesigns: design.setDesigns,
     previewUrl: design.previewUrl,
     confirm,

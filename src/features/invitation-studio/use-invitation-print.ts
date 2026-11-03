@@ -20,6 +20,7 @@ export interface UseInvitationPrintOptions {
   accessToken: string;
   gateway: InvitationGateway;
   designs: readonly DesignView[];
+  editingDesign?: Readonly<{ designId: string; dirty: boolean }>;
   initialOrders?: readonly PrintOrderView[] | undefined;
   printVisited: boolean;
   writing: boolean;
@@ -31,6 +32,7 @@ export function useInvitationPrint({
   accessToken,
   gateway,
   designs,
+  editingDesign,
   initialOrders,
   printVisited,
   writing,
@@ -59,6 +61,10 @@ export function useInvitationPrint({
     }))
     .sort((a, b) => a.designId.localeCompare(b.designId));
   const signature = JSON.stringify(selectedPrintLines);
+  const unsavedSelection = Boolean(
+    editingDesign?.dirty &&
+    selectedPrintLines.some((line) => line.designId === editingDesign.designId),
+  );
   const currentSignature = useRef(signature);
   useEffect(() => {
     currentSignature.current = signature;
@@ -69,7 +75,8 @@ export function useInvitationPrint({
     },
     [],
   );
-  const printQuote = quoteState?.signature === signature ? quoteState.quote : null;
+  const printQuote =
+    !unsavedSelection && quoteState?.signature === signature ? quoteState.quote : null;
 
   function setPrintSelection(designId: string, quantity: number | null) {
     previewEpoch.current++;
@@ -85,6 +92,12 @@ export function useInvitationPrint({
 
   async function handlePreviewPrint() {
     if (commandBusy.current || writing) return;
+    if (unsavedSelection) {
+      setPrintError(
+        'Mẫu đang chỉnh sửa chưa được lưu. Hãy lưu ở mục Nội dung thiệp rồi xem lại bản in.',
+      );
+      return;
+    }
     if (
       !selectedPrintLines.length ||
       selectedPrintLines.length > 20 ||

@@ -54,6 +54,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Verify canonical invitation print artifact
+        run: npm run print:check
+
       - name: Verify locked API contract
         env:
           BACKEND_CONTRACT_READ_TOKEN: ${{ secrets.BACKEND_CONTRACT_READ_TOKEN }}

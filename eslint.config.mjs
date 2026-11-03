@@ -15,6 +15,8 @@ export default defineConfig(
     'test-results/**',
     'playwright-report/**',
     'next-env.d.ts',
+    // Generated, hash-addressed server bundle; its TypeScript/CSS sources are linted.
+    'artifacts/invitation-print/**',
     // Prototype HTML/JS xuất từ Claude Design – chỉ để tham khảo, không phải code của app.
     'docs/design/**',
   ]),
