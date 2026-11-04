@@ -30,6 +30,18 @@ export function nextTasks(
 ): Task[] {
   const id = proposal.bookingId;
   const timeline = proposal.effectiveTimeline;
+  if (days < 0 && (proposal.phase === 'DRAFT' || proposal.phase === 'AWAITING_DEPOSIT')) {
+    return [
+      {
+        title: 'Hồ sơ đã quá ngày tổ chức',
+        detail:
+          'Ngày tổ chức dự kiến đã qua nhưng tiệc chưa hoàn tất đặt cọc. Hai bạn vui lòng liên hệ nhà hàng để cập nhật ngày mới hoặc đóng hồ sơ.',
+        href: null,
+        action: '',
+        status: 'info',
+      },
+    ];
+  }
   switch (proposal.phase) {
     case 'DRAFT': {
       const currentTimeline = proposal.timeline ?? timeline;

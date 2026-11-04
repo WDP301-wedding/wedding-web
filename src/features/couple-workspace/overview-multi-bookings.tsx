@@ -12,6 +12,7 @@ import {
   bookingPhaseLabel,
   formatEventDate,
   formatVnd,
+  isEventPast,
   shiftLabel,
   type BookingSummary,
   type Proposal,
@@ -58,10 +59,12 @@ export function OverviewMultiBookings({ bookings, proposal }: OverviewMultiBooki
         {bookings.map((b) => {
           const isCurrent = b.bookingId === proposal.bookingId;
           const bDays = daysUntil(b.eventDate);
+          const isOverdue =
+            (b.phase === 'DRAFT' || b.phase === 'AWAITING_DEPOSIT') && isEventPast(b.eventDate);
           const tone =
             b.phase === 'CONFIRMED' || b.phase === 'COMPLETED'
               ? 'done'
-              : b.phase === 'CANCELLED'
+              : b.phase === 'CANCELLED' || isOverdue
                 ? 'off'
                 : 'wait';
 
@@ -76,7 +79,7 @@ export function OverviewMultiBookings({ bookings, proposal }: OverviewMultiBooki
                     {b.hallName} · {shiftLabel(b.shiftCode)}
                   </p>
                 </div>
-                <span className={chipClass(tone)}>{bookingPhaseLabel(b.phase)}</span>
+                <span className={chipClass(tone)}>{bookingPhaseLabel(b.phase, b.eventDate)}</span>
               </div>
               <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs tabular-nums">
                 <dt className="text-muted-foreground">Ngày tổ chức:</dt>

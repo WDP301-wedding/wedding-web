@@ -7,6 +7,7 @@ import {
   bookingDisplayName,
   bookingPhaseLabel,
   formatEventDate,
+  isEventPast,
   shiftLabel,
   type BookingSummary,
 } from './use-couple-workspace';
@@ -77,8 +78,14 @@ export function SpaceMoreSheet({
   );
 }
 
-const phaseTone = (phase: BookingSummary['phase']): Chip['tone'] =>
-  phase === 'CONFIRMED' || phase === 'COMPLETED' ? 'done' : phase === 'CANCELLED' ? 'off' : 'wait';
+const phaseTone = (phase: BookingSummary['phase'], eventDate?: string): Chip['tone'] =>
+  (phase === 'DRAFT' || phase === 'AWAITING_DEPOSIT') && isEventPast(eventDate)
+    ? 'off'
+    : phase === 'CONFIRMED' || phase === 'COMPLETED'
+      ? 'done'
+      : phase === 'CANCELLED'
+        ? 'off'
+        : 'wait';
 
 export function SpaceBookingSwitcherSheet({
   bookingId,
@@ -144,8 +151,8 @@ export function SpaceBookingSwitcherSheet({
               >
                 <span className="flex items-center gap-2">
                   <strong className="truncate text-sm">{bookingDisplayName(b)}</strong>
-                  <span className={chipClass(phaseTone(b.phase))}>
-                    {bookingPhaseLabel(b.phase)}
+                  <span className={chipClass(phaseTone(b.phase, b.eventDate))}>
+                    {bookingPhaseLabel(b.phase, b.eventDate)}
                   </span>
                 </span>
                 <span className="text-xs text-muted-foreground tabular-nums">

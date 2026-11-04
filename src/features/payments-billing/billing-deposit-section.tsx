@@ -11,6 +11,8 @@ import { DepositBreakdown } from './deposit-breakdown';
 import { useCountdown, useExpired } from './checkout-link';
 import { cn } from 'cn';
 import { bx } from './billing-classes';
+import { isEventPast } from '../couple-workspace/workspace-helpers';
+import { formatDate } from '../../lib/format-date';
 
 export function BillingDepositSection({
   context,
@@ -56,6 +58,8 @@ export function BillingDepositSection({
   const confirming = intent?.kind === 'deposit' && onConfirm && onCancel;
   const displayContext = intent?.kind === 'deposit' ? (intent.displayContext ?? context) : context;
   const payablePhase = context.phase === 'DRAFT' || context.phase === 'AWAITING_DEPOSIT';
+  const isOverdue =
+    payablePhase && isEventPast(context.depositDetails?.proposal?.eventDate);
   return (
     <section className={bx.depositWorkspace} aria-label="Chi tiết đặt cọc tiệc cưới">
       <DepositBreakdown context={displayContext} />
@@ -190,6 +194,16 @@ export function BillingDepositSection({
                   </div>
                   <p className="text-xs leading-relaxed text-amber-900">
                     Hệ thống đang đối soát kết quả với VNPay. Vui lòng kiểm tra trạng thái ở phần bên dưới để nhận kết quả mới nhất.
+                  </p>
+                </div>
+              ) : isOverdue ? (
+                <div
+                  className="my-2 flex flex-col gap-2 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive"
+                  role="alert"
+                >
+                  <div className="font-semibold">Hồ sơ đã quá ngày tổ chức dự kiến</div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Ngày tổ chức dự kiến ({formatDate(context.depositDetails?.proposal?.eventDate ?? '')}) đã qua nên cổng thanh toán đặt cọc trực tuyến không còn nhận giao dịch. Hai bạn vui lòng liên hệ nhà hàng để được hỗ trợ.
                   </p>
                 </div>
               ) : (

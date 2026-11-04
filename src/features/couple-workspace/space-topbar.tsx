@@ -10,18 +10,21 @@ import {
   bookingDisplayName,
   bookingPhaseLabel,
   formatEventDate,
+  isEventPast,
   shiftLabel,
   type BookingSummary,
   type Proposal,
 } from './use-couple-workspace';
 import { Icon } from './space-icons';
 
-const phaseTone = (phase: BookingSummary['phase']) =>
-  phase === 'CONFIRMED' || phase === 'COMPLETED'
-    ? 'bg-hy-success-bg text-hy-success'
-    : phase === 'CANCELLED'
-      ? 'bg-secondary text-muted-foreground'
-      : 'bg-hy-warning-bg text-hy-warning';
+const phaseTone = (phase: BookingSummary['phase'], eventDate?: string) =>
+  (phase === 'DRAFT' || phase === 'AWAITING_DEPOSIT') && isEventPast(eventDate)
+    ? 'bg-destructive/10 text-destructive'
+    : phase === 'CONFIRMED' || phase === 'COMPLETED'
+      ? 'bg-hy-success-bg text-hy-success'
+      : phase === 'CANCELLED'
+        ? 'bg-secondary text-muted-foreground'
+        : 'bg-hy-warning-bg text-hy-warning';
 
 /** Thanh trên: tiệc đang xem, đổi tiệc (select trên màn rộng, sheet trên điện thoại) và chuông. */
 export function SpaceTopbar({
@@ -61,9 +64,9 @@ export function SpaceTopbar({
                 {proposal ? ` · ${proposal.planningHeadcount} khách` : ''}
               </span>
               <span
-                className={`rounded-full px-2 text-2xs leading-5 font-semibold ${phaseTone(summary.phase)}`}
+                className={`rounded-full px-2 text-2xs leading-5 font-semibold ${phaseTone(summary.phase, summary.eventDate)}`}
               >
-                {bookingPhaseLabel(summary.phase)}
+                {bookingPhaseLabel(summary.phase, summary.eventDate)}
               </span>
             </span>
           </>
@@ -94,7 +97,7 @@ export function SpaceTopbar({
                 <option key={booking.bookingId} value={booking.bookingId}>
                   {bookingDisplayName(booking)} · {booking.hallName} ·{' '}
                   {formatEventDate(booking.eventDate)} · {shiftLabel(booking.shiftCode)} [
-                  {bookingPhaseLabel(booking.phase)}]
+                  {bookingPhaseLabel(booking.phase, booking.eventDate)}]
                 </option>
               ))}
             </HySelect>

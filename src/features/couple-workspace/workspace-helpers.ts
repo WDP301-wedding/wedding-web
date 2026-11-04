@@ -55,7 +55,19 @@ export function pickDefaultBooking(
   return active[0] ?? bookings[0];
 }
 
-export function bookingPhaseLabel(phase: string): string {
+export function isEventPast(eventDate?: string | null, now = new Date()): boolean {
+  if (!eventDate) return false;
+  const isoMatch = /^(\d{4}-\d{2}-\d{2})/.exec(eventDate);
+  const dateStr = isoMatch ? isoMatch[1] : '';
+  if (!dateStr) return false;
+  const today = now.toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
+  return dateStr < today;
+}
+
+export function bookingPhaseLabel(phase: string, eventDate?: string | null): string {
+  if ((phase === 'DRAFT' || phase === 'AWAITING_DEPOSIT') && isEventPast(eventDate)) {
+    return 'Quá hạn tổ chức';
+  }
   switch (phase) {
     case 'CONFIRMED':
       return 'Đã đặt cọc';

@@ -24,6 +24,7 @@ import {
   bookingPhaseLabel,
   eventTypeLabel,
   formatEventDate,
+  isEventPast,
   shiftLabel,
   useCoupleWorkspace,
 } from './use-couple-workspace';
@@ -121,6 +122,20 @@ function OverviewContent() {
             chuẩn bị khách mời, sơ đồ bàn và in thiệp đã ngừng hoạt động.
           </p>
         </div>
+      ) : (proposal.phase === 'DRAFT' || proposal.phase === 'AWAITING_DEPOSIT') &&
+        isEventPast(proposal.eventDate) ? (
+        <div
+          className="flex flex-col gap-2.5 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive"
+          role="status"
+        >
+          <div className="flex items-center gap-2 font-bold">
+            <span className="flex size-2 rounded-full bg-destructive" aria-hidden="true" />
+            Hồ sơ đã quá ngày tổ chức dự kiến
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Ngày tổ chức dự kiến ({formatEventDate(proposal.eventDate)}) đã qua nhưng tiệc cưới chưa hoàn tất thủ tục đặt cọc và xác nhận. Hai bạn vui lòng liên hệ nhà hàng để được hỗ trợ dời ngày hoặc xử lý đóng hồ sơ.
+          </p>
+        </div>
       ) : null}
 
       <div className="flex flex-col gap-1">
@@ -181,7 +196,7 @@ function OverviewContent() {
             {shiftLabel(offer.shift.code)} ({offer.shift.startTime}–{offer.shift.endTime})
           </p>
           <div className="flex flex-wrap gap-1.5 sm:justify-end">
-            <span className={heroChip}>{bookingPhaseLabel(proposal.phase)}</span>
+            <span className={heroChip}>{bookingPhaseLabel(proposal.phase, proposal.eventDate)}</span>
             <span className={heroChip}>{proposal.planningHeadcount} khách dự kiến</span>
             <span className={heroChip}>{offer.tableCount} bàn</span>
             <span className={heroChip}>{menuLines(offer).length} thực đơn</span>
