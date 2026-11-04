@@ -137,6 +137,12 @@ export function OverviewMultiBookings({ bookings, proposal }: OverviewMultiBooki
             <Link
               key={b.bookingId}
               href={withBooking(routes.space, b.bookingId)}
+              onNavigate={(event) => {
+                // The overview route stays mounted; its shared loader observes the new booking.
+                if (window.location.pathname !== routes.space) return;
+                event.preventDefault();
+                window.history.pushState(null, '', withBooking(routes.space, b.bookingId));
+              }}
               className="group flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-4 transition-all duration-150 hover:border-primary hover:bg-accent/15 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
               aria-label={`Chuyển tới không gian tiệc ${bookingDisplayName(b)}`}
             >

@@ -46,15 +46,15 @@ export function useExpired(expiresAt: string | undefined): boolean {
   return Number.isNaN(expiry) || now >= expiry;
 }
 
-function useCountdown(expiresAt: string): string | null {
-  const expiry = Date.parse(expiresAt);
+export function useCountdown(expiresAt: string | undefined): string | null {
   const [now, setNow] = useState(() => Date.now());
+  const expiry = expiresAt ? Date.parse(expiresAt) : NaN;
   useEffect(() => {
     if (Number.isNaN(expiry) || expiry <= Date.now()) return;
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, [expiry]);
-  if (Number.isNaN(expiry) || now >= expiry) return null;
+  if (!expiresAt || Number.isNaN(expiry) || now >= expiry) return null;
   const remainingSec = Math.max(0, Math.floor((expiry - now) / 1000));
   const m = Math.floor(remainingSec / 60);
   const s = remainingSec % 60;

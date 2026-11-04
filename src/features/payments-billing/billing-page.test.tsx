@@ -210,7 +210,9 @@ describe('Couple billing experience', () => {
           name: purpose === 'DEPOSIT' ? 'Tiếp tục thanh toán' : 'Thanh toán còn lại',
         }),
       );
-      fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
+      if (purpose === 'BALANCE') {
+        fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
+      }
       expect(await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' })).toHaveAttribute(
         'href',
         existing.checkoutUrl,
@@ -243,7 +245,6 @@ describe('Couple billing experience', () => {
     expect(screen.queryByRole('link', { name: 'Tiếp tục trên VNPay' })).not.toBeInTheDocument();
     expect(completeCheckout).toHaveBeenCalledWith('checkout:booking', 'failed-attempt');
     fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
     expect(api.startDeposit).toHaveBeenCalledTimes(1);
     expect(screen.getByLabelText('Mã giao dịch thanh toán')).toHaveValue('attempt');
@@ -308,7 +309,6 @@ describe('Couple billing experience', () => {
     expect(await screen.findByText('Thanh toán không thành công')).toBeInTheDocument();
     expect(await journal.pending('checkout:booking')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
     expect(vi.mocked(api.startDeposit).mock.calls[0]![3]).not.toBe(oldKey);
   });
@@ -380,7 +380,6 @@ describe('Couple billing experience', () => {
     );
     await load();
     fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
     const originalKey = vi.mocked(api.startDeposit).mock.calls[0]![3];
     first.unmount();
@@ -615,7 +614,6 @@ describe('Couple billing experience', () => {
     mount(api);
     await load();
     fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra trạng thái' }));
     await screen.findByText('Chưa rõ kết quả · đang kiểm tra');
@@ -632,7 +630,6 @@ describe('Couple billing experience', () => {
       mount(api);
       await load();
       fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
-      fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
       await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
       vi.mocked(api.loadAttempt).mockResolvedValue({
         paymentAttemptId: 'attempt',
@@ -688,8 +685,6 @@ describe('Couple billing experience', () => {
     expect(api.load).not.toHaveBeenCalled();
     expect(screen.queryByText('Còn phải thanh toán')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
-    expect(api.startDeposit).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await waitFor(() =>
       expect(api.startDeposit).toHaveBeenCalledWith(
         'token',
@@ -766,7 +761,6 @@ describe('Couple billing experience', () => {
     );
     await load();
     fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     const retryButton = await screen.findByRole('button', { name: 'Thử lại cùng yêu cầu' });
     expect(screen.getByLabelText('Mã hồ sơ đặt tiệc')).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Mã hồ sơ đặt tiệc'), {

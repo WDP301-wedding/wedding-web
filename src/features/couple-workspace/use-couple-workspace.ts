@@ -20,6 +20,7 @@ export * from './workspace-helpers';
 
 export type CoupleWorkspace = Readonly<{
   state: WorkspaceState;
+  switching?: boolean;
   reload: () => void;
   refresh?: () => Promise<void>;
   bookingId: string | null;
@@ -144,6 +145,9 @@ export function useWorkspaceLoader(enabled = true): CoupleWorkspace {
 
   return {
     state,
+    switching:
+      state.status === 'ready' &&
+      Boolean(urlBookingId && state.proposal.bookingId !== urlBookingId),
     reload,
     refresh: refresh.refresh,
     bookings,

@@ -64,7 +64,21 @@ export function SelectionAccessNotice({
       ) : null}
       <div className={cx.actions}>
         {link && !hideNavigation ? (
-          <Link className={cx.buttonOutline} href={withBooking(link.href, bookingId)}>
+          <Link
+            className={cx.buttonOutline}
+            href={withBooking(link.href, bookingId)}
+            onClick={(event) => {
+              if (link.href.includes('#')) {
+                const targetId = link.href.split('#')[1];
+                const targetElement = targetId ? document.getElementById(targetId) : null;
+                if (targetElement) {
+                  event.preventDefault();
+                  targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  window.history.replaceState(null, '', withBooking(link.href, bookingId));
+                }
+              }
+            }}
+          >
             {link.label}
           </Link>
         ) : null}
