@@ -17,14 +17,15 @@ export const journeySteps = [
   'Quyết toán',
 ] as const;
 
-/** Vị trí bước hiện tại (0–5), hoặc -1 khi tiệc đã huỷ. */
+/** Vị trí bước hiện tại (0–5), hoặc -1 khi tiệc đã huỷ hoặc quá hạn tổ chức. */
 export function journeyIndex(phase: BookingPhase, eventDate: string, today = new Date()): number {
   if (phase === 'CANCELLED') return -1;
+  const todayKey = today.toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
+  if ((phase === 'DRAFT' || phase === 'AWAITING_DEPOSIT') && eventDate < todayKey) return -1;
   if (phase === 'DRAFT') return 1;
   if (phase === 'AWAITING_DEPOSIT') return 2;
   if (phase === 'COMPLETED') return 5;
   // CONFIRMED: đúng ngày cưới → "Ngày cưới", còn lại là giai đoạn chuẩn bị.
-  const todayKey = today.toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
   return todayKey >= eventDate ? 4 : 3;
 }
 

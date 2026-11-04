@@ -12,6 +12,8 @@ describe('journeyIndex', () => {
     expect(journeyIndex('CONFIRMED', '2026-10-16', today)).toBe(4);
     expect(journeyIndex('COMPLETED', '2026-10-01', today)).toBe(5);
     expect(journeyIndex('CANCELLED', '2026-12-20', today)).toBe(-1);
+    expect(journeyIndex('DRAFT', '2026-10-01', today)).toBe(-1);
+    expect(journeyIndex('AWAITING_DEPOSIT', '2026-10-01', today)).toBe(-1);
   });
   it('marks the current step for assistive technology', () => {
     render(<JourneyStepper current={2} />);

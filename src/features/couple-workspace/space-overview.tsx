@@ -212,9 +212,12 @@ function OverviewContent() {
           <span className="text-xs text-muted-foreground">
             {completed
               ? 'Tiệc đã hoàn thành'
-              : step < 0
-                ? 'Tiệc đã huỷ'
-                : `Bước ${step + 1}/6 · ${journeySteps[step]}`}
+              : (proposal.phase === 'DRAFT' || proposal.phase === 'AWAITING_DEPOSIT') &&
+                  isEventPast(proposal.eventDate)
+                ? 'Hành trình tạm dừng (quá hạn tổ chức)'
+                : step < 0
+                  ? 'Tiệc đã huỷ'
+                  : `Bước ${step + 1}/6 · ${journeySteps[step]}`}
           </span>
         </div>
         <JourneyStepper current={step} completed={completed && settlement.status === 'settled'} />

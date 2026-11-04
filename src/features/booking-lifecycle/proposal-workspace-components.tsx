@@ -9,7 +9,7 @@ import { Badge } from '../../components/ui/badge';
 import { Button, buttonVariants } from '../../components/ui/button';
 import { ProposalMenus } from '../couple-workspace/proposal-menus';
 import { control, field as fieldClass } from '../public-website/public-classes';
-import { formatDate } from '../couple-workspace/workspace-helpers';
+import { formatDate, isEventPast } from '../couple-workspace/workspace-helpers';
 import type { CollaborationGateway, ProposalView } from './collaboration-api';
 import { card, hint, summary } from './collab-classes';
 import { phaseLabels } from './collaboration-utils';
@@ -94,7 +94,10 @@ export function ProposalSummarySection({
     >
       <div className="flex flex-col justify-end gap-1 bg-primary p-5 text-primary-foreground">
         <span className="text-xs text-white/80">
-          {phaseLabels[proposal.phase] ?? proposal.phase}
+          {(proposal.phase === 'DRAFT' || proposal.phase === 'AWAITING_DEPOSIT') &&
+          isEventPast(proposal.eventDate)
+            ? 'Quá hạn tổ chức'
+            : (phaseLabels[proposal.phase] ?? proposal.phase)}
         </span>
         <h2 className="text-xl font-bold">{proposal.proposal.hall.name}</h2>
         <p className="text-xs text-white/85 tabular-nums">

@@ -17,6 +17,7 @@ import {
   money,
 } from './proposal-workspace-components';
 import { ProposalDecisionsSection } from './proposal-decisions-section';
+import { isEventPast } from '../couple-workspace/workspace-helpers';
 
 export { Approval, EmptyState, NextStep, field, money };
 
@@ -42,6 +43,10 @@ export function ProposalWorkspace({
   const bothApproved = Boolean(timeline?.managerApprovedAt && timeline?.coupleApprovedAt);
   const confirmed = proposal.phase === 'CONFIRMED';
 
+  const isOverdue =
+    (proposal.phase === 'DRAFT' || proposal.phase === 'AWAITING_DEPOSIT') &&
+    isEventPast(proposal.eventDate);
+
   // Bước tiếp theo theo giai đoạn: giữ đúng câu chữ cũ để người dùng (và test) nhận ra.
   const next =
     proposal.phase === 'CANCELLED' ? (
@@ -49,6 +54,12 @@ export function ProposalWorkspace({
         tone="muted"
         title="Hồ sơ tiệc đã hủy"
         body="Hồ sơ tiệc cưới này đã kết thúc hoặc bị hủy."
+      />
+    ) : isOverdue ? (
+      <NextStep
+        tone="muted"
+        title="Hồ sơ đã quá ngày tổ chức"
+        body="Ngày tổ chức dự kiến đã qua nhưng tiệc chưa hoàn tất đặt cọc. Hai bạn vui lòng liên hệ nhà hàng để cập nhật ngày mới hoặc đóng hồ sơ."
       />
     ) : proposal.phase === 'COMPLETED' ? (
       <NextStep
