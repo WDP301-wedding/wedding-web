@@ -1,5 +1,16 @@
 # Payment recovery revision — 2026-10-22
 
+## Owner-requested completed demo follow-up — 2026-11-04
+
+The owner explicitly requested completing the existing demo booking and fixing
+its display across wedding-web, wedding-manage-web and PRM-app (Flutter).
+Use the existing audited Manager completion command, preserve all financial
+history, and show completion separately from invoice/payment evidence. Verify
+paid, unpaid, overpaid, stale and unavailable states. The implementation details
+and verification scope are recorded in
+[the completion hand-off](../docs/completed-settlement-2026-11-04.md).
+Hosted client deployment is separate from local implementation.
+
 The current checkout did not contain the earlier canonical plan/todo documents.
 This scoped continuation records only the owner-requested payment recovery work;
 historical backend SPEC/RV evidence remains unchanged.

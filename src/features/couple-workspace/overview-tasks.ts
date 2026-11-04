@@ -1,4 +1,5 @@
 import { routes, withBooking } from '../../routes';
+import { settlementLabels, type SettlementStatus } from '../settlement/settlement-status';
 import { formatVnd, type BookingSummary, type Proposal } from './use-couple-workspace';
 
 /** Số ngày còn lại tới ngày cưới, tính theo lịch Việt Nam (không phụ thuộc múi giờ máy). */
@@ -25,6 +26,7 @@ export function nextTasks(
   _summary: BookingSummary | undefined,
   /** Số ngày tới tiệc (âm = đã qua). Mặc định coi như chưa tới để giữ hành vi cũ. */
   days = 1,
+  financialStatus: SettlementStatus = 'unknown',
 ): Task[] {
   const id = proposal.bookingId;
   const timeline = proposal.effectiveTimeline;
@@ -181,22 +183,7 @@ export function nextTasks(
       ];
     }
     case 'CONFIRMED': {
-      const settlementTasks: Task[] = [
-        {
-          title: 'Chờ nhà hàng quyết toán',
-          detail: 'Nhà hàng chốt chi phí phát sinh và hoá đơn quyết toán cuối của tiệc.',
-          href: withBooking(routes.settle, id),
-          action: 'Xem quyết toán',
-          status: 'wait',
-        },
-        {
-          title: 'Thanh toán phần còn lại',
-          detail: 'Khi hoá đơn cuối được chốt, hai bạn thanh toán phần còn lại tại đây.',
-          href: withBooking(routes.payment, id),
-          action: 'Đi tới Thanh toán',
-          status: 'info',
-        },
-      ];
+      const settlementTasks = [settlementTask(id, financialStatus)];
       if (days < 0) return settlementTasks;
       return [
         ...settlementTasks,
@@ -224,16 +211,25 @@ export function nextTasks(
       ];
     }
     case 'COMPLETED':
-      return [
-        {
-          title: 'Xem quyết toán',
-          detail: 'Chi phí phát sinh và hoá đơn cuối của tiệc.',
-          href: withBooking(routes.settle, id),
-          action: 'Mở quyết toán',
-          status: 'done',
-        },
-      ];
+      return [settlementTask(id, financialStatus)];
     default:
       return [];
   }
+}
+
+function settlementTask(id: string, status: SettlementStatus): Task {
+  return {
+    title: settlementLabels[status],
+    detail:
+      status === 'settled'
+        ? 'Hoá đơn cuối đã chốt và đã thanh toán đủ. Hai bạn có thể xem lại hoá đơn và giao dịch.'
+        : status === 'outstanding'
+          ? 'Hoá đơn cuối đã chốt. Xem công nợ và điều kiện thanh toán phần còn lại.'
+          : status === 'credit'
+            ? 'Liên hệ nhà hàng để xử lý khoản thanh toán thừa theo chứng từ.'
+            : 'Xem hoá đơn cuối và công nợ mới nhất của tiệc.',
+    href: withBooking(status === 'outstanding' ? routes.payment : routes.settle, id),
+    action: status === 'settled' ? 'Xem hoá đơn & giao dịch' : 'Xem quyết toán',
+    status: status === 'settled' ? 'done' : status === 'awaiting-invoice' ? 'wait' : 'info',
+  };
 }
