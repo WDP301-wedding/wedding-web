@@ -86,7 +86,21 @@ export function CustomerSelections(props: Readonly<Props>) {
               <li key={change.key}>{change.text}</li>
             ))}
           </ul>
-          <p>Đọc nội dung hợp đồng hiện tại trước khi duyệt.</p>
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <p className="m-0">Đọc nội dung hợp đồng hiện tại trước khi duyệt.</p>
+            <button
+              type="button"
+              className={cx.buttonOutline}
+              onClick={() => {
+                const target = document.getElementById('contract-heading');
+                if (target) {
+                  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+            >
+              Xem hợp đồng bên dưới ↓
+            </button>
+          </div>
         </aside>
       ) : null}
     </section>
@@ -162,10 +176,9 @@ function SelectionEditor(
     ? state.command.pending
       ? 'Đang xử lý yêu cầu. Vui lòng chờ hoàn tất.'
       : 'Quyền chỉnh sửa đã thay đổi. Xem hướng dẫn cập nhật hồ sơ ở trên.'
-    : (state.validationMessage ??
-      (!state.dirty && props.selection.status === 'DRAFT'
-        ? 'Bản nháp đã lưu, chưa có thay đổi mới.'
-        : null));
+    : state.validationMessage;
+  const saveDisabled =
+    saveDisabledReason !== null || (!state.dirty && props.selection.status === 'DRAFT');
   const submitDisabledReason = busy
     ? saveDisabledReason
     : (state.validationMessage ??
@@ -228,18 +241,6 @@ function SelectionEditor(
       ) : null}
       {state.choices ? (
         <>
-          <button
-            className={cx.buttonOutline}
-            type="button"
-            disabled={busy}
-            onClick={state.reloadCatalog}
-          >
-            Tải lại thực đơn & dịch vụ
-          </button>
-          <p className={cx.note}>
-            Tải lại để xem hạng mục và giá mới nhất. Thao tác này giữ các lựa chọn đang nhập và
-            không tự lưu hay gửi nhà hàng.
-          </p>
           {state.missing.map((line) => (
             <p className={cx.alert} key={selectionKey(line)}>
               Hạng mục{' '}
@@ -301,6 +302,10 @@ function SelectionEditor(
                           value={selected?.quantity ?? 0}
                           aria-label={'Số lượng ' + choice.name}
                           disabled={busy}
+                          onFocus={(event) => event.currentTarget.select()}
+                          onClick={(event) => {
+                            if (event.currentTarget.value === '0') event.currentTarget.select();
+                          }}
                           onChange={(event) => state.update(choice, Number(event.target.value))}
                         />
                       </td>
@@ -341,8 +346,8 @@ function SelectionEditor(
             <button
               className={cx.buttonOutline}
               type="button"
-              disabled={saveDisabledReason !== null}
-              aria-describedby="selection-save-status"
+              disabled={saveDisabled}
+              aria-describedby={saveDisabledReason ? 'selection-save-status' : undefined}
               onClick={() => void state.save()}
             >
               Lưu nháp
@@ -351,7 +356,7 @@ function SelectionEditor(
               className={cx.button}
               type="button"
               disabled={submitDisabledReason !== null}
-              aria-describedby="selection-submit-status"
+              aria-describedby={submitDisabledReason ? 'selection-submit-status' : undefined}
               onClick={() =>
                 void (async () => {
                   if (
@@ -369,17 +374,16 @@ function SelectionEditor(
               Gửi lựa chọn cho nhà hàng
             </button>
           </div>
-          <p id="selection-save-status" className={cx.note} role="status">
-            {saveDisabledReason ??
-              'Có thể lưu nháp. Máy chủ sẽ kiểm tra hạng mục và tính giá khi lưu.'}
-          </p>
-          <p id="selection-submit-status" className={cx.note} role="status">
-            {submitDisabledReason ?? 'Bản nháp đã lưu, sẵn sàng gửi cho nhà hàng.'}
-          </p>
-          <p className={cx.note}>
-            Lưu nháp để chọn tiếp bất cứ lúc nào. Chỉ “Gửi lựa chọn cho nhà hàng” mới khóa chỉnh sửa
-            phía bạn.
-          </p>
+          {saveDisabledReason ? (
+            <p id="selection-save-status" className={cx.note} role="status">
+              {saveDisabledReason}
+            </p>
+          ) : null}
+          {submitDisabledReason ? (
+            <p id="selection-submit-status" className={cx.note} role="status">
+              {submitDisabledReason}
+            </p>
+          ) : null}
         </>
       ) : (
         <p role="status">Đang tải thực đơn và dịch vụ…</p>

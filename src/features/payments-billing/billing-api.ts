@@ -27,6 +27,7 @@ export type BillingContext = Readonly<{
   accessLevel: 'RESTRICTED' | 'FULL';
   phase: components['schemas']['BookingProposalResponse']['data']['phase'];
   depositAmountVnd: number;
+  depositTerms?: Proposal['depositTerms'];
   /** Display snapshots from the existing reads; never a source for client-calculated charges. */
   depositDetails?: Readonly<{
     proposal: Pick<Proposal, 'eventDate' | 'planningHeadcount' | 'proposal'>;
@@ -137,6 +138,7 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
         bookingId: value.bookingId,
         accessLevel: value.capabilities.accessLevel,
         phase: value.phase,
+        depositTerms: value.depositTerms,
         depositAmountVnd: approved?.document.depositAmountVnd ?? value.proposal.depositAmountVnd,
         timelineRevisionId:
           approved?.document.timelineRevisionId ?? value.timeline?.revisionId ?? null,
@@ -159,7 +161,10 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
               ? null
               : {
                   revisionNumber: approved.revisionNumber,
-                  document: { ...approved.document, lines: Array.from(approved.document.lines ?? []) },
+                  document: {
+                    ...approved.document,
+                    lines: Array.from(approved.document.lines ?? []),
+                  },
                 },
         },
         contractRequired: contracts?.modelVersion === 'FULL_CONTRACT_V1' && approved === null,

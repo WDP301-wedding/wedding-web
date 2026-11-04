@@ -5,11 +5,12 @@ import { useRef, useState } from 'react';
 import { cn } from 'cn';
 
 import { buttonVariants } from '../../components/ui/button';
-import { JourneyStepper, journeyIndex, journeySteps } from '../../design-system/journey-stepper';
+import { JourneyStepper, journeySteps } from '../../design-system/journey-stepper';
 import { CancellationModal } from './cancellation-modal';
 import { OverviewAliasModal } from './overview-alias-modal';
 import { OverviewMultiBookings } from './overview-multi-bookings';
 import { OverviewNextSteps } from './overview-next-steps';
+import { currentJourneyIndex } from './overview-progress';
 import { OverviewNotifications } from './overview-notifications';
 import { daysUntil, nextTasks } from './overview-tasks';
 import { menuLines } from './proposal-menus';
@@ -79,7 +80,7 @@ function OverviewContent() {
 
   if (!ready) return null;
   const proposal = state.proposal;
-  const step = journeyIndex(proposal.phase, proposal.eventDate);
+  const step = currentJourneyIndex(proposal);
   const days = daysUntil(proposal.eventDate);
   const tasks = nextTasks(proposal, summary, days, settlement.status);
   const completed = proposal.phase === 'COMPLETED';

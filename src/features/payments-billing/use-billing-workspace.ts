@@ -218,21 +218,23 @@ export function useBillingWorkspace({
 
   useBillingRealtimeSync({ bookingId, embedded, run, load });
 
-  const start = async () => {
+  const start = async (targetIntent?: CheckoutIntent) => {
+    const activeIntent = targetIntent ?? intent;
     if (
       busyRef.current ||
       context === null ||
-      intent === null ||
+      activeIntent === null ||
       context.bookingId !== bookingId.trim()
     )
       return;
+    setIntent(activeIntent);
     busyRef.current = true;
     setPending(true);
     setError(null);
     try {
       const value = await executeStartCheckout({
         context,
-        intent,
+        intent: activeIntent,
         gateway,
         intents,
         authorize,
@@ -246,6 +248,13 @@ export function useBillingWorkspace({
         setIntent,
         setRetry,
       });
+      if (
+        value.checkoutUrl &&
+        typeof window !== 'undefined' &&
+        process.env.NODE_ENV !== 'test'
+      ) {
+        window.location.assign(value.checkoutUrl);
+      }
     } catch (caught) {
       fail(caught);
       const unknown = unresolved(caught);
@@ -253,7 +262,7 @@ export function useBillingWorkspace({
       if (!unknown) setIntent(null);
       if (caught instanceof ApiClientError && caught.code === 'PAYMENT_ATTEMPT_ACTIVE') {
         await load(context.bookingId).catch(fail);
-      } else if (intent.kind === 'balance' && !unknown && !denied(caught))
+      } else if (activeIntent.kind === 'balance' && !unknown && !denied(caught))
         void load(context.bookingId).catch(() => undefined);
     } finally {
       busyRef.current = false;

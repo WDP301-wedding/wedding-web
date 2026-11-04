@@ -23,7 +23,7 @@ export type Task = Readonly<{
  */
 export function nextTasks(
   proposal: Proposal,
-  summary: BookingSummary | undefined,
+  _summary: BookingSummary | undefined,
   /** Số ngày tới tiệc (âm = đã qua). Mặc định coi như chưa tới để giữ hành vi cũ. */
   days = 1,
   financialStatus: SettlementStatus = 'unknown',
@@ -32,47 +32,139 @@ export function nextTasks(
   const timeline = proposal.effectiveTimeline;
   switch (proposal.phase) {
     case 'DRAFT': {
-      if (!summary?.hasTimeline && !timeline)
+      const currentTimeline = proposal.timeline ?? timeline;
+      if (!currentTimeline)
         return [
           {
             title: 'Chờ nhà hàng gửi kịch bản',
-            detail: 'Quản lý tiệc đang soạn kịch bản đầu tiên cho tiệc của hai bạn.',
+            detail: 'Nhà hàng đang chuẩn bị kịch bản cho tiệc của hai bạn.',
             href: withBooking(routes.script, id),
-            action: 'Xem đề xuất',
+            action: 'Xem kịch bản',
             status: 'info',
           },
         ];
-      const version = timeline ? ` phiên bản ${timeline.revisionNumber}` : '';
-      if (summary && !summary.coupleApproved)
+      if (!currentTimeline.coupleApprovedAt)
         return [
           {
-            title: `Duyệt kịch bản${version}`,
-            detail: summary.managerApproved
-              ? 'Nhà hàng đã duyệt. Hai bạn xem lại các mốc rồi xác nhận.'
-              : 'Xem lại các mốc, có thể đề xuất chỉnh sửa trước khi duyệt.',
+            title: 'Duyệt kịch bản phiên bản ' + currentTimeline.revisionNumber,
+            detail: currentTimeline.managerApprovedAt
+              ? 'Nhà hàng đã duyệt. Hai bạn kiểm tra và xác nhận cùng phiên bản.'
+              : 'Xem các mốc chương trình và xác nhận kịch bản.',
             href: withBooking(routes.script, id),
             action: 'Xem kịch bản',
             status: 'wait',
           },
+        ];
+      if (!currentTimeline.managerApprovedAt)
+        return [
           {
-            title: 'Điền tên cô dâu chú rể',
-            detail: 'Tên dùng cho hợp đồng và thiệp cưới.',
-            href: withBooking(routes.contract, id),
-            action: 'Nhập tên',
+            title: 'Chờ nhà hàng duyệt kịch bản',
+            detail: 'Hai bạn đã duyệt phiên bản hiện tại. Đang chờ nhà hàng xác nhận.',
+            href: withBooking(routes.script, id),
+            action: 'Xem kịch bản',
             status: 'info',
           },
         ];
+      const progress = proposal.commercialProgress;
+      if (!progress)
+        return [
+          {
+            title: 'Kiểm tra hợp đồng và thỏa thuận',
+            detail: 'Kịch bản đã được hai bên duyệt. Xem trạng thái hợp đồng trước khi đặt cọc.',
+            href: withBooking(routes.contract, id),
+            action: 'Xem hợp đồng',
+            status: 'info',
+          },
+        ];
+      if (progress.modelVersion === 'FULL_CONTRACT_V1') {
+        if (progress.contractState === 'APPROVED' && progress.timelineMatchesContract) {
+          return [
+            {
+              title: 'Đặt cọc ' + formatVnd(proposal.proposal.depositAmountVnd),
+              detail:
+                'Hợp đồng và kịch bản hiện tại đã được hai bên duyệt. Kiểm tra chi tiết trước khi thanh toán.',
+              href: withBooking(routes.payment, id),
+              action: 'Đi tới Thanh toán',
+              status: 'wait',
+            },
+          ];
+        }
+        if (progress.contractState === 'AWAITING_APPROVAL')
+          return [
+            {
+              title: progress.coupleApproved
+                ? 'Chờ nhà hàng duyệt hợp đồng'
+                : 'Xem và duyệt hợp đồng',
+              detail: progress.coupleApproved
+                ? 'Hai bạn đã duyệt. Đang chờ nhà hàng xác nhận cùng phiên bản.'
+                : 'Kiểm tra hạng mục, số lượng, giá và khoản cọc trước khi xác nhận.',
+              href: withBooking(routes.contract, id),
+              action: 'Xem hợp đồng',
+              status: progress.coupleApproved ? 'info' : 'wait',
+            },
+          ];
+        if (progress.contractState || progress.selectionStatus === 'SUBMITTED')
+          return [
+            {
+              title: 'Chờ nhà hàng hoàn thiện hợp đồng',
+              detail:
+                'Lựa chọn đã gửi. Nhà hàng cần hoàn thiện và gửi đúng phiên bản hợp đồng để hai bên duyệt.',
+              href: withBooking(routes.contract, id),
+              action: 'Xem hợp đồng',
+              status: 'info',
+            },
+          ];
+        return [
+          {
+            title: 'Chốt lựa chọn hợp đồng',
+            detail: 'Chọn thực đơn và dịch vụ, lưu nháp rồi gửi lựa chọn cho nhà hàng.',
+            href: withBooking(routes.contract, id),
+            action: 'Xem hạng mục',
+            status: 'wait',
+          },
+        ];
+      }
       return [
         {
-          title: 'Chờ nhà hàng duyệt kịch bản',
-          detail: 'Hai bạn đã duyệt. Khi nhà hàng duyệt, bước Hợp đồng sẽ mở.',
-          href: withBooking(routes.script, id),
-          action: 'Xem kịch bản',
-          status: 'info',
+          title: 'Đặt cọc ' + formatVnd(proposal.proposal.depositAmountVnd),
+          detail:
+            'Kịch bản đã được hai bên duyệt. Xem thỏa thuận và chi tiết khoản cọc trước khi thanh toán.',
+          href: withBooking(routes.payment, id),
+          action: 'Đi tới Thanh toán',
+          status: 'wait',
         },
       ];
     }
-    case 'AWAITING_DEPOSIT':
+    case 'AWAITING_DEPOSIT': {
+      const progress = proposal.commercialProgress;
+      if (progress && progress.modelVersion === 'FULL_CONTRACT_V1') {
+        if (progress.contractState === 'APPROVED' && progress.timelineMatchesContract) {
+          return [
+            {
+              title: 'Đặt cọc ' + formatVnd(proposal.proposal.depositAmountVnd),
+              detail:
+                'Hợp đồng và kịch bản hiện tại đã được hai bên duyệt. Kiểm tra chi tiết trước khi thanh toán.',
+              href: withBooking(routes.payment, id),
+              action: 'Đi tới Thanh toán',
+              status: 'wait',
+            },
+          ];
+        }
+        if (progress.contractState === 'AWAITING_APPROVAL')
+          return [
+            {
+              title: progress.coupleApproved
+                ? 'Chờ nhà hàng duyệt hợp đồng'
+                : 'Xem và duyệt hợp đồng',
+              detail: progress.coupleApproved
+                ? 'Hai bạn đã duyệt. Đang chờ nhà hàng xác nhận cùng phiên bản.'
+                : 'Kiểm tra hạng mục, số lượng, giá và khoản cọc trước khi xác nhận.',
+              href: withBooking(routes.contract, id),
+              action: 'Xem hợp đồng',
+              status: progress.coupleApproved ? 'info' : 'wait',
+            },
+          ];
+      }
       return [
         {
           title: 'Duyệt hợp đồng',
@@ -89,6 +181,7 @@ export function nextTasks(
           status: 'wait',
         },
       ];
+    }
     case 'CONFIRMED': {
       const settlementTasks = [settlementTask(id, financialStatus)];
       if (days < 0) return settlementTasks;

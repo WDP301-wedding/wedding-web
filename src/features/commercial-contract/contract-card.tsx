@@ -64,7 +64,7 @@ export function ContractCard({
   return (
     <section className={cx.card} aria-labelledby="contract-heading">
       <div className={cx.cardHeader}>
-        <h2 id="contract-heading">
+        <h2 id="contract-heading" className="scroll-mt-16">
           {current
             ? 'Hợp đồng · bản số ' + current.revisionNumber
             : contracts.customerSelection?.status === 'SUBMITTED'

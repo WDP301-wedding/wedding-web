@@ -196,6 +196,28 @@ export function CoupleBillingWorkspace({
     setError(null);
   };
 
+  const handleCheckAttempt = (targetAttemptId?: string) => {
+    if (!context) return;
+    const targetId = (targetAttemptId ?? attemptId ?? checkout?.paymentAttemptId ?? '').trim();
+    if (!targetId) return;
+    void run(async () => {
+      const value = await authorize((token) =>
+        gateway.loadAttempt(token, context.bookingId, targetId),
+      );
+      if (value.paymentAttemptId !== targetId)
+        throw new Error('Attempt mismatch');
+      if (context.accessLevel !== 'FULL' && value.purpose !== 'DEPOSIT')
+        throw new Error('Attempt mismatch');
+      await displayAttempt(context.bookingId, value);
+      if (completed(value)) {
+        notify.success('Giao dịch thanh toán đã hoàn tất thành công!');
+        await load(context.bookingId);
+      } else {
+        notify.info('Giao dịch đang được xử lý hoặc chưa hoàn tất thanh toán trên VNPay.');
+      }
+    });
+  };
+
   return (
     <div className={bx.shell}>
       {!embedded && <BillingHeaderNav />}
@@ -239,6 +261,9 @@ export function CoupleBillingWorkspace({
             intent={intent?.kind === 'deposit' ? intent : null}
             pending={pending}
             retry={retry}
+            checkout={checkout}
+            onCheckStatus={() => handleCheckAttempt()}
+            onResetExpired={handleResetExpired}
             onConfirm={() => void start()}
             onCancel={() => setIntent(null)}
             blocked={blocked}
@@ -246,8 +271,8 @@ export function CoupleBillingWorkspace({
             inFlight={inFlight}
             onStartDeposit={() => {
               if (context.timelineRevisionId === null || context.contractRequired) return;
-              setIntent({
-                kind: 'deposit',
+              const depositIntent = {
+                kind: 'deposit' as const,
                 displayContext: context,
                 body: {
                   timelineRevisionId: context.timelineRevisionId,
@@ -259,7 +284,8 @@ export function CoupleBillingWorkspace({
                     : {}),
                 },
                 amountVnd: context.depositAmountVnd,
-              });
+              };
+              void start(depositIntent);
             }}
           />
           {view !== null && (
@@ -313,17 +339,20 @@ export function CoupleBillingWorkspace({
               onCancel={() => setIntent(null)}
             />
           )}
-          {checkout !== null && (
-            <CheckoutLinkPanel
-              checkout={checkout}
-              status={
-                attempt?.paymentAttemptId === checkout.paymentAttemptId
-                  ? attempt.status
-                  : checkout.status
-              }
-              onResetExpired={handleResetExpired}
-            />
-          )}
+          {checkout !== null &&
+            context.phase !== 'DRAFT' &&
+            context.phase !== 'AWAITING_DEPOSIT' &&
+            attempt?.purpose !== 'DEPOSIT' && (
+              <CheckoutLinkPanel
+                checkout={checkout}
+                status={
+                  attempt?.paymentAttemptId === checkout.paymentAttemptId
+                    ? attempt.status
+                    : checkout.status
+                }
+                onResetExpired={handleResetExpired}
+              />
+            )}
           <BillingAttemptPanel
             embedded={embedded}
             attemptId={attemptId}
@@ -332,22 +361,7 @@ export function CoupleBillingWorkspace({
             intentActive={intent !== null}
             checkoutActive={checkout !== null}
             attempt={attempt}
-            onCheckStatus={() => {
-              void run(async () => {
-                const value = await authorize((token) =>
-                  gateway.loadAttempt(token, context.bookingId, attemptId.trim()),
-                );
-                if (value.paymentAttemptId !== attemptId.trim())
-                  throw new Error('Attempt mismatch');
-                if (context.accessLevel !== 'FULL' && value.purpose !== 'DEPOSIT')
-                  throw new Error('Attempt mismatch');
-                await displayAttempt(context.bookingId, value);
-                if (completed(value)) {
-                  notify.success('Giao dịch thanh toán đã hoàn tất thành công!');
-                  await load(context.bookingId);
-                }
-              });
-            }}
+            onCheckStatus={() => handleCheckAttempt()}
           />
         </>
       )}

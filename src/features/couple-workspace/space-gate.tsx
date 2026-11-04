@@ -19,7 +19,7 @@ export function SpaceGate({
   children,
   label = 'Đang mở tiệc cưới của bạn…',
 }: Readonly<{ children: ReactNode; label?: string }>) {
-  const { state, reload, bookingId } = useCoupleWorkspace();
+  const { state, reload, bookingId, switching } = useCoupleWorkspace();
   if (state.status === 'loading') return <Skeleton variant="page" label={label} />;
   if (state.status === 'error') return <ErrorPanel error={state.error} onRetry={reload} />;
   if (state.status === 'anonymous')
@@ -42,5 +42,9 @@ export function SpaceGate({
         </Link>
       </section>
     );
-  return <div key={bookingId ?? 'none'}>{children}</div>;
+  return (
+    <div key={bookingId ?? 'none'} inert={switching} aria-busy={switching}>
+      {children}
+    </div>
+  );
 }

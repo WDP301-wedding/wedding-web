@@ -88,9 +88,14 @@ export const contractApi = {
       }),
     );
   },
-  pdf(token: string, bookingId: string, revisionId: string) {
+  pdf(
+    token: string,
+    bookingId: string,
+    revisionId: string,
+    layout: 'retained' | 'readable' = 'retained',
+  ) {
     return fetchPrivateFile(
-      `/bookings/${encodeURIComponent(bookingId)}/contracts/${encodeURIComponent(revisionId)}/pdf`,
+      `/bookings/${encodeURIComponent(bookingId)}/contracts/${encodeURIComponent(revisionId)}/pdf?layout=${layout}`,
       token,
     );
   },

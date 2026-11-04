@@ -47,18 +47,23 @@ export function ActiveBookingBoundary({ children }: Readonly<{ children: ReactNo
       types: ['booking.updated'],
     },
   );
+  const blocked = enabled && (checked !== id || closed === id);
   return (
     <>
       <Suspense fallback={null}>
         <BookingSelectionObserver onChange={setSelection} />
       </Suspense>
-      {enabled && (checked !== id || closed === id) ? (
-        <p role="status" className="p-6 text-sm">
+      {blocked ? (
+        <p
+          role="status"
+          className="fixed left-1/2 top-4 z-[150] -translate-x-1/2 rounded-lg border border-border bg-card px-4 py-2 text-sm shadow-sm"
+        >
           Đang mở hồ sơ tiệc…
         </p>
-      ) : (
-        children
-      )}
+      ) : null}
+      <div className="contents" inert={blocked} aria-busy={blocked}>
+        {enabled && closed === id ? null : children}
+      </div>
     </>
   );
 }
