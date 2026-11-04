@@ -29,8 +29,7 @@ export function nextTasks(
   const id = proposal.bookingId;
   const timeline = proposal.effectiveTimeline;
   switch (proposal.phase) {
-    case 'DRAFT':
-    case 'AWAITING_DEPOSIT': {
+    case 'DRAFT': {
       const currentTimeline = proposal.timeline ?? timeline;
       if (!currentTimeline)
         return [
@@ -128,6 +127,53 @@ export function nextTasks(
           title: 'Đặt cọc ' + formatVnd(proposal.proposal.depositAmountVnd),
           detail:
             'Kịch bản đã được hai bên duyệt. Xem thỏa thuận và chi tiết khoản cọc trước khi thanh toán.',
+          href: withBooking(routes.payment, id),
+          action: 'Đi tới Thanh toán',
+          status: 'wait',
+        },
+      ];
+    }
+    case 'AWAITING_DEPOSIT': {
+      const progress = proposal.commercialProgress;
+      if (progress && progress.modelVersion === 'FULL_CONTRACT_V1') {
+        if (progress.contractState === 'APPROVED' && progress.timelineMatchesContract) {
+          return [
+            {
+              title: 'Đặt cọc ' + formatVnd(proposal.proposal.depositAmountVnd),
+              detail:
+                'Hợp đồng và kịch bản hiện tại đã được hai bên duyệt. Kiểm tra chi tiết trước khi thanh toán.',
+              href: withBooking(routes.payment, id),
+              action: 'Đi tới Thanh toán',
+              status: 'wait',
+            },
+          ];
+        }
+        if (progress.contractState === 'AWAITING_APPROVAL')
+          return [
+            {
+              title: progress.coupleApproved
+                ? 'Chờ nhà hàng duyệt hợp đồng'
+                : 'Xem và duyệt hợp đồng',
+              detail: progress.coupleApproved
+                ? 'Hai bạn đã duyệt. Đang chờ nhà hàng xác nhận cùng phiên bản.'
+                : 'Kiểm tra hạng mục, số lượng, giá và khoản cọc trước khi xác nhận.',
+              href: withBooking(routes.contract, id),
+              action: 'Xem hợp đồng',
+              status: progress.coupleApproved ? 'info' : 'wait',
+            },
+          ];
+      }
+      return [
+        {
+          title: 'Duyệt hợp đồng',
+          detail: 'Cần hai bên duyệt cùng một phiên bản trước khi đặt cọc.',
+          href: withBooking(routes.contract, id),
+          action: 'Xem hợp đồng',
+          status: 'wait',
+        },
+        {
+          title: `Đặt cọc ${formatVnd(proposal.proposal.depositAmountVnd)}`,
+          detail: '30% tổng theo đề xuất, thanh toán qua VNPay.',
           href: withBooking(routes.payment, id),
           action: 'Đi tới Thanh toán',
           status: 'wait',

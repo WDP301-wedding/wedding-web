@@ -227,6 +227,7 @@ export function useBillingWorkspace({
       context.bookingId !== bookingId.trim()
     )
       return;
+    setIntent(activeIntent);
     busyRef.current = true;
     setPending(true);
     setError(null);

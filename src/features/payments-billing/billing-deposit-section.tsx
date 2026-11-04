@@ -189,18 +189,8 @@ export function BillingDepositSection({
                     Đang đối soát với VNPay
                   </div>
                   <p className="text-xs leading-relaxed text-amber-900">
-                    Hệ thống đang kiểm tra kết quả giao dịch. Vui lòng bấm kiểm tra trạng thái để nhận kết quả mới nhất.
+                    Hệ thống đang đối soát kết quả với VNPay. Vui lòng kiểm tra trạng thái ở phần bên dưới để nhận kết quả mới nhất.
                   </p>
-                  {onCheckStatus && (
-                    <button
-                      type="button"
-                      className={cn(bx.buttonOutline, 'self-start bg-white py-2 text-xs hover:bg-amber-50')}
-                      disabled={pending}
-                      onClick={onCheckStatus}
-                    >
-                      {pending ? 'Đang kiểm tra…' : 'Kiểm tra trạng thái'}
-                    </button>
-                  )}
                 </div>
               ) : (
                 <button
