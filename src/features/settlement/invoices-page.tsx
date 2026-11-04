@@ -21,6 +21,7 @@ import {
 import { ContractLinesTable } from '../commercial-contract/contract-lines';
 import { Skeleton } from '../../design-system/skeleton';
 import { cx } from '../commercial-contract/contract-classes';
+import { settlementLabels, settlementStatus } from './settlement-status';
 
 type Expenses = ApiData<'/bookings/{bookingId}/incidental-expenses', 'get'>;
 type InvoiceList = ApiData<'/bookings/{bookingId}/final-invoices', 'get'>;
@@ -115,6 +116,10 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
       (revision) => revision.invoiceRevisionId === data.invoices.currentRevisionId,
     ) ?? null;
   const totals = data.billing.totals;
+  const financialStatus =
+    data.invoices.currentRevisionId && !current
+      ? 'unknown'
+      : settlementStatus(data.billing, current?.document.totalVnd ?? null);
   const balance = balanceGate(
     readEligibility(
       (data.billing as { balancePaymentEligibility?: unknown }).balancePaymentEligibility,
@@ -125,6 +130,15 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   return (
     <>
       <LiveUpdateNotice waiting={live.waiting} />
+      {proposal.phase === 'COMPLETED' ? <p role="status">Tiệc đã hoàn thành.</p> : null}
+      {financialStatus !== 'unknown' ? (
+        <p role="status" className={cx.note}>
+          <strong>{settlementLabels[financialStatus]}</strong>
+          {financialStatus === 'settled'
+            ? ' · Hoá đơn cuối đã chốt, đã thanh toán đủ và không còn công nợ.'
+            : ''}
+        </p>
+      ) : null}
       <section className={cx.card} aria-label="Công nợ hiện tại">
         <dl className={cx.stats}>
           <div>

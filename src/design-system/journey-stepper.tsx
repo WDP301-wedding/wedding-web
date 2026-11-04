@@ -30,12 +30,24 @@ export function journeyIndex(phase: BookingPhase, eventDate: string, today = new
 
 const bar = { done: 'bg-hy-success', current: 'bg-primary', todo: 'bg-border' };
 
-export function JourneyStepper({ current }: { current: number }) {
+export function JourneyStepper({
+  current,
+  completed = false,
+}: {
+  current: number;
+  completed?: boolean;
+}) {
   return (
     <ol className="grid grid-cols-6 gap-1.5 sm:gap-2">
       {journeySteps.map((label, index) => {
         const state =
-          current < 0 ? 'todo' : index < current ? 'done' : index === current ? 'current' : 'todo';
+          current < 0
+            ? 'todo'
+            : completed || index < current
+              ? 'done'
+              : index === current
+                ? 'current'
+                : 'todo';
         return (
           <li
             key={label}

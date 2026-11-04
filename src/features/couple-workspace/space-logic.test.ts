@@ -73,14 +73,26 @@ describe('Không gian cưới – logic hiển thị', () => {
     const before = nextTasks(proposal('CONFIRMED'), summary({ phase: 'CONFIRMED' }), 3);
     expect(before.map((task) => task.action)).toContain('Xếp sơ đồ');
     const after = nextTasks(proposal('CONFIRMED'), summary({ phase: 'CONFIRMED' }), -5);
-    expect(after.map((task) => task.href)).toEqual([
-      '/khong-gian/quyet-toan?bookingId=b1',
-      '/khong-gian/thanh-toan?bookingId=b1',
-    ]);
+    expect(after.map((task) => task.href)).toEqual(['/khong-gian/quyet-toan?bookingId=b1']);
   });
 
   it('counts days in Vietnam time', () => {
     expect(daysUntil('2026-10-17', new Date('2026-10-16T16:59:00Z'))).toBe(1);
     expect(daysUntil('2026-10-17', new Date('2026-10-16T17:00:00Z'))).toBe(0);
+  });
+
+  it('replaces payment reminders with paid invoice history after settlement', () => {
+    const tasks = nextTasks(proposal('CONFIRMED', 'FULL'), summary(), 15, 'settled');
+    expect(tasks[0]?.title).toBe('Đã tất toán');
+    expect(tasks.map((task) => task.title)).not.toContain('Thanh toán phần còn lại');
+    expect(tasks.map((task) => task.action)).toContain('Xếp sơ đồ');
+  });
+
+  it('does not assume a completed event is paid or still needs preparation', () => {
+    const completed = proposal('COMPLETED', 'FULL');
+    expect(nextTasks(completed, summary(), 15, 'settled')[0]?.title).toBe('Đã tất toán');
+    expect(nextTasks(completed, summary(), 15, 'outstanding')[0]?.title).toBe('Còn công nợ');
+    expect(nextTasks(completed, summary(), 15, 'unknown')[0]?.status).toBe('info');
+    expect(nextTasks(completed, summary(), 15, 'settled')).toHaveLength(1);
   });
 });

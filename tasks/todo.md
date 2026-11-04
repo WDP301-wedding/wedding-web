@@ -1,5 +1,17 @@
 # Payment recovery tasks — 2026-10-22
 
+## Completed demo follow-up — 2026-11-04
+
+- [x] DEMO-COMPLETE-01: Existing Manager command changes HY-000028 to COMPLETED;
+      proposal re-read succeeds and invoice/ledger fingerprints remain identical.
+- [x] DEMO-COMPLETE-02: Web overview and invoice screens distinguish completion,
+      settlement, debt, credit and unknown evidence; remove future countdown for
+      completed events. Full Web suite: 373 tests; static checks and production
+      build pass. Isolated desktop/mobile browser verification is recorded.
+- [x] DEMO-COMPLETE-03: Manager and PRM-app implement the same display distinction.
+      Their implementation and separate verification limitations are documented
+      in their completion hand-offs. No hosted deployment is claimed.
+
 - [x] WEB-SANDBOX-ROOT-01: Reproduce Render outbound connection timeouts and
       verify the stuck order's signed FAILED result from an independent connection.
 - [ ] WEB-SANDBOX-FIX-01: Ship authenticated web-server query relay, backend proof

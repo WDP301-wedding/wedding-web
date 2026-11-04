@@ -17,6 +17,7 @@ import { panel, panelTitle } from './space-classes';
 import { SpaceGate } from './space-gate';
 import { useSpaceExtras } from './space-provider';
 import { useAliasDialog, useLatestNotifications } from './use-overview';
+import { useOverviewSettlement } from './use-overview-settlement';
 import {
   bookingDisplayName,
   bookingPhaseLabel,
@@ -42,6 +43,7 @@ function OverviewContent() {
   const { state, bookings, bookingId, reload } = useCoupleWorkspace();
   const { restaurant } = useSpaceExtras();
   const ready = state.status === 'ready';
+  const settlement = useOverviewSettlement(ready ? state.proposal : null);
   const summary = bookings.find((booking) => booking.bookingId === bookingId);
   const inbox = useLatestNotifications(ready);
   const aliasDialog = useRef<HTMLDialogElement>(null);
@@ -79,7 +81,8 @@ function OverviewContent() {
   const proposal = state.proposal;
   const step = journeyIndex(proposal.phase, proposal.eventDate);
   const days = daysUntil(proposal.eventDate);
-  const tasks = nextTasks(proposal, summary, days);
+  const tasks = nextTasks(proposal, summary, days, settlement.status);
+  const completed = proposal.phase === 'COMPLETED';
   const { proposal: offer } = proposal;
 
   return (
@@ -155,7 +158,9 @@ function OverviewContent() {
           aria-hidden="true"
         />
         <div className="flex items-baseline gap-2.5">
-          {days > 0 ? (
+          {completed ? (
+            <span className="text-2xl font-bold">Tiệc đã hoàn thành</span>
+          ) : days > 0 ? (
             <>
               <span className="text-5xl leading-none font-bold tabular-nums sm:text-6xl">
                 {days}
@@ -189,10 +194,26 @@ function OverviewContent() {
             Hành trình cưới
           </h2>
           <span className="text-xs text-muted-foreground">
-            {step < 0 ? 'Tiệc đã huỷ' : `Bước ${step + 1}/6 · ${journeySteps[step]}`}
+            {completed
+              ? 'Tiệc đã hoàn thành'
+              : step < 0
+                ? 'Tiệc đã huỷ'
+                : `Bước ${step + 1}/6 · ${journeySteps[step]}`}
           </span>
         </div>
-        <JourneyStepper current={step} />
+        <JourneyStepper current={step} completed={completed && settlement.status === 'settled'} />
+        {settlement.error ? (
+          <p role="status" className="text-sm text-muted-foreground">
+            Chưa tải được tình trạng quyết toán.{' '}
+            <button
+              type="button"
+              className="text-primary underline"
+              onClick={() => void settlement.retry()}
+            >
+              Tải lại quyết toán
+            </button>
+          </p>
+        ) : null}
         <OverviewNextSteps tasks={tasks} />
       </section>
 
