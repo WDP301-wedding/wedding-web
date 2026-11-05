@@ -15,6 +15,8 @@ export type DesignView =
   operations['getWeddingInvitation']['responses'][200]['content']['application/json']['data'] & {
     readonly presentation?: InvitationPresentation;
   };
+export type DesignPublicationView =
+  operations['getWeddingInvitationPublication']['responses'][200]['content']['application/json']['data'];
 export type PrintOrderView =
   operations['getPrintOrder']['responses'][200]['content']['application/json']['data'];
 export type PublicInvitationView =
@@ -84,6 +86,12 @@ export type PrintRequestLine = Readonly<{
 }>;
 
 export interface InvitationGateway {
+  getDesignPublication(
+    this: void,
+    accessToken: string,
+    bookingId: string,
+    designId: string,
+  ): Promise<DesignPublicationView>;
   previewPrintRequest(
     this: void,
     accessToken: string,

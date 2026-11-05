@@ -1,16 +1,9 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import type { z } from 'zod';
 import type { InvitationGateway, DesignView } from './invitation-api';
-import {
-  getApiBaseUrl,
-  getOrGenerateKey,
-  invitationErrorMessage,
-  publicationSnapshotSchema,
-} from './invitation-studio-utils';
+import { getApiBaseUrl, getOrGenerateKey, invitationErrorMessage } from './invitation-studio-utils';
 import { useLiveRefresh } from '../realtime/use-live-refresh';
-import { useRealtimeSubscription } from '../realtime/use-realtime';
 import { sharedCoupleRealtime } from '../realtime/realtime-client';
 import { ApiClientError } from '../../lib/api/client';
 import { notify } from '../../design-system/toast';
@@ -20,8 +13,7 @@ export interface UseInvitationPublishOptions {
   bookingId: string;
   accessToken: string;
   gateway: InvitationGateway;
-  currentDesign?: DesignView | undefined;
-  designs: readonly DesignView[];
+  currentDesign: DesignView;
   writing: boolean;
   designDirty: boolean;
   confirm: (options: ConfirmOptions) => Promise<boolean>;
@@ -32,7 +24,6 @@ export function useInvitationPublish({
   accessToken,
   gateway,
   currentDesign,
-  designs,
   writing,
   designDirty,
   confirm,
@@ -40,52 +31,50 @@ export function useInvitationPublish({
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishedDesignRevisionId, setPublishedDesignRevisionId] = useState<string | null>(null);
   const commandBusy = useRef(false);
-  const lastPublished = useRef<{ designId: string; revisionId: string } | null>(null);
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [publicationRevision, setPublicationRevision] = useState<number | null>(null);
   const [publicationState, setPublicationState] = useState<
     'unknown' | 'unpublished' | 'published' | 'stale_conflict'
   >('unknown');
 
-  const incomingPublication = useRef<z.infer<typeof publicationSnapshotSchema> | null>(null);
+  const [publicationError, setPublicationError] = useState<string | null>(null);
   const publishKeyRef = useRef<{ signature: string; key: string } | null>(null);
   const unpublishKeyRef = useRef<{ signature: string; key: string } | null>(null);
-
   const publicationLive = useLiveRefresh(
-    () => {
-      const next = incomingPublication.current;
-      incomingPublication.current = null;
-      if (next && next.publicationRevision >= (publicationRevision ?? 0)) {
+    async (isCurrent) => {
+      if (!currentDesign) return;
+      try {
+        const next = await gateway.getDesignPublication(
+          accessToken,
+          bookingId,
+          currentDesign.designId,
+        );
+        if (!isCurrent()) return;
         setPublicationRevision(next.publicationRevision);
         setPublishedSlug(next.published ? next.publicSlug : null);
         setPublishedDesignRevisionId(next.published ? next.designRevisionId : null);
-        const source = next.published
-          ? designs.find((item) => item.revisionId === next.designRevisionId)
-          : undefined;
-        if (source)
-          lastPublished.current = { designId: source.designId, revisionId: source.revisionId };
         setPublicationState(next.published ? 'published' : 'unpublished');
+        setPublicationError(null);
+      } catch (error) {
+        if (isCurrent()) {
+          setPublicationError(
+            invitationErrorMessage(error, 'Không thể tải trạng thái chia sẻ thiệp.'),
+          );
+          setPublicationRevision(null);
+          setPublishedSlug(null);
+          setPublishedDesignRevisionId(null);
+        }
       }
     },
-    { scope: bookingId + ':publication', bookingId, types: [], blocked: writing },
+    {
+      scope: `${bookingId}:publication:${currentDesign?.designId ?? ''}`,
+      bookingId,
+      types: ['print_order.updated'],
+      initial: true,
+      blocked: writing || isPublishing,
+      invalidateOnBlock: true,
+    },
   );
-
-  useRealtimeSubscription({
-    bookingId,
-    filterBooking: true,
-    onEvent: (ev) => {
-      if (ev.type !== 'print_order.updated' || ev.scope.bookingId !== bookingId) return;
-      const parsed = publicationSnapshotSchema.safeParse(ev.payload?.['publication']);
-      if (!parsed.success) return;
-      if (
-        !incomingPublication.current ||
-        parsed.data.publicationRevision >= incomingPublication.current.publicationRevision
-      ) {
-        incomingPublication.current = parsed.data;
-      }
-      publicationLive.schedule();
-    },
-  });
 
   const handlePublish = async () => {
     if (
@@ -114,10 +103,6 @@ export function useInvitationPublish({
       );
       setPublishedSlug(res.publicSlug);
       setPublishedDesignRevisionId(currentDesign.revisionId);
-      lastPublished.current = {
-        designId: currentDesign.designId,
-        revisionId: currentDesign.revisionId,
-      };
       setPublicationRevision(res.publicationRevision);
       setPublicationState('published');
       publishKeyRef.current = null;
@@ -126,6 +111,7 @@ export function useInvitationPublish({
       if (err instanceof ApiClientError && err.code === 'INVITATION_PUBLICATION_STALE') {
         setPublicationState('stale_conflict');
         sharedCoupleRealtime.requestBookingResync(bookingId);
+        publicationLive.schedule();
       }
       notify.error(invitationErrorMessage(err, 'Không thể xuất bản thiệp cưới.'));
     } finally {
@@ -135,12 +121,7 @@ export function useInvitationPublish({
   };
 
   const handleUnpublish = async () => {
-    const designId =
-      designs.find((item) => item.revisionId === publishedDesignRevisionId)?.designId ??
-      (lastPublished.current?.revisionId === publishedDesignRevisionId
-        ? lastPublished.current?.designId
-        : undefined) ??
-      currentDesign?.designId;
+    const designId = currentDesign.designId;
     if (
       !designId ||
       publicationRevision === null ||
@@ -173,6 +154,10 @@ export function useInvitationPublish({
       unpublishKeyRef.current = null;
       notify.success('Đã hủy xuất bản thiệp cưới.');
     } catch (err: unknown) {
+      if (err instanceof ApiClientError && err.code === 'INVITATION_PUBLICATION_STALE') {
+        setPublicationState('stale_conflict');
+        publicationLive.schedule();
+      }
       notify.error(invitationErrorMessage(err, 'Không thể hủy xuất bản thiệp cưới.'));
     } finally {
       commandBusy.current = false;
@@ -245,6 +230,8 @@ export function useInvitationPublish({
     publishedDesignRevisionId,
     publicationRevision,
     publicationState,
+    publicationError,
+    refreshPublication: publicationLive.refresh,
     handlePublish,
     handleUnpublish,
     handleDownloadQr,

@@ -1,5 +1,13 @@
 # Payment recovery tasks — 2026-10-22
 
+## Independent invitation sharing — 2026-11-05
+
+- [x] SHARE-WEB-01: List every saved design in Sharing with a clear title and independent controls.
+- [x] SHARE-BE-01: Preserve legacy links and add per-design publication identities and reads.
+- [x] SHARE-APP-01: Show the same designs and publication controls in PRM-app.
+- [x] SHARE-LOCAL-01: Verify synthetic desktop/mobile browser behavior and PostgreSQL migration with retained identities.
+- [ ] SHARE-HOSTED-01: Deploy compatible backend/migration and clients, then verify the deployed website.
+
 ## Read-only preparation — 2026-11-05
 
 - [x] WEB-FE-ARCHIVE-01: Show saved guests, seating, invitations and print history with editing controls hidden.

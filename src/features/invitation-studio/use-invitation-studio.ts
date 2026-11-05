@@ -11,7 +11,6 @@ import type { InvitationGateway, DesignView, PrintOrderView } from './invitation
 import { invitationErrorMessage } from './invitation-studio-utils';
 import { useInvitationDesign } from './use-invitation-design';
 import { useInvitationMedia } from './use-invitation-media';
-import { useInvitationPublish } from './use-invitation-publish';
 import { useInvitationSeating } from './use-invitation-seating';
 import { useInvitationPrint } from './use-invitation-print';
 
@@ -101,18 +100,6 @@ export function useInvitationStudio({
     media.detachingAssetId !== null ||
     media.derivingAssetId !== null;
 
-  // 3. Publishing & QR sub-hook
-  const publish = useInvitationPublish({
-    bookingId,
-    accessToken,
-    gateway,
-    currentDesign: design.currentDesign,
-    designs: design.designs,
-    designDirty: design.designDirty,
-    writing,
-    confirm,
-  });
-
   // 4. Print orders sub-hook
   const print = useInvitationPrint({
     bookingId,
@@ -124,7 +111,7 @@ export function useInvitationStudio({
       ? { editingDesign: { designId: design.currentDesign.designId, dirty: design.designDirty } }
       : {}),
     printVisited,
-    writing: writing || publish.isPublishing,
+    writing,
     confirm,
   });
 
@@ -167,6 +154,8 @@ export function useInvitationStudio({
     event,
     timeline,
     bookingId,
+    accessToken,
+    gateway,
     activeTab,
     selectTab,
     mediaLikelyLocked,
@@ -174,8 +163,6 @@ export function useInvitationStudio({
     ...design,
     // Media
     ...media,
-    // Publish
-    ...publish,
     // Print
     ...print,
     seating,
@@ -187,7 +174,6 @@ export function useInvitationStudio({
     // Lifecycle
     writing:
       writing ||
-      publish.isPublishing ||
       print.isOrdering ||
       print.approvingOrderId !== null ||
       print.cancellingOrderId !== null,

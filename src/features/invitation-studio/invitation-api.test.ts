@@ -8,6 +8,26 @@ describe('InvitationGateway (IS-W7 Couple Web)', () => {
   const designId = '22222222-2222-2222-2222-222222222222';
   const orderId = '33333333-3333-3333-3333-333333333333';
 
+  it('includes saved designs beyond the first page', async () => {
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: { data: { items: [{ designId: 'first' }], nextCursor: 'cursor-1' } },
+      })
+      .mockResolvedValueOnce({
+        data: { data: { items: [{ designId: 'second' }], nextCursor: null } },
+      });
+    const gateway = createInvitationGateway({ GET: get } as unknown as ApiClient);
+    expect((await gateway.listDesigns(token, bookingId)).map((design) => design.designId)).toEqual([
+      'first',
+      'second',
+    ]);
+    expect(get).toHaveBeenNthCalledWith(2, '/bookings/{bookingId}/invitations', {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { path: { bookingId }, query: { cursor: 'cursor-1' } },
+    });
+  });
+
   it('lists designs and returns items', async () => {
     const mockClient = {
       GET: vi.fn().mockResolvedValue({

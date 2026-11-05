@@ -1,5 +1,13 @@
 # Payment recovery revision — 2026-10-22
 
+## Independent invitation sharing — 2026-11-05
+
+Owner-approved scope: wedding-web, supporting wedding-be, then PRM-app (Flutter).
+Show every saved design with a clear title and an independent stable link/QR.
+Keep existing links and immutable invitation/print history. Verify isolated
+multi-design behavior and migration before releasing backend ahead of clients.
+See [the hand-off](../docs/multi-invitation-sharing-2026-11-05.md).
+
 ## Read-only preparation — 2026-11-05
 
 Switch guest, seating and invitation preparation to read-only after event

@@ -104,6 +104,15 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
   };
 
   const mockGateway: InvitationGateway = {
+    getDesignPublication: vi
+      .fn()
+      .mockResolvedValue({
+        publicationRevision: 0,
+        published: false,
+        publicSlug: null,
+        publishedRevisionId: null,
+        designRevisionId: null,
+      }),
     previewPrintRequest: vi.fn(),
     confirmPrintRequest: vi.fn(),
     listPrintRequests: vi.fn().mockResolvedValue([]),

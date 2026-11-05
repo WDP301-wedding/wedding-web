@@ -13,22 +13,10 @@ export type InvitationStudioViewProps = UseInvitationStudioOptions;
 
 export function InvitationStudioView(props: InvitationStudioViewProps) {
   const studio = useInvitationStudio(props);
-  const {
-    activeTab,
-    selectTab,
-    publicationRevision,
-    designLive,
-    designDirty,
-    writing,
-    confirm,
-    dialog,
-  } = studio;
+  const { activeTab, selectTab, designLive, designDirty, writing, confirm, dialog } = studio;
 
   return (
     <div className={`${ix.root} @container/studio`}>
-      {publicationRevision === null ? (
-        <p role="status">Đang đồng bộ trạng thái xuất bản thiệp…</p>
-      ) : null}
       <LiveUpdateNotice waiting={designLive.waiting} />
       {designLive.waiting && designDirty ? (
         <button
@@ -61,13 +49,14 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
             ? 'Xem thiết kế đã lưu và lịch sử in thiệp.'
             : 'Thiết kế thiệp, gửi liên kết cho khách mời và theo dõi yêu cầu in.'}
         </p>
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <strong>{studio.title || 'Thiệp chưa đặt tên'}</strong>
-          <span className={ix.chip}>
-            {designDirty ? 'Có thay đổi chưa lưu' : studio.currentDesign ? 'Đã lưu' : 'Bản mới'}
-          </span>
-          {studio.publishedSlug && <span className={ix.chipSuccess}>Có thiệp đang chia sẻ</span>}
-        </div>
+        {activeTab !== 'publish' && (
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <strong>{studio.title || 'Thiệp chưa đặt tên'}</strong>
+            <span className={ix.chip}>
+              {designDirty ? 'Có thay đổi chưa lưu' : studio.currentDesign ? 'Đã lưu' : 'Bản mới'}
+            </span>
+          </div>
+        )}
       </header>
 
       {/* Navigation Tabs */}
