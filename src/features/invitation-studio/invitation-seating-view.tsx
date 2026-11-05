@@ -1,4 +1,5 @@
 import type { InvitationSeating } from './print-purchase-api';
+import { groupLabel } from '../guest-management/group-labels';
 export function InvitationSeatingView({ tables }: Readonly<{ tables: InvitationSeating }>) {
   if (!tables.length) return null;
   const bounds = tables.map((t) => {
@@ -61,7 +62,7 @@ export function InvitationSeatingView({ tables }: Readonly<{ tables: InvitationS
       <ul>
         {groups.map((group) => (
           <li key={group}>
-            {group}:{' '}
+            {groupLabel(group)}:{' '}
             {tables
               .filter((t) => t.guestGroupName === group)
               .map((t) => t.tableLabel)

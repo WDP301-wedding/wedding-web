@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "digest": "38071ebcdc9cb07a20e4562dc1eb19d0a89a8cd0aaddb8412029b2b93eb6df25",
+  "digest": "e9bdac5e1bf760fa7f88f43ebfe2e32f3b1e880599b288f9eddf74165b778190",
   "files": {
-    "renderer.cjs": "89c96927b5a8aa4e8e371468c1f5c51d66df3bca7ffa879e576e424864dd66ba",
+    "renderer.cjs": "961425d3b79de85d3b0a187f7ce2fdb3c7690d4bed12d1632c229dda11bb9212",
     "renderer.css": "f3ad39b70c59fd249b4089bdc076a84589db7494f403ccc072c443f628aa7c1c"
   },
   "sourceFiles": {
@@ -10,13 +10,14 @@
     "app/styles/invitation-card.css": "2477a43116367d73dc818337b18eee7d766aa9d7dbcee4183f7a3f20f830a736",
     "scripts/invitation-print-entry.tsx": "10e270bf260894087484b346c4766b29d0c177810867ad9888dad753b2f9397a",
     "scripts/invitation-print-image.ts": "59ffb2c220a1ac2e63168d4d6cc43ca916de93b103b0a46599a64a9af1e7e5f0",
+    "src/features/guest-management/group-labels.ts": "3ee027f128ebd99297b92db53f29f5f0a11d521c6cfbd9484ca8d104a87ddf51",
     "src/features/invitation-studio/ai-invitation-generator.ts": "d0b78945fb2d71fb801a12f74739a2c8f2e14c0e82de70419487f5ced988014f",
     "src/features/invitation-studio/interactive-invitation.module.css": "9756aa09dc30f2337a8e207bd4abf5a76ecf84d033df449f6226ececb1c55f6f",
     "src/features/invitation-studio/invitation-pages.tsx": "aaf3056b0f49addd71d5490ca61c209b3c44b81023bbf5f06ef15dff033464ab",
     "src/features/invitation-studio/invitation-presentation.ts": "89370ae7a3a484ab69e5dcbb5833cd246bf420fae4e06f720c377ff2b8ac49b9",
     "src/features/invitation-studio/invitation-print-contents.tsx": "e208ab8eb154e8c0fb327cc09e5010b7a5199759405cacf89a8931ef8b303598",
     "src/features/invitation-studio/invitation-print.css": "389bc7362b122ae77a22c964d28beb58251303537a976d56c98bfb0758aa556e",
-    "src/features/invitation-studio/invitation-seating-view.tsx": "d78457dcd1b5d4bf1d07d4f7c067a1eb44368ef76759ac17ab09410b0fe2bd36",
+    "src/features/invitation-studio/invitation-seating-view.tsx": "55d29b47d68894141874841721a47df26e254c86559d6d903f092bf25b6c38d1",
     "src/features/invitation-studio/legacy-invitation-contents.tsx": "2de3490922207dcf3370604096c2237dc1f8dfde3094417d40a62db75407c665",
     "src/lib/format-date.ts": "ef0d4f4b5702f2d2a9ef1d73d062bd64f47b2822106bb42e9cfb124c77564477"
   }
