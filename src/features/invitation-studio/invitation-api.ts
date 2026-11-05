@@ -84,7 +84,7 @@ export function createInvitationGateway(client?: ApiClient): InvitationGateway {
           path: { bookingId },
           header: { 'Idempotency-Key': intent('create-design', idempotencyKey) },
         },
-        body: { content },
+        body: { content: content as unknown as never },
       });
       if (error !== undefined) throw new Error('Không thể tạo thiết kế thiệp.', { cause: error });
       return required(data).data as unknown as DesignView;
@@ -105,7 +105,7 @@ export function createInvitationGateway(client?: ApiClient): InvitationGateway {
             path: { bookingId, designId },
             header: { 'Idempotency-Key': intent('revise-design', idempotencyKey) },
           },
-          body: input,
+          body: input as unknown as never,
         },
       );
       if (error !== undefined)
