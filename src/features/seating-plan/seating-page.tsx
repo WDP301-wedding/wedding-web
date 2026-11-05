@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import { CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
 import { type Proposal } from '../couple-workspace/use-couple-workspace';
@@ -8,6 +8,7 @@ import { Skeleton } from '../../design-system/skeleton';
 import { LayoutSelector } from './layout-selector';
 import { PlanEditor } from './plan-editor';
 import { useSeatingWorkspace } from './use-seating-workspace';
+import type { SeatingPlan } from './seating-api';
 import { sx } from './seating-classes';
 import { cx } from '../commercial-contract/contract-classes';
 
@@ -26,6 +27,7 @@ export function SeatingPage() {
 function SeatingWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   const { confirm, dialog } = useConfirmDialog();
   const [dirty, setDirtyState] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
   const {
     bookingId,
     options,
@@ -45,6 +47,17 @@ function SeatingWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
       setDirtyState(value);
     },
     [setDirty],
+  );
+  const handleSelectLayout = useCallback(
+    (next: SeatingPlan | undefined) => {
+      accept(next);
+      if (next) {
+        setTimeout(() => {
+          editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+      }
+    },
+    [accept],
   );
 
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
@@ -84,24 +97,26 @@ function SeatingWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
         disabled={dirty}
         plan={plan}
         planId={planId}
-        onSelect={accept}
+        onSelect={handleSelectLayout}
         onStale={reload}
       />
-      {plan && planId ? (
-        // key theo revision: khi backend trả bản mới (lưu/xác nhận/tải lại), editor khởi tạo lại
-        // nhãn bàn từ đúng bản đó thay vì giữ state cũ.
-        <PlanEditor
-          key={plan.revisionId}
-          bookingId={bookingId}
-          plan={plan}
-          groups={groups}
-          // Không gọi reloadBooking(): sơ đồ không đổi thông tin tiệc/thanh điều hướng, gọi lại
-          // /couple/bookings + /proposal chỉ tốn 2 request thừa.
-          onDirtyChange={handleDirty}
-          onChanged={accept}
-          onStale={requestRefresh}
-        />
-      ) : null}
+      <div ref={editorRef}>
+        {plan && planId ? (
+          // key theo revision: khi backend trả bản mới (lưu/xác nhận/tải lại), editor khởi tạo lại
+          // nhãn bàn từ đúng bản đó thay vì giữ state cũ.
+          <PlanEditor
+            key={plan.revisionId}
+            bookingId={bookingId}
+            plan={plan}
+            groups={groups}
+            // Không gọi reloadBooking(): sơ đồ không đổi thông tin tiệc/thanh điều hướng, gọi lại
+            // /couple/bookings + /proposal chỉ tốn 2 request thừa.
+            onDirtyChange={handleDirty}
+            onChanged={accept}
+            onStale={requestRefresh}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }

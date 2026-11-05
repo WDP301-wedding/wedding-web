@@ -53,7 +53,7 @@ export const sx = {
   // Chỉ chặn cuộn trang khi đang phóng to, để kéo sơ đồ trên điện thoại.
   svgPannable: 'cursor-grab touch-none active:cursor-grabbing',
   table:
-    'cursor-pointer outline-none hover:brightness-[.96] [&_ellipse]:transition-[fill] [&_ellipse]:duration-250 [&_rect]:transition-[fill] [&_rect]:duration-250 focus-visible:[&_ellipse]:stroke-hy-wine focus-visible:[&_ellipse]:stroke-4 focus-visible:[&_rect]:stroke-hy-wine focus-visible:[&_rect]:stroke-4',
+    'cursor-grab touch-none outline-none select-none hover:brightness-[.96] active:cursor-grabbing [&_ellipse]:transition-[fill] [&_ellipse]:duration-250 [&_rect]:transition-[fill] [&_rect]:duration-250 focus-visible:[&_ellipse]:stroke-hy-wine focus-visible:[&_ellipse]:stroke-4 focus-visible:[&_rect]:stroke-hy-wine focus-visible:[&_rect]:stroke-4',
   fullscreen: 'fixed inset-0 z-[9999] flex flex-col overflow-auto bg-card p-5',
 
   // Thanh lưu bám đáy thẻ; dưới lg bám trên thanh điều hướng dưới (cao 4rem) thay vì bị nó che.

@@ -134,12 +134,12 @@ export function useInvitationPrint({
     }
   }
 
-  async function handleConfirmPrint() {
-    if (!printQuote || commandBusy.current || writing) return;
+  async function handleConfirmPrint(): Promise<boolean> {
+    if (!printQuote || commandBusy.current || writing) return false;
     if (Date.parse(printQuote.expiresAt) <= Date.now()) {
       setQuote(null);
       setPrintError('Bản xem trước đã hết hạn. Vui lòng xem lại nội dung và chi phí.');
-      return;
+      return false;
     }
     commandBusy.current = true;
     setIsOrdering(true);
@@ -156,7 +156,7 @@ export function useInvitationPrint({
         confirmLabel: 'Xác nhận đặt in và chi phí',
       });
       if (!agreed || previewEpoch.current !== epoch || currentSignature.current !== signature)
-        return;
+        return false;
       const key = getOrGenerateKey(
         confirmKey,
         printQuote.quoteId + ':' + printQuote.digest,
@@ -177,8 +177,10 @@ export function useInvitationPrint({
       setSelections({});
       setPrintError(null);
       notify.success('Đã xác nhận chi phí trên phụ lục. Chờ nhà hàng duyệt để tạo đơn in.');
+      return true;
     } catch (error) {
       setPrintError(invitationErrorMessage(error, 'Không thể xác nhận yêu cầu in.'));
+      return false;
     } finally {
       commandBusy.current = false;
       setIsOrdering(false);
@@ -272,6 +274,12 @@ export function useInvitationPrint({
     isOrdering,
     handlePreviewPrint,
     handleConfirmPrint,
+    unsavedSelection,
+    dismissPrintQuote: () => {
+      previewEpoch.current++;
+      setQuote(null);
+      setPrintError(null);
+    },
     handleWithdrawPrint,
     printLive,
     printPreviewContext: { bookingId, accessToken, gateway },

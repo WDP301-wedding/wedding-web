@@ -5,24 +5,34 @@ import { orderStatusMap } from './invitation-studio-utils';
 import { ix } from './studio-classes';
 import { px } from './studio-panel-classes';
 
-export function StudioPrintOrders({ studio }: Readonly<{ studio: InvitationStudioState }>) {
+export function StudioPrintOrders({
+  studio,
+  onlyOrderId,
+  excludeOrderIds,
+}: Readonly<{
+  studio: InvitationStudioState;
+  onlyOrderId?: string;
+  excludeOrderIds?: ReadonlySet<string>;
+}>) {
   const {
-    orders,
+    orders: allOrders,
     ordersError,
     approvingOrderId,
     cancellingOrderId,
     handleApproveQuote,
     handleCancelOrder,
   } = studio;
+  const orders =
+    allOrders?.filter((order) =>
+      onlyOrderId ? order.orderId === onlyOrderId : !excludeOrderIds?.has(order.orderId),
+    ) ?? null;
+  if (onlyOrderId && !orders?.length) return null;
   return (
-    <section className={ix.card} aria-labelledby="approved-print-orders">
-      <h3 id="approved-print-orders" className={ix.subtitle}>
-        Đơn in của hai bạn
-      </h3>
-      <p className={ix.hint}>
-        Đơn mới chỉ xuất hiện sau khi phụ lục được cả hai bên duyệt. Chi phí lấy từ phụ lục, không
-        thu lại khi sản xuất.
-      </p>
+    <section
+      className={onlyOrderId ? ix.stack : ix.card}
+      aria-label={onlyOrderId ? 'Đơn in liên kết' : 'Đơn in của hai bạn'}
+    >
+      {!onlyOrderId && <h3 className={ix.subtitle}>Các đơn in khác</h3>}
       {orders === null ? (
         ordersError ? (
           <p role="alert">{ordersError}</p>
@@ -54,8 +64,9 @@ export function StudioPrintOrders({ studio }: Readonly<{ studio: InvitationStudi
                 <summary>Chi tiết số lượng và chi phí</summary>
                 {order.currentCommercialRevision?.lines.map((line) => (
                   <p key={line.lineId}>
-                    Mẫu #{line.designId.slice(0, 8)}: {line.quantity} thiệp ×{' '}
-                    {line.unitPriceVnd.toLocaleString('vi-VN')} đ ={' '}
+                    {studio.designs.find((design) => design.designId === line.designId)?.title ??
+                      'Mẫu thiệp'}
+                    : {line.quantity} thiệp × {line.unitPriceVnd.toLocaleString('vi-VN')} đ ={' '}
                     {line.lineTotalVnd.toLocaleString('vi-VN')} đ
                   </p>
                 ))}

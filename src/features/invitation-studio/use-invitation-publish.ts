@@ -21,10 +21,9 @@ export interface UseInvitationPublishOptions {
   accessToken: string;
   gateway: InvitationGateway;
   currentDesign?: DesignView | undefined;
-  title: string;
-  groomName: string;
-  brideName: string;
+  designs: readonly DesignView[];
   writing: boolean;
+  designDirty: boolean;
   confirm: (options: ConfirmOptions) => Promise<boolean>;
 }
 
@@ -33,13 +32,15 @@ export function useInvitationPublish({
   accessToken,
   gateway,
   currentDesign,
-  title,
-  groomName,
-  brideName,
+  designs,
   writing,
+  designDirty,
   confirm,
 }: UseInvitationPublishOptions) {
   const [isPublishing, setIsPublishing] = useState(false);
+  const [publishedDesignRevisionId, setPublishedDesignRevisionId] = useState<string | null>(null);
+  const commandBusy = useRef(false);
+  const lastPublished = useRef<{ designId: string; revisionId: string } | null>(null);
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [publicationRevision, setPublicationRevision] = useState<number | null>(null);
   const [publicationState, setPublicationState] = useState<
@@ -57,6 +58,12 @@ export function useInvitationPublish({
       if (next && next.publicationRevision >= (publicationRevision ?? 0)) {
         setPublicationRevision(next.publicationRevision);
         setPublishedSlug(next.published ? next.publicSlug : null);
+        setPublishedDesignRevisionId(next.published ? next.designRevisionId : null);
+        const source = next.published
+          ? designs.find((item) => item.revisionId === next.designRevisionId)
+          : undefined;
+        if (source)
+          lastPublished.current = { designId: source.designId, revisionId: source.revisionId };
         setPublicationState(next.published ? 'published' : 'unpublished');
       }
     },
@@ -81,7 +88,16 @@ export function useInvitationPublish({
   });
 
   const handlePublish = async () => {
-    if (!currentDesign || publicationRevision === null) return;
+    if (
+      !currentDesign ||
+      publicationRevision === null ||
+      designDirty ||
+      writing ||
+      commandBusy.current ||
+      publicationState === 'stale_conflict'
+    )
+      return;
+    commandBusy.current = true;
     setIsPublishing(true);
     const pubRev = publicationRevision;
     const signature = `${currentDesign.designId}:${currentDesign.revisionId}:${currentDesign.revisionNumber}:${pubRev}`;
@@ -97,6 +113,11 @@ export function useInvitationPublish({
         key,
       );
       setPublishedSlug(res.publicSlug);
+      setPublishedDesignRevisionId(currentDesign.revisionId);
+      lastPublished.current = {
+        designId: currentDesign.designId,
+        revisionId: currentDesign.revisionId,
+      };
       setPublicationRevision(res.publicationRevision);
       setPublicationState('published');
       publishKeyRef.current = null;
@@ -108,12 +129,26 @@ export function useInvitationPublish({
       }
       notify.error(invitationErrorMessage(err, 'Không thể xuất bản thiệp cưới.'));
     } finally {
+      commandBusy.current = false;
       setIsPublishing(false);
     }
   };
 
   const handleUnpublish = async () => {
-    if (!currentDesign || publicationRevision === null) return;
+    const designId =
+      designs.find((item) => item.revisionId === publishedDesignRevisionId)?.designId ??
+      (lastPublished.current?.revisionId === publishedDesignRevisionId
+        ? lastPublished.current?.designId
+        : undefined) ??
+      currentDesign?.designId;
+    if (
+      !designId ||
+      publicationRevision === null ||
+      !publishedSlug ||
+      writing ||
+      commandBusy.current
+    )
+      return;
     const agreed = await confirm({
       title: 'Huỷ xuất bản thiệp?',
       description:
@@ -122,21 +157,17 @@ export function useInvitationPublish({
       cancelLabel: 'Giữ thiệp',
       tone: 'danger',
     });
-    if (!agreed) return;
+    if (!agreed || commandBusy.current) return;
+    commandBusy.current = true;
     setIsPublishing(true);
     const pubRev = publicationRevision;
-    const signature = `${currentDesign.designId}:${pubRev}`;
+    const signature = `${designId}:${pubRev}`;
     const key = getOrGenerateKey(unpublishKeyRef, signature, 'unpublish-design');
     try {
-      const res = await gateway.unpublishDesign(
-        accessToken,
-        bookingId,
-        currentDesign.designId,
-        pubRev,
-        key,
-      );
+      const res = await gateway.unpublishDesign(accessToken, bookingId, designId, pubRev, key);
       const nextRev = res.publicationRevision;
       setPublishedSlug(null);
+      setPublishedDesignRevisionId(null);
       setPublicationRevision(nextRev);
       setPublicationState('unpublished');
       unpublishKeyRef.current = null;
@@ -144,6 +175,7 @@ export function useInvitationPublish({
     } catch (err: unknown) {
       notify.error(invitationErrorMessage(err, 'Không thể hủy xuất bản thiệp cưới.'));
     } finally {
+      commandBusy.current = false;
       setIsPublishing(false);
     }
   };
@@ -158,6 +190,7 @@ export function useInvitationPublish({
     })();
     try {
       const res = await fetch(qrUrl);
+      if (!res.ok) throw new Error('Không tải được mã QR.');
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -169,7 +202,7 @@ export function useInvitationPublish({
       URL.revokeObjectURL(blobUrl);
       notify.success('Đã tải xuống mã QR thiệp cưới.');
     } catch {
-      window.open(qrUrl, '_blank');
+      notify.error('Không tải được mã QR. Hãy thử lại.');
     }
   };
 
@@ -189,8 +222,7 @@ export function useInvitationPublish({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: title || 'Thiệp Cưới Báo Hỷ',
-          text: `Thiệp cưới của ${groomName || 'chú rể'} & ${brideName || 'cô dâu'}`,
+          title: 'Thiệp cưới',
           url: fullUrl,
         });
         notify.success('Đã mở chia sẻ thiệp.');
@@ -198,14 +230,19 @@ export function useInvitationPublish({
         // User cancelled share
       }
     } else {
-      await navigator.clipboard.writeText(fullUrl);
-      notify.success('Đã sao chép liên kết thiệp để gửi tin nhắn.');
+      try {
+        await navigator.clipboard.writeText(fullUrl);
+        notify.success('Đã sao chép liên kết thiệp để gửi tin nhắn.');
+      } catch {
+        notify.error('Chưa sao chép được liên kết. Hãy mở thiệp đang chia sẻ để lấy đường dẫn.');
+      }
     }
   };
 
   return {
     isPublishing,
     publishedSlug,
+    publishedDesignRevisionId,
     publicationRevision,
     publicationState,
     handlePublish,

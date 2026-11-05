@@ -4,7 +4,6 @@ import React from 'react';
 import { LiveUpdateNotice } from '../realtime/use-live-refresh';
 import { useInvitationStudio, type UseInvitationStudioOptions } from './use-invitation-studio';
 import { StudioDesignTab } from './studio-design-tab';
-import { StudioMediaTab } from './studio-media-tab';
 import { StudioPublishTab } from './studio-publish-tab';
 import { StudioPrintTab } from './studio-print-tab';
 import { ix } from './studio-classes';
@@ -16,23 +15,16 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
   const {
     activeTab,
     selectTab,
-    orders,
     publicationRevision,
     designLive,
     designDirty,
-    setDesignDirty,
     writing,
     confirm,
     dialog,
   } = studio;
 
   return (
-    <div
-      className={ix.root}
-      onChangeCapture={() => {
-        if (activeTab === 'design') setDesignDirty(true);
-      }}
-    >
+    <div className={`${ix.root} @container/studio`}>
       {publicationRevision === null ? (
         <p role="status">Đang đồng bộ trạng thái xuất bản thiệp…</p>
       ) : null}
@@ -49,7 +41,7 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
               confirmLabel: 'Bỏ thay đổi và cập nhật',
             }).then((agreed) => {
               if (agreed) {
-                setDesignDirty(false);
+                studio.setDesignDirty(false);
                 void designLive.refresh();
               }
             });
@@ -63,8 +55,15 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
       <header className={ix.heading}>
         <h1>Thiệp & in</h1>
         <p className={ix.lead}>
-          Chỉnh nội dung, thêm hình ảnh, chia sẻ thiệp và theo dõi đơn in của hai bạn.
+          Thiết kế thiệp, gửi liên kết cho khách mời và theo dõi yêu cầu in.
         </p>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <strong>{studio.title || 'Thiệp chưa đặt tên'}</strong>
+          <span className={ix.chip}>
+            {designDirty ? 'Có thay đổi chưa lưu' : studio.currentDesign ? 'Đã lưu' : 'Bản mới'}
+          </span>
+          {studio.publishedSlug && <span className={ix.chipSuccess}>Có thiệp đang chia sẻ</span>}
+        </div>
       </header>
 
       {/* Navigation Tabs */}
@@ -75,15 +74,7 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
           aria-pressed={activeTab === 'design'}
           className={ix.tab}
         >
-          Nội dung thiệp
-        </button>
-        <button
-          type="button"
-          onClick={() => selectTab('media')}
-          aria-pressed={activeTab === 'media'}
-          className={ix.tab}
-        >
-          Hình ảnh
+          Thiết kế
         </button>
         <button
           type="button"
@@ -99,14 +90,13 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
           aria-pressed={activeTab === 'print'}
           className={ix.tab}
         >
-          {orders ? `Đặt in (${orders.length})` : 'Đặt in'}
+          Đặt in
         </button>
       </nav>
 
       {/* Active Tab Content */}
       <div key={activeTab} className={ix.tabPanel}>
         {activeTab === 'design' && <StudioDesignTab studio={studio} />}
-        {activeTab === 'media' && <StudioMediaTab studio={studio} />}
         {activeTab === 'publish' && <StudioPublishTab studio={studio} />}
         {activeTab === 'print' && <StudioPrintTab studio={studio} />}
       </div>

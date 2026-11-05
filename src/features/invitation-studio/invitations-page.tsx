@@ -25,7 +25,7 @@ const InvitationStudioView = dynamic(
 );
 const gateway = createInvitationGateway();
 
-type StudioTab = 'design' | 'media' | 'publish' | 'print';
+type StudioTab = 'design' | 'publish' | 'print';
 
 /**
  * Câu báo lỗi khi tải thiết kế. Hết giờ chờ tách riêng khỏi mất mạng: mạng vẫn ổn, máy chủ chậm,
@@ -38,7 +38,7 @@ function loadErrorMessage(error: unknown): string {
 }
 
 function parseTab(raw: string | null): StudioTab {
-  if (raw === 'media' || raw === 'publish' || raw === 'print' || raw === 'design') {
+  if (raw === 'publish' || raw === 'print' || raw === 'design') {
     return raw;
   }
   return 'design';
@@ -213,7 +213,7 @@ export function CoupleInvitationsPage() {
     );
   }
 
-  const handleTabChange = (nextTab: 'design' | 'media' | 'publish' | 'print') => {
+  const handleTabChange = (nextTab: 'design' | 'publish' | 'print') => {
     setTab(nextTab);
     if (typeof window !== 'undefined' && bookingId) {
       const url = new URL(window.location.href);

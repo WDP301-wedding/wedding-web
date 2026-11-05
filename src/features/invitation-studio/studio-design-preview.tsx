@@ -73,7 +73,7 @@ export function StudioDesignPreview({
         <div className={ix.previewToolbar}>
           <div className={ix.previewMeta}>
             <span className={ix.previewIndicator}>Xem trước thực tế</span>
-            <span className={ix.previewHint}>Khung chuẩn tỷ lệ</span>
+            <span className={ix.previewHint}>Nội dung đang chỉnh</span>
           </div>
 
           <div className={ix.viewport}>
@@ -109,7 +109,6 @@ export function StudioDesignPreview({
         {/* Khung mô phỏng thiết bị di động chuẩn công thái học */}
         <div className={ix.phone}>
           <div className={ix.bezel} data-device={previewDevice}>
-            <div className={ix.speaker} aria-hidden="true" />
             <div ref={scrollContainerRef} className={ix.screen}>
               <div className={ix.paper}>
                 <InvitationContents apiBase={getApiBaseUrl()} invitation={invitationData} />
@@ -138,7 +137,7 @@ export function StudioDesignPreview({
         >
           <div className={ix.modalContent} ref={fullscreenRef}>
             <div className={ix.modalHeader}>
-              <h3>Trải nghiệm thiệp cưới trên di động</h3>
+              <h3>Xem trước thiệp cưới</h3>
               <button
                 type="button"
                 className={ix.btnSmallOutline}
@@ -149,7 +148,6 @@ export function StudioDesignPreview({
             </div>
             <div className={ix.modalBody}>
               <div className={ix.bezelModal}>
-                <div className={ix.speaker} aria-hidden="true" />
                 <div className={ix.screen}>
                   <div className={ix.paper}>
                     <InvitationContents apiBase={getApiBaseUrl()} invitation={invitationData} />

@@ -31,12 +31,50 @@ export function usePlanEditor({
     if (error.code === 'SEATING_REVISION_STALE') onStale();
   };
 
-  const { labels, dirty, undoCount, assignLabel, acceptPlan, undo, reset } = useSeatingLabels(
+  const { labels, dirty: labelsDirty, undoCount, assignLabel, acceptPlan, undo, reset: resetLabels } = useSeatingLabels(
     bookingId,
     plan,
     groups,
     onChanged,
   );
+
+  const initialPositions = useMemo(() => {
+    const map: Record<string, { x: number; y: number }> = {};
+    for (const table of plan.renderSnapshot) {
+      map[table.layoutTableId] = { x: table.x, y: table.y };
+    }
+    return map;
+  }, [plan.renderSnapshot]);
+
+  const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>(initialPositions);
+
+  useEffect(() => {
+    setPositions(initialPositions);
+  }, [initialPositions]);
+
+  const moveTable = (tableId: string, x: number, y: number) => {
+    setPositions((prev) => ({
+      ...prev,
+      [tableId]: { x, y },
+    }));
+  };
+
+  const positionsDirty = useMemo(() => {
+    for (const [id, pos] of Object.entries(positions)) {
+      const initial = initialPositions[id];
+      if (!initial || initial.x !== pos.x || initial.y !== pos.y) {
+        return true;
+      }
+    }
+    return false;
+  }, [positions, initialPositions]);
+
+  const dirty = labelsDirty || positionsDirty;
+
+  const reset = () => {
+    resetLabels();
+    setPositions(initialPositions);
+  };
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -94,8 +132,13 @@ export function usePlanEditor({
               layoutTableId,
               guestGroupId,
             })),
+            positions: Object.entries(positions).map(([layoutTableId, pos]) => ({
+              layoutTableId,
+              x: Math.round(pos.x),
+              y: Math.round(pos.y),
+            })),
           }),
-        'Đã lưu nhãn bàn (bản nháp mới, cần xác nhận lại).',
+        'Đã lưu sơ đồ bàn (bản nháp mới, cần xác nhận lại).',
         staleMessage,
         reloadIfStale,
       )
@@ -124,6 +167,8 @@ export function usePlanEditor({
   return {
     command,
     labels,
+    positions,
+    moveTable,
     dirty,
     undoCount,
     assignLabel,

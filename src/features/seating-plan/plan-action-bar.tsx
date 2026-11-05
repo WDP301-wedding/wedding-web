@@ -66,8 +66,9 @@ export function PlanActionBar({
           type="button"
           disabled={pending || !dirty}
           onClick={onSaveLabels}
+          title="Lưu các thay đổi vị trí bàn và nhãn nhóm"
         >
-          Lưu nhãn bàn
+          Lưu sơ đồ bàn
         </button>
 
         <button

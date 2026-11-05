@@ -21,8 +21,8 @@ export interface UseInvitationStudioOptions {
   readonly bookingId: string;
   readonly accessToken: string;
   readonly gateway: InvitationGateway;
-  readonly initialTab?: ('design' | 'media' | 'publish' | 'print') | undefined;
-  readonly onTabChange?: ((tab: 'design' | 'media' | 'publish' | 'print') => void) | undefined;
+  readonly initialTab?: ('design' | 'publish' | 'print') | undefined;
+  readonly onTabChange?: ((tab: 'design' | 'publish' | 'print') => void) | undefined;
   readonly initialDesigns?: readonly DesignView[] | undefined;
   readonly initialOrders?: readonly PrintOrderView[] | undefined;
   readonly mediaCutoffEstimate?: string | null | undefined;
@@ -47,7 +47,7 @@ export function useInvitationStudio({
   const mediaLikelyLocked =
     mediaCutoffEstimate !== null && openedAt >= Date.parse(mediaCutoffEstimate);
 
-  const [activeTab, setActiveTab] = useState<'design' | 'media' | 'publish' | 'print'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'design' | 'publish' | 'print'>(initialTab);
   const prevInitialTab = useRef(initialTab);
   useEffect(() => {
     if (prevInitialTab.current !== initialTab) {
@@ -56,7 +56,7 @@ export function useInvitationStudio({
     }
   }, [initialTab]);
 
-  function selectTab(tab: 'design' | 'media' | 'publish' | 'print') {
+  function selectTab(tab: 'design' | 'publish' | 'print') {
     setActiveTab(tab);
     onTabChange?.(tab);
   }
@@ -105,9 +105,8 @@ export function useInvitationStudio({
     accessToken,
     gateway,
     currentDesign: design.currentDesign,
-    title: design.title,
-    groomName: design.groomName,
-    brideName: design.brideName,
+    designs: design.designs,
+    designDirty: design.designDirty,
     writing,
     confirm,
   });
@@ -119,6 +118,9 @@ export function useInvitationStudio({
     gateway,
     designs: design.designs,
     initialOrders,
+    ...(design.currentDesign
+      ? { editingDesign: { designId: design.currentDesign.designId, dirty: design.designDirty } }
+      : {}),
     printVisited,
     writing: writing || publish.isPublishing,
     confirm,

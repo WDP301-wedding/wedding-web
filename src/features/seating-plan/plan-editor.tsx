@@ -30,6 +30,8 @@ export function PlanEditor({
   const {
     command,
     labels,
+    positions,
+    moveTable,
     dirty,
     undoCount,
     assignLabel,
@@ -80,7 +82,7 @@ export function PlanEditor({
         <div className={sx.editorCanvas}>
           <div className={sx.modeHint}>
             {activeGroup === null
-              ? 'Chế độ xem: Nhấp vào bàn để xem thông tin chi tiết.'
+              ? 'Chế độ chỉnh sửa: Kéo thả bàn bất kỳ để đổi vị trí từng pixel · Nhấp vào bàn để xem chi tiết.'
               : activeGroup === ''
                 ? 'Chế độ gỡ: Nhấp vào các bàn để gỡ nhóm.'
                 : `Đang gán nhóm: ${groupById.get(activeGroup)?.name}. Nhấp vào các bàn trên sơ đồ để gán nhóm này.`}
@@ -88,6 +90,8 @@ export function PlanEditor({
 
           <SeatingSvg
             plan={plan}
+            positions={positions}
+            onMoveTable={moveTable}
             selected={selected}
             onSelectTable={(id) => {
               setSelected(id);

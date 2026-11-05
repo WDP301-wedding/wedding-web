@@ -1,5 +1,8 @@
 'use client';
 
+import { useState } from 'react';
+import Link from 'next/link';
+import { routes, withBooking } from '../../routes';
 import type { InvitationStudioState } from './use-invitation-studio';
 import { PrintQuoteReview } from './print-quote-review';
 import { PrintRequestDetails } from './print-request-details';
@@ -34,83 +37,151 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
     printRequests?.some(
       (request) => request.state === 'DRAFT' || request.state === 'AWAITING_APPROVAL',
     ) ?? false;
+  const [selectedMode, setSelectedMode] = useState<'create' | 'track' | null>(null);
+  const mode = selectedMode ?? (pending ? 'track' : 'create');
+  const linkedIds = new Set(
+    printRequests?.flatMap((request) => (request.orderId ? [request.orderId] : [])),
+  );
   return (
-    <section aria-labelledby="print-heading" className={ix.stackSplit}>
-      <div className={ix.stack}>
+    <section className={ix.stack} aria-label="Đặt in thiệp">
+      <div className={ix.actions} role="group" aria-label="Thao tác in thiệp">
+        <button
+          type="button"
+          aria-pressed={mode === 'create'}
+          className={mode === 'create' ? ix.btnSmall : ix.btnSmallOutline}
+          disabled={isOrdering || writing}
+          onClick={() => setSelectedMode('create')}
+        >
+          Tạo yêu cầu in
+        </button>
+        <button
+          type="button"
+          aria-pressed={mode === 'track'}
+          className={mode === 'track' ? ix.btnSmall : ix.btnSmallOutline}
+          disabled={isOrdering || writing}
+          onClick={() => setSelectedMode('track')}
+        >
+          Theo dõi in{pending ? ' · Chờ duyệt' : ''}
+        </button>
+      </div>
+      {ordersError && (
+        <div className={ix.calloutWarning} role="alert">
+          <p>{ordersError}</p>
+          <button
+            type="button"
+            className={ix.btnSmallOutline}
+            disabled={writing}
+            onClick={() => void studio.printLive.refresh()}
+          >
+            Tải lại thông tin in
+          </button>
+        </div>
+      )}
+      {mode === 'create' && (
         <section className={ix.card}>
           <h2 id="print-heading" className={ix.title}>
             Yêu cầu in thiệp
           </h2>
           <p className={ix.hint}>
-            Chọn một hoặc nhiều mẫu đã lưu, nhập số lượng riêng cho từng mẫu. Giá chung 5.000đ/thiệp
-            theo chuẩn in của nhà hàng.
+            Chọn mẫu đã lưu và số lượng. Hệ thống sẽ tính chi phí và tạo bản in để bạn kiểm tra.
           </p>
           {!designs.length ? (
-            <p className={ix.empty}>Lưu ít nhất một mẫu ở mục Nội dung thiệp trước khi đặt in.</p>
+            <div className={ix.actions}>
+              <p className={ix.hint}>Lưu ít nhất một mẫu trong Thiết kế trước khi đặt in.</p>
+              <button
+                type="button"
+                className={ix.btnSmallOutline}
+                onClick={() => studio.selectTab('design')}
+              >
+                Về thiết kế
+              </button>
+            </div>
           ) : null}
-          <form
-            className={ix.form}
-            onSubmit={(event) => {
-              event.preventDefault();
-              void studio.handlePreviewPrint();
-            }}
-          >
-            <fieldset disabled={isOrdering || writing} className={ix.stack}>
-              <legend className={ix.label}>Các mẫu cần in (tối đa 20 mẫu)</legend>
-              {designs.map((design) => {
-                const selected = printSelections[design.designId] !== undefined;
-                return (
-                  <div key={design.designId} className={px.order}>
-                    <label className="flex items-center gap-2 text-sm font-semibold">
-                      <input
-                        type="checkbox"
-                        checked={selected}
-                        disabled={!selected && selectedPrintLines.length >= 20}
-                        onChange={(event) =>
-                          setPrintSelection(design.designId, event.target.checked ? 100 : null)
-                        }
-                      />
-                      {design.title}
-                    </label>
-                    <p className={ix.meta}>Bản lưu {design.revisionNumber}</p>
-                    {selected ? (
-                      <div>
-                        <label htmlFor={'quantity-' + design.designId} className={ix.label}>
-                          Số lượng {design.title}
-                        </label>
+          {!printQuote && designs.length > 0 && (
+            <form
+              className={ix.form}
+              onSubmit={(event) => {
+                event.preventDefault();
+                void studio.handlePreviewPrint();
+              }}
+            >
+              <fieldset disabled={isOrdering || writing} className={ix.stack}>
+                <legend className={ix.label}>Các mẫu cần in (tối đa 20 mẫu)</legend>
+                {designs.map((design) => {
+                  const selected = printSelections[design.designId] !== undefined;
+                  return (
+                    <div key={design.designId} className={px.order}>
+                      <label className="flex items-center gap-2 text-sm font-semibold">
                         <input
-                          id={'quantity-' + design.designId}
-                          type="number"
-                          required
-                          min={1}
-                          max={10000}
-                          step={1}
-                          value={printSelections[design.designId]}
-                          className={ix.input}
+                          type="checkbox"
+                          checked={selected}
+                          disabled={!selected && selectedPrintLines.length >= 20}
                           onChange={(event) =>
-                            setPrintSelection(design.designId, Number(event.target.value))
+                            setPrintSelection(design.designId, event.target.checked ? 100 : null)
                           }
                         />
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </fieldset>
-            {pending ? (
-              <p role="status" className={ix.hintWarning}>
-                Đang có phụ lục in chờ duyệt. Hoàn tất hoặc rút yêu cầu đó trước khi gửi yêu cầu
-                mới.
-              </p>
-            ) : null}
-            <button
-              type="submit"
-              className={ix.btn}
-              disabled={isOrdering || writing || !selectedPrintLines.length || pending}
-            >
-              {isOrdering ? 'Đang xử lý…' : 'Xem bản in và chi phí'}
-            </button>
-          </form>
+                        {design.title}
+                      </label>
+                      <p className={ix.meta}>Bản lưu {design.revisionNumber}</p>
+                      {selected ? (
+                        <div>
+                          <label htmlFor={'quantity-' + design.designId} className={ix.label}>
+                            Số lượng {design.title}
+                          </label>
+                          <input
+                            id={'quantity-' + design.designId}
+                            type="number"
+                            required
+                            min={1}
+                            max={10000}
+                            step={1}
+                            value={printSelections[design.designId]}
+                            className={ix.input}
+                            onChange={(event) =>
+                              setPrintSelection(design.designId, Number(event.target.value))
+                            }
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </fieldset>
+              {studio.unsavedSelection && (
+                <p role="status" className={ix.hintWarning}>
+                  Mẫu đang chỉnh có thay đổi chưa lưu. Quay lại Thiết kế để lưu trước khi lấy báo
+                  giá.
+                </p>
+              )}
+              {printRequests === null && (
+                <p role="status" className={ix.hint}>
+                  {ordersError
+                    ? 'Cần tải lại thông tin in để tiếp tục.'
+                    : 'Đang kiểm tra yêu cầu in hiện có…'}
+                </p>
+              )}
+              {pending ? (
+                <p role="status" className={ix.hintWarning}>
+                  Đang có phụ lục in chờ duyệt. Hoàn tất hoặc rút yêu cầu đó trước khi gửi yêu cầu
+                  mới.
+                </p>
+              ) : null}
+              <button
+                type="submit"
+                className={ix.btn}
+                disabled={
+                  isOrdering ||
+                  writing ||
+                  !selectedPrintLines.length ||
+                  pending ||
+                  studio.unsavedSelection ||
+                  printRequests === null
+                }
+              >
+                {isOrdering ? 'Đang xử lý…' : 'Xem bản in và chi phí'}
+              </button>
+            </form>
+          )}
           {printError ? (
             <p role="alert" className={ix.hintWarning}>
               {printError}
@@ -122,15 +193,20 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
               quote={printQuote}
               {...printPreviewContext}
               busy={isOrdering || writing}
-              onConfirm={studio.handleConfirmPrint}
+              onBack={studio.dismissPrintQuote}
+              onConfirm={async () => {
+                if (await studio.handleConfirmPrint()) setSelectedMode('track');
+              }}
             />
           ) : null}
         </section>
+      )}
+      {mode === 'track' && (
         <section className={ix.card} aria-labelledby="print-requests-heading">
           <h3 id="print-requests-heading" className={ix.subtitle}>
             Yêu cầu in và phụ lục
           </h3>
-          {ordersError ? <p role="alert">{ordersError}</p> : null}
+          {printError ? <p role="alert">{printError}</p> : null}
           {printRequests === null ? (
             <p role="status">Đang tải yêu cầu in…</p>
           ) : !printRequests.length ? (
@@ -140,7 +216,9 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
               {printRequests.map((request) => (
                 <article key={request.requestId} className={px.order}>
                   <div className={px.orderHead}>
-                    <h4 className={ix.subtitleSm}>Yêu cầu #{request.requestId.slice(0, 8)}</h4>
+                    <h4 className={ix.subtitleSm}>
+                      {request.document.lines.map((line) => line.title).join(', ')}
+                    </h4>
                     <span className={request.state === 'APPROVED' ? ix.chipSuccess : ix.chipMuted}>
                       {requestStates[request.state]}
                     </span>
@@ -155,7 +233,13 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                       lục.
                     </p>
                   ) : null}
+                  <Link href={withBooking(routes.addendum, studio.bookingId)} className={ix.link}>
+                    Xem phụ lục
+                  </Link>
                   <PrintRequestDetails request={request} {...printPreviewContext} />
+                  {request.orderId && (
+                    <StudioPrintOrders studio={studio} onlyOrderId={request.orderId} />
+                  )}
                   {request.state === 'AWAITING_APPROVAL' && !request.orderId ? (
                     <button
                       type="button"
@@ -171,8 +255,12 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
             </div>
           )}
         </section>
-      </div>
-      <StudioPrintOrders studio={studio} />
+      )}
+      {mode === 'track' &&
+        (studio.orders === null ||
+          studio.orders.some((order) => !linkedIds.has(order.orderId))) && (
+          <StudioPrintOrders studio={studio} excludeOrderIds={linkedIds} />
+        )}
     </section>
   );
 }
