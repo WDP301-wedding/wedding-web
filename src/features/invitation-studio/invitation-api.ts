@@ -38,14 +38,34 @@ export function createInvitationGateway(client?: ApiClient): InvitationGateway {
 
   return {
     ...createInvitationPrintRequestMethods(api, headers, required),
-    async listDesigns(accessToken, bookingId): Promise<readonly DesignView[]> {
-      const { data, error } = await api().GET('/bookings/{bookingId}/invitations', {
-        headers: headers(accessToken),
-        params: { path: { bookingId } },
-      });
+    async getDesignPublication(accessToken, bookingId, designId) {
+      const { data, error } = await api().GET(
+        '/bookings/{bookingId}/invitations/{designId}/publication',
+        { headers: headers(accessToken), params: { path: { bookingId, designId } } },
+      );
       if (error !== undefined)
-        throw new Error('Không thể tải danh sách thiết kế thiệp.', { cause: error });
-      return required(data).data.items as unknown as readonly DesignView[];
+        throw new Error('Không thể tải trạng thái chia sẻ thiệp.', { cause: error });
+      return required(data).data;
+    },
+    async listDesigns(accessToken, bookingId): Promise<readonly DesignView[]> {
+      const designs: DesignView[] = [];
+      const seen = new Set<string>();
+      let cursor: string | undefined;
+      do {
+        const { data, error } = await api().GET('/bookings/{bookingId}/invitations', {
+          headers: headers(accessToken),
+          params: { path: { bookingId }, ...(cursor ? { query: { cursor } } : {}) },
+        });
+        if (error !== undefined)
+          throw new Error('Không thể tải danh sách thiết kế thiệp.', { cause: error });
+        const page = required(data).data;
+        designs.push(...(page.items as unknown as readonly DesignView[]));
+        cursor = page.nextCursor ?? undefined;
+        if (cursor && seen.has(cursor))
+          throw new Error('Không thể tải đầy đủ danh sách thiết kế thiệp.');
+        if (cursor) seen.add(cursor);
+      } while (cursor);
+      return designs;
     },
 
     async getDesign(accessToken, bookingId, designId): Promise<DesignView> {
