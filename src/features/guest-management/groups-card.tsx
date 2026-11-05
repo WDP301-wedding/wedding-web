@@ -1,3 +1,4 @@
+import { useId, useState } from 'react';
 import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import { formText, useCommand } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestGroup } from './guest-api';
@@ -29,15 +30,29 @@ export function GroupsCard({
   onChanged: (group?: GuestGroup, action?: 'create' | 'update') => void;
 }>) {
   const command = useCommand();
+  const [adding, setAdding] = useState(false);
+  const formId = useId();
   const { confirm, prompt, dialog } = useConfirmDialog();
   const done = (result: GuestGroup | undefined, action: 'create' | 'update') => {
     if (result) onChanged(result, action);
   };
   return (
-    <section className={cx.card}>
-      <h2>Nhóm khách</h2>
+    <section className={gx.card}>
+      <div className={gx.cardHeader}>
+        <h2>Nhóm khách</h2>
+        <button
+          className={cx.buttonOutline}
+          type="button"
+          aria-expanded={adding}
+          aria-controls={formId}
+          disabled={command.pending}
+          onClick={() => setAdding((value) => !value)}
+        >
+          {adding ? 'Đóng phần thêm nhóm' : 'Thêm nhóm'}
+        </button>
+      </div>
       <div className={cx.tableWrap}>
-        <table className={cx.table}>
+        <table className={gx.groupTable}>
           <thead>
             <tr>
               <th scope="col">Nhóm</th>
@@ -160,50 +175,53 @@ export function GroupsCard({
           </tbody>
         </table>
       </div>
-      <form
-        className={cx.form}
-        onSubmit={(event) => {
-          event.preventDefault();
-          const form = event.currentTarget;
-          const data = new FormData(form);
-          void command
-            .run(
-              (token, key) =>
-                guestApi.createGroup(token, key, bookingId, {
-                  name: formText(data, 'name'),
-                  color: (formText(data, 'color') || '#7A1F3D').toUpperCase(),
-                }),
-              'Đã tạo nhóm mới.',
-            )
-            .then((result) => {
-              if (result) {
-                form.reset();
-                done(result, 'create');
-              }
-            });
-        }}
-      >
-        <div className={cx.formRow}>
-          <label>
-            Tên nhóm mới
-            <input name="name" required maxLength={80} placeholder="Ví dụ: Đồng nghiệp cô dâu" />
-          </label>
-          <label>
-            Màu
-            <input
-              name="color"
-              type="color"
-              className={gx.colorPicker}
-              defaultValue={palette[groups.length % palette.length]!.toLowerCase()}
-            />
-          </label>
-        </div>
-        <div className={cx.actions}>
-          <button className={cx.buttonOutline} type="submit" disabled={command.pending}>
-            Thêm nhóm
-          </button>
-        </div>
-      </form>
+      <div id={formId} className={adding ? 'block border-t border-border pt-3' : 'hidden'}>
+        <form
+          className={gx.compactForm}
+          onSubmit={(event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const data = new FormData(form);
+            void command
+              .run(
+                (token, key) =>
+                  guestApi.createGroup(token, key, bookingId, {
+                    name: formText(data, 'name'),
+                    color: (formText(data, 'color') || '#7A1F3D').toUpperCase(),
+                  }),
+                'Đã tạo nhóm mới.',
+              )
+              .then((result) => {
+                if (result) {
+                  form.reset();
+                  done(result, 'create');
+                  setAdding(false);
+                }
+              });
+          }}
+        >
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
+            <label>
+              Tên nhóm mới
+              <input name="name" required maxLength={80} placeholder="Ví dụ: Đồng nghiệp cô dâu" />
+            </label>
+            <label>
+              Màu
+              <input
+                name="color"
+                type="color"
+                className={gx.colorPicker}
+                defaultValue={palette[groups.length % palette.length]!.toLowerCase()}
+              />
+            </label>
+          </div>
+          <div className={cx.actions}>
+            <button className={cx.buttonOutline} type="submit" disabled={command.pending}>
+              Thêm nhóm
+            </button>
+          </div>
+        </form>
+      </div>
       {dialog}
     </section>
   );

@@ -80,15 +80,24 @@ export function ImportCard({
   const groupMap = new Map(groups.map((g) => [g.guestGroupId, g.name]));
 
   return (
-    <section className={cx.card}>
+    <div className="flex min-w-0 flex-col gap-3">
       <InlineError error={command.error} />
-      <h2>Nhập danh sách từ file CSV</h2>
-      <p className={cx.note}>
-        Cột bắt buộc: <code>ma</code> (mã riêng mỗi dòng, giữ nguyên khi nhập lại),{' '}
-        <code>ho_ten</code>, <code>nhom</code> (đúng tên nhóm ở trên). Tùy chọn:{' '}
-        <code>so_dien_thoai</code>, <code>ghi_chu</code>. Hỗ trợ file CSV ngăn cách bằng dấu phẩy
-        hoặc chấm phẩy (Excel). Tối đa 1.000 dòng mỗi lần; có lỗi ở bất kỳ dòng nào thì không
-        dòng nào được nhập.
+      <h3 className="font-semibold">Nhập danh sách từ file CSV</h3>
+      <details className="text-xs text-muted-foreground">
+        <summary className="w-fit cursor-pointer font-semibold text-primary">
+          Hướng dẫn định dạng CSV
+        </summary>
+        <p className="mt-2 leading-relaxed">
+          Cột bắt buộc: <code>ma</code> (mã riêng mỗi dòng, giữ nguyên khi nhập lại),{' '}
+          <code>ho_ten</code>, <code>nhom</code> (đúng tên nhóm ở trên). Tùy chọn:{' '}
+          <code>so_dien_thoai</code>, <code>ghi_chu</code>. Hỗ trợ file CSV ngăn cách bằng dấu phẩy
+          hoặc chấm phẩy (Excel). Tối đa 1.000 dòng mỗi lần; có lỗi ở bất kỳ dòng nào thì không dòng
+          nào được nhập.
+        </p>
+      </details>
+      <p className="text-xs text-muted-foreground">
+        Tải file mẫu, điền danh sách rồi chọn file để xem trước. Chỉ nhập dữ liệu sau khi bạn xác
+        nhận.
       </p>
 
       <div className={`${cx.actions} gap-3`}>
@@ -253,6 +262,6 @@ export function ImportCard({
           </div>
         </div>
       ) : null}
-    </section>
+    </div>
   );
 }

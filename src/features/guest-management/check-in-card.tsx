@@ -20,28 +20,40 @@ export function CheckInCard({
   const { confirm, dialog } = useConfirmDialog();
   const enabled = settings.checkInMode === 'BY_GUEST_NAME';
   return (
-    <section className={cx.card}>
-      <div className={cx.cardHeader}>
+    <section className={gx.card}>
+      <div className={gx.cardHeader}>
         <h2>Check-in theo tên tại tiệc</h2>
         <span className={cx.status}>{enabled ? 'Đang bật' : 'Đang tắt'}</span>
       </div>
-      <p>
-        Mặc định nhà hàng không ghi nhận ai đã đến. Nếu bật, nhân viên được phân công sẽ tìm và đánh
-        dấu từng khách có tên trong danh sách. Sau lần check-in đầu tiên, không thể tắt lại.
+      <p className="text-sm text-muted-foreground">
+        Nhân viên đánh dấu khách có tên đã đến; không tính tổng khách tham dự cả tiệc.
       </p>
+      <details className="text-xs text-muted-foreground">
+        <summary className="w-fit cursor-pointer font-semibold text-primary">
+          Cách hoạt động
+        </summary>
+        <p className="mt-2">
+          Mặc định không ghi nhận khách đã đến. Sau lần check-in đầu tiên, không thể tắt chế độ này.
+        </p>
+      </details>
       {enabled && attendance.byGuestGroup.length > 0 ? (
-        <ul className={cx.list}>
-          {attendance.byGuestGroup.map((row) => (
-            <li key={row.guestGroupId}>
-              <span
-                className={gx.swatch}
-                style={{ background: row.groupColorSnapshot }}
-                aria-hidden="true"
-              />
-              {groupLabel(row.groupNameSnapshot)}: {row.checkedInGuestCount} tên đã check-in
-            </li>
-          ))}
-        </ul>
+        <details className="text-sm">
+          <summary className="w-fit cursor-pointer font-semibold text-primary">
+            Xem check-in theo nhóm
+          </summary>
+          <ul className={cx.list}>
+            {attendance.byGuestGroup.map((row) => (
+              <li key={row.guestGroupId}>
+                <span
+                  className={gx.swatch}
+                  style={{ background: row.groupColorSnapshot }}
+                  aria-hidden="true"
+                />
+                {groupLabel(row.groupNameSnapshot)}: {row.checkedInGuestCount} tên đã check-in
+              </li>
+            ))}
+          </ul>
+        </details>
       ) : null}
       <div className={cx.actions}>
         <button

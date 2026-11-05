@@ -75,25 +75,89 @@ const sources: Record<BillingView['history'][number]['sourceType'], string> = {
   MANUAL_REFUND: 'Hoàn theo chứng từ',
 };
 export function BillingSummary({ view }: Readonly<{ view: BillingView }>) {
+  const percentPaid = Math.max(
+    0,
+    Math.min(
+      100,
+      view.totals.acceptedChargesVnd > 0
+        ? Math.round((view.totals.netPaidVnd / view.totals.acceptedChargesVnd) * 100)
+        : 0,
+    ),
+  );
+
+  const hasAdjustments = view.totals.refundedVnd > 0 || view.totals.creditVnd > 0;
+  const displayKeys: (keyof BillingView['totals'])[] = hasAdjustments
+    ? [
+        'acceptedChargesVnd',
+        'paidVnd',
+        'refundedVnd',
+        'netPaidVnd',
+        'outstandingVnd',
+        'creditVnd',
+      ]
+    : ['acceptedChargesVnd', 'paidVnd', 'outstandingVnd'];
+
   return (
     <section aria-label="Tổng hợp tiền đặt tiệc" className={bx.summary}>
+      <div className="flex flex-col gap-1.5 pb-1">
+        <div className="flex items-center justify-between text-xs font-semibold">
+          <span className="text-muted-foreground">Tiến độ thanh toán tiệc cưới</span>
+          <span className="text-emerald-700 dark:text-emerald-400 font-bold tabular-nums">
+            {percentPaid}% Đã thanh toán
+          </span>
+        </div>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full bg-emerald-600 transition-all duration-500 ease-out rounded-full"
+            style={{ width: `${percentPaid}%` }}
+          />
+        </div>
+      </div>
       <dl>
-        {Object.entries(view.totals).map(([key, value]) => (
-          <div key={key}>
-            <dt>{totalLabels[key as keyof typeof totalLabels]}</dt>
-            <dd>{money(value)}</dd>
-          </div>
-        ))}
+        {displayKeys.map((key) => {
+          const value = view.totals[key];
+          const isPaid = key === 'paidVnd' || key === 'netPaidVnd';
+          const isOutstanding = key === 'outstandingVnd';
+          return (
+            <div
+              key={key}
+              className={
+                isPaid
+                  ? '!border-emerald-500/30 !bg-emerald-50/40 dark:!bg-emerald-950/20'
+                  : isOutstanding
+                    ? '!border-primary/25 !bg-primary/5'
+                    : ''
+              }
+            >
+              <dt className="flex items-center justify-between">
+                <span>{totalLabels[key]}</span>
+                {isPaid && value > 0 && (
+                  <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-2xs font-semibold text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                    Đã nhận
+                  </span>
+                )}
+              </dt>
+              <dd className={isPaid ? 'text-emerald-700 dark:text-emerald-300' : ''}>
+                {money(value)}
+              </dd>
+            </div>
+          );
+        })}
       </dl>
     </section>
   );
 }
 export function BillingHistory({ view }: Readonly<{ view: BillingView }>) {
   return (
-    <section className={bx.panel}>
-      <h2>Lịch sử giao dịch</h2>
+    <div className="flex flex-col gap-2.5 pt-3 border-t border-border/60">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-foreground">Lịch sử giao dịch</h3>
+        <span className="text-2xs font-medium text-muted-foreground">
+          {view.history.length} mục đã ghi nhận
+        </span>
+      </div>
       {view.history.length === 0 ? (
-        <p>Chưa có giao dịch</p>
+        <p className="text-xs text-muted-foreground py-2">Chưa có giao dịch</p>
       ) : (
         <div className={bx.tableScroll} tabIndex={0} role="region" aria-label="Chi tiết giao dịch">
           <table>
@@ -109,14 +173,25 @@ export function BillingHistory({ view }: Readonly<{ view: BillingView }>) {
             <tbody>
               {view.history.map((entry) => (
                 <tr key={entry.ledgerEntryId}>
-                  <td>{formatDateTime(entry.occurredAt)}</td>
-                  <td>
-                    {kinds[entry.kind]}
-                    <small>{sources[entry.sourceType]}</small>
+                  <td className="whitespace-nowrap font-medium text-foreground">
+                    {formatDateTime(entry.occurredAt)}
                   </td>
-                  <td>{money(entry.amountVnd)}</td>
                   <td>
-                    <code>{entry.ledgerEntryId}</code>
+                    <span className="font-semibold">{kinds[entry.kind]}</span>
+                    <small className="text-muted-foreground">{sources[entry.sourceType]}</small>
+                  </td>
+                  <td className="tabular-nums font-semibold text-foreground">
+                    {money(entry.amountVnd)}
+                  </td>
+                  <td>
+                    <code
+                      className="max-w-[140px] truncate block font-mono text-2xs text-muted-foreground"
+                      title={entry.ledgerEntryId}
+                    >
+                      {entry.ledgerEntryId.length > 16
+                        ? `#${entry.ledgerEntryId.slice(0, 8)}…`
+                        : entry.ledgerEntryId}
+                    </code>
                   </td>
                 </tr>
               ))}
@@ -124,7 +199,7 @@ export function BillingHistory({ view }: Readonly<{ view: BillingView }>) {
           </table>
         </div>
       )}
-    </section>
+    </div>
   );
 }
 export function AttemptStatus({ attempt }: Readonly<{ attempt: AttemptView }>) {
@@ -135,25 +210,54 @@ export function AttemptStatus({ attempt }: Readonly<{ attempt: AttemptView }>) {
     UNKNOWN: 'Chưa rõ kết quả · đang kiểm tra',
     SUCCEEDED: 'Đã xác minh nhận tiền',
   };
+  const isSucceeded = attempt.status === 'SUCCEEDED';
+  const isFailed = attempt.status === 'FAILED';
+  const isPending = attempt.status === 'PENDING' || attempt.status === 'UNKNOWN';
+
   return (
-    <section className={bx.attempt} aria-label="Trạng thái thanh toán">
-      <h3>{labels[attempt.status]}</h3>
-      <p>
+    <section
+      className={`${bx.attempt} ${
+        isSucceeded
+          ? '!border-emerald-500/25 !bg-emerald-50/50 dark:!bg-emerald-950/20'
+          : isFailed
+            ? '!border-destructive/30 !bg-destructive/5'
+            : isPending
+              ? '!border-amber-500/25 !bg-amber-50/40 dark:!bg-amber-950/20'
+              : ''
+      }`}
+      aria-label="Trạng thái thanh toán"
+    >
+      <h3
+        className={`flex items-center gap-1.5 font-bold ${
+          isSucceeded
+            ? 'text-emerald-800 dark:text-emerald-300'
+            : isFailed
+              ? 'text-destructive'
+              : isPending
+                ? 'text-amber-800 dark:text-amber-300'
+                : 'text-foreground'
+        }`}
+      >
+        {isSucceeded && <span>✓</span>}
+        {labels[attempt.status]}
+      </h3>
+      <p className="font-medium text-foreground">
         {attempt.purpose === 'DEPOSIT' ? 'Đặt cọc' : 'Thanh toán còn lại'} ·{' '}
         {money(attempt.amountVnd)}
       </p>
-      <p>
-        Mã giao dịch thanh toán: <code>{attempt.paymentAttemptId}</code>
+      <p className="text-muted-foreground">
+        Mã giao dịch thanh toán:{' '}
+        <code className="text-2xs font-mono">{attempt.paymentAttemptId}</code>
       </p>
       {attempt.status === 'SUCCEEDED' && (
-        <p>
+        <p className="text-emerald-700 dark:text-emerald-400 font-medium">
           {attempt.applicationStatus === 'SUCCEEDED'
             ? 'Đã hoàn tất cập nhật hồ sơ.'
             : 'Tiền đã được xác minh; hồ sơ đang chờ cập nhật.'}
         </p>
       )}
       {attempt.status !== 'FAILED' && attempt.status !== 'SUCCEEDED' && (
-        <p>
+        <p className="text-muted-foreground">
           Không tạo lần thanh toán khác khi chưa xác minh kết quả. Hết hạn đường dẫn không chứng
           minh thanh toán thất bại.
         </p>

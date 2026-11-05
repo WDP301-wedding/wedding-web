@@ -10,7 +10,6 @@ import { GroupsCard } from './groups-card';
 import { GuestListCard } from './guest-list-card';
 import { ImportCard } from './import-card';
 import { CheckInCard } from './check-in-card';
-import { cx } from '../commercial-contract/contract-classes';
 import { gx } from './guest-classes';
 
 export function GuestsPage() {
@@ -47,39 +46,37 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   return (
     <div className={gx.workspace}>
       <SummaryCard data={data} status={status} />
-      <div className={gx.setupGrid}>
-        <div className={gx.settings}>
-          <PlanCard
-            bookingId={bookingId}
-            plan={data.plan}
-            maxGuests={proposal.proposal.hall.maxGuests}
-            onSaved={onPlanSaved}
-          />
-          {data.settings && data.attendance ? (
-            <CheckInCard
-              bookingId={bookingId}
-              settings={data.settings}
-              attendance={data.attendance}
-              onChanged={onCheckInChanged}
-            />
-          ) : extrasError ? (
-            // Chỉ thẻ check-in lỗi; phần còn lại của trang vẫn dùng bình thường, không cần F5.
-            <section className={cx.card} aria-label="Check-in theo tên tại tiệc">
-              <h2>Check-in theo tên tại tiệc</h2>
-              <ErrorPanel error={extrasError} onRetry={reloadExtras} />
-            </section>
-          ) : (
-            <Skeleton label="Đang tải cài đặt check-in…" variant="card" />
-          )}
-        </div>
-        <GroupsCard
+      <div className={gx.settings}>
+        <PlanCard
           bookingId={bookingId}
-          groups={data.groups}
-          // Chỉ đếm được khi đang xem khách "Đang mời"; xem "Đã lưu trữ" thì để backend tự kiểm tra.
-          activeGuestCounts={status === 'ACTIVE' ? countByGroup(data.guests) : undefined}
-          onChanged={onGroupSaved}
+          plan={data.plan}
+          maxGuests={proposal.proposal.hall.maxGuests}
+          onSaved={onPlanSaved}
         />
+        {data.settings && data.attendance ? (
+          <CheckInCard
+            bookingId={bookingId}
+            settings={data.settings}
+            attendance={data.attendance}
+            onChanged={onCheckInChanged}
+          />
+        ) : extrasError ? (
+          // Chỉ thẻ check-in lỗi; phần còn lại của trang vẫn dùng bình thường, không cần F5.
+          <section className={gx.card} aria-label="Check-in theo tên tại tiệc">
+            <h2>Check-in theo tên tại tiệc</h2>
+            <ErrorPanel error={extrasError} onRetry={reloadExtras} />
+          </section>
+        ) : (
+          <Skeleton label="Đang tải cài đặt check-in…" variant="card" />
+        )}
       </div>
+      <GroupsCard
+        bookingId={bookingId}
+        groups={data.groups}
+        // Chỉ đếm được khi đang xem khách "Đang mời"; xem "Đã lưu trữ" thì để backend tự kiểm tra.
+        activeGuestCounts={status === 'ACTIVE' ? countByGroup(data.guests) : undefined}
+        onChanged={onGroupSaved}
+      />
       <GuestListCard
         bookingId={bookingId}
         groups={data.groups}
@@ -87,8 +84,8 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
         status={status}
         onStatusChange={setStatus}
         onChanged={onGuestSaved}
+        importPanel={<ImportCard bookingId={bookingId} groups={data.groups} onImported={reload} />}
       />
-      <ImportCard bookingId={bookingId} groups={data.groups} onImported={reload} />
     </div>
   );
 }

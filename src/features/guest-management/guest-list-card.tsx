@@ -1,9 +1,8 @@
 'use client';
 import { HySelect } from '../../components/ui/select-field';
 
-import React from 'react';
+import React, { useId, useState } from 'react';
 import { guestApi, type Guest, type GuestGroup } from './guest-api';
-import { Illustration } from '../../design-system/illustrations';
 import { GuestModal } from './guest-modal';
 import { GuestLinkModal } from './guest-link-modal';
 import type { GuestStatusFilter } from './use-guests-workspace';
@@ -21,7 +20,9 @@ export function GuestListCard({
   status,
   onStatusChange,
   onChanged,
+  importPanel,
 }: Readonly<{
+  importPanel?: React.ReactNode;
   bookingId: string;
   groups: GuestGroup[];
   guests: Guest[];
@@ -29,6 +30,8 @@ export function GuestListCard({
   onStatusChange: (status: GuestStatusFilter) => void;
   onChanged: (guest?: Guest, action?: 'create' | 'update') => void;
 }>) {
+  const [importOpen, setImportOpen] = useState(false);
+  const importId = useId();
   const {
     searchQuery,
     setSearchQuery,
@@ -65,8 +68,8 @@ export function GuestListCard({
   });
 
   return (
-    <section className={cx.card}>
-      <div className={cx.cardHeader}>
+    <section className={gx.card}>
+      <div className={gx.cardHeader}>
         <div>
           <h2>Danh sách tên khách</h2>
           <span className={gx.guestCountBadge}>
@@ -75,6 +78,17 @@ export function GuestListCard({
           </span>
         </div>
         <div className={cx.actions}>
+          {importPanel ? (
+            <button
+              className={cx.buttonOutline}
+              type="button"
+              aria-expanded={importOpen}
+              aria-controls={importId}
+              onClick={() => setImportOpen((value) => !value)}
+            >
+              {importOpen ? 'Đóng phần nhập CSV' : 'Nhập CSV'}
+            </button>
+          ) : null}
           {status === 'ACTIVE' ? (
             <button
               className={cx.button}
@@ -87,6 +101,17 @@ export function GuestListCard({
           ) : null}
         </div>
       </div>
+
+      {importPanel ? (
+        <div
+          id={importId}
+          className={
+            importOpen ? 'block rounded-lg border border-border bg-muted/40 p-4' : 'hidden'
+          }
+        >
+          {importPanel}
+        </div>
+      ) : null}
 
       {/* Toolbar Tìm kiếm & Lọc */}
       <div className={gx.toolbar}>
@@ -147,14 +172,11 @@ export function GuestListCard({
 
       {/* Bảng Danh sách Desktop & Thẻ Mobile */}
       {visible.length === 0 ? (
-        <p className={gx.noteIllustrated}>
-          {status === 'ACTIVE' && !searchQuery && !groupFilter ? (
-            <Illustration name="empty-khach" size={64} />
-          ) : null}
+        <p className="rounded-lg bg-muted/50 px-3 py-3 text-sm text-muted-foreground">
           {searchQuery || groupFilter
             ? 'Không tìm thấy khách nào khớp với bộ lọc.'
             : status === 'ACTIVE'
-              ? 'Chưa có tên khách nào. Bạn vẫn dùng được nhóm, sơ đồ bàn, thiệp và in mà không cần danh sách tên.'
+              ? 'Chưa có tên khách. Bạn vẫn sử dụng được nhóm, sơ đồ bàn và thiệp.'
               : 'Không có khách đã lưu trữ.'}
         </p>
       ) : (

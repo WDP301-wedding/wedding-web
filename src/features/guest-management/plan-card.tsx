@@ -2,6 +2,7 @@ import { InlineError } from '../../design-system/inline-error';
 import { useCommand } from '../couple-workspace/use-couple-workspace';
 import { guestApi, type GuestPlan } from './guest-api';
 import { cx } from '../commercial-contract/contract-classes';
+import { gx } from './guest-classes';
 
 export function PlanCard({
   bookingId,
@@ -16,11 +17,11 @@ export function PlanCard({
 }>) {
   const command = useCommand({ errorPresentation: 'inline' });
   return (
-    <section className={cx.card}>
+    <section className={gx.card}>
       <InlineError error={command.error} />
       <h2>Số khách dự kiến</h2>
       <form
-        className={cx.form}
+        className={gx.compactForm}
         onSubmit={(event) => {
           event.preventDefault();
           const value = Number(new FormData(event.currentTarget).get('planningHeadcount'));
@@ -32,9 +33,9 @@ export function PlanCard({
             .then((result) => result && onSaved(result));
         }}
       >
-        <div className={cx.formRow}>
-          <label>
-            Số khách dự kiến
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="w-36">
+            Số khách
             <input
               name="planningHeadcount"
               type="number"
@@ -43,16 +44,14 @@ export function PlanCard({
               defaultValue={plan.planningHeadcount}
               required
             />
-            <small>
-              Sảnh chứa tối đa {maxGuests} khách. Thêm/xoá tên khách không làm đổi con số này.
-            </small>
           </label>
-        </div>
-        <div className={cx.actions}>
           <button className={cx.button} type="submit" disabled={command.pending}>
             Lưu số khách
           </button>
         </div>
+        <p className="text-xs text-muted-foreground">
+          Sảnh tối đa {maxGuests} khách. Thêm hoặc xóa tên không thay đổi số khách dự kiến.
+        </p>
       </form>
     </section>
   );

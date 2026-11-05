@@ -18,15 +18,19 @@ export const bx = {
   lookup: 'flex flex-wrap items-end gap-3 [&_label]:min-w-60 [&_label]:flex-1',
   live: `empty:hidden [&_[role=status]]:text-xs [&_[role=status]]:text-muted-foreground ${alertBox}`,
   sectionHeading: 'flex flex-wrap items-center justify-between gap-3',
-  panel: `flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-5 sm:p-6 ${alertBox}`,
+  panel: `flex min-w-0 flex-col gap-3 rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs ${alertBox}`,
+  balanceCard:
+    'flex min-w-0 flex-col gap-4 rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs',
+  balanceGateNotice:
+    'flex flex-col gap-2 rounded-xl border border-border/70 bg-muted/40 p-3.5 sm:p-4 text-xs',
   summary:
-    '[&_dl]:grid [&_dl]:grid-cols-1 [&_dl]:overflow-hidden [&_dl]:rounded-xl [&_dl]:border [&_dl]:border-border [&_dl]:bg-card min-[400px]:[&_dl]:grid-cols-2 sm:[&_dl]:grid-cols-3 [&_dl>div]:border-b [&_dl>div]:border-border [&_dl>div]:p-4 [&_dt]:text-xs [&_dt]:text-muted-foreground [&_dd]:mt-1 [&_dd]:text-base [&_dd]:font-bold [&_dd]:whitespace-nowrap [&_dd]:tabular-nums',
+    'flex flex-col gap-3 [&_dl]:grid [&_dl]:grid-cols-1 [&_dl]:gap-2.5 min-[500px]:[&_dl]:grid-cols-3 [&_dl>div]:rounded-xl [&_dl>div]:border [&_dl>div]:border-border/70 [&_dl>div]:bg-muted/20 [&_dl>div]:p-3 sm:[&_dl>div]:p-3.5 [&_dt]:text-xs [&_dt]:text-muted-foreground [&_dt]:font-medium [&_dd]:mt-1 [&_dd]:text-base sm:[&_dd]:text-lg [&_dd]:font-bold [&_dd]:tabular-nums',
   tableScroll:
-    'max-w-full overflow-x-auto rounded-lg border border-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&_caption]:px-3 [&_caption]:py-2.5 [&_caption]:text-left [&_caption]:text-xs [&_caption]:text-muted-foreground [&_table]:w-full [&_table]:min-w-[640px] [&_table]:border-collapse [&_table]:text-sm [&_td]:border-t [&_td]:border-border [&_td]:px-3 [&_td]:py-3 [&_td_small]:block [&_td_small]:text-xs [&_td_small]:text-muted-foreground [&_th]:bg-muted [&_th]:px-3 [&_th]:py-2.5 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:text-muted-foreground',
+    'max-w-full overflow-x-auto rounded-lg border border-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&_caption]:px-3 [&_caption]:py-2 [&_caption]:text-left [&_caption]:text-xs [&_caption]:text-muted-foreground [&_table]:w-full [&_table]:min-w-[560px] [&_table]:border-collapse [&_table]:text-xs sm:[&_table]:text-sm [&_td]:border-t [&_td]:border-border [&_td]:px-3 [&_td]:py-2 sm:[&_td]:py-2.5 [&_td_small]:block [&_td_small]:text-2xs [&_td_small]:text-muted-foreground [&_th]:bg-muted [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:text-muted-foreground',
   confirm:
     'flex flex-col gap-3 rounded-xl border border-hy-champagne/60 bg-muted p-5 [&>strong]:text-2xl [&>strong]:font-bold [&>strong]:text-primary [&>strong]:tabular-nums',
   confirmActions: 'flex flex-wrap gap-2',
-  attempt: 'flex flex-col gap-3 rounded-xl border border-border bg-muted p-5',
+  attempt: 'flex flex-col gap-2.5 rounded-xl border border-border/80 bg-muted/30 p-3.5 sm:p-4 text-xs',
   attemptNote: 'text-xs text-muted-foreground',
   balanceAction: 'flex flex-col items-start gap-3',
   gate: 'flex flex-col items-start gap-2.5 rounded-lg border border-hy-warning/25 bg-hy-warning-bg px-4 py-3 text-sm text-foreground',

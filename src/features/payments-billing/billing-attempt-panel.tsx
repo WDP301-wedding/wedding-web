@@ -37,26 +37,33 @@ export function BillingAttemptPanel({
         }}
       >
         {embedded ? (
-          <p className={bx.attemptNote}>
-            Giao dịch gần nhất của hai bạn. Bấm để hỏi lại trạng thái mới nhất từ nhà hàng. VNPay
-            giới hạn mỗi lần kiểm tra cách nhau khoảng 5 phút. Nếu kết quả chưa rõ, hãy chờ rồi kiểm
-            tra lại giao dịch này.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
+            <p className="text-2xs text-muted-foreground leading-relaxed flex-1">
+              Giao dịch gần nhất của hai bạn. Bấm để hỏi lại trạng thái mới nhất từ nhà hàng. VNPay
+              giới hạn mỗi lần kiểm tra cách nhau khoảng 5 phút. Nếu kết quả chưa rõ, hãy chờ rồi kiểm
+              tra lại giao dịch này.
+            </p>
+            <button className={bx.buttonOutline} disabled={pending || intentActive}>
+              Kiểm tra trạng thái
+            </button>
+          </div>
         ) : (
-          <label>
-            Mã giao dịch thanh toán
-            <input
-              required
-              value={attemptId}
-              disabled={pending || intentActive}
-              readOnly={checkoutActive || (intentActive && attemptId !== '')}
-              onChange={(event) => setAttemptId(event.target.value)}
-            />
-          </label>
+          <>
+            <label>
+              Mã giao dịch thanh toán
+              <input
+                required
+                value={attemptId}
+                disabled={pending || intentActive}
+                readOnly={checkoutActive || (intentActive && attemptId !== '')}
+                onChange={(event) => setAttemptId(event.target.value)}
+              />
+            </label>
+            <button className={bx.button} disabled={pending || intentActive}>
+              Kiểm tra trạng thái
+            </button>
+          </>
         )}
-        <button className={bx.button} disabled={pending || intentActive}>
-          Kiểm tra trạng thái
-        </button>
       </form>
       {attempt !== null && <AttemptStatus attempt={attempt} />}
       {attempt?.status === 'SUCCEEDED' && attempt.applicationStatus === 'SUCCEEDED' ? (

@@ -1,5 +1,4 @@
 import type { GuestStatusFilter, GuestsData } from './use-guests-workspace';
-import { cx } from '../commercial-contract/contract-classes';
 import { gx } from './guest-classes';
 
 /**
@@ -13,7 +12,7 @@ export function SummaryCard({
   // `undefined` = phần check-in chưa tải xong/lỗi; `null` = check-in đang tắt (backend).
   const checkedIn = data.attendance ? data.attendance.checkedInGuestCount : undefined;
   return (
-    <section className={cx.card} aria-label="Tóm tắt khách mời">
+    <section className={gx.card} aria-label="Tóm tắt khách mời">
       <dl className={gx.stats}>
         <div>
           <dt>Số khách dự kiến</dt>
@@ -34,7 +33,7 @@ export function SummaryCard({
           <dd>{data.groups.filter((group) => group.status === 'ACTIVE').length}</dd>
         </div>
       </dl>
-      <p className={cx.note}>
+      <p className="text-xs text-muted-foreground">
         Danh sách tên là tùy chọn và có thể chỉ một phần, nên không dùng để tính tỷ lệ tham dự của
         cả tiệc. Khách vẫn có thể đi cùng người thân.
       </p>
