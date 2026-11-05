@@ -96,79 +96,81 @@ export function GroupsCard({
                   />
                 </td>
                 <td>{group.status === 'ACTIVE' ? 'Đang dùng' : 'Đã lưu trữ'}</td>
-                <td className={cx.actions}>
-                  <button
-                    className={cx.textButton}
-                    type="button"
-                    disabled={command.pending || group.status !== 'ACTIVE'}
-                    onClick={() =>
-                      void (async () => {
-                        const name = await prompt({
-                          title: `Đổi tên nhóm “${group.name}”`,
-                          label: 'Tên nhóm mới',
-                          defaultValue: group.name,
-                          maxLength: 80,
-                          confirmLabel: 'Lưu tên',
-                        });
-                        if (!name || name === group.name) return;
-                        void command
-                          .run(
+                <td>
+                  <div className={cx.actions}>
+                    <button
+                      className={cx.textButton}
+                      type="button"
+                      disabled={command.pending || group.status !== 'ACTIVE'}
+                      onClick={() =>
+                        void (async () => {
+                          const name = await prompt({
+                            title: `Đổi tên nhóm “${group.name}”`,
+                            label: 'Tên nhóm mới',
+                            defaultValue: group.name,
+                            maxLength: 80,
+                            confirmLabel: 'Lưu tên',
+                          });
+                          if (!name || name === group.name) return;
+                          void command
+                            .run(
+                              (token, key) =>
+                                guestApi.updateGroup(token, key, bookingId, group.guestGroupId, {
+                                  expectedRevision: group.revision,
+                                  name,
+                                }),
+                              'Đã đổi tên nhóm.',
+                            )
+                            .then((result) => done(result, 'update'));
+                        })()
+                      }
+                    >
+                      Đổi tên
+                    </button>
+                    <button
+                      className={cx.textButton}
+                      type="button"
+                      disabled={command.pending}
+                      onClick={() =>
+                        void (async () => {
+                          // Backend chỉ cho lưu trữ nhóm KHÔNG còn khách đang mời (GUEST_GROUP_IN_USE).
+                          // Biết trước số khách thì báo ngay, khỏi gửi request chắc chắn bị từ chối.
+                          const inUse = activeGuestCounts?.get(group.guestGroupId) ?? 0;
+                          if (group.status === 'ACTIVE' && inUse > 0) {
+                            await confirm({
+                              title: `Chưa thể lưu trữ nhóm “${group.name}”`,
+                              description: `Nhóm còn ${inUse} khách đang mời. Hãy chuyển các khách này sang nhóm khác hoặc lưu trữ họ trước, rồi lưu trữ nhóm.`,
+                              confirmLabel: 'Đã hiểu',
+                            });
+                            return;
+                          }
+                          // Lưu trữ = "xoá mềm": nhóm ẩn khỏi lựa chọn và sơ đồ → hỏi lại trước.
+                          if (
+                            group.status === 'ACTIVE' &&
+                            !(await confirm({
+                              title: `Lưu trữ nhóm “${group.name}”?`,
+                              description:
+                                'Nhóm sẽ không còn hiện khi thêm khách hoặc gắn bàn trên sơ đồ. Bạn có thể khôi phục nhóm bất cứ lúc nào.',
+                              confirmLabel: 'Lưu trữ nhóm',
+                              tone: 'danger',
+                            }))
+                          )
+                            return;
+                          const result = await command.run(
                             (token, key) =>
                               guestApi.updateGroup(token, key, bookingId, group.guestGroupId, {
                                 expectedRevision: group.revision,
-                                name,
+                                status: group.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE',
                               }),
-                            'Đã đổi tên nhóm.',
-                          )
-                          .then((result) => done(result, 'update'));
-                      })()
-                    }
-                  >
-                    Đổi tên
-                  </button>
-                  <button
-                    className={cx.textButton}
-                    type="button"
-                    disabled={command.pending}
-                    onClick={() =>
-                      void (async () => {
-                        // Backend chỉ cho lưu trữ nhóm KHÔNG còn khách đang mời (GUEST_GROUP_IN_USE).
-                        // Biết trước số khách thì báo ngay, khỏi gửi request chắc chắn bị từ chối.
-                        const inUse = activeGuestCounts?.get(group.guestGroupId) ?? 0;
-                        if (group.status === 'ACTIVE' && inUse > 0) {
-                          await confirm({
-                            title: `Chưa thể lưu trữ nhóm “${group.name}”`,
-                            description: `Nhóm còn ${inUse} khách đang mời. Hãy chuyển các khách này sang nhóm khác hoặc lưu trữ họ trước, rồi lưu trữ nhóm.`,
-                            confirmLabel: 'Đã hiểu',
-                          });
-                          return;
-                        }
-                        // Lưu trữ = "xoá mềm": nhóm ẩn khỏi lựa chọn và sơ đồ → hỏi lại trước.
-                        if (
-                          group.status === 'ACTIVE' &&
-                          !(await confirm({
-                            title: `Lưu trữ nhóm “${group.name}”?`,
-                            description:
-                              'Nhóm sẽ không còn hiện khi thêm khách hoặc gắn bàn trên sơ đồ. Bạn có thể khôi phục nhóm bất cứ lúc nào.',
-                            confirmLabel: 'Lưu trữ nhóm',
-                            tone: 'danger',
-                          }))
-                        )
-                          return;
-                        const result = await command.run(
-                          (token, key) =>
-                            guestApi.updateGroup(token, key, bookingId, group.guestGroupId, {
-                              expectedRevision: group.revision,
-                              status: group.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE',
-                            }),
-                          group.status === 'ACTIVE' ? 'Đã lưu trữ nhóm.' : 'Đã khôi phục nhóm.',
-                        );
-                        done(result, 'update');
-                      })()
-                    }
-                  >
-                    {group.status === 'ACTIVE' ? 'Lưu trữ' : 'Khôi phục'}
-                  </button>
+                            group.status === 'ACTIVE' ? 'Đã lưu trữ nhóm.' : 'Đã khôi phục nhóm.',
+                          );
+                          done(result, 'update');
+                        })()
+                      }
+                    >
+                      {group.status === 'ACTIVE' ? 'Lưu trữ' : 'Khôi phục'}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

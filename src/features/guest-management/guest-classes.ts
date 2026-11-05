@@ -1,6 +1,6 @@
 /**
  * Lớp Tailwind cho trang Khách mời (Hỷ Yến v3), thay `guests.module.css` và `guests-layout.module.css`.
- * Thẻ, bảng, form dùng chung map `cx` của trang Hợp đồng.
+ * Bố cục gọn dùng riêng cho trang khách; nút và thông báo tiếp tục dùng map `cx` chung.
  */
 export const gx = {
   // Bố cục theo bề rộng vùng nội dung (container query), không theo màn hình.
@@ -19,7 +19,6 @@ export const gx = {
   copyRow: 'my-2 flex flex-wrap items-center gap-2',
   copyCode: 'max-w-full rounded-lg border border-border bg-muted px-2.5 py-1.5 text-xs break-all',
   colorPicker: 'h-8 w-9 cursor-pointer rounded-lg border border-input bg-transparent p-0.5',
-  noteIllustrated: 'flex items-center gap-3 text-sm text-muted-foreground [&_svg]:flex-none',
   toolbar: 'flex flex-wrap items-center justify-between gap-3',
   searchWrap: 'relative max-w-[360px] flex-[1_1_240px] max-md:max-w-full',
   searchInput:
