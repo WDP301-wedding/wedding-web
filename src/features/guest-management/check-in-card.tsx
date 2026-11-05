@@ -8,11 +8,13 @@ import { gx } from './guest-classes';
 export function CheckInCard({
   bookingId,
   settings,
+  readOnly = false,
   attendance,
   onChanged,
 }: Readonly<{
   bookingId: string;
   settings: CheckInSettings;
+  readOnly?: boolean;
   attendance: AttendanceSummary;
   onChanged: (nextSettings?: CheckInSettings) => void;
 }>) {
@@ -56,38 +58,46 @@ export function CheckInCard({
         </details>
       ) : null}
       <div className={cx.actions}>
-        <button
-          className={cx.buttonOutline}
-          type="button"
-          disabled={command.pending || settings.locked}
-          onClick={() =>
-            void (async () => {
-              const next = enabled ? 'NONE' : 'BY_GUEST_NAME';
-              if (
-                next === 'BY_GUEST_NAME' &&
-                !(await confirm({
-                  title: 'Bật check-in theo tên cho tiệc này?',
-                  description:
-                    'Nhân viên sẽ đánh dấu từng khách có tên trong danh sách khi đến. Sau lần check-in đầu tiên, chế độ này không thể tắt lại.',
-                  confirmLabel: 'Bật check-in',
-                }))
-              )
-                return;
-              void command
-                .run(
-                  (token, key) =>
-                    guestApi.updateCheckInSettings(token, key, bookingId, next, settings.revision),
-                  next === 'BY_GUEST_NAME' ? 'Đã bật check-in theo tên.' : 'Đã tắt check-in.',
+        {!readOnly && (
+          <button
+            className={cx.buttonOutline}
+            type="button"
+            disabled={command.pending || settings.locked}
+            onClick={() =>
+              void (async () => {
+                const next = enabled ? 'NONE' : 'BY_GUEST_NAME';
+                if (
+                  next === 'BY_GUEST_NAME' &&
+                  !(await confirm({
+                    title: 'Bật check-in theo tên cho tiệc này?',
+                    description:
+                      'Nhân viên sẽ đánh dấu từng khách có tên trong danh sách khi đến. Sau lần check-in đầu tiên, chế độ này không thể tắt lại.',
+                    confirmLabel: 'Bật check-in',
+                  }))
                 )
-                .then((result) => result && onChanged(result));
-            })()
-          }
-        >
-          {enabled ? 'Tắt check-in' : 'Bật check-in theo tên'}
-        </button>
+                  return;
+                void command
+                  .run(
+                    (token, key) =>
+                      guestApi.updateCheckInSettings(
+                        token,
+                        key,
+                        bookingId,
+                        next,
+                        settings.revision,
+                      ),
+                    next === 'BY_GUEST_NAME' ? 'Đã bật check-in theo tên.' : 'Đã tắt check-in.',
+                  )
+                  .then((result) => result && onChanged(result));
+              })()
+            }
+          >
+            {enabled ? 'Tắt check-in' : 'Bật check-in theo tên'}
+          </button>
+        )}
         {settings.locked ? <small>Đã có bản ghi check-in nên chế độ này được khoá.</small> : null}
       </div>
-      {dialog}
+      {!readOnly && dialog}
     </section>
   );
 }

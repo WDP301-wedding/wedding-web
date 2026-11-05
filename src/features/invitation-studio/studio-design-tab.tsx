@@ -13,6 +13,7 @@ export function StudioDesignTab({ studio }: StudioDesignTabProps) {
   const { currentDesign, title, mobileViewMode, setMobileViewMode } = studio;
   const [panel, setPanel] = useState<'content' | 'style'>(currentDesign ? 'content' : 'style');
   async function changeDesign(designId: string | null) {
+    if (studio.locked && designId === null) return;
     if (studio.writing || studio.aiJob.busy) return;
     if (
       studio.designDirty &&
@@ -28,11 +29,14 @@ export function StudioDesignTab({ studio }: StudioDesignTabProps) {
     if (designId === null) studio.startNewDesign();
     else studio.selectDesign(designId);
   }
+  if (studio.locked && !currentDesign) {
+    return <p className={ix.empty}>Chưa có thiết kế thiệp đã lưu.</p>;
+  }
   return (
     // data-wide: trình sửa 2 cột cần khung nội dung rộng hơn (SpaceShell đọc thuộc tính này).
     <section
       aria-labelledby="design-heading"
-      className={ix.liveEditor}
+      className={studio.locked ? 'grid min-w-0 gap-4' : ix.liveEditor}
       data-mode={mobileViewMode}
       data-wide
     >
@@ -45,7 +49,7 @@ export function StudioDesignTab({ studio }: StudioDesignTabProps) {
           {studio.designs.length ? (
             <div className={ix.actions}>
               <label htmlFor="design-selection" className={ix.label}>
-                Mẫu đang chỉnh sửa
+                {studio.locked ? 'Chọn thiết kế đã lưu' : 'Mẫu đang chỉnh sửa'}
               </label>
               <select
                 id="design-selection"
@@ -64,14 +68,16 @@ export function StudioDesignTab({ studio }: StudioDesignTabProps) {
                   </option>
                 ))}
               </select>
-              <button
-                type="button"
-                className={ix.btnSmallOutline}
-                disabled={studio.writing}
-                onClick={() => void changeDesign(null)}
-              >
-                Tạo thêm mẫu thiệp
-              </button>
+              {!studio.locked && (
+                <button
+                  type="button"
+                  className={ix.btnSmallOutline}
+                  disabled={studio.writing}
+                  onClick={() => void changeDesign(null)}
+                >
+                  Tạo thêm mẫu thiệp
+                </button>
+              )}
             </div>
           ) : null}
         </div>
@@ -83,48 +89,52 @@ export function StudioDesignTab({ studio }: StudioDesignTabProps) {
               : 'Thiết kế mới'}
         </span>
       </header>
-      <div className={ix.modeBar} role="group" aria-label="Chế độ xem thiệp">
-        <button
-          type="button"
-          className={ix.modeButton}
-          aria-pressed={mobileViewMode === 'editor'}
-          onClick={() => setMobileViewMode('editor')}
-        >
-          Chỉnh nội dung
-        </button>
-        <button
-          type="button"
-          className={ix.modeButton}
-          aria-pressed={mobileViewMode === 'preview'}
-          onClick={() => setMobileViewMode('preview')}
-        >
-          Xem trước
-        </button>
-      </div>
-      <div className={ix.inspector}>
-        <div className={ix.actions} role="group" aria-label="Phần chỉnh sửa">
-          <button
-            type="button"
-            aria-pressed={panel === 'style'}
-            className={panel === 'style' ? ix.btnSmall : ix.btnSmallOutline}
-            onClick={() => setPanel('style')}
-          >
-            Mẫu và giao diện
-          </button>
-          <button
-            type="button"
-            aria-pressed={panel === 'content'}
-            className={panel === 'content' ? ix.btnSmall : ix.btnSmallOutline}
-            onClick={() => setPanel('content')}
-          >
-            Nội dung thiệp
-          </button>
-        </div>
-        <div className={panel === 'style' ? 'block' : 'hidden'}>
-          <StudioAiBox studio={studio} onApplied={() => setPanel('content')} />
-        </div>
-        {panel === 'content' && <StudioDesignForm studio={studio} />}
-      </div>
+      {!studio.locked && (
+        <>
+          <div className={ix.modeBar} role="group" aria-label="Chế độ xem thiệp">
+            <button
+              type="button"
+              className={ix.modeButton}
+              aria-pressed={mobileViewMode === 'editor'}
+              onClick={() => setMobileViewMode('editor')}
+            >
+              Chỉnh nội dung
+            </button>
+            <button
+              type="button"
+              className={ix.modeButton}
+              aria-pressed={mobileViewMode === 'preview'}
+              onClick={() => setMobileViewMode('preview')}
+            >
+              Xem trước
+            </button>
+          </div>
+          <div className={ix.inspector}>
+            <div className={ix.actions} role="group" aria-label="Phần chỉnh sửa">
+              <button
+                type="button"
+                aria-pressed={panel === 'style'}
+                className={panel === 'style' ? ix.btnSmall : ix.btnSmallOutline}
+                onClick={() => setPanel('style')}
+              >
+                Mẫu và giao diện
+              </button>
+              <button
+                type="button"
+                aria-pressed={panel === 'content'}
+                className={panel === 'content' ? ix.btnSmall : ix.btnSmallOutline}
+                onClick={() => setPanel('content')}
+              >
+                Nội dung thiệp
+              </button>
+            </div>
+            <div className={panel === 'style' ? 'block' : 'hidden'}>
+              <StudioAiBox studio={studio} onApplied={() => setPanel('content')} />
+            </div>
+            {panel === 'content' && <StudioDesignForm studio={studio} />}
+          </div>
+        </>
+      )}
       <StudioDesignPreview studio={studio} />
     </section>
   );

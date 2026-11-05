@@ -13,6 +13,7 @@ import { describeApiError } from '../../lib/api/api-errors';
 import { createInvitationGateway, type DesignView } from './invitation-api';
 import { estimateMediaCutoff } from './media-cutoff';
 import { useCoupleWorkspace } from '../couple-workspace/use-couple-workspace';
+import { usePreparationLock } from '../couple-workspace/preparation-access';
 import { cx } from '../commercial-contract/contract-classes';
 
 /**
@@ -57,6 +58,7 @@ export function CoupleInvitationsPage() {
     workspace.state.status === 'ready' && workspace.state.proposal.bookingId === bookingId
       ? workspace.state.proposal
       : null;
+  const locked = usePreparationLock(proposal);
   const mediaCutoffEstimate = proposal
     ? estimateMediaCutoff(proposal.eventDate, proposal.proposal.shift.startTime)
     : null;
@@ -245,7 +247,8 @@ export function CoupleInvitationsPage() {
         initialDesigns={designs}
         initialTab={tab}
         onTabChange={handleTabChange}
-        key={bookingId}
+        locked={locked}
+        key={`${bookingId}:${locked ? 'read' : 'edit'}`}
       />
     </>
   );

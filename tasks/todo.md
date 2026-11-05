@@ -1,5 +1,12 @@
 # Payment recovery tasks — 2026-10-22
 
+## Read-only preparation — 2026-11-05
+
+- [x] WEB-FE-ARCHIVE-01: Show saved guests, seating, invitations and print history with editing controls hidden.
+- [x] WEB-BE-ARCHIVE-01: Allow authorized historical reads and return `PREPARATION_READ_ONLY` for writes after either lock trigger.
+- [x] WEB-E2E-ARCHIVE-01: Verify completion at desktop width and settlement at mobile width in a local browser with synthetic API responses.
+- [ ] WEB-E2E-ARCHIVE-02: Release compatible backend and web revisions and verify historical views on the deployed site.
+
 ## Completed demo follow-up — 2026-11-04
 
 - [x] DEMO-COMPLETE-01: Existing Manager command changes HY-000028 to COMPLETED;

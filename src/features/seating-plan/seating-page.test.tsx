@@ -9,6 +9,9 @@ import { browserSession } from '../identity-access/browser-session';
 import type { Proposal } from '../couple-workspace/use-couple-workspace';
 import { ApiClientError } from '../../lib/api/client';
 
+vi.mock('../couple-workspace/use-overview-settlement', () => ({
+  useOverviewSettlement: () => ({ status: 'outstanding' }),
+}));
 vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
@@ -19,9 +22,10 @@ vi.mock('../identity-access/browser-session', () => ({
 vi.mock('../couple-workspace/couple-page', async (importOriginal) => ({
   ...(await importOriginal<typeof CouplePageModule>()),
   CouplePage: ({ children }: { children: (proposal: Proposal, reload: () => void) => ReactNode }) =>
-    children({ bookingId: 'booking', revision: 13 } as Proposal, reloadBooking),
+    children({ bookingId: 'booking', revision: 13, phase } as Proposal, reloadBooking),
 }));
 
+let phase: Proposal['phase'] = 'CONFIRMED';
 const reloadBooking = vi.fn();
 const plan: SeatingPlan = {
   seatingPlanId: 'plan',
@@ -47,6 +51,7 @@ const plan: SeatingPlan = {
 };
 
 beforeEach(() => {
+  phase = 'CONFIRMED';
   vi.restoreAllMocks();
   vi.spyOn(browserSession, 'authorize').mockImplementation((operation) => operation('token'));
   vi.spyOn(guestApi, 'groups').mockResolvedValue([]);
@@ -70,6 +75,16 @@ beforeEach(() => {
 });
 
 describe('seating confirmation capacity', () => {
+  it('reads the saved plan after completion without fetching layouts or exposing editing controls', async () => {
+    phase = 'COMPLETED';
+    const options = vi.spyOn(seatingApi, 'options');
+    render(<SeatingPage />);
+    expect(await screen.findByText(/Tiệc đã được xác nhận tổ chức xong/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Sơ đồ không gian · Bản 4' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Xác nhận sơ đồ' })).not.toBeInTheDocument();
+    expect(options).not.toHaveBeenCalled();
+  });
+
   it('blocks the reported 70-person / 50-seat draft before submitting a confirmation', async () => {
     render(<SeatingPage />);
     const button = await screen.findByRole('button', { name: 'Xác nhận sơ đồ' });

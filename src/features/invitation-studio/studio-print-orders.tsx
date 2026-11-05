@@ -73,7 +73,7 @@ export function StudioPrintOrders({
               </details>
               {/* Historical quotations remain operable without entering the new appendix flow. */}
               <div className={ix.actions}>
-                {order.status === 'QUOTED' && order.currentCommercialRevision ? (
+                {!studio.locked && order.status === 'QUOTED' && order.currentCommercialRevision ? (
                   <button
                     type="button"
                     className={ix.btn}
@@ -85,7 +85,7 @@ export function StudioPrintOrders({
                     {approvingOrderId === order.orderId ? 'Đang duyệt...' : 'Duyệt báo giá'}
                   </button>
                 ) : null}
-                {['REQUESTED', 'QUOTED'].includes(order.status) ? (
+                {!studio.locked && ['REQUESTED', 'QUOTED'].includes(order.status) ? (
                   <button
                     type="button"
                     className={ix.btnDanger}
