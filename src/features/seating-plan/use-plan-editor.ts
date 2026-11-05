@@ -46,11 +46,13 @@ export function usePlanEditor({
     return map;
   }, [plan.renderSnapshot]);
 
+  const [prevRevisionId, setPrevRevisionId] = useState(plan.revisionId);
   const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>(initialPositions);
 
-  useEffect(() => {
+  if (prevRevisionId !== plan.revisionId) {
+    setPrevRevisionId(plan.revisionId);
     setPositions(initialPositions);
-  }, [initialPositions]);
+  }
 
   const moveTable = (tableId: string, x: number, y: number) => {
     setPositions((prev) => ({

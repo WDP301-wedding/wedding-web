@@ -33,7 +33,6 @@ export function SeatingSvg({
   const {
     view,
     svgRef,
-    panned,
     isFullscreen,
     startPan,
     movePan,
@@ -78,7 +77,7 @@ export function SeatingSvg({
     if (event.button !== 0) return;
     event.stopPropagation();
     try {
-      (event.currentTarget as Element).setPointerCapture(event.pointerId);
+      event.currentTarget.setPointerCapture(event.pointerId);
     } catch {
       // ignore
     }
@@ -121,7 +120,7 @@ export function SeatingSvg({
     const start = dragRef.current;
     if (!start || start.tableId !== tableId) return;
     try {
-      (event.currentTarget as Element).releasePointerCapture(event.pointerId);
+      event.currentTarget.releasePointerCapture(event.pointerId);
     } catch {
       // ignore
     }
