@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   maxZoom,
   minZoom,
@@ -44,15 +44,30 @@ export function SeatingSvg({
     toggleFullscreen,
   } = useSeatingPan();
 
-  const dragRef = useRef<{
+  const dragStateRef = useRef<{
     tableId: string;
+    pointerId: number;
     startClientX: number;
     startClientY: number;
     startTableX: number;
     startTableY: number;
-    moved: boolean;
+    currentX: number;
+    currentY: number;
+    width: number;
+    height: number;
+    rotationDegrees: number;
+    element: SVGGElement;
+    hasMoved: boolean;
+    rafPending: boolean;
   } | null>(null);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
+
+  const cleanupDragRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      cleanupDragRef.current?.();
+    };
+  }, []);
 
   const dynamicTables = useMemo(() => {
     return plan.renderSnapshot.map((table) => {
@@ -61,76 +76,144 @@ export function SeatingSvg({
     });
   }, [plan.renderSnapshot, positions]);
 
-  const sortedTables = useMemo(() => {
-    if (!draggingId) return dynamicTables;
-    const regular = dynamicTables.filter((t) => t.layoutTableId !== draggingId);
-    const dragging = dynamicTables.find((t) => t.layoutTableId === draggingId);
-    return dragging ? [...regular, dragging] : dynamicTables;
-  }, [dynamicTables, draggingId]);
-
   const handleTablePointerDown = (
-    event: React.PointerEvent,
-    tableId: string,
-    currentX: number,
-    currentY: number,
+    event: React.PointerEvent<SVGGElement>,
+    table: SeatingTable,
   ) => {
     if (!onMoveTable || event.button !== 0) return;
     event.stopPropagation();
-    try {
-      event.currentTarget.setPointerCapture(event.pointerId);
-    } catch {
-      // ignore
-    }
 
-    dragRef.current = {
-      tableId,
+    // Dọn dẹp session drag trước nếu còn sót
+    cleanupDragRef.current?.();
+
+    const gElement = event.currentTarget;
+    const pointerId = event.pointerId;
+
+    const currentPos = positions?.[table.layoutTableId];
+    const initialX = currentPos ? currentPos.x : table.x;
+    const initialY = currentPos ? currentPos.y : table.y;
+
+    dragStateRef.current = {
+      tableId: table.layoutTableId,
+      pointerId,
       startClientX: event.clientX,
       startClientY: event.clientY,
-      startTableX: currentX,
-      startTableY: currentY,
-      moved: false,
+      startTableX: initialX,
+      startTableY: initialY,
+      currentX: initialX,
+      currentY: initialY,
+      width: table.width,
+      height: table.height,
+      rotationDegrees: table.rotationDegrees,
+      element: gElement,
+      hasMoved: false,
+      rafPending: false,
     };
-  };
 
-  const handleTablePointerMove = (event: React.PointerEvent, tableId: string) => {
-    const start = dragRef.current;
-    if (!start || start.tableId !== tableId) return;
-    const dx = event.clientX - start.startClientX;
-    const dy = event.clientY - start.startClientY;
-    if (!start.moved && Math.hypot(dx, dy) < 4) return;
-    if (!start.moved) {
-      start.moved = true;
-      setDraggingId(tableId);
-    }
-    const svg = svgRef.current;
-    if (!svg) return;
+    const onWindowPointerMove = (e: PointerEvent) => {
+      const state = dragStateRef.current;
+      if (!state || e.pointerId !== state.pointerId) return;
 
-    const rect = svg.getBoundingClientRect();
-    const box = svg.viewBox.baseVal;
-    const scaleX = (box.width || 1000) / (rect.width || 1);
-    const scaleY = (box.height || 1000) / (rect.height || 1);
+      const dx = e.clientX - state.startClientX;
+      const dy = e.clientY - state.startClientY;
 
-    const nextX = Math.round(start.startTableX + dx * scaleX);
-    const nextY = Math.round(start.startTableY + dy * scaleY);
+      // Ngưỡng 4px để phân biệt click chọn bàn với kéo di chuyển
+      if (!state.hasMoved) {
+        if (Math.hypot(dx, dy) < 4) return;
+        state.hasMoved = true;
+        state.element.style.cursor = 'grabbing';
+        state.element.style.filter = 'drop-shadow(0 10px 24px rgba(122, 31, 61, 0.4))';
+        state.element.style.opacity = '0.96';
+      }
 
-    onMoveTable?.(tableId, nextX, nextY);
-  };
+      const svg = svgRef.current;
+      if (!svg) return;
 
-  const handleTablePointerUp = (event: React.PointerEvent, tableId: string) => {
-    const start = dragRef.current;
-    if (!start || start.tableId !== tableId) return;
-    try {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    } catch {
-      // ignore
-    }
-    const moved = start.moved;
-    dragRef.current = null;
-    setDraggingId(null);
+      const rect = svg.getBoundingClientRect();
+      const box = svg.viewBox.baseVal;
+      const scaleX = (box.width || 1000) / (rect.width || 1);
+      const scaleY = (box.height || 1000) / (rect.height || 1);
 
-    if (!moved) {
-      onSelectTable(tableId);
-    }
+      let nextX = Math.round(state.startTableX + dx * scaleX);
+      let nextY = Math.round(state.startTableY + dy * scaleY);
+
+      // Giữ toạ độ trong phạm vi hợp lệ của sảnh
+      nextX = Math.max(0, Math.min(10000, nextX));
+      nextY = Math.max(0, Math.min(10000, nextY));
+
+      state.currentX = nextX;
+      state.currentY = nextY;
+
+      // Render mượt 60-120fps qua RAF trực tiếp trên DOM, không kích hoạt re-render toàn cây React
+      if (!state.rafPending) {
+        state.rafPending = true;
+        requestAnimationFrame(() => {
+          const s = dragStateRef.current;
+          if (!s || !s.rafPending) return;
+          s.rafPending = false;
+          const cx = s.currentX + s.width / 2;
+          const cy = s.currentY + s.height / 2;
+          s.element.setAttribute('transform', `translate(${cx} ${cy}) rotate(${s.rotationDegrees})`);
+        });
+      }
+    };
+
+    const endSession = (cancelled: boolean) => {
+      window.removeEventListener('pointermove', onWindowPointerMove);
+      window.removeEventListener('pointerup', onWindowPointerUp);
+      window.removeEventListener('pointercancel', onWindowPointerCancel);
+      window.removeEventListener('keydown', onKeyDown);
+      cleanupDragRef.current = null;
+
+      const state = dragStateRef.current;
+      if (!state) return;
+      dragStateRef.current = null;
+
+      // Reset inline visual styling
+      state.element.style.cursor = '';
+      state.element.style.filter = '';
+      state.element.style.opacity = '';
+
+      if (cancelled) {
+        const cx = state.startTableX + state.width / 2;
+        const cy = state.startTableY + state.height / 2;
+        state.element.setAttribute('transform', `translate(${cx} ${cy}) rotate(${state.rotationDegrees})`);
+        return;
+      }
+
+      if (!state.hasMoved) {
+        onSelectTable(state.tableId);
+      } else {
+        if (state.currentX !== state.startTableX || state.currentY !== state.startTableY) {
+          onMoveTable?.(state.tableId, state.currentX, state.currentY);
+        }
+      }
+    };
+
+    const onWindowPointerUp = (e: PointerEvent) => {
+      if (dragStateRef.current?.pointerId === e.pointerId) {
+        endSession(false);
+      }
+    };
+
+    const onWindowPointerCancel = (e: PointerEvent) => {
+      if (dragStateRef.current?.pointerId === e.pointerId) {
+        endSession(true);
+      }
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && dragStateRef.current) {
+        endSession(true);
+      }
+    };
+
+    cleanupDragRef.current = () => endSession(true);
+
+    window.addEventListener('pointermove', onWindowPointerMove, { passive: false });
+    window.addEventListener('pointerup', onWindowPointerUp);
+    window.addEventListener('pointercancel', onWindowPointerCancel);
+    window.addEventListener('keydown', onKeyDown);
   };
 
   const content = (
@@ -182,11 +265,10 @@ export function SeatingSvg({
         role="group"
         aria-label={`Sơ đồ ${plan.renderSnapshot.length} bàn${onMoveTable ? '. Kéo thả để đổi vị trí hoặc chọn bàn để gắn nhóm.' : '.'}`}
       >
-        {sortedTables.map((table) => {
+        {dynamicTables.map((table) => {
           const cx = table.x + table.width / 2;
           const cy = table.y + table.height / 2;
           const isSelected = table.layoutTableId === selected;
-          const isDragging = table.layoutTableId === draggingId;
           const groupName = groupNameOf?.(table);
           // Nhãn mẫu có thể đã gồm chữ "Bàn" (Bàn 01) hoặc chỉ là mã (G1).
           const tableName = /^bàn\s/iu.test(table.tableLabel)
@@ -203,25 +285,13 @@ export function SeatingSvg({
           return (
             <g
               key={table.layoutTableId}
+              data-table-node="true"
               transform={`translate(${cx} ${cy}) rotate(${table.rotationDegrees})`}
               tabIndex={0}
               role="button"
               aria-label={`${tableName}${groupName ? `, Nhóm: ${groupName}` : ''}`}
               className={sx.table}
-              onPointerDown={(event) =>
-                handleTablePointerDown(event, table.layoutTableId, table.x, table.y)
-              }
-              onPointerMove={(event) => handleTablePointerMove(event, table.layoutTableId)}
-              onPointerUp={(event) => handleTablePointerUp(event, table.layoutTableId)}
-              onPointerCancel={(event) => handleTablePointerUp(event, table.layoutTableId)}
-              style={
-                isDragging
-                  ? {
-                      filter: 'drop-shadow(0 6px 16px rgba(0,0,0,0.35))',
-                      cursor: 'grabbing',
-                    }
-                  : undefined
-              }
+              onPointerDown={(event) => handleTablePointerDown(event, table)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();
@@ -238,8 +308,8 @@ export function SeatingSvg({
                   rx={table.width / 2}
                   ry={table.height / 2}
                   fill={colorOf(table)}
-                  stroke={isSelected || isDragging ? '#7A1F3D' : '#6E5D63'}
-                  strokeWidth={isSelected || isDragging ? 4 : 2}
+                  stroke={isSelected ? '#7A1F3D' : '#6E5D63'}
+                  strokeWidth={isSelected ? 4 : 2}
                   vectorEffect="non-scaling-stroke"
                 />
               ) : (
@@ -249,8 +319,8 @@ export function SeatingSvg({
                   width={table.width}
                   height={table.height}
                   fill={colorOf(table)}
-                  stroke={isSelected || isDragging ? '#7A1F3D' : '#6E5D63'}
-                  strokeWidth={isSelected || isDragging ? 4 : 2}
+                  stroke={isSelected ? '#7A1F3D' : '#6E5D63'}
+                  strokeWidth={isSelected ? 4 : 2}
                   vectorEffect="non-scaling-stroke"
                 />
               )}

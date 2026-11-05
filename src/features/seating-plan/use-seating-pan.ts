@@ -18,6 +18,7 @@ export function useSeatingPan() {
    */
   const startPan = (event: React.PointerEvent<SVGSVGElement>) => {
     if (view.zoom <= 1) return;
+    if ((event.target as Element)?.closest?.('[data-table-node]')) return;
     drag.current = { x: event.clientX, y: event.clientY, panX: view.x, panY: view.y, moved: false };
   };
 
