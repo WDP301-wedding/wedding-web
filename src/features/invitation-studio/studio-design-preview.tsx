@@ -73,7 +73,9 @@ export function StudioDesignPreview({
         <div className={ix.previewToolbar}>
           <div className={ix.previewMeta}>
             <span className={ix.previewIndicator}>Xem trước thực tế</span>
-            <span className={ix.previewHint}>Nội dung đang chỉnh</span>
+            <span className={ix.previewHint}>
+              {studio.locked ? 'Nội dung đã lưu' : 'Nội dung đang chỉnh'}
+            </span>
           </div>
 
           <div className={ix.viewport}>

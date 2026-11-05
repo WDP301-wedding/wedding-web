@@ -29,6 +29,7 @@ export const codeMessages: Readonly<Record<string, string>> = {
     'Tiệc đã có thanh toán được xác nhận. Không thể sửa lựa chọn ban đầu; xem thỏa thuận hiện hành và phụ lục.',
   BOOKING_NOT_EDITABLE:
     'Hồ sơ không ở bước chỉnh sửa lựa chọn. Liên hệ nhà hàng để kiểm tra tiến trình hiện tại.',
+  PREPARATION_READ_ONLY: 'Phần chuẩn bị của tiệc này đã chuyển sang chế độ chỉ xem.',
   BOOKING_CLOSED: 'Tiệc đã kết thúc hoặc bị hủy. Không thể sửa lựa chọn ban đầu.',
   CUSTOMER_SELECTION_SUBMITTED:
     'Lựa chọn đã được gửi nhà hàng. Liên hệ nhà hàng nếu cần điều chỉnh.',

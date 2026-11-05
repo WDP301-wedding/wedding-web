@@ -7,6 +7,7 @@ import { gx } from './guest-classes';
 
 export interface GuestCardListProps {
   visible: Guest[];
+  readOnly?: boolean;
   selectedIds: Set<string>;
   groupMap: Map<string, GuestGroup>;
   pending: boolean;
@@ -19,6 +20,7 @@ export interface GuestCardListProps {
 
 export function GuestCardList({
   visible,
+  readOnly = false,
   selectedIds,
   groupMap,
   pending,
@@ -31,20 +33,24 @@ export function GuestCardList({
   return (
     <div className={gx.mobileOnly}>
       {visible.map((guest) => {
-        const isSelected = selectedIds.has(guest.guestId);
+        const isSelected = !readOnly && selectedIds.has(guest.guestId);
         const grp = groupMap.get(guest.guestGroupId);
         return (
           <div key={guest.guestId} className={gx.guestCard} data-selected={isSelected}>
             <div className={gx.guestCardHeader}>
-              <label className={gx.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => onToggleSelectOne(guest.guestId)}
-                  className="mr-2"
-                />
+              {readOnly ? (
                 <span className={gx.guestCardName}>{guest.name}</span>
-              </label>
+              ) : (
+                <label className={gx.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => onToggleSelectOne(guest.guestId)}
+                    className="mr-2"
+                  />
+                  <span className={gx.guestCardName}>{guest.name}</span>
+                </label>
+              )}
               <span className={gx.guestCardGroup}>
                 <span className={gx.swatch} style={{ background: grp?.color }} aria-hidden="true" />
                 {grp?.name ?? '—'}
@@ -56,44 +62,46 @@ export function GuestCardList({
               {guest.operationalNote ? <div>Ghi chú: {guest.operationalNote}</div> : null}
             </div>
 
-            <div className={gx.guestCardActions}>
-              {guest.status === 'ACTIVE' ? (
-                <>
-                  <button
-                    className={cx.textButton}
-                    type="button"
-                    disabled={pending}
-                    onClick={() => onEdit(guest)}
-                  >
-                    Sửa
-                  </button>
-                  <button
-                    className={cx.textButton}
-                    type="button"
-                    disabled={pending}
-                    onClick={() => onIssueLink(guest)}
-                  >
-                    Lấy link thiệp
-                  </button>
-                  <button
-                    className={cx.textButton}
-                    type="button"
-                    disabled={pending}
-                    onClick={() => onSendEmail(guest)}
-                  >
-                    Gửi email
-                  </button>
-                </>
-              ) : null}
-              <button
-                className={cx.textButton}
-                type="button"
-                disabled={pending}
-                onClick={() => onToggleStatus(guest)}
-              >
-                {guest.status === 'ACTIVE' ? 'Lưu trữ' : 'Khôi phục'}
-              </button>
-            </div>
+            {!readOnly && (
+              <div className={gx.guestCardActions}>
+                {guest.status === 'ACTIVE' ? (
+                  <>
+                    <button
+                      className={cx.textButton}
+                      type="button"
+                      disabled={pending}
+                      onClick={() => onEdit(guest)}
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      className={cx.textButton}
+                      type="button"
+                      disabled={pending}
+                      onClick={() => onIssueLink(guest)}
+                    >
+                      Lấy link thiệp
+                    </button>
+                    <button
+                      className={cx.textButton}
+                      type="button"
+                      disabled={pending}
+                      onClick={() => onSendEmail(guest)}
+                    >
+                      Gửi email
+                    </button>
+                  </>
+                ) : null}
+                <button
+                  className={cx.textButton}
+                  type="button"
+                  disabled={pending}
+                  onClick={() => onToggleStatus(guest)}
+                >
+                  {guest.status === 'ACTIVE' ? 'Lưu trữ' : 'Khôi phục'}
+                </button>
+              </div>
+            )}
           </div>
         );
       })}

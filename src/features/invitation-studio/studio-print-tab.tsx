@@ -38,32 +38,34 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
       (request) => request.state === 'DRAFT' || request.state === 'AWAITING_APPROVAL',
     ) ?? false;
   const [selectedMode, setSelectedMode] = useState<'create' | 'track' | null>(null);
-  const mode = selectedMode ?? (pending ? 'track' : 'create');
+  const mode = studio.locked ? 'track' : (selectedMode ?? (pending ? 'track' : 'create'));
   const linkedIds = new Set(
     printRequests?.flatMap((request) => (request.orderId ? [request.orderId] : [])),
   );
   return (
     <section className={ix.stack} aria-label="Đặt in thiệp">
-      <div className={ix.actions} role="group" aria-label="Thao tác in thiệp">
-        <button
-          type="button"
-          aria-pressed={mode === 'create'}
-          className={mode === 'create' ? ix.btnSmall : ix.btnSmallOutline}
-          disabled={isOrdering || writing}
-          onClick={() => setSelectedMode('create')}
-        >
-          Tạo yêu cầu in
-        </button>
-        <button
-          type="button"
-          aria-pressed={mode === 'track'}
-          className={mode === 'track' ? ix.btnSmall : ix.btnSmallOutline}
-          disabled={isOrdering || writing}
-          onClick={() => setSelectedMode('track')}
-        >
-          Theo dõi in{pending ? ' · Chờ duyệt' : ''}
-        </button>
-      </div>
+      {!studio.locked && (
+        <div className={ix.actions} role="group" aria-label="Thao tác in thiệp">
+          <button
+            type="button"
+            aria-pressed={mode === 'create'}
+            className={mode === 'create' ? ix.btnSmall : ix.btnSmallOutline}
+            disabled={isOrdering || writing}
+            onClick={() => setSelectedMode('create')}
+          >
+            Tạo yêu cầu in
+          </button>
+          <button
+            type="button"
+            aria-pressed={mode === 'track'}
+            className={mode === 'track' ? ix.btnSmall : ix.btnSmallOutline}
+            disabled={isOrdering || writing}
+            onClick={() => setSelectedMode('track')}
+          >
+            Theo dõi in{pending ? ' · Chờ duyệt' : ''}
+          </button>
+        </div>
+      )}
       {ordersError && (
         <div className={ix.calloutWarning} role="alert">
           <p>{ordersError}</p>
@@ -240,7 +242,7 @@ export function StudioPrintTab({ studio }: StudioPrintTabProps) {
                   {request.orderId && (
                     <StudioPrintOrders studio={studio} onlyOrderId={request.orderId} />
                   )}
-                  {request.state === 'AWAITING_APPROVAL' && !request.orderId ? (
+                  {!studio.locked && request.state === 'AWAITING_APPROVAL' && !request.orderId ? (
                     <button
                       type="button"
                       className={ix.btnDanger}

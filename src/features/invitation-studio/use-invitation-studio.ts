@@ -16,6 +16,7 @@ import { useInvitationSeating } from './use-invitation-seating';
 import { useInvitationPrint } from './use-invitation-print';
 
 export interface UseInvitationStudioOptions {
+  readonly locked?: string | null;
   readonly event?: InvitationEvent | null;
   readonly timeline?: InvitationContent['timeline'];
   readonly bookingId: string;
@@ -31,6 +32,7 @@ export interface UseInvitationStudioOptions {
 }
 
 export function useInvitationStudio({
+  locked = null,
   event = null,
   timeline = [],
   bookingId,
@@ -129,7 +131,9 @@ export function useInvitationStudio({
   const seating = useInvitationSeating(bookingId, design.includesSeating);
 
   // View modes
-  const [mobileViewMode, setMobileViewMode] = useState<'editor' | 'preview'>('editor');
+  const [mobileViewMode, setMobileViewMode] = useState<'editor' | 'preview'>(
+    locked ? 'preview' : 'editor',
+  );
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'desktop'>('mobile');
 
   // Realtime resync & live design
@@ -159,6 +163,7 @@ export function useInvitationStudio({
   );
 
   return {
+    locked,
     event,
     timeline,
     bookingId,

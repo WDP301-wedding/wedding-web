@@ -10,6 +10,10 @@ import { GroupsCard } from './groups-card';
 import { GuestListCard } from './guest-list-card';
 import { ImportCard } from './import-card';
 import { CheckInCard } from './check-in-card';
+import {
+  PreparationReadOnlyNotice,
+  usePreparationLock,
+} from '../couple-workspace/preparation-access';
 import { gx } from './guest-classes';
 
 export function GuestsPage() {
@@ -25,6 +29,8 @@ export function GuestsPage() {
 }
 
 function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
+  const locked = usePreparationLock(proposal);
+  const readOnly = locked !== null;
   const {
     bookingId,
     data,
@@ -45,11 +51,13 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
 
   return (
     <div className={gx.workspace}>
+      {locked && <PreparationReadOnlyNotice reason={locked} />}
       <SummaryCard data={data} status={status} />
       <div className={gx.settings}>
         <PlanCard
           bookingId={bookingId}
           plan={data.plan}
+          readOnly={readOnly}
           maxGuests={proposal.proposal.hall.maxGuests}
           onSaved={onPlanSaved}
         />
@@ -57,6 +65,7 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
           <CheckInCard
             bookingId={bookingId}
             settings={data.settings}
+            readOnly={readOnly}
             attendance={data.attendance}
             onChanged={onCheckInChanged}
           />
@@ -73,6 +82,7 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
       <GroupsCard
         bookingId={bookingId}
         groups={data.groups}
+        readOnly={readOnly}
         // Chỉ đếm được khi đang xem khách "Đang mời"; xem "Đã lưu trữ" thì để backend tự kiểm tra.
         activeGuestCounts={status === 'ACTIVE' ? countByGroup(data.guests) : undefined}
         onChanged={onGroupSaved}
@@ -82,6 +92,7 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
         groups={data.groups}
         guests={data.guests}
         status={status}
+        readOnly={readOnly}
         onStatusChange={setStatus}
         onChanged={onGuestSaved}
         importPanel={<ImportCard bookingId={bookingId} groups={data.groups} onImported={reload} />}

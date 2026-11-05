@@ -181,6 +181,26 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     }),
   };
 
+  it('shows saved invitations and print history without write actions when locked', async () => {
+    render(
+      <InvitationStudioView
+        bookingId={bookingId}
+        accessToken={accessToken}
+        gateway={mockGateway}
+        initialDesigns={[initialDesign]}
+        initialOrders={[initialOrder]}
+        locked="Tiệc đã tất toán."
+      />,
+    );
+    expect(screen.getByText(/Tiệc đã tất toán/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Chọn thiết kế đã lưu')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Lưu thay đổi' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Lịch sử in' }));
+    expect(await screen.findByText('4.500.000 đ')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Tạo yêu cầu in' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Duyệt báo giá' })).not.toBeInTheDocument();
+  });
+
   it('renders header and navigates across tabs', () => {
     render(
       <InvitationStudioView

@@ -1,5 +1,13 @@
 # Payment recovery revision — 2026-10-22
 
+## Read-only preparation — 2026-11-05
+
+Switch guest, seating and invitation preparation to read-only after event
+completion or verified final settlement. Preserve booking access checks, saved
+data and existing file downloads. Keep arrangement and invitation design on
+wedding-web. PRM-app shows saved data and links to the corresponding web page.
+Verify both triggers in an isolated browser fixture before hosted acceptance.
+
 ## Owner-requested completed demo follow-up — 2026-11-04
 
 The owner explicitly requested completing the existing demo booking and fixing

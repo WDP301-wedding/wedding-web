@@ -30,7 +30,7 @@ export function StudioPublishTab({ studio }: Readonly<{ studio: InvitationStudio
         </h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="grid gap-1 rounded-lg bg-muted p-3">
-            <h3 className="font-semibold">Bản đang chỉnh</h3>
+            <h3 className="font-semibold">{studio.locked ? 'Bản đã lưu' : 'Bản đang chỉnh'}</h3>
             <p className={ix.meta}>
               {studio.title || 'Thiệp chưa đặt tên'} ·{' '}
               {designDirty
@@ -66,7 +66,7 @@ export function StudioPublishTab({ studio }: Readonly<{ studio: InvitationStudio
             </a>
           </div>
         )}
-        {designDirty || !currentDesign ? (
+        {studio.locked ? null : designDirty || !currentDesign ? (
           <div className={ix.actions}>
             <p className={ix.hint}>Lưu mẫu đang chỉnh trước khi xuất bản.</p>
             <button
@@ -131,16 +131,20 @@ export function StudioPublishTab({ studio }: Readonly<{ studio: InvitationStudio
                 >
                   Gửi tin nhắn
                 </button>
-                <button
-                  type="button"
-                  className={ix.btnDanger}
-                  disabled={
-                    writing || publicationRevision === null || publicationState === 'stale_conflict'
-                  }
-                  onClick={() => void studio.handleUnpublish()}
-                >
-                  Ngừng chia sẻ
-                </button>
+                {!studio.locked && (
+                  <button
+                    type="button"
+                    className={ix.btnDanger}
+                    disabled={
+                      writing ||
+                      publicationRevision === null ||
+                      publicationState === 'stale_conflict'
+                    }
+                    onClick={() => void studio.handleUnpublish()}
+                  >
+                    Ngừng chia sẻ
+                  </button>
+                )}
               </div>
             </div>
           </details>

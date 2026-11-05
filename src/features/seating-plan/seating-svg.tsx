@@ -74,7 +74,7 @@ export function SeatingSvg({
     currentX: number,
     currentY: number,
   ) => {
-    if (event.button !== 0) return;
+    if (!onMoveTable || event.button !== 0) return;
     event.stopPropagation();
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -180,7 +180,7 @@ export function SeatingSvg({
         onPointerCancel={endPan}
         onWheel={onWheel}
         role="group"
-        aria-label={`Sơ đồ ${plan.renderSnapshot.length} bàn. Kéo thả để đổi vị trí hoặc chọn bàn để gắn nhóm.`}
+        aria-label={`Sơ đồ ${plan.renderSnapshot.length} bàn${onMoveTable ? '. Kéo thả để đổi vị trí hoặc chọn bàn để gắn nhóm.' : '.'}`}
       >
         {sortedTables.map((table) => {
           const cx = table.x + table.width / 2;

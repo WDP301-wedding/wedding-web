@@ -22,7 +22,7 @@ export const layoutWarnings: Record<string, string> = {
   SEATING_REQUIRES_REVIEW: 'Sơ đồ cần được kiểm tra và xác nhận lại theo thông tin tiệc hiện tại.',
 };
 
-export function useSeatingWorkspace(proposal: Proposal) {
+export function useSeatingWorkspace(proposal: Proposal, readOnly = false) {
   const dirty = useRef(false);
   const fetchGeneration = useRef(0);
   const [refreshAvailable, setRefreshAvailable] = useState(false);
@@ -30,6 +30,7 @@ export function useSeatingWorkspace(proposal: Proposal) {
     dirty.current = value;
   }, []);
   const bookingId = proposal.bookingId;
+  const [loaded, setLoaded] = useState(false);
   const [options, setOptions] = useState<LayoutOptions | null>(null);
   const [groups, setGroups] = useState<GuestGroup[]>([]);
   const [plan, setPlan] = useState<SeatingPlan | null>(null);
@@ -59,11 +60,13 @@ export function useSeatingWorkspace(proposal: Proposal) {
     const generation = ++fetchGeneration.current;
     activeRead.current = authorizedRead(async (token) => {
       const [layoutOptions, guestGroups, current] = await Promise.all([
-        optionsCache.current?.bookingId === bookingId &&
-        optionsCache.current.revision === proposal.revision
-          ? Promise.resolve(optionsCache.current.value)
-          : seatingApi.options(token, bookingId),
-        guestApi.groups(token, bookingId),
+        readOnly
+          ? Promise.resolve(null)
+          : optionsCache.current?.bookingId === bookingId &&
+              optionsCache.current.revision === proposal.revision
+            ? Promise.resolve(optionsCache.current.value)
+            : seatingApi.options(token, bookingId),
+        readOnly ? Promise.resolve([]) : guestApi.groups(token, bookingId),
         seatingApi.current(token, bookingId),
       ]);
       return { layoutOptions, guestGroups, current };
@@ -74,7 +77,9 @@ export function useSeatingWorkspace(proposal: Proposal) {
           setRefreshAvailable(true);
           return;
         }
-        optionsCache.current = { bookingId, revision: proposal.revision, value: layoutOptions };
+        if (layoutOptions)
+          optionsCache.current = { bookingId, revision: proposal.revision, value: layoutOptions };
+        setLoaded(true);
         setOptions(layoutOptions);
         setGroups(guestGroups.filter((group) => group.status === 'ACTIVE'));
         setPlan(current);
@@ -90,7 +95,7 @@ export function useSeatingWorkspace(proposal: Proposal) {
     return () => {
       active = false;
     };
-  }, [bookingId, reloadKey, proposal.revision]);
+  }, [bookingId, reloadKey, proposal.revision, readOnly]);
 
   const accept = useCallback((next: SeatingPlan | undefined) => {
     if (!next) return;
@@ -129,6 +134,7 @@ export function useSeatingWorkspace(proposal: Proposal) {
   return {
     bookingId,
     options,
+    loaded,
     groups,
     plan,
     planId,

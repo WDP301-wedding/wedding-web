@@ -18,6 +18,7 @@ export function GuestListCard({
   groups,
   guests,
   status,
+  readOnly = false,
   onStatusChange,
   onChanged,
   importPanel,
@@ -27,6 +28,7 @@ export function GuestListCard({
   groups: GuestGroup[];
   guests: Guest[];
   status: GuestStatusFilter;
+  readOnly?: boolean;
   onStatusChange: (status: GuestStatusFilter) => void;
   onChanged: (guest?: Guest, action?: 'create' | 'update') => void;
 }>) {
@@ -78,7 +80,7 @@ export function GuestListCard({
           </span>
         </div>
         <div className={cx.actions}>
-          {importPanel ? (
+          {!readOnly && importPanel ? (
             <button
               className={cx.buttonOutline}
               type="button"
@@ -89,7 +91,7 @@ export function GuestListCard({
               {importOpen ? 'Đóng phần nhập CSV' : 'Nhập CSV'}
             </button>
           ) : null}
-          {status === 'ACTIVE' ? (
+          {!readOnly && status === 'ACTIVE' ? (
             <button
               className={cx.button}
               type="button"
@@ -102,7 +104,7 @@ export function GuestListCard({
         </div>
       </div>
 
-      {importPanel ? (
+      {!readOnly && importPanel ? (
         <div
           id={importId}
           className={
@@ -183,6 +185,7 @@ export function GuestListCard({
         <>
           <GuestTableView
             visible={visible}
+            readOnly={readOnly}
             selectedIds={selectedIds}
             allVisibleSelected={allVisibleSelected}
             someVisibleSelected={someVisibleSelected}
@@ -203,6 +206,7 @@ export function GuestListCard({
 
           <GuestCardList
             visible={visible}
+            readOnly={readOnly}
             selectedIds={selectedIds}
             groupMap={groupMap}
             pending={command.pending}
@@ -221,7 +225,7 @@ export function GuestListCard({
       )}
 
       {/* Thanh Thao tác hàng loạt (Bulk Bar) khi có chọn */}
-      {selectedIds.size > 0 ? (
+      {!readOnly && selectedIds.size > 0 ? (
         <div className={gx.bulkBar} role="region" aria-label="Thao tác hàng loạt">
           <div className={gx.bulkInfo}>Đã chọn {selectedIds.size} khách mời</div>
           <div className={gx.bulkActions}>
@@ -272,7 +276,7 @@ export function GuestListCard({
 
       {/* Modal Thêm / Chỉnh sửa khách */}
       <GuestModal
-        isOpen={modalState.open}
+        isOpen={!readOnly && modalState.open}
         {...(modalState.guest ? { guest: modalState.guest } : {})}
         groups={activeGroups}
         pending={command.pending}
@@ -316,7 +320,7 @@ export function GuestListCard({
 
       {/* Modal hiển thị Liên kết thiệp riêng */}
       <GuestLinkModal
-        link={link}
+        link={readOnly ? null : link}
         onClose={() => {
           clearLink();
           setLinkGuest(null);
@@ -330,7 +334,7 @@ export function GuestListCard({
         }
       />
 
-      {dialog}
+      {!readOnly && dialog}
     </section>
   );
 }

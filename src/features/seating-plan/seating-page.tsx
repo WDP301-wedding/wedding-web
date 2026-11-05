@@ -5,7 +5,13 @@ import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import { CouplePage, ErrorPanel } from '../couple-workspace/couple-page';
 import { type Proposal } from '../couple-workspace/use-couple-workspace';
 import { Skeleton } from '../../design-system/skeleton';
+import {
+  PreparationReadOnlyNotice,
+  usePreparationLock,
+} from '../couple-workspace/preparation-access';
 import { LayoutSelector } from './layout-selector';
+import { PlanEditorHeader } from './plan-editor-header';
+import { SeatingSvg } from './seating-svg';
 import { PlanEditor } from './plan-editor';
 import { useSeatingWorkspace } from './use-seating-workspace';
 import type { SeatingPlan } from './seating-api';
@@ -19,18 +25,28 @@ export function SeatingPage() {
       description="Chọn mẫu sơ đồ của sảnh và gắn nhóm khách cho từng bàn. Không cần xếp từng người vào ghế."
       requireFull
     >
-      {(proposal) => <SeatingWorkspace proposal={proposal} />}
+      {(proposal) => <SeatingAccess proposal={proposal} />}
     </CouplePage>
   );
 }
 
-function SeatingWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
+function SeatingAccess({ proposal }: Readonly<{ proposal: Proposal }>) {
+  const locked = usePreparationLock(proposal);
+  return <SeatingWorkspace key={locked ? 'read' : 'edit'} proposal={proposal} locked={locked} />;
+}
+
+function SeatingWorkspace({
+  proposal,
+  locked,
+}: Readonly<{ proposal: Proposal; locked: string | null }>) {
+  const [selected, setSelected] = useState<string | null>(null);
   const { confirm, dialog } = useConfirmDialog();
   const [dirty, setDirtyState] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const {
     bookingId,
     options,
+    loaded,
     groups,
     plan,
     planId,
@@ -40,7 +56,7 @@ function SeatingWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
     setDirty,
     refreshAvailable,
     requestRefresh,
-  } = useSeatingWorkspace(proposal);
+  } = useSeatingWorkspace(proposal, locked !== null);
   const handleDirty = useCallback(
     (value: boolean) => {
       setDirty(value);
@@ -53,7 +69,7 @@ function SeatingWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
       accept(next);
       if (next) {
         setTimeout(() => {
-          editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          editorRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
         }, 80);
       }
     },
@@ -61,7 +77,29 @@ function SeatingWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   );
 
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
-  if (!options) return <Skeleton label="Đang tải sơ đồ…" />;
+  if (!loaded) return <Skeleton label="Đang tải sơ đồ…" />;
+  if (locked) {
+    return (
+      <div className={sx.workspace}>
+        <PreparationReadOnlyNotice reason={locked} />
+        {plan ? (
+          <section className={cx.card}>
+            <PlanEditorHeader plan={plan} capacityWarning={null} />
+            <SeatingSvg
+              plan={plan}
+              selected={selected}
+              onSelectTable={setSelected}
+              colorOf={(table) => table.color ?? '#6E5D63'}
+              groupNameOf={(table) => table.guestGroupName ?? undefined}
+            />
+          </section>
+        ) : (
+          <p className={cx.note}>Chưa có sơ đồ bàn đã lưu.</p>
+        )}
+      </div>
+    );
+  }
+  if (!options) return null;
 
   return (
     <div className={sx.workspace}>

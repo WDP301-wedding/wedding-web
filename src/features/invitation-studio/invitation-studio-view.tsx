@@ -6,6 +6,7 @@ import { useInvitationStudio, type UseInvitationStudioOptions } from './use-invi
 import { StudioDesignTab } from './studio-design-tab';
 import { StudioPublishTab } from './studio-publish-tab';
 import { StudioPrintTab } from './studio-print-tab';
+import { PreparationReadOnlyNotice } from '../couple-workspace/preparation-access';
 import { ix } from './studio-classes';
 
 export type InvitationStudioViewProps = UseInvitationStudioOptions;
@@ -51,11 +52,14 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
         </button>
       ) : null}
 
+      {studio.locked && <PreparationReadOnlyNotice reason={studio.locked} />}
       {/* Header */}
       <header className={ix.heading}>
         <h1>Thiệp & in</h1>
         <p className={ix.lead}>
-          Thiết kế thiệp, gửi liên kết cho khách mời và theo dõi yêu cầu in.
+          {studio.locked
+            ? 'Xem thiết kế đã lưu và lịch sử in thiệp.'
+            : 'Thiết kế thiệp, gửi liên kết cho khách mời và theo dõi yêu cầu in.'}
         </p>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <strong>{studio.title || 'Thiệp chưa đặt tên'}</strong>
@@ -74,7 +78,7 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
           aria-pressed={activeTab === 'design'}
           className={ix.tab}
         >
-          Thiết kế
+          {studio.locked ? 'Thiệp đã lưu' : 'Thiết kế'}
         </button>
         <button
           type="button"
@@ -90,7 +94,7 @@ export function InvitationStudioView(props: InvitationStudioViewProps) {
           aria-pressed={activeTab === 'print'}
           className={ix.tab}
         >
-          Đặt in
+          {studio.locked ? 'Lịch sử in' : 'Đặt in'}
         </button>
       </nav>
 
