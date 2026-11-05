@@ -1,0 +1,123 @@
+.ornament {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  color: var(--accent);
+  background: repeating-linear-gradient(
+    116deg,
+    transparent 0 5px,
+    color-mix(in srgb, currentColor 8%, transparent) 6px,
+    transparent 7px
+  );
+}
+.ornament::before {
+  content: '';
+  position: absolute;
+  inset: 11px;
+  border: 3px double currentColor;
+  border-radius: 4px;
+}
+.ornament[data-frame='arch']::before {
+  border-width: 1px;
+  border-radius: 45% 45% 5px 5px / 28% 28% 5px 5px;
+}
+.ornament[data-frame='corners']::before {
+  border-width: 1px;
+  clip-path: polygon(
+    0 0,
+    27% 0,
+    27% 8%,
+    73% 8%,
+    73% 0,
+    100% 0,
+    100% 27%,
+    92% 27%,
+    92% 73%,
+    100% 73%,
+    100% 100%,
+    73% 100%,
+    73% 92%,
+    27% 92%,
+    27% 100%,
+    0 100%,
+    0 73%,
+    8% 73%,
+    8% 27%,
+    0 27%
+  );
+}
+.ornament svg {
+  position: absolute;
+  width: min(34%, 125px);
+  inset: 12px auto auto 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.72;
+}
+.ornament svg + svg {
+  inset: auto 12px 12px auto;
+  transform: rotate(180deg);
+}
+.ornament[data-finish='gold-foil'] {
+  color: #a87835;
+  background: linear-gradient(
+    128deg,
+    #b68a4425,
+    transparent 45%,
+    #f1d88f40 55%,
+    transparent 65%,
+    #b68a4425
+  );
+}
+.ornament[data-finish='gold-foil'] svg {
+  filter: drop-shadow(0 1px 0 #fff4cc) drop-shadow(0 -1px 0 #71511a);
+}
+.ornament[data-finish='silk'] {
+  background:
+    radial-gradient(ellipse at 30% 18%, #ffffff9c, transparent 68%),
+    repeating-linear-gradient(
+      108deg,
+      transparent 0 3px,
+      color-mix(in srgb, currentColor 12%, transparent) 4px,
+      transparent 5px
+    );
+}
+.ornament[data-finish='letterpress'] svg {
+  filter: drop-shadow(0 1px 0 white);
+}
+
+.ornament[data-density='subtle'] svg {
+  opacity: 0.48;
+}
+.ornament[data-density='ornate']::before {
+  inset: 8px;
+  outline: 1px solid currentColor;
+  outline-offset: 3px;
+}
+.ornament[data-composition='crown'] svg {
+  inset: 10px auto auto 50%;
+  translate: -50%;
+  width: min(32%, 96px);
+}
+.ornament[data-composition='crown'] svg + svg {
+  inset: auto auto 10px 50%;
+}
+.ornament[data-composition='border'] svg {
+  inset: 11px auto auto 50%;
+  width: 42px;
+  translate: -50%;
+}
+.ornament[data-composition='border'] svg + svg {
+  inset: auto auto 11px 50%;
+}
+.printInterior {
+  position: relative;
+  isolation: isolate;
+}
+.printInterior > [aria-hidden='true'] {
+  z-index: -1;
+}

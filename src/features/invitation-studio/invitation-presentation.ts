@@ -1,4 +1,27 @@
 import { z } from 'zod';
+const motifSchema = z.enum([
+  'peony',
+  'lotus',
+  'botanical',
+  'art-deco',
+  'celestial',
+  'orchid',
+  'cloud',
+  'ginkgo',
+]);
+const compositionSchema = z.enum(['diagonal', 'crown', 'border']);
+const densitySchema = z.enum(['subtle', 'ornate']);
+const decorationSchema = z.object({
+  coverMotif: motifSchema,
+  insideMotif: motifSchema,
+  frame: z.enum(['double-line', 'arch', 'corners']),
+  finish: z.enum(['letterpress', 'gold-foil', 'silk']),
+  coverComposition: compositionSchema.optional(),
+  insideComposition: compositionSchema.optional(),
+  coverDensity: densitySchema.optional(),
+  insideDensity: densitySchema.optional(),
+});
+export type InvitationDecoration = z.infer<typeof decorationSchema>;
 export const presentationSchema = z.object({
   version: z.literal(1),
   theme: z.enum([
@@ -10,6 +33,7 @@ export const presentationSchema = z.object({
     'champagne-luxury',
   ]),
   layout: z.enum(['envelope', 'gatefold', 'album']),
+  decoration: decorationSchema.optional(),
 });
 export type InvitationPresentation = z.infer<typeof presentationSchema>;
 export const DEFAULT_PRESENTATION: InvitationPresentation = {

@@ -1,0 +1,102 @@
+.scene {
+  --leaf-angle: 0deg;
+  --card-shift: 0%;
+  perspective: 1150px;
+  max-width: 840px;
+  margin-inline: auto;
+  touch-action: pan-y pinch-zoom;
+  cursor: grab;
+  user-select: none;
+}
+.scene[data-open='true'] {
+  --leaf-angle: -170deg;
+  --card-shift: 50%;
+}
+.scene[data-dragging='true'] {
+  cursor: grabbing;
+}
+.card {
+  position: relative;
+  display: grid;
+  width: 50%;
+  margin-inline: auto;
+  transform-style: preserve-3d;
+  transform: translateX(var(--card-shift));
+  transition: transform 240ms ease-out;
+}
+.leaf {
+  grid-area: 1 / 1;
+  min-width: 0;
+  position: relative;
+  display: grid;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transform: translateZ(1px) rotateY(var(--leaf-angle));
+  transition: transform 240ms ease-out;
+}
+.scene[data-dragging='true'] .card,
+.scene[data-dragging='true'] .leaf {
+  transition: none;
+}
+.face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  border: 1px solid var(--accent);
+  border-radius: 9px;
+  box-shadow:
+    inset 7px 0 18px #6f4b2514,
+    0 10px 20px #3d251f26;
+  backface-visibility: hidden;
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+.front > div:last-child {
+  min-height: clamp(235px, 38vw, 390px);
+  padding: clamp(18px, 5vw, 42px) clamp(12px, 3vw, 28px);
+  gap: 8px;
+}
+.front img {
+  max-height: 125px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.back {
+  transform: rotateY(180deg);
+}
+.face .faceContent {
+  position: relative;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  min-width: 0;
+  width: 100%;
+  padding: clamp(20px, 4vw, 42px);
+}
+.wrapper {
+  container-type: inline-size;
+}
+@container (width < 620px) {
+  .face .faceContent {
+    display: none;
+  }
+}
+@container (width >= 620px) {
+  .readingPage[data-face-page='true'],
+  .pageNavigation button[data-face-page='true'],
+  .pageNavigation:not(:has(button[data-face-page='false'])) {
+    display: none;
+  }
+}
+.hint {
+  text-align: center;
+  margin-block: 14px 20px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .leaf {
+    transition: none;
+  }
+}

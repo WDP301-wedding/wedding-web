@@ -4,6 +4,7 @@ import { useCallback, useId, useState } from 'react';
 import { AnimatePresence, LazyMotion, domMax, m, useReducedMotion } from 'motion/react';
 import type { InvitationContent } from './invitation-content';
 import { DEFAULT_PRESENTATION } from './invitation-presentation';
+import { HingedInvitation } from './hinged-invitation';
 import styles from './interactive-invitation.module.css';
 import { buildInvitationPages, InvitationCoverContent } from './invitation-pages';
 
@@ -28,6 +29,23 @@ export function InteractiveInvitation({
   const presentation = invitation.presentation ?? DEFAULT_PRESENTATION;
   const pages = buildInvitationPages(invitation, apiBase, recipientGreeting);
   const page = Math.min(pageIndex, pages.length - 1);
+  if (presentation.layout === 'album' && presentation.decoration) {
+    return (
+      <div className={styles.invitation} data-theme={presentation.theme} data-layout="album">
+        <HingedInvitation
+          decoration={presentation.decoration}
+          cover={
+            <InvitationCoverContent
+              invitation={invitation}
+              apiBase={apiBase}
+              {...(recipientGreeting ? { recipientGreeting } : {})}
+            />
+          }
+          pages={pages}
+        />
+      </div>
+    );
+  }
   const duration = reduceMotion ? 0 : 0.38;
   return (
     <LazyMotion features={domMax} strict>
