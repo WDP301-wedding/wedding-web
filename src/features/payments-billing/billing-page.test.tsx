@@ -210,9 +210,6 @@ describe('Couple billing experience', () => {
           name: purpose === 'DEPOSIT' ? 'Tiếp tục thanh toán' : 'Thanh toán còn lại',
         }),
       );
-      if (purpose === 'BALANCE') {
-        fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
-      }
       expect(await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' })).toHaveAttribute(
         'href',
         existing.checkoutUrl,
@@ -569,15 +566,12 @@ describe('Couple billing experience', () => {
     expect(screen.queryByText('Chưa rõ kết quả · đang kiểm tra')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Mã giao dịch thanh toán')).toHaveValue('');
   });
-  it('cancels before submission, then permits review again after a definitive stale response', async () => {
+  it('waits for an explicit payment action and permits retry after a definitive stale response', async () => {
     const api = gateway();
     await full(api);
-    fireEvent.click(screen.getByRole('button', { name: 'Thanh toán còn lại' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Quay lại' }));
     expect(api.startBalance).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Thanh toán còn lại' }));
     vi.mocked(api.startBalance).mockRejectedValue(error('STALE_BILLING_REVISION'));
-    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Thanh toán còn lại' }));
     await screen.findByRole('alert');
     expect(screen.getByRole('button', { name: 'Thanh toán còn lại' })).toBeEnabled();
     expect(screen.queryByText('private provider message')).not.toBeInTheDocument();
@@ -723,7 +717,10 @@ describe('Couple billing experience', () => {
     await load();
     expect(screen.getByText('Còn phải thanh toán')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Thanh toán còn lại' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
+    expect(
+      await screen.findByRole('img', { name: 'Mã QR mở trang thanh toán VNPay' }),
+    ).toBeInTheDocument();
+    expect(api.startBalance).toHaveBeenCalledTimes(1);
     await waitFor(() =>
       expect(api.startBalance).toHaveBeenCalledWith(
         'token',
@@ -922,7 +919,6 @@ describe('Balance payment eligibility (BE PR #76)', () => {
       ...blocked('INVOICE_FINALIZATION_REQUIRED', 'WAIT_FOR_FINAL_INVOICE'),
     });
     fireEvent.click(screen.getByRole('button', { name: 'Thanh toán còn lại' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Tạo giao dịch VNPay' }));
     await waitFor(() => expect(api.startBalance).toHaveBeenCalledTimes(1));
     expect(await screen.findByRole('alert')).toHaveTextContent('chưa chốt hoá đơn cuối');
     await waitFor(() => expect(api.load).toHaveBeenCalledTimes(loadsBefore + 1));

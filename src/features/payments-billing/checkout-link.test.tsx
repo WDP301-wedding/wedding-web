@@ -10,6 +10,7 @@ const checkout: CheckoutView = {
   expiresAt: '2026-10-19T10:57:00Z',
 };
 const link = () => screen.queryByRole('link', { name: 'Tiếp tục trên VNPay' });
+const qr = () => screen.queryByRole('img', { name: 'Mã QR mở trang thanh toán VNPay' });
 
 describe('CheckoutLinkPanel', () => {
   beforeEach(() => {
@@ -23,6 +24,7 @@ describe('CheckoutLinkPanel', () => {
     (status) => {
       render(<CheckoutLinkPanel checkout={checkout} status={status} />);
       expect(link()).toHaveAttribute('href', checkout.checkoutUrl);
+      expect(qr()).toBeInTheDocument();
       expect(screen.getByText(/Mở lại không tạo giao dịch mới/)).toBeInTheDocument();
     },
   );
@@ -30,6 +32,7 @@ describe('CheckoutLinkPanel', () => {
   it.each(['SUCCEEDED', 'FAILED'] as const)('never reopens a %s attempt', (status) => {
     render(<CheckoutLinkPanel checkout={checkout} status={status} />);
     expect(link()).not.toBeInTheDocument();
+    expect(qr()).not.toBeInTheDocument();
     expect(screen.getByText(/Kiểm tra trạng thái đã xác minh/)).toBeInTheDocument();
   });
 
@@ -40,6 +43,7 @@ describe('CheckoutLinkPanel', () => {
       await vi.advanceTimersByTimeAsync(12 * 60_000);
     });
     expect(link()).not.toBeInTheDocument();
+    expect(qr()).not.toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Đường dẫn đã hết hạn');
   });
 
@@ -58,11 +62,7 @@ describe('CheckoutLinkPanel', () => {
   it('calls onResetExpired when clicking retry button after expiry', async () => {
     const onResetExpired = vi.fn();
     render(
-      <CheckoutLinkPanel
-        checkout={checkout}
-        status="PENDING"
-        onResetExpired={onResetExpired}
-      />,
+      <CheckoutLinkPanel checkout={checkout} status="PENDING" onResetExpired={onResetExpired} />,
     );
     await act(async () => {
       await vi.advanceTimersByTimeAsync(12 * 60_000);
