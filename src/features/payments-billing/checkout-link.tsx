@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { formatDateTime } from '../couple-workspace/workspace-helpers';
 import type { AttemptView, CheckoutView } from './billing-api';
 import { cn } from 'cn';
@@ -76,16 +77,23 @@ export function CheckoutLinkPanel({
   const countdown = useCountdown(checkout.expiresAt);
   const canReopen = reopenableStatuses.has(status) && !expired;
   return (
-    <section className={bx.panel}>
-      <h2>Đường dẫn thanh toán đã được tạo</h2>
+    <section className={bx.confirm} aria-label="Xác nhận thanh toán">
+      <h2>Xác nhận thanh toán số dư</h2>
       <p>
         Mã giao dịch thanh toán: <code>{checkout.paymentAttemptId}</code>
       </p>
       {canReopen ? (
         <>
+          <p>Dùng camera điện thoại quét mã để mở trang chọn phương thức thanh toán của VNPay.</p>
+          <QRCodeSVG
+            className="h-auto max-w-full self-start rounded-lg"
+            value={checkout.checkoutUrl}
+            title="Mã QR mở trang thanh toán VNPay"
+            size={240}
+            marginSize={4}
+          />
           <p>
-            Chưa trả tiền hoặc lỡ đóng trang VNPay? Mở lại để quét mã QR — đường dẫn còn hiệu lực
-            đến <strong>{timeFormat(checkout.expiresAt)}</strong>
+            Mã có hiệu lực đến <strong>{timeFormat(checkout.expiresAt)}</strong>
             {countdown ? (
               <span>
                 {' '}
@@ -94,12 +102,8 @@ export function CheckoutLinkPanel({
             ) : null}
             . Mở lại không tạo giao dịch mới.
           </p>
-          <p>
-            Bạn sẽ chuyển sang VNPay trong tab hiện tại. Sau khi hoàn tất, chọn quay về website để
-            xem trạng thái thanh toán đã xác minh.
-          </p>
           <a
-            className={bx.primaryLink}
+            className={cn(bx.primaryLink, 'self-start')}
             href={checkout.checkoutUrl}
             target="_self"
             rel="noopener noreferrer"
@@ -123,10 +127,7 @@ export function CheckoutLinkPanel({
       ) : (
         <p>Kiểm tra trạng thái đã xác minh trước khi tiếp tục thanh toán.</p>
       )}
-      <p>
-        Sau khi quay lại, kiểm tra trạng thái bên dưới. Trang trả về từ VNPay không xác nhận đã nhận
-        tiền.
-      </p>
+      <p>Sau khi thanh toán, chọn “Kiểm tra trạng thái” bên dưới để xác minh kết quả.</p>
     </section>
   );
 }

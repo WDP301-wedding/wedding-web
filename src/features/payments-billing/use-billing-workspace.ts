@@ -249,6 +249,7 @@ export function useBillingWorkspace({
         setRetry,
       });
       if (
+        activeIntent.kind === 'deposit' &&
         value.checkoutUrl &&
         typeof window !== 'undefined' &&
         process.env.NODE_ENV !== 'test'

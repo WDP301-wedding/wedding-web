@@ -28,23 +28,35 @@ export function BillingConfirmSection({
       ) : (
         <strong>{money(intent.amountVnd)}</strong>
       )}
-      <p>
-        Sau khi tạo giao dịch, chọn “Tiếp tục trên VNPay” để thanh toán trong tab hiện tại. Kết quả
-        sẽ được xác minh khi bạn quay về.
-      </p>
-      <div className={bx.confirmActions}>
-        <button type="button" className={bx.button} disabled={pending} onClick={onConfirm}>
-          {pending ? 'Đang tạo giao dịch…' : retry ? 'Thử lại cùng yêu cầu' : 'Tạo giao dịch VNPay'}
-        </button>
-        <button
-          type="button"
-          className={bx.buttonOutline}
-          disabled={pending || retry}
-          onClick={onCancel}
-        >
-          Quay lại
-        </button>
-      </div>
+      {intent.kind === 'balance' ? (
+        <p>Website sẽ hiển thị mã QR để mở trang chọn phương thức thanh toán của VNPay.</p>
+      ) : (
+        <p>
+          Sau khi tạo giao dịch, chọn “Tiếp tục trên VNPay” để thanh toán trong tab hiện tại. Kết
+          quả sẽ được xác minh khi bạn quay về.
+        </p>
+      )}
+      {intent.kind === 'balance' && !retry ? (
+        <p role="status">Đang chuẩn bị mã QR…</p>
+      ) : (
+        <div className={bx.confirmActions}>
+          <button type="button" className={bx.button} disabled={pending} onClick={onConfirm}>
+            {pending
+              ? 'Đang tạo giao dịch…'
+              : retry
+                ? 'Thử lại cùng yêu cầu'
+                : 'Tạo giao dịch VNPay'}
+          </button>
+          <button
+            type="button"
+            className={bx.buttonOutline}
+            disabled={pending || retry}
+            onClick={onCancel}
+          >
+            Quay lại
+          </button>
+        </div>
+      )}
     </Container>
   );
 }

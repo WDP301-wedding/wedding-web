@@ -298,7 +298,7 @@ export function CoupleBillingWorkspace({
               restaurant={restaurant}
               onStartBalance={() => {
                 if (gate === null || !gate.allowed) return;
-                setIntent({
+                void start({
                   kind: 'balance',
                   body: { expectedBillingRevision: view.billingRevision },
                   amountVnd: view.totals.outstandingVnd,
