@@ -83,6 +83,7 @@ export function ContractCard({
       ) : null}
       {current ? (
         <ContractDetailsView
+          key={current.revisionId}
           current={current}
           contracts={contracts}
           bookingId={proposal.bookingId}

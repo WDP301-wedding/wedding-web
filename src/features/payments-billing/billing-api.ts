@@ -33,7 +33,7 @@ export type BillingContext = Readonly<{
     proposal: Pick<Proposal, 'eventDate' | 'planningHeadcount' | 'proposal'>;
     approvedContract: Readonly<{
       revisionNumber: number;
-      document: Omit<ContractRevision['document'], 'timeline'>;
+      document: Omit<ContractRevision['document'], 'timeline' | 'standardTerms'>;
     }> | null;
   }>;
   timelineRevisionId: string | null;

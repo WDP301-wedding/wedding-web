@@ -2,15 +2,15 @@
 
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { Celebrate } from '../../design-system/celebrate';
-import { openBlob } from '../../lib/api/download';
 import { formatVnd, type useCommand } from '../couple-workspace/use-couple-workspace';
 import { contractApi } from './contract-api';
 import type { currentRevision, ContractList } from './contract-api';
 import { ContractLinesTable } from './contract-lines';
 import { WithdrawForm } from './contract-withdraw-form';
 import { cx } from './contract-classes';
+import { ContractPdfViewer } from './contract-pdf-viewer';
 
 export function ContractDetailsView({
   current,
@@ -39,6 +39,12 @@ export function ContractDetailsView({
   }) => Promise<boolean>;
   after: (result: unknown) => void;
 }>) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const standard = current.document.standardTerms;
+  const isLocked = current.state === 'APPROVED' && Boolean(standard);
+  const canViewPdf = !standard || current.submittedAt !== null;
+  const canRequestChanges =
+    current.state === 'AWAITING_APPROVAL' && contracts.capabilities?.canRequestChanges;
   return (
     <>
       <ContractLinesTable
@@ -46,9 +52,9 @@ export function ContractDetailsView({
         totalVnd={current.document.contractTotalVnd}
       />
       <p className={cx.note}>
-        Tổng dưới đây do nhà hàng tính trên máy chủ cho đúng phiên bản đang xem. Bao gồm các hạng
-        mục trong bảng; chi phí phát sinh chưa ghi nhận không nằm trong tổng này. Kiểm tra toàn bộ
-        trước khi xác nhận duyệt.
+        {standard
+          ? 'Giá đã bao gồm thuế GTGT. Hóa đơn cuối sẽ đối soát phụ lục và các khoản phát sinh.'
+          : 'Tổng tiền áp dụng cho các hạng mục trong phiên bản này.'}
       </p>
       <dl className={cx.stats}>
         <div>
@@ -59,6 +65,14 @@ export function ContractDetailsView({
           <dt>Tiền cọc (30%, làm tròn lên)</dt>
           <dd>{formatVnd(current.document.depositAmountVnd)}</dd>
         </div>
+        {standard ? (
+          <div>
+            <dt>Tất toán sau tiệc (tạm tính)</dt>
+            <dd>
+              {formatVnd(current.document.contractTotalVnd - current.document.depositAmountVnd)}
+            </dd>
+          </div>
+        ) : null}
         <div>
           <dt>Nhà hàng duyệt</dt>
           <dd>{managerApproved ? 'Đã duyệt' : 'Chưa'}</dd>
@@ -73,26 +87,34 @@ export function ContractDetailsView({
         <strong>{current.document.groomName ?? 'chưa có'}</strong> ·{' '}
         {current.document.incidentalClause}
       </p>
+      {standard ? (
+        <p className={cx.note}>
+          Tối đa 02 bàn dự phòng miễn phí kèm thực đơn <strong>{standard.reserveMenu.name}</strong>.
+        </p>
+      ) : null}
+      {isLocked ? (
+        <p className={cx.note}>
+          Hai bên đã duyệt và khóa phiên bản này. Tải bản chính thức để in và ký tay ở Điều 10.
+        </p>
+      ) : null}
 
       <div className={cx.actions}>
-        <button
-          className={cx.buttonOutline}
-          type="button"
-          disabled={command.pending}
-          onClick={() =>
-            void command.run(async (token) => {
-              const blob = await contractApi.pdf(token, bookingId, current.revisionId);
-              openBlob(blob, `hop-dong-ban-${current.revisionNumber}.pdf`);
-            })
-          }
-        >
-          Xem PDF
-        </button>
+        {canViewPdf ? (
+          <button
+            className={cx.buttonOutline}
+            type="button"
+            disabled={command.pending}
+            onClick={() => setPreviewOpen(true)}
+          >
+            {current.state === 'APPROVED' ? 'Xem PDF đã duyệt' : 'Xem trước hợp đồng (PDF)'}
+          </button>
+        ) : null}
 
         {current.state === 'DRAFT' ? (
           <p className={cx.note}>
-            Nhà hàng đang soạn bản nháp. Hai bạn có thể xem trước; nút duyệt sẽ mở sau khi nhà hàng
-            gửi hợp đồng.
+            {contracts.changeRequestReason
+              ? 'Đã gửi yêu cầu chỉnh sửa. Nhà hàng đang chuẩn bị phiên bản mới.'
+              : 'Nhà hàng đang soạn bản nháp. Bản PDF và nút duyệt sẽ có khi nhà hàng gửi hợp đồng.'}
           </p>
         ) : null}
 
@@ -107,8 +129,9 @@ export function ContractDetailsView({
               void (async () => {
                 const agreed = await confirm({
                   title: 'Duyệt hợp đồng này?',
-                  description:
-                    'Xác nhận hai bạn đã đọc và đồng ý với toàn bộ nội dung hợp đồng. Sau khi cả hai bên duyệt, muốn sửa phải rút duyệt và tạo bản mới.',
+                  description: standard
+                    ? 'Xác nhận hai bạn đã đọc và đồng ý với bản hợp đồng này. Hệ thống khóa bản chính thức khi cả hai bên đã duyệt.'
+                    : 'Xác nhận hai bạn đã đọc và đồng ý với toàn bộ nội dung hợp đồng.',
                   confirmLabel: 'Đồng ý & duyệt',
                 });
                 if (!agreed) return;
@@ -152,6 +175,16 @@ export function ContractDetailsView({
           </Link>
         ) : null}
       </div>
+      {previewOpen && canViewPdf ? (
+        <ContractPdfViewer
+          key={current.revisionId + ':' + current.state}
+          bookingId={bookingId}
+          revisionId={current.revisionId}
+          revisionNumber={current.revisionNumber}
+          mode={current.state === 'APPROVED' ? 'official' : 'preview'}
+          onClose={() => setPreviewOpen(false)}
+        />
+      ) : null}
 
       {current.state === 'APPROVED' && !contracts.eligibleForDeposit && !isPostDeposit ? (
         <p className={cx.note}>
@@ -160,7 +193,29 @@ export function ContractDetailsView({
         </p>
       ) : null}
 
-      {(current.state === 'AWAITING_APPROVAL' && coupleApproved) || current.state === 'APPROVED' ? (
+      {canRequestChanges ? (
+        <WithdrawForm
+          requestChanges
+          pending={command.pending}
+          onSubmit={(reason) => {
+            void command
+              .run(
+                (token, key) =>
+                  contractApi.requestChanges(
+                    token,
+                    key,
+                    bookingId,
+                    current.revisionId,
+                    expectedRevision,
+                    reason,
+                  ),
+                'Đã gửi yêu cầu chỉnh sửa cho nhà hàng.',
+              )
+              .then(after);
+          }}
+        />
+      ) : (current.state === 'AWAITING_APPROVAL' && coupleApproved) ||
+        current.state === 'APPROVED' ? (
         !isPostDeposit && contracts.capabilities?.canWithdrawApproval ? (
           <WithdrawForm
             pending={command.pending}

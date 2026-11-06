@@ -11,11 +11,13 @@ export function ContractPdfViewer({
   bookingId,
   revisionId,
   revisionNumber,
+  mode = 'presentation',
   onClose,
 }: Readonly<{
   bookingId: string;
   revisionId: string;
   revisionNumber?: number | undefined;
+  mode?: 'preview' | 'official' | 'presentation';
   onClose: () => void;
 }>) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -41,12 +43,13 @@ export function ContractPdfViewer({
   useEffect(() => {
     let active = true;
     let objectUrl: string | null = null;
-    const key = bookingId + ':' + revisionId + ':' + retry;
+    const layout = mode === 'presentation' ? 'readable' : 'retained';
+    const key = bookingId + ':' + revisionId + ':' + layout + ':' + retry;
     if (request.current?.key !== key)
       request.current = {
         key,
         promise: browserSession.authorize((token) =>
-          contractApi.pdf(token, bookingId, revisionId, 'readable'),
+          contractApi.pdf(token, bookingId, revisionId, layout),
         ),
       };
     void request.current.promise
@@ -64,7 +67,7 @@ export function ContractPdfViewer({
       active = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [bookingId, revisionId, retry]);
+  }, [bookingId, revisionId, mode, retry]);
   useEffect(
     () => () => {
       if (retainedUrl.current) URL.revokeObjectURL(retainedUrl.current);
@@ -108,20 +111,41 @@ export function ContractPdfViewer({
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
           <div>
             <h2 id="contract-pdf-title" className="text-lg font-bold">
-              Hợp đồng và thỏa thuận{revisionNumber ? ' · Bản ' + revisionNumber : ''}
+              {mode === 'preview'
+                ? 'Bản xem trước hợp đồng'
+                : mode === 'official'
+                  ? 'Hợp đồng đã duyệt'
+                  : 'Hợp đồng và thỏa thuận'}
+              {revisionNumber ? ' · Bản ' + revisionNumber : ''}
             </h2>
             <p className="text-xs text-muted-foreground">
-              Xem nội dung đúng phiên bản. Bản lưu trữ được giữ nguyên để đối chiếu.
+              {mode === 'preview'
+                ? 'Kiểm tra các điều khoản trước khi duyệt.'
+                : 'Xem và tải tệp PDF đã lưu để đối chiếu.'}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            {url ? (
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              >
+                Mở trong tab mới
+              </a>
+            ) : null}
             <button
               type="button"
               className={buttonVariants({ variant: 'outline', size: 'sm' })}
               disabled={downloading}
               onClick={() => void downloadRetained()}
             >
-              {downloading ? 'Đang tải…' : 'Tải bản lưu trữ'}
+              {downloading
+                ? 'Đang tải…'
+                : mode === 'preview'
+                  ? 'Tải bản xem trước'
+                  : 'Tải bản lưu trữ'}
             </button>
             <button
               type="button"
