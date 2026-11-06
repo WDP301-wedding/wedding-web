@@ -1,3 +1,5 @@
+import type { InvitationDecoration } from './invitation-presentation';
+
 /** Kiểu dữ liệu thiết kế thiệp và 3 phong cách gợi ý sẵn cho trợ lý AI. */
 
 export type CardThemeId =
@@ -20,6 +22,7 @@ export interface GeneratedInvitationDesign {
   badge: string;
   accentColor: string;
   summary: string;
+  decoration?: InvitationDecoration;
 }
 
 export interface AiDesignPreset {
@@ -32,7 +35,65 @@ export interface AiDesignPreset {
   design: GeneratedInvitationDesign;
 }
 
-/** 3 biến thể gợi ý chuẩn Enterprise từ AI */
+/** Curated designs available without requesting AI generation. */
+
+const extraPresets = [
+  {
+    id: 'traditional-red',
+    name: 'Song hỷ truyền thống',
+    tagline: 'Chữ hỷ và vân mây',
+    badge: 'Ép kim',
+    palette: ['#8b2025', '#a97732', '#fff6eb', '#44191c'],
+    decoration: {
+      coverMotif: 'song-hy',
+      insideMotif: 'cloud',
+      frame: 'inset',
+      finish: 'gold-foil',
+      coverComposition: 'medallion',
+      insideComposition: 'border',
+      coverDensity: 'ornate',
+      insideDensity: 'subtle',
+    },
+    description: 'Chữ hỷ nổi bật trên bìa, mặt trong viền mây nhẹ.',
+  },
+  {
+    id: 'celestial-navy',
+    name: 'Đêm sao',
+    tagline: 'Trăng và hình học',
+    badge: 'Lụa',
+    palette: ['#243252', '#7d6c42', '#f8faff', '#1b2438'],
+    decoration: {
+      coverMotif: 'celestial',
+      insideMotif: 'art-deco',
+      frame: 'arch',
+      finish: 'silk',
+      coverComposition: 'medallion',
+      insideComposition: 'diagonal',
+      coverDensity: 'subtle',
+      insideDensity: 'subtle',
+    },
+    description: 'Huy hiệu trăng sao và khung vòm trên nền xanh đêm.',
+  },
+  {
+    id: 'champagne-luxury',
+    name: 'Ren trên giấy cotton',
+    tagline: 'Ren và hoa mộc lan',
+    badge: 'Dập nổi',
+    palette: ['#5b4831', '#927342', '#fffcf5', '#3e2f1d'],
+    decoration: {
+      coverMotif: 'lace',
+      insideMotif: 'magnolia',
+      frame: 'scalloped',
+      finish: 'embossed-cotton',
+      coverComposition: 'crown',
+      insideComposition: 'diagonal',
+      coverDensity: 'subtle',
+      insideDensity: 'subtle',
+    },
+    description: 'Ren viền mềm và vân giấy cotton, mặt trong trang trí hoa mộc lan.',
+  },
+] as const;
+
 export const AI_DESIGN_PRESETS: readonly AiDesignPreset[] = [
   {
     id: 'royal-burgundy',
@@ -51,6 +112,16 @@ export const AI_DESIGN_PRESETS: readonly AiDesignPreset[] = [
         'Tình yêu là khởi đầu của một hành trình vĩnh cửu. Chúng tôi vô cùng hạnh phúc được đón tiếp những người thân yêu nhất đến chứng kiến khoảnh khắc hẹn ước thiêng liêng và chúc phúc cho tương lai chung đôi.',
       footer: 'Sự hiện diện của quý khách là niềm vinh hạnh to lớn đối với hai bên gia đình.',
       theme: 'royal-burgundy',
+      decoration: {
+        coverMotif: 'phoenix',
+        insideMotif: 'song-hy',
+        frame: 'inset',
+        finish: 'gold-foil',
+        coverComposition: 'medallion',
+        insideComposition: 'border',
+        coverDensity: 'ornate',
+        insideDensity: 'subtle',
+      },
       themeName: 'Hoàng Gia & Cổ Điển',
       badge: 'Royal Burgundy',
       accentColor: '#C9A46A',
@@ -75,6 +146,16 @@ export const AI_DESIGN_PRESETS: readonly AiDesignPreset[] = [
         'Mộc mạc nhưng chân thành, dịu dàng như sớm mai. Dưới sự chứng kiến của những người bạn trân quý nhất, chúng tôi chính thức cùng nhau viết tiếp chương mới của cuộc đời với trọn vẹn tình yêu và niềm tin.',
       footer: 'Rất mong được đón tiếp bạn với tất cả nụ cười và sự ấm áp.',
       theme: 'sage-minimalist',
+      decoration: {
+        coverMotif: 'bamboo',
+        insideMotif: 'ginkgo',
+        frame: 'corners',
+        finish: 'linen',
+        coverComposition: 'botanical-corners',
+        insideComposition: 'diagonal',
+        coverDensity: 'subtle',
+        insideDensity: 'subtle',
+      },
       themeName: 'Hiện Đại & Tối Giản',
       badge: 'Sage Minimalist',
       accentColor: '#556B5D',
@@ -100,10 +181,37 @@ export const AI_DESIGN_PRESETS: readonly AiDesignPreset[] = [
       footer:
         'Trân trọng cảm ơn tình cảm và sự hiện diện quý báu của bạn trong ngày vui của hai đứa.',
       theme: 'blush-floral',
+      decoration: {
+        coverMotif: 'magnolia',
+        insideMotif: 'wildflower',
+        frame: 'scalloped',
+        finish: 'pearl',
+        coverComposition: 'botanical-corners',
+        insideComposition: 'crown',
+        coverDensity: 'ornate',
+        insideDensity: 'subtle',
+      },
       themeName: 'Hoa Cỏ & Lãng Mạn',
       badge: 'Blush Floral',
       accentColor: '#D48B97',
       summary: 'Phong cách lãng mạn với hoa văn cánh đào, câu chúc ngọt ngào và tông màu ấm áp.',
     },
   },
+  ...extraPresets.map(({ decoration, ...preset }): AiDesignPreset => ({
+    ...preset,
+    design: {
+      title: 'Thiệp mời cưới',
+      brideName: '',
+      groomName: '',
+      greeting: 'Trân trọng kính mời',
+      message: 'Mong bạn đến chung vui cùng hai gia đình trong ngày cưới của chúng tôi.',
+      footer: 'Hân hạnh đón tiếp',
+      theme: preset.id,
+      themeName: preset.name,
+      badge: preset.badge,
+      accentColor: preset.palette[1],
+      summary: preset.description,
+      decoration,
+    },
+  })),
 ];

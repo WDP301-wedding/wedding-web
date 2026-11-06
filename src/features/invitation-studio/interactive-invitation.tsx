@@ -4,6 +4,8 @@ import { useCallback, useId, useState } from 'react';
 import { AnimatePresence, LazyMotion, domMax, m, useReducedMotion } from 'motion/react';
 import type { InvitationContent } from './invitation-content';
 import { DEFAULT_PRESENTATION } from './invitation-presentation';
+import { InvitationOrnament } from './invitation-ornament';
+import ornamentStyles from './invitation-ornament.module.css';
 import { HingedInvitation } from './hinged-invitation';
 import styles from './interactive-invitation.module.css';
 import { buildInvitationPages, InvitationCoverContent } from './invitation-pages';
@@ -46,6 +48,8 @@ export function InteractiveInvitation({
       </div>
     );
   }
+  const decoration = presentation.decoration;
+  const decoratedPaper = `${styles.paper} ${ornamentStyles.printInterior}`;
   const duration = reduceMotion ? 0 : 0.38;
   return (
     <LazyMotion features={domMax} strict>
@@ -76,8 +80,14 @@ export function InteractiveInvitation({
         </div>
         {readAll ? (
           <div className={styles.readAll}>
-            {pages.map((item) => (
-              <section key={item.title} className={styles.paper}>
+            {pages.map((item, index) => (
+              <section
+                key={item.title}
+                className={decoration && index < 2 ? decoratedPaper : styles.paper}
+              >
+                {decoration && index < 2 ? (
+                  <InvitationOrnament decoration={decoration} face="inside" />
+                ) : null}
                 {item.content}
               </section>
             ))}
@@ -115,6 +125,7 @@ export function InteractiveInvitation({
                   ) : (
                     <div className={styles.envelopeFlap} aria-hidden="true" />
                   )}
+                  {decoration ? <InvitationOrnament decoration={decoration} face="cover" /> : null}
                   <InvitationCoverContent
                     invitation={invitation}
                     apiBase={apiBase}
@@ -159,7 +170,7 @@ export function InteractiveInvitation({
                       <m.section
                         id={panelId}
                         key={page}
-                        className={styles.paper}
+                        className={decoration && page < 2 ? decoratedPaper : styles.paper}
                         initial={{
                           rotateY: presentation.layout === 'gatefold' ? -65 : 75,
                           opacity: 0,
@@ -180,6 +191,9 @@ export function InteractiveInvitation({
                             );
                         }}
                       >
+                        {decoration && page < 2 ? (
+                          <InvitationOrnament decoration={decoration} face="inside" />
+                        ) : null}
                         {pages[page]?.content}
                       </m.section>
                     </AnimatePresence>

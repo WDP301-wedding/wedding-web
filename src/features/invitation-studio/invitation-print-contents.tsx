@@ -26,37 +26,35 @@ export function InvitationPrintContents({
       </main>
     );
   const { theme, layout, decoration } = invitation.presentation;
-  const ornament = layout === 'album' ? decoration : undefined;
   const pages = buildInvitationPages(invitation, apiBase);
   return (
     <main data-invitation-print>
       <div className={styles.invitation} data-theme={theme} data-layout={layout} data-print>
         <div className={styles.readAll}>
           <section className={styles.cover} data-print-page="Bìa thiệp">
-            {ornament ? (
-              <InvitationOrnament decoration={ornament} face="cover" />
-            ) : layout === 'gatefold' ? (
+            {layout === 'gatefold' ? (
               <>
                 <span className={styles.leftDoor} aria-hidden="true" />
                 <span className={styles.rightDoor} aria-hidden="true" />
               </>
-            ) : (
+            ) : layout !== 'album' || !decoration ? (
               <div className={styles.envelopeFlap} aria-hidden="true" />
-            )}
+            ) : null}
+            {decoration ? <InvitationOrnament decoration={decoration} face="cover" /> : null}
             <InvitationCoverContent invitation={invitation} apiBase={apiBase} />
           </section>
           {pages.map((page, index) => (
             <section
               key={page.title}
               className={
-                ornament && index < 2
+                decoration && index < 2
                   ? `${styles.paper} ${ornamentStyles.printInterior}`
                   : styles.paper
               }
               data-print-page={page.title}
             >
-              {ornament && index < 2 ? (
-                <InvitationOrnament decoration={ornament} face="inside" />
+              {decoration && index < 2 ? (
+                <InvitationOrnament decoration={decoration} face="inside" />
               ) : null}
               {page.content}
               {index === pages.length - 1 ? qr : null}

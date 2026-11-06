@@ -80,7 +80,11 @@ export function useInvitationDesign({
     setGreeting(generated.greeting);
     setMessageText(generated.message);
     setFooter(generated.footer);
-    setPresentation((current) => ({ ...current, theme: generated.theme }));
+    setPresentation((current) =>
+      generated.decoration
+        ? { version: 1, theme: generated.theme, layout: 'album', decoration: generated.decoration }
+        : { ...current, theme: generated.theme },
+    );
     setDesignDirty(true);
     notify.success('Đã áp dụng mẫu. Lưu thiết kế để giữ mẫu khi xuất bản.');
   };

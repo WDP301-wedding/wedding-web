@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import type { InvitationDecoration } from './invitation-presentation';
+import ornamentStyles from './invitation-ornament.module.css';
 import { InvitationOrnament } from './invitation-ornament';
 import shared from './interactive-invitation.module.css';
 import styles from './hinged-invitation.module.css';
@@ -133,8 +134,14 @@ export function HingedInvitation({
       )}
       {readAll ? (
         <div className={shared.readAll}>
-          {pages.map((item) => (
-            <section key={item.title} className={shared.paper}>
+          {pages.map((item, index) => (
+            <section
+              key={item.title}
+              className={
+                index < 2 ? `${shared.paper} ${ornamentStyles.printInterior}` : shared.paper
+              }
+            >
+              {index < 2 ? <InvitationOrnament decoration={decoration} face="inside" /> : null}
               {item.content}
             </section>
           ))}
@@ -155,10 +162,11 @@ export function HingedInvitation({
             ))}
           </nav>
           <section
-            className={`${shared.paper} ${styles.readingPage}`}
+            className={`${shared.paper} ${styles.readingPage} ${page < 2 ? ornamentStyles.printInterior : ''}`}
             data-face-page={page < 2}
             aria-label={pages[page]?.title}
           >
+            {page < 2 ? <InvitationOrnament decoration={decoration} face="inside" /> : null}
             {pages[page]?.content}
           </section>
         </>

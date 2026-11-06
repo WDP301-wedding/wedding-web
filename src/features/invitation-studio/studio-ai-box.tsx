@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import type { InvitationStudioState } from './use-invitation-studio';
 import { AI_DESIGN_PRESETS, type AiDesignPreset } from './ai-design-presets';
+import { InvitationOrnament } from './invitation-ornament';
 import { InteractiveInvitation } from './interactive-invitation';
 import { getApiBaseUrl } from './invitation-studio-utils';
 import { DESIGN_LAYOUTS } from './invitation-presentation';
@@ -43,15 +44,28 @@ export function StudioAiBox({
 
         <div className={px.presetsGrid}>
           {AI_DESIGN_PRESETS.map((preset) => {
-            const isActive = cardTheme === preset.id;
+            const isActive =
+              cardTheme === preset.id &&
+              JSON.stringify(studio.presentation.decoration) ===
+                JSON.stringify(preset.design.decoration);
             return (
               <div key={preset.id} className={px.presetCard} data-active={isActive}>
                 <div
                   aria-hidden="true"
-                  className="grid h-20 place-items-center rounded-lg border border-current text-xs"
-                  style={{ backgroundColor: preset.palette[0], color: preset.palette.at(-1) }}
+                  className="relative isolate grid h-24 place-items-center overflow-hidden rounded-lg border border-current text-xs"
+                  style={
+                    {
+                      backgroundColor: preset.palette[2],
+                      color: preset.palette.at(-1),
+                      '--accent': preset.palette[1],
+                      '--paper': preset.palette[2],
+                    } as React.CSSProperties
+                  }
                 >
-                  <span className="rounded border border-current px-3 py-1">Thiệp cưới</span>
+                  {preset.design.decoration ? (
+                    <InvitationOrnament decoration={preset.design.decoration} face="cover" />
+                  ) : null}
+                  <span className="relative rounded bg-card px-3 py-1">Thiệp cưới</span>
                 </div>
                 <div className={px.presetHead}>
                   <div className={px.presetMeta}>
@@ -121,7 +135,7 @@ export function StudioAiBox({
               type="text"
               value={customPrompt}
               onChange={(e) => setCustomPrompt(e.target.value)}
-              placeholder="Ví dụ: Thiệp mở hai cánh, màu đỏ rượu và vàng, lời mời trang trọng"
+              placeholder="Ví dụ: Thiệp giấy cotton, hoa mộc lan, màu kem, lời mời trang nhã"
               maxLength={2000}
               minLength={10}
               disabled={isGeneratingCard}

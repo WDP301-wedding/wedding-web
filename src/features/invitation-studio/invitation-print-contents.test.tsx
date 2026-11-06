@@ -42,6 +42,41 @@ const invitation: InvitationContent = {
 };
 
 describe('print uses the Content tab as its canonical renderer', () => {
+  it('retains new cover and interior artwork on a two-door design in the guest view and print', () => {
+    const decorated: InvitationContent = {
+      ...invitation,
+      presentation: {
+        version: 1,
+        theme: 'traditional-red',
+        layout: 'gatefold',
+        decoration: {
+          coverMotif: 'phoenix',
+          insideMotif: 'song-hy',
+          frame: 'inset',
+          finish: 'embossed-cotton',
+          coverComposition: 'medallion',
+          insideComposition: 'botanical-corners',
+        },
+      },
+    };
+    const guest = render(
+      <InvitationContents invitation={decorated} apiBase="https://example.test" />,
+    );
+    expect(
+      guest.container.querySelector('[data-face="cover"][data-motif="phoenix"]'),
+    ).not.toBeNull();
+    fireEvent.click(within(guest.container).getByRole('button', { name: 'Đọc toàn bộ nội dung' }));
+    expect(
+      guest.container.querySelector('[data-face="inside"][data-motif="song-hy"]'),
+    ).not.toBeNull();
+    const print = render(<InvitationPrintContents invitation={decorated} />);
+    expect(
+      print.container.querySelector('[data-print-page] [data-face="cover"][data-motif="phoenix"]'),
+    ).not.toBeNull();
+    expect(
+      print.container.querySelector('[data-print-page] [data-face="inside"][data-motif="song-hy"]'),
+    ).not.toBeNull();
+  });
   it('prints entered parent names and hides empty families', () => {
     const printed = render(
       <InvitationPrintContents
