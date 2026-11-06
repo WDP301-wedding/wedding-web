@@ -1,3 +1,4 @@
+import type { InvitationParentNames } from './invitation-family';
 import type { InvitationPresentation } from './invitation-presentation';
 import type { operations } from '../../lib/api/generated/schema';
 import type {
@@ -14,6 +15,7 @@ export type {
 export type DesignView =
   operations['getWeddingInvitation']['responses'][200]['content']['application/json']['data'] & {
     readonly presentation?: InvitationPresentation;
+    readonly textFields: InvitationParentNames;
   };
 export type DesignPublicationView =
   operations['getWeddingInvitationPublication']['responses'][200]['content']['application/json']['data'];
@@ -22,6 +24,7 @@ export type PrintOrderView =
 export type PublicInvitationView =
   operations['getPublicInvitation']['responses'][200]['content']['application/json']['data'] & {
     readonly presentation?: InvitationPresentation;
+    readonly textFields: InvitationParentNames;
   };
 export type TemplateItemView =
   operations['listInvitationTemplates']['responses'][200]['content']['application/json']['data']['items'][number];
@@ -38,7 +41,7 @@ export type ImageJobView =
 export type ImageAspectRatio =
   operations['enqueueInvitationImageJob']['requestBody']['content']['application/json']['aspectRatio'];
 
-export type DesignTextFields = {
+export type DesignTextFields = InvitationParentNames & {
   brideName?: string;
   groomName?: string;
   greeting?: string;

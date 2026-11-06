@@ -1,5 +1,6 @@
 'use client';
 
+import { readParentNames } from './invitation-family';
 import { useRef, useState } from 'react';
 import type { InvitationGateway, DesignView } from './invitation-api';
 import { previewAssetId } from './invitation-api';
@@ -47,6 +48,7 @@ export function useInvitationDesign({
   );
   const brideName = brideOverride ?? coupleNames?.brideName ?? '';
   const groomName = groomOverride ?? coupleNames?.groomName ?? '';
+  const [parentNames, setParentNames] = useState(() => readParentNames(designs[0]?.textFields));
   const [greeting, setGreeting] = useState(
     designs[0]?.textFields?.greeting ?? 'Trân trọng kính mời',
   );
@@ -139,6 +141,7 @@ export function useInvitationDesign({
     setTitle(selected.title);
     setBrideName(selected.textFields.brideName || null);
     setGroomName(selected.textFields.groomName || null);
+    setParentNames(readParentNames(selected.textFields));
     setGreeting(selected.textFields.greeting ?? '');
     setMessageText(selected.textFields.message ?? '');
     setFooter(selected.textFields.footer ?? '');
@@ -159,6 +162,7 @@ export function useInvitationDesign({
     setTitle('Thiệp cưới mới');
     setBrideName(null);
     setGroomName(null);
+    setParentNames(readParentNames());
     setGreeting('Trân trọng kính mời');
     setMessageText('Đến tham dự buổi tiệc chung vui cùng gia đình chúng tôi');
     setFooter('');
@@ -190,7 +194,7 @@ export function useInvitationDesign({
         ? [{ kind: 'SEATING' as const, textKey: null, derivedAssetId: null }]
         : []),
     ];
-    const signature = `${currentDesign?.designId ?? 'new'}:${currentDesign?.revisionNumber ?? 0}:${title}:${brideName}:${groomName}:${greeting}:${message}:${footer}:${derivedAssetIds.join(',')}:${includesSeating}:${JSON.stringify(presentation)}`;
+    const signature = `${currentDesign?.designId ?? 'new'}:${currentDesign?.revisionNumber ?? 0}:${title}:${brideName}:${groomName}:${greeting}:${message}:${footer}:${derivedAssetIds.join(',')}:${includesSeating}:${JSON.stringify(presentation)}:${JSON.stringify(parentNames)}`;
     const key = getOrGenerateKey(saveKeyRef, signature, 'save-design');
     try {
       if (currentDesign) {
@@ -204,6 +208,7 @@ export function useInvitationDesign({
               title,
               textFields: {
                 ...currentDesign.textFields,
+                ...parentNames,
                 brideName,
                 groomName,
                 greeting,
@@ -230,7 +235,7 @@ export function useInvitationDesign({
           bookingId,
           {
             title,
-            textFields: { brideName, groomName, greeting, message, footer },
+            textFields: { ...parentNames, brideName, groomName, greeting, message, footer },
             sections: finalSections,
             derivedAssetIds,
             includesSeating,
@@ -317,6 +322,7 @@ export function useInvitationDesign({
       setTitle(selected.title);
       setBrideName(selected.textFields.brideName || null);
       setGroomName(selected.textFields.groomName || null);
+      setParentNames(readParentNames(selected.textFields));
       setGreeting(selected.textFields.greeting ?? '');
       setMessageText(selected.textFields.message ?? '');
       setFooter(selected.textFields.footer ?? '');
@@ -334,6 +340,8 @@ export function useInvitationDesign({
     setBrideName,
     groomName,
     setGroomName,
+    parentNames,
+    setParentNames,
     greeting,
     setGreeting,
     message,

@@ -42,6 +42,23 @@ const invitation: InvitationContent = {
 };
 
 describe('print uses the Content tab as its canonical renderer', () => {
+  it('prints entered parent names and hides empty families', () => {
+    const printed = render(
+      <InvitationPrintContents
+        invitation={{
+          ...invitation,
+          textFields: {
+            ...invitation.textFields,
+            groomMotherName: 'Nguyễn Thị Lan',
+            brideFatherName: '  ',
+          },
+        }}
+      />,
+    );
+    expect(within(printed.container).getByText('Nhà trai')).toBeVisible();
+    expect(within(printed.container).getByText('Nguyễn Thị Lan')).toBeVisible();
+    expect(within(printed.container).queryByText('Nhà gái')).toBeNull();
+  });
   it('keeps the same invitation pages, Vietnamese text, theme and exact seating SVG', () => {
     const preview = render(
       <InvitationContents invitation={invitation} apiBase="https://example.test" />,

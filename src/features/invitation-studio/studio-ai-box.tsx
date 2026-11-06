@@ -187,6 +187,7 @@ export function StudioAiBox({
               invitation={{
                 title: studio.suggestion.title,
                 textFields: {
+                  ...studio.parentNames,
                   brideName,
                   groomName,
                   greeting: studio.suggestion.greeting,

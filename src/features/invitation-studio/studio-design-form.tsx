@@ -1,5 +1,6 @@
 'use client';
 
+import { parentNameGroups } from './invitation-family';
 import React from 'react';
 import Image from 'next/image';
 import { X } from 'lucide-react';
@@ -109,6 +110,31 @@ export function StudioDesignForm({
               className={ix.input}
             />
           </div>
+        </div>
+
+        <div className={ix.fieldRow}>
+          {parentNameGroups.map(({ label, fields }) => (
+            <fieldset
+              key={label}
+              className="grid min-w-0 gap-2 rounded-lg border border-border p-3"
+            >
+              <legend className={ix.label}>{label} (tùy chọn)</legend>
+              {fields.map(({ key, label: fieldLabel }) => (
+                <label key={key} className={ix.label}>
+                  {fieldLabel}
+                  <input
+                    type="text"
+                    maxLength={120}
+                    className={ix.input}
+                    value={studio.parentNames[key]}
+                    onChange={(event) =>
+                      studio.setParentNames({ ...studio.parentNames, [key]: event.target.value })
+                    }
+                  />
+                </label>
+              ))}
+            </fieldset>
+          ))}
         </div>
 
         <div>

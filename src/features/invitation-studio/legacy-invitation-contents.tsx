@@ -1,3 +1,4 @@
+import { InvitationFamily } from './invitation-family';
 import { InvitationSeatingView } from './invitation-seating-view';
 import Image from 'next/image';
 import { formatDate } from '../../lib/format-date';
@@ -67,6 +68,7 @@ export function LegacyInvitationContents({
             <h1>{title}</h1>
           </header>
           {recipientGreeting ? <p className="hy-invite-recipient">{recipientGreeting}</p> : null}
+          <InvitationFamily names={text} />
           {sections.map((section, index) => (
             <section
               key={index}

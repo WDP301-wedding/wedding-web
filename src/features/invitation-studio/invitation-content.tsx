@@ -1,3 +1,4 @@
+import type { InvitationParentNames } from './invitation-family';
 import { InteractiveInvitation } from './interactive-invitation';
 import { LegacyInvitationContents } from './legacy-invitation-contents';
 import type { InvitationPresentation } from './invitation-presentation';
@@ -8,13 +9,14 @@ export type InvitationEvent = Readonly<{
   shiftCode: 'LUNCH' | 'DINNER';
   startTime?: string;
 }>;
-export type InvitationText = Readonly<{
-  brideName?: string | null;
-  groomName?: string | null;
-  greeting?: string | null;
-  message?: string | null;
-  footer?: string | null;
-}>;
+export type InvitationText = InvitationParentNames &
+  Readonly<{
+    brideName?: string | null;
+    groomName?: string | null;
+    greeting?: string | null;
+    message?: string | null;
+    footer?: string | null;
+  }>;
 export type InvitationSection = Readonly<{
   kind: 'HERO' | 'MESSAGE' | 'EVENT' | 'TIMELINE' | 'SEATING' | 'FOOTER';
   textKey?: keyof InvitationText | null;

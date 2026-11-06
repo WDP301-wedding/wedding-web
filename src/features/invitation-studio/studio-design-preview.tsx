@@ -17,6 +17,7 @@ export function StudioDesignPreview({
     title,
     brideName,
     groomName,
+    parentNames,
     greeting,
     message,
     footer,
@@ -34,7 +35,7 @@ export function StudioDesignPreview({
   const invitationData = React.useMemo(
     () => ({
       title,
-      textFields: { brideName, groomName, greeting, message, footer },
+      textFields: { ...parentNames, brideName, groomName, greeting, message, footer },
       event,
       timeline,
       sections: (currentDesign?.sections ?? []).map((section) => ({
@@ -51,6 +52,7 @@ export function StudioDesignPreview({
       title,
       brideName,
       groomName,
+      parentNames,
       greeting,
       message,
       footer,

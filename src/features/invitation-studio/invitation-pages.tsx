@@ -1,3 +1,4 @@
+import { InvitationFamily } from './invitation-family';
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import type { InvitationContent } from './invitation-content';
@@ -54,6 +55,7 @@ export function buildInvitationPages(
             {text.brideName || 'Chưa bổ sung tên cô dâu'}
           </p>
           {recipientGreeting ? <p className={styles.recipient}>{recipientGreeting}</p> : null}
+          <InvitationFamily names={text} />
           <p className={styles.message}>{text.message}</p>
           {presentation.layout === 'album' && urls[0] ? image(urls[0], 0) : null}
         </>
