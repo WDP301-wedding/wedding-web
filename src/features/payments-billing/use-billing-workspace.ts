@@ -248,14 +248,6 @@ export function useBillingWorkspace({
         setIntent,
         setRetry,
       });
-      if (
-        activeIntent.kind === 'deposit' &&
-        value.checkoutUrl &&
-        typeof window !== 'undefined' &&
-        process.env.NODE_ENV !== 'test'
-      ) {
-        window.location.assign(value.checkoutUrl);
-      }
     } catch (caught) {
       fail(caught);
       const unknown = unresolved(caught);
@@ -332,7 +324,6 @@ export function useBillingWorkspace({
     setError,
     availableBookings,
     blocked,
-    isCheckoutActive,
     inFlight,
     gate,
     restaurant,

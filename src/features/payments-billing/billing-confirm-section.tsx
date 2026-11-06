@@ -28,15 +28,7 @@ export function BillingConfirmSection({
       ) : (
         <strong>{money(intent.amountVnd)}</strong>
       )}
-      {intent.kind === 'balance' ? (
-        <p>Website sẽ hiển thị mã QR để mở trang chọn phương thức thanh toán của VNPay.</p>
-      ) : (
-        <p>
-          Sau khi tạo giao dịch, chọn “Tiếp tục trên VNPay” để thanh toán trong tab hiện tại. Kết
-          quả sẽ được xác minh khi bạn quay về.
-        </p>
-      )}
-      {intent.kind === 'balance' && !retry ? (
+      {!retry ? (
         <p role="status">Đang chuẩn bị mã QR…</p>
       ) : (
         <div className={bx.confirmActions}>

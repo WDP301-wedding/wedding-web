@@ -142,7 +142,6 @@ export function CoupleBillingWorkspace({
     setError,
     availableBookings,
     blocked,
-    isCheckoutActive,
     inFlight,
     gate,
     restaurant,
@@ -162,6 +161,8 @@ export function CoupleBillingWorkspace({
     authorize,
     initialProposal,
   });
+  const depositPhase = context?.phase === 'DRAFT' || context?.phase === 'AWAITING_DEPOSIT';
+  const showCheckout = depositPhase ? attempt?.purpose !== 'BALANCE' : attempt?.purpose !== 'DEPOSIT';
 
   useEffect(() => {
     if (error) {
@@ -261,13 +262,10 @@ export function CoupleBillingWorkspace({
             intent={intent?.kind === 'deposit' ? intent : null}
             pending={pending}
             retry={retry}
-            checkout={checkout}
-            onCheckStatus={() => handleCheckAttempt()}
-            onResetExpired={handleResetExpired}
+            hasCheckout={depositPhase && checkout !== null && showCheckout}
             onConfirm={() => void start()}
             onCancel={() => setIntent(null)}
             blocked={blocked}
-            isCheckoutActive={isCheckoutActive}
             inFlight={inFlight}
             onStartDeposit={() => {
               if (context.timelineRevisionId === null || context.contractRequired) return;
@@ -339,20 +337,18 @@ export function CoupleBillingWorkspace({
               onCancel={() => setIntent(null)}
             />
           )}
-          {checkout !== null &&
-            context.phase !== 'DRAFT' &&
-            context.phase !== 'AWAITING_DEPOSIT' &&
-            attempt?.purpose !== 'DEPOSIT' && (
-              <CheckoutLinkPanel
-                checkout={checkout}
-                status={
-                  attempt?.paymentAttemptId === checkout.paymentAttemptId
-                    ? attempt.status
-                    : checkout.status
-                }
-                onResetExpired={handleResetExpired}
-              />
-            )}
+          {checkout !== null && showCheckout && (
+            <CheckoutLinkPanel
+              checkout={checkout}
+              isDeposit={depositPhase}
+              status={
+                attempt?.paymentAttemptId === checkout.paymentAttemptId
+                  ? attempt.status
+                  : checkout.status
+              }
+              onResetExpired={handleResetExpired}
+            />
+          )}
           <BillingAttemptPanel
             embedded={embedded}
             attemptId={attemptId}

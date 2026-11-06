@@ -23,9 +23,9 @@ describe('CheckoutLinkPanel', () => {
     'reopens the same VNPay link while %s and not expired',
     (status) => {
       render(<CheckoutLinkPanel checkout={checkout} status={status} />);
-      expect(link()).toHaveAttribute('href', checkout.checkoutUrl);
-      expect(qr()).toBeInTheDocument();
-      expect(screen.getByText(/Mở lại không tạo giao dịch mới/)).toBeInTheDocument();
+      expect(link()).not.toBeInTheDocument();
+      expect(qr()).toHaveClass('self-center');
+      expect(screen.getByText('Quét mã để thanh toán')).toBeInTheDocument();
     },
   );
 
@@ -38,7 +38,7 @@ describe('CheckoutLinkPanel', () => {
 
   it('hides the link exactly when the link expires, without creating a new attempt', async () => {
     render(<CheckoutLinkPanel checkout={checkout} status="UNKNOWN" />);
-    expect(link()).toBeInTheDocument();
+    expect(qr()).toBeInTheDocument();
     await act(async () => {
       await vi.advanceTimersByTimeAsync(12 * 60_000);
     });
