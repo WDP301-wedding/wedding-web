@@ -88,6 +88,22 @@ export const contractApi = {
       }),
     );
   },
+  async requestChanges(
+    token: string,
+    key: string,
+    bookingId: string,
+    revisionId: string,
+    expectedRevision: number,
+    reason: string,
+  ) {
+    return unwrap<ContractCommandResult>(
+      await coupleApi().POST('/bookings/{bookingId}/contracts/{revisionId}/change-requests', {
+        headers: bearer(token),
+        params: { path: { bookingId, revisionId }, header: idem(key) },
+        body: { expectedRevision, reason },
+      }),
+    );
+  },
   pdf(
     token: string,
     bookingId: string,

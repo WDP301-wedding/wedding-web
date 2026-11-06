@@ -7,10 +7,13 @@ import { cx } from './contract-classes';
 export function WithdrawForm({
   pending,
   onSubmit,
-}: Readonly<{ pending: boolean; onSubmit: (reason: string) => void }>) {
+  requestChanges = false,
+}: Readonly<{ pending: boolean; onSubmit: (reason: string) => void; requestChanges?: boolean }>) {
   return (
     <details>
-      <summary>Cần chỉnh sửa? Rút duyệt</summary>
+      <summary>
+        {requestChanges ? 'Yêu cầu nhà hàng chỉnh sửa' : 'Cần chỉnh sửa? Rút duyệt'}
+      </summary>
       <form
         className={cx.form}
         onSubmit={(event) => {
@@ -25,7 +28,7 @@ export function WithdrawForm({
         </label>
         <div className={cx.actions}>
           <button className={cx.buttonOutline} disabled={pending} type="submit">
-            Rút duyệt
+            {requestChanges ? 'Gửi yêu cầu chỉnh sửa' : 'Rút duyệt'}
           </button>
         </div>
       </form>

@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
-import { openBlob } from '../../lib/api/download';
-import { formatDateTime, formatVnd, useCommand } from '../couple-workspace/use-couple-workspace';
-import { contractApi, type ContractList, type ContractRevision } from './contract-api';
+import React, { useState } from 'react';
+import { formatDateTime, formatVnd } from '../couple-workspace/use-couple-workspace';
+import type { ContractList, ContractRevision } from './contract-api';
 import { cx } from './contract-classes';
+import { ContractPdfViewer } from './contract-pdf-viewer';
 
 export const stateLabels: Record<ContractRevision['state'], string> = {
   DRAFT: 'Bản nháp',
@@ -19,7 +19,8 @@ export interface HistoryCardProps {
 }
 
 export function HistoryCard({ contracts, bookingId }: HistoryCardProps) {
-  const command = useCommand();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = contracts.revisions.find((revision) => revision.revisionId === selectedId);
   if (contracts.revisions.length <= 1) return null;
   return (
     <section className={cx.card}>
@@ -45,27 +46,33 @@ export function HistoryCard({ contracts, bookingId }: HistoryCardProps) {
                 <td>{formatDateTime(revision.createdAt)}</td>
                 <td className={cx.num}>{formatVnd(revision.document.contractTotalVnd)}</td>
                 <td>
-                  <button
-                    className={cx.textButton}
-                    type="button"
-                    disabled={command.pending}
-                    onClick={() =>
-                      void command.run(async (token) =>
-                        openBlob(
-                          await contractApi.pdf(token, bookingId, revision.revisionId),
-                          `hop-dong-ban-${revision.revisionNumber}.pdf`,
-                        ),
-                      )
-                    }
-                  >
-                    Mở
-                  </button>
+                  {revision.document.standardTerms && revision.submittedAt === null ? (
+                    'Chưa gửi'
+                  ) : (
+                    <button
+                      className={cx.textButton}
+                      type="button"
+                      onClick={() => setSelectedId(revision.revisionId)}
+                    >
+                      Mở
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {selected ? (
+        <ContractPdfViewer
+          key={selected.revisionId}
+          bookingId={bookingId}
+          revisionId={selected.revisionId}
+          revisionNumber={selected.revisionNumber}
+          mode={selected.approvedAt ? 'official' : 'preview'}
+          onClose={() => setSelectedId(null)}
+        />
+      ) : null}
     </section>
   );
 }
