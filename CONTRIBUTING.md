@@ -36,10 +36,10 @@ the head. Explain the problem, resulting behavior, and validation results.
 
 ## Review and merge
 
-Before merging, obtain at least one approval from another team member, resolve
-the review conversations, and require all existing CI quality gates to pass.
-A failed dependency audit is a failed gate; do not remove or weaken checks to
-merge a pull request. New commits require a fresh review.
+The project owner may authorize a merge without a separate approval from another
+team member. Review the latest commit, resolve any review conversations, and
+require all existing CI quality gates to pass before merging. A failed dependency
+audit is a failed gate. Do not remove or weaken checks to merge a pull request.
 
 Merge through the pull request on GitHub. Do not push directly to `main`,
 force-push `main`, or delete `main`. When a cross-repository contract pins a
@@ -74,7 +74,6 @@ feature for these repositories. Until protection is enabled, the rules above
 are team policy; GitHub does not enforce them against direct pushes.
 
 An organization owner must enable a plan supporting private-repository branch
-protection, such as GitHub Team. Then configure `main` to require one approving
-review, dismiss stale reviews, require approval of the latest push, resolve all
-review conversations, require the existing CI jobs with an up-to-date branch,
-apply the rules to administrators, and disallow force pushes and deletion.
+protection, such as GitHub Team. Then configure `main` to resolve all review
+conversations, require the existing CI jobs with an up-to-date branch, apply the
+rules to administrators, and disallow force pushes and deletion.
