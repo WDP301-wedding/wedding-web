@@ -62,7 +62,15 @@ export function ContractDetailsView({
           <dd>{formatVnd(current.document.contractTotalVnd)}</dd>
         </div>
         <div>
-          <dt>Tiền cọc (30%, làm tròn lên)</dt>
+          <dt>
+            Tiền cọc (
+            {current.document.contractTotalVnd > 0
+              ? Math.round(
+                  (current.document.depositAmountVnd / current.document.contractTotalVnd) * 100,
+                )
+              : 30}
+            %, làm tròn lên)
+          </dt>
           <dd>{formatVnd(current.document.depositAmountVnd)}</dd>
         </div>
         {standard ? (

@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useMemo } from 'react';
 import { useConfirmDialog } from '../../design-system/confirm-dialog';
 import { InlineError } from '../../design-system/inline-error';
 import { formatVnd } from '../couple-workspace/use-couple-workspace';
@@ -8,11 +9,14 @@ import { SelectionAccessNotice } from './selection-access-notice';
 import {
   ContractLinesTable,
   categoryLabels,
+  isPriceGuarantee,
   lineDescription,
   unitLabel,
 } from './contract-lines-table';
 import { useSelectionCatalog } from './use-selection-catalog';
 import { selectionKey, useCustomerSelection } from './use-customer-selection';
+import type { SelectionChoice } from './selection-catalog';
+import type { ContractLineInput } from './contract-api';
 import { cx } from './contract-classes';
 
 type Props = {
@@ -106,6 +110,114 @@ export function CustomerSelections(props: Readonly<Props>) {
     </section>
   );
 }
+
+function PriceGuaranteeCard({
+  choices,
+  lines,
+  busy,
+  onUpdate,
+  onRemove,
+}: {
+  choices: readonly SelectionChoice[];
+  lines: readonly ContractLineInput[];
+  busy: boolean;
+  onUpdate: (choice: SelectionChoice, quantity: number) => void;
+  onRemove: (line: ContractLineInput) => void;
+}) {
+  const guaranteeChoice = useMemo(
+    () => choices.find((c) => isPriceGuarantee(c)),
+    [choices],
+  );
+  const selectedGuaranteeLine = useMemo(
+    () => lines.find((l) => guaranteeChoice && selectionKey(l) === selectionKey(guaranteeChoice)),
+    [lines, guaranteeChoice],
+  );
+  const isGuaranteeActive = Boolean(selectedGuaranteeLine);
+
+  // Tính tổng số bàn của các thực đơn đang chọn
+  const hasMenu = lines.some((l) => l.category === 'MENU');
+  const totalMenuTables = useMemo(
+    () =>
+      lines
+        .filter((l) => l.category === 'MENU')
+        .reduce((sum, l) => sum + (l.quantity || 0), 0),
+    [lines],
+  );
+
+  // Nếu dịch vụ tính theo bàn (unit === 'table') thì gán bằng số bàn, ngược lại tính 1 gói
+  const targetQuantity = guaranteeChoice?.unit === 'table' ? Math.max(1, totalMenuTables) : 1;
+
+  // Tự động đồng bộ số lượng bàn bảo đảm giá khi khách thay đổi số bàn thực đơn
+  // Hoặc tự động gỡ bỏ nếu khách xóa hết thực đơn khỏi hợp đồng
+  useEffect(() => {
+    if (!busy && guaranteeChoice && selectedGuaranteeLine) {
+      if (!hasMenu) {
+        onRemove(selectedGuaranteeLine);
+      } else if (
+        guaranteeChoice.unit === 'table' &&
+        selectedGuaranteeLine.quantity !== targetQuantity &&
+        targetQuantity > 0
+      ) {
+        onUpdate(guaranteeChoice, targetQuantity);
+      }
+    }
+  }, [busy, hasMenu, guaranteeChoice, selectedGuaranteeLine, targetQuantity, onUpdate, onRemove]);
+
+  return (
+    <div className="my-4 rounded-xl border border-amber-300 bg-amber-50/80 p-4 text-sm text-amber-950">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="font-semibold flex items-center gap-1.5 text-base text-amber-900">
+            <span>🛡️ Chính sách thực đơn theo thời giá &amp; Bảo đảm giá</span>
+          </div>
+          <p className="mt-1 text-xs text-amber-800 leading-relaxed max-w-2xl">
+            Đơn giá thực đơn có thể biến động theo thời giá thị trường tại ngày tổ chức tiệc cưới. Hai bạn có thể đăng ký <strong>Gói phí bảo đảm giá thực đơn (+5%)</strong> để chốt cố định 100% đơn giá thực đơn, không lo biến động.
+          </p>
+        </div>
+        {guaranteeChoice ? (
+          <label
+            className={`flex items-center gap-2 rounded-lg border border-amber-400 bg-white px-3 py-2 shadow-sm font-medium text-xs transition-colors ${
+              (!hasMenu && !selectedGuaranteeLine) || busy
+                ? 'opacity-60 cursor-not-allowed'
+                : 'cursor-pointer hover:bg-amber-50'
+            }`}
+            title={
+              !hasMenu && !selectedGuaranteeLine
+                ? 'Vui lòng chọn thực đơn trước khi đăng ký bảo đảm giá'
+                : undefined
+            }
+          >
+            <input
+              type="checkbox"
+              className="rounded border-amber-400 text-amber-600 focus:ring-amber-500"
+              checked={isGuaranteeActive}
+              disabled={busy || (!hasMenu && !selectedGuaranteeLine)}
+              onChange={(e) => {
+                if (e.target.checked && hasMenu) {
+                  onUpdate(guaranteeChoice, targetQuantity);
+                } else if (selectedGuaranteeLine) {
+                  onRemove(selectedGuaranteeLine);
+                }
+              }}
+            />
+            <span>
+              {selectedGuaranteeLine
+                ? `✅ Đã chọn Bảo đảm giá (${selectedGuaranteeLine.quantity} ${unitLabel(guaranteeChoice.unit)})`
+                : !hasMenu
+                  ? '➕ Chọn thực đơn trước để bảo đảm giá'
+                  : '➕ Đăng ký Bảo đảm giá (+5%)'}
+            </span>
+          </label>
+        ) : (
+          <div className="rounded bg-amber-100/80 px-2.5 py-1.5 text-xs text-amber-800 font-medium">
+            💡 Hai bạn có thể chọn gói <em>Bảo đảm giá thực đơn</em> trong danh sách dịch vụ bên dưới để khóa giá.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function changedLines(
   selection: CustomerSelection,
   current: readonly CustomerSelection['lines'][number][],
@@ -241,6 +353,13 @@ function SelectionEditor(
       ) : null}
       {state.choices ? (
         <>
+          <PriceGuaranteeCard
+            choices={state.choices ?? []}
+            lines={state.lines}
+            busy={busy}
+            onUpdate={state.update}
+            onRemove={state.remove}
+          />
           {state.missing.map((line) => (
             <p className={cx.alert} key={selectionKey(line)}>
               Hạng mục{' '}
