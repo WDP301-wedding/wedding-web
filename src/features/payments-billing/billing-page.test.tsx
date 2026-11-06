@@ -7,6 +7,8 @@ import type { AttemptView, BillingContext, CoupleBillingGateway } from './billin
 import { createBillingIntents } from './billing-intents';
 import { createHash } from 'node:crypto';
 
+const qrName = { name: 'Mã QR mở trang thanh toán VNPay' };
+
 const context: BillingContext = {
   bookingId: 'booking',
   accessLevel: 'RESTRICTED',
@@ -163,10 +165,7 @@ describe('Couple billing experience', () => {
         window.history.replaceState({}, '', '/khong-gian/thanh-toan?bookingId=booking');
         const page = mount(api);
         await load();
-        expect(await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' })).toHaveAttribute(
-          'href',
-          existing.checkoutUrl,
-        );
+        expect(await screen.findByRole('img', qrName)).toBeInTheDocument();
         expect(screen.getByLabelText('Mã giao dịch thanh toán')).toHaveValue('existing-attempt');
         expect(screen.getByText('Chưa rõ kết quả · đang kiểm tra')).toBeInTheDocument();
         if (purpose === 'DEPOSIT') {
@@ -210,10 +209,7 @@ describe('Couple billing experience', () => {
           name: purpose === 'DEPOSIT' ? 'Tiếp tục thanh toán' : 'Thanh toán còn lại',
         }),
       );
-      expect(await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' })).toHaveAttribute(
-        'href',
-        existing.checkoutUrl,
-      );
+      expect(await screen.findByRole('img', qrName)).toBeInTheDocument();
       expect(start).toHaveBeenCalledTimes(1);
       expect(
         screen.queryByRole('button', { name: 'Thử lại cùng yêu cầu' }),
@@ -239,10 +235,10 @@ describe('Couple billing experience', () => {
     mount(api, { ...intents, completeCheckout });
     await load();
     expect(await screen.findByText('Thanh toán không thành công')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Tiếp tục trên VNPay' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('img', qrName)).not.toBeInTheDocument();
     expect(completeCheckout).toHaveBeenCalledWith('checkout:booking', 'failed-attempt');
     fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
-    await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
+    await screen.findByRole('img', qrName);
     expect(api.startDeposit).toHaveBeenCalledTimes(1);
     expect(screen.getByLabelText('Mã giao dịch thanh toán')).toHaveValue('attempt');
   });
@@ -306,7 +302,7 @@ describe('Couple billing experience', () => {
     expect(await screen.findByText('Thanh toán không thành công')).toBeInTheDocument();
     expect(await journal.pending('checkout:booking')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
-    await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
+    await screen.findByRole('img', qrName);
     expect(vi.mocked(api.startDeposit).mock.calls[0]![3]).not.toBe(oldKey);
   });
 
@@ -377,7 +373,7 @@ describe('Couple billing experience', () => {
     );
     await load();
     fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
-    await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
+    await screen.findByRole('img', qrName);
     const originalKey = vi.mocked(api.startDeposit).mock.calls[0]![3];
     first.unmount();
     render(
@@ -391,7 +387,7 @@ describe('Couple billing experience', () => {
     await waitFor(() => expect(screen.getByLabelText('Mã hồ sơ đặt tiệc')).toHaveValue('booking'));
     await load();
     fireEvent.click(await screen.findByRole('button', { name: 'Thử lại cùng yêu cầu' }));
-    await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
+    await screen.findByRole('img', qrName);
     expect(api.startDeposit).toHaveBeenLastCalledWith(
       'token',
       'booking',
@@ -409,7 +405,7 @@ describe('Couple billing experience', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra trạng thái' }));
     await screen.findByText('Đã xác minh nhận tiền');
     expect(records.size).toBe(1);
-    expect(screen.queryByRole('link', { name: 'Tiếp tục trên VNPay' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('img', qrName)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Tiếp tục thanh toán' })).not.toBeInTheDocument();
     vi.mocked(api.loadAttempt).mockResolvedValue({
       paymentAttemptId,
@@ -608,13 +604,10 @@ describe('Couple billing experience', () => {
     mount(api);
     await load();
     fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
-    await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
+    const initialQr = (await screen.findByRole('img', qrName)).outerHTML;
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra trạng thái' }));
     await screen.findByText('Chưa rõ kết quả · đang kiểm tra');
-    expect(screen.getByRole('link', { name: 'Tiếp tục trên VNPay' })).toHaveAttribute(
-      'href',
-      'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
-    );
+    expect(screen.getByRole('img', qrName).outerHTML).toBe(initialQr);
     expect(api.startDeposit).toHaveBeenCalledTimes(1);
   });
   it.each(['FAILED', 'SUCCEEDED'] as const)(
@@ -624,7 +617,7 @@ describe('Couple billing experience', () => {
       mount(api);
       await load();
       fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
-      await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' });
+      await screen.findByRole('img', qrName);
       vi.mocked(api.loadAttempt).mockResolvedValue({
         paymentAttemptId: 'attempt',
         purpose: 'DEPOSIT',
@@ -637,7 +630,7 @@ describe('Couple billing experience', () => {
       await screen.findByText(
         status === 'SUCCEEDED' ? 'Đã xác minh nhận tiền' : 'Thanh toán không thành công',
       );
-      expect(screen.queryByRole('link', { name: 'Tiếp tục trên VNPay' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('img', qrName)).not.toBeInTheDocument();
       if (status === 'SUCCEEDED')
         expect(screen.getByText(/hồ sơ đang chờ cập nhật/)).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: 'Làm mới hồ sơ' }));
@@ -687,10 +680,9 @@ describe('Couple billing experience', () => {
         'stable-key',
       ),
     );
-    expect(await screen.findByRole('link', { name: 'Tiếp tục trên VNPay' })).toHaveAttribute(
-      'rel',
-      'noopener noreferrer',
-    );
+    expect(await screen.findByRole('img', qrName)).toBeInTheDocument();
+    expect(screen.getByText('Quét mã để thanh toán')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Tiếp tục trên VNPay' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Tiếp tục thanh toán' })).not.toBeInTheDocument();
   });
   it('uses the FULL booking grant and exact backend balance rather than account role math', async () => {

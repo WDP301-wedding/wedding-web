@@ -47,7 +47,7 @@ export function useExpired(expiresAt: string | undefined): boolean {
   return Number.isNaN(expiry) || now >= expiry;
 }
 
-export function useCountdown(expiresAt: string | undefined): string | null {
+function useCountdown(expiresAt: string): string | null {
   const [now, setNow] = useState(() => Date.now());
   const expiry = expiresAt ? Date.parse(expiresAt) : NaN;
   useEffect(() => {
@@ -67,10 +67,12 @@ const timeFormat = (value: string) => formatDateTime(value);
 export function CheckoutLinkPanel({
   checkout,
   status,
+  isDeposit = false,
   onResetExpired,
 }: Readonly<{
   checkout: CheckoutView;
   status: AttemptStatusCode;
+  isDeposit?: boolean;
   onResetExpired?: () => void;
 }>) {
   const expired = useExpired(checkout.expiresAt);
@@ -78,21 +80,21 @@ export function CheckoutLinkPanel({
   const canReopen = reopenableStatuses.has(status) && !expired;
   return (
     <section className={bx.confirm} aria-label="Xác nhận thanh toán">
-      <h2>Xác nhận thanh toán số dư</h2>
+      <h2>{isDeposit ? 'Xác nhận đặt cọc' : 'Xác nhận thanh toán số dư'}</h2>
       <p>
         Mã giao dịch thanh toán: <code>{checkout.paymentAttemptId}</code>
       </p>
       {canReopen ? (
         <>
-          <p>Dùng camera điện thoại quét mã để mở trang chọn phương thức thanh toán của VNPay.</p>
+          <p className="text-center font-semibold">Quét mã để thanh toán</p>
           <QRCodeSVG
-            className="h-auto max-w-full self-start rounded-lg"
+            className="h-auto max-w-full self-center rounded-lg"
             value={checkout.checkoutUrl}
             title="Mã QR mở trang thanh toán VNPay"
             size={240}
             marginSize={4}
           />
-          <p>
+          <p className="text-center">
             Mã có hiệu lực đến <strong>{timeFormat(checkout.expiresAt)}</strong>
             {countdown ? (
               <span>
@@ -100,16 +102,8 @@ export function CheckoutLinkPanel({
                 (còn <strong>{countdown}</strong>)
               </span>
             ) : null}
-            . Mở lại không tạo giao dịch mới.
+            .
           </p>
-          <a
-            className={cn(bx.primaryLink, 'self-start')}
-            href={checkout.checkoutUrl}
-            target="_self"
-            rel="noopener noreferrer"
-          >
-            Tiếp tục trên VNPay
-          </a>
         </>
       ) : expired && reopenableStatuses.has(status) ? (
         <div role="status">
