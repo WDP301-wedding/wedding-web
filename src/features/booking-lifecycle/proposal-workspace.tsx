@@ -30,7 +30,6 @@ export interface ProposalWorkspaceProps {
 }
 
 export function ProposalWorkspace({
-  access,
   command,
   gateway,
   pending,
@@ -208,7 +207,7 @@ export function ProposalWorkspace({
           {next}
         </section>
 
-        {access === 'full' && proposal.capabilities.canRequestCancellation ? (
+        {proposal.capabilities.canRequestCancellation ? (
           <ProposalCancelSection
             proposal={proposal}
             pending={pending}

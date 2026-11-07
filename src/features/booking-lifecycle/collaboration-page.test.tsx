@@ -235,6 +235,36 @@ describe('Booking collaboration workspace', () => {
     );
   });
 
+  it('lets a restricted Couple request cancellation of an unpaid draft with explicit confirmation', async () => {
+    const current = {
+      ...proposal,
+      capabilities: { ...proposal.capabilities, canRequestCancellation: true },
+    };
+    const gateway = fakeGateway(current);
+    render(
+      <CollaborationWorkspace
+        access="restricted"
+        authorize={authorize}
+        gateway={gateway}
+        initialProposal={current}
+      />,
+    );
+    fireEvent.click(screen.getByText('Cần đổi hoặc huỷ tiệc?'));
+    expect(screen.getByText(/Trước khi thu cọc/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Lý do'), { target: { value: 'Dừng hồ sơ chưa cọc' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi yêu cầu hủy' }));
+    const dialog = await screen.findByRole('alertdialog', { name: 'Gửi yêu cầu huỷ tiệc?' });
+    expect(gateway.requestCancellation).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Gửi yêu cầu huỷ' }));
+    await waitFor(() =>
+      expect(gateway.requestCancellation).toHaveBeenCalledWith('couple-token', {
+        bookingId: proposal.bookingId,
+        expectedRevision: proposal.revision,
+        reason: 'Dừng hồ sơ chưa cọc',
+      }),
+    );
+  });
+
   it('proposes a replacement after confirmation without changing effective content', async () => {
     const gateway = fakeGateway();
     await open(gateway, {
