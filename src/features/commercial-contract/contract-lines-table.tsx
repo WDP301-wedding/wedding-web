@@ -15,38 +15,12 @@ export const unitLabel = (unit: string) => unitLabels[unit] ?? unit;
 export const lineDescription = (text: string) =>
   text.replace(/ · [0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/iu, '');
 
-/**
- * Nhận diện hạng mục bảo đảm giá thực đơn.
- *
- * TODO(BE): Khi BE bổ sung trường `priceGuarantee: boolean` trên contract line,
- * FE chỉ cần đọc `line.priceGuarantee === true` và loại bỏ toàn bộ string matching.
- */
-export function isPriceGuarantee(line: {
-  name: string;
-  description?: string | null;
-  priceGuarantee?: boolean | null;
-}): boolean {
-  if (typeof line.priceGuarantee === 'boolean') return line.priceGuarantee;
-  const text = `${line.name} ${line.description || ''}`.toLowerCase();
-  return (
-    text.includes('bảo đảm giá') ||
-    text.includes('bao dam gia') ||
-    text.includes('bảo hiểm giá') ||
-    text.includes('giữ giá') ||
-    text.includes('khóa giá') ||
-    text.includes('price guarantee') ||
-    text.includes('price lock')
-  );
-}
-
 /** Bảng các dòng hợp đồng/phụ lục. Thành tiền và tổng lấy NGUYÊN từ backend. */
 export function ContractLinesTable({
   lines,
   totalVnd,
   totalLabel = 'Tổng hợp đồng',
 }: Readonly<{ lines: readonly ContractLine[]; totalVnd: number; totalLabel?: string }>) {
-  const hasPriceGuarantee = lines.some((l) => isPriceGuarantee(l));
-
   return (
     <div className={cx.tableWrap} tabIndex={0} role="region" aria-label="Các hạng mục hợp đồng">
       <table className={cx.table}>
@@ -72,23 +46,6 @@ export function ContractLinesTable({
               <td>
                 <div className="flex flex-wrap items-center gap-1.5">
                   <strong>{line.name}</strong>
-                  {line.category === 'MENU' ? (
-                    hasPriceGuarantee ? (
-                      <span
-                        className="inline-flex items-center rounded bg-emerald-100 px-1.5 py-0.5 text-2xs font-semibold text-emerald-800"
-                        title="Đã thanh toán phí bảo đảm để giữ nguyên giá thực đơn không thay đổi theo thời giá"
-                      >
-                        Đã bảo đảm giá
-                      </span>
-                    ) : (
-                      <span
-                        className="inline-flex items-center rounded bg-amber-100 px-1.5 py-0.5 text-2xs font-semibold text-amber-800"
-                        title="Giá thực đơn áp dụng theo thời giá tại thời điểm tổ chức tiệc"
-                      >
-                        Theo thời giá
-                      </span>
-                    )
-                  ) : null}
                 </div>
                 {line.description ? (
                   <p className={cx.muted}>{lineDescription(line.description)}</p>
