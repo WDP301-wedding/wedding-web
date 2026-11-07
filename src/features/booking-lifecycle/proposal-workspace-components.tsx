@@ -146,8 +146,8 @@ export function ProposalCancelSection({
         Cần đổi hoặc huỷ tiệc?
       </summary>
       <p className={cn(hint, 'mt-2')}>
-        Muốn đổi giờ hay nội dung chương trình, hãy dùng “Đề xuất thay đổi kịch bản”. Yêu cầu huỷ sẽ
-        được Quản lý xem xét theo chính sách đã ký.
+        Yêu cầu hủy sẽ được nhà hàng xem xét. Trước khi thu cọc, việc dừng hồ sơ không phát sinh
+        hoàn cọc. Sau cọc, mức hoàn được xác định theo hợp đồng và thời điểm nhận yêu cầu.
       </p>
       <form
         className="mt-3 flex flex-col gap-3"
