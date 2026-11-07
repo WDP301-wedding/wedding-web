@@ -38,7 +38,8 @@ export function LineSelectorPreview({
             totalLabel="Tổng dự kiến cho lựa chọn này"
           />
           <p>
-            Tiền cọc theo hợp đồng:{' '}
+            Tiền cọc theo hợp đồng (
+            {(preview.data.document as any).depositRate ?? 30}%):{' '}
             <strong>{formatVnd(preview.data.document.depositAmountVnd)}</strong>
           </p>
           <p>{preview.data.document.incidentalClause}</p>
