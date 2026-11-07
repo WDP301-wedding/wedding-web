@@ -39,7 +39,15 @@ export function LineSelectorPreview({
           />
           <p>
             Tiền cọc theo hợp đồng (
-            {(preview.data.document as any).depositRate ?? 30}%):{' '}
+            {(preview.data.document as any).depositRate ??
+              (preview.data.document.contractTotalVnd > 0
+                ? Math.round(
+                    (preview.data.document.depositAmountVnd /
+                      preview.data.document.contractTotalVnd) *
+                      100,
+                  )
+                : 30)}
+            %):{' '}
             <strong>{formatVnd(preview.data.document.depositAmountVnd)}</strong>
           </p>
           <p>{preview.data.document.incidentalClause}</p>

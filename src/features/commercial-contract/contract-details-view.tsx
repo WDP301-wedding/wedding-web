@@ -78,7 +78,9 @@ export function ContractDetailsView({
           <div>
             <dt>Tất toán sau tiệc (tạm tính)</dt>
             <dd>
-              {formatVnd(current.document.contractTotalVnd - current.document.depositAmountVnd)}
+              {formatVnd(
+                Math.max(0, current.document.contractTotalVnd - current.document.depositAmountVnd),
+              )}
             </dd>
           </div>
         ) : null}
