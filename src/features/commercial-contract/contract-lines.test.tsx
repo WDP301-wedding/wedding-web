@@ -75,6 +75,24 @@ function renderSelector(props: Partial<React.ComponentProps<typeof LineSelector>
 }
 
 describe('LineSelector', () => {
+  it('allows partially occupied tables and rejects menu quantities below the guest minimum or above the layout maximum', () => {
+    const onSubmit = renderSelector({
+      planningHeadcount: 95,
+      maximumTables: 12,
+      initialLines: [{ category: 'MENU', sourceId: 'menu-a', quantity: 10 }],
+    });
+    expect(screen.getByRole('button', { name: 'Lưu' })).toBeEnabled();
+    fireEvent.change(screen.getByLabelText('Số lượng Thực đơn Sen'), { target: { value: '9' } });
+    expect(screen.getByRole('button', { name: 'Lưu' })).toBeDisabled();
+    expect(screen.getByRole('alert')).toHaveTextContent('tối thiểu 10 bàn');
+    fireEvent.change(screen.getByLabelText('Số lượng Thực đơn Sen'), { target: { value: '20' } });
+    expect(screen.getByRole('button', { name: 'Lưu' })).toBeDisabled();
+    expect(screen.getByRole('alert')).toHaveTextContent('12 bàn');
+    fireEvent.change(screen.getByLabelText('Số lượng Thực đơn Sen'), { target: { value: '10' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
   it('requires at least one menu before submitting', () => {
     const onSubmit = renderSelector();
     fireEvent.click(screen.getByRole('button', { name: 'Lưu' }));

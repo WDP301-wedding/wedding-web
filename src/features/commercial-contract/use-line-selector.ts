@@ -1,5 +1,6 @@
 'use client';
 
+import { tableCapacityMessage } from '../../lib/table-capacity';
 import { useEffect, useRef, useState } from 'react';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
 import type { Catalog, ContractLine, ContractLineInput } from './contract-api';
@@ -16,7 +17,13 @@ export function useLineSelector({
   frozenLines,
   onPreview,
   onSubmit,
+  planningHeadcount = 0,
+  maximumTables,
+  maxGuests,
 }: {
+  planningHeadcount?: number;
+  maximumTables?: number | undefined;
+  maxGuests?: number | undefined;
   catalog: Catalog;
   initialLines: readonly {
     category: ContractLineInput['category'];
@@ -116,11 +123,19 @@ export function useLineSelector({
       .filter((line) => line.category === 'MENU')
       .reduce((sum, line) => sum + (selection[keyOf('MENU', line.sourceId)] ?? 0), 0);
 
+  const capacityError =
+    tableCount === 0
+      ? 'Cần chọn ít nhất một thực đơn (số bàn > 0).'
+      : tableCapacityMessage(planningHeadcount, tableCount, maximumTables, maxGuests);
   const selectionSignature = JSON.stringify(buildLines());
   const previewCurrent = preview?.signature === selectionSignature;
 
   const requestPreview = async () => {
     if (!onPreview || previewPending) return;
+    if (capacityError) {
+      setLocalError(capacityError);
+      return;
+    }
     const lines = buildLines();
     if (!lines.some((line) => line.category === 'MENU')) {
       setLocalError('Chọn ít nhất một thực đơn trước khi xem chi phí.');
@@ -150,6 +165,10 @@ export function useLineSelector({
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (capacityError) {
+      setLocalError(capacityError);
+      return;
+    }
     const lines = buildLines();
     if (!lines.some((line) => line.category === 'MENU')) {
       setLocalError('Cần chọn ít nhất một thực đơn (số bàn > 0).');
@@ -174,7 +193,8 @@ export function useLineSelector({
     previewCurrent,
     previewPending,
     previewError,
-    localError,
+    localError: capacityError ?? localError,
+    capacityError,
     requestPreview,
     handleSubmit,
   };

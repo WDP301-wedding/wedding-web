@@ -127,6 +127,7 @@ function AppendicesWorkspace({
               frozenLines={lines}
               maxGuests={proposal.proposal.hall.maxGuests}
               planningHeadcount={proposal.planningHeadcount}
+              maximumTables={proposal.capacity?.maximumTables}
               pending={command.pending}
               submitLabel="Lưu phụ lục nháp"
               extraFields={

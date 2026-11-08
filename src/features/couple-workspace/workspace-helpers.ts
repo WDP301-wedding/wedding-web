@@ -1,5 +1,7 @@
 'use client';
 
+import type { CommercialCapacity } from '../../lib/table-capacity';
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createApiClient, type ApiClient } from '../../lib/api/client';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
@@ -8,7 +10,7 @@ import { browserSession } from '../identity-access/browser-session';
 import { notify } from '../../design-system/toast';
 import { formatDate } from '../../lib/format-date';
 
-export type Proposal = ApiData<'/bookings/{bookingId}/proposal', 'get'>;
+export type Proposal = ApiData<'/bookings/{bookingId}/proposal', 'get'> & CommercialCapacity;
 export type BookingSummary = ApiData<'/couple/bookings', 'get'>[number] & {
   readonly revision?: number;
   readonly eventType?: 'WEDDING' | 'ENGAGEMENT' | 'RECEPTION' | 'ANNIVERSARY' | 'OTHER';

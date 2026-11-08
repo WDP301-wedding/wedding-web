@@ -24,6 +24,7 @@ export function LineSelector({
   initialLines,
   maxGuests,
   planningHeadcount,
+  maximumTables,
   submitLabel,
   pending,
   extraFields,
@@ -44,6 +45,7 @@ export function LineSelector({
   }[];
   maxGuests: number;
   planningHeadcount: number;
+  maximumTables?: number | undefined;
   submitLabel: string;
   pending: boolean;
   extraFields?: React.ReactNode;
@@ -64,12 +66,16 @@ export function LineSelector({
     localError,
     requestPreview,
     handleSubmit,
+    capacityError,
   } = useLineSelector({
     catalog,
     initialLines,
     frozenLines,
     onPreview,
     onSubmit,
+    planningHeadcount,
+    maximumTables,
+    maxGuests,
   });
 
   const quantityInput = (
@@ -124,7 +130,11 @@ export function LineSelector({
           </tr>
         ))}
       </SelectorTable>
-      <p className={cx.note}>Tổng số bàn đang chọn: {tableCount}</p>
+      <p className={cx.note}>
+        Tổng số bàn đang chọn: {tableCount} · tối thiểu {Math.ceil(planningHeadcount / 10)} bàn ·
+        tối đa 10 người/bàn
+        {maximumTables !== undefined ? ` · sơ đồ sảnh tối đa ${maximumTables} bàn` : ''}
+      </p>
 
       <SelectorTable title="Dịch vụ đi kèm" emptyText="Chưa có dịch vụ đi kèm.">
         {catalog.services.map((service) => (
@@ -189,7 +199,7 @@ export function LineSelector({
         </p>
       ) : null}
       <div className={cx.actions}>
-        <button className={cx.button} disabled={pending} type="submit">
+        <button className={cx.button} disabled={pending || capacityError !== null} type="submit">
           {pending ? 'Đang lưu…' : submitLabel}
         </button>
       </div>

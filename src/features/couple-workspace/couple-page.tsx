@@ -1,4 +1,5 @@
 'use client';
+import { tableCapacityMessage } from '../../lib/table-capacity';
 import { InlineError } from '../../design-system/inline-error';
 import { Illustration, type IllustrationName } from '../../design-system/illustrations';
 
@@ -53,6 +54,20 @@ export function CouplePage({ title, description, requireFull, children }: Couple
           ) : null}
           {state.status === 'ready' && !inSpace ? <BookingStrip proposal={state.proposal} /> : null}
         </header>
+        {state.status === 'ready' && state.proposal.capacity?.issue ? (
+          <p
+            role="alert"
+            className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+          >
+            {tableCapacityMessage(
+              state.proposal.planningHeadcount,
+              state.proposal.proposal.tableCount,
+              state.proposal.capacity.maximumTables,
+              state.proposal.proposal.hall.maxGuests,
+            )}{' '}
+            Thỏa thuận đã duyệt được giữ nguyên; hãy liên hệ nhà hàng để điều chỉnh.
+          </p>
+        ) : null}
         {state.status === 'loading' ? <Skeleton label="Đang tải dữ liệu tiệc cưới…" /> : null}
         {state.status === 'anonymous' ? (
           <EmptyPanel title="Cần đăng nhập">

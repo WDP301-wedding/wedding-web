@@ -1,5 +1,6 @@
 'use client';
 
+import { tableCapacityMessage } from '../../lib/table-capacity';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { cn } from 'cn';
@@ -133,7 +134,9 @@ function OverviewContent() {
             Hồ sơ đã quá ngày tổ chức dự kiến
           </div>
           <p className="text-xs text-muted-foreground">
-            Ngày tổ chức dự kiến ({formatEventDate(proposal.eventDate)}) đã qua nhưng tiệc cưới chưa hoàn tất thủ tục đặt cọc và xác nhận. Hai bạn vui lòng liên hệ nhà hàng để được hỗ trợ dời ngày hoặc xử lý đóng hồ sơ.
+            Ngày tổ chức dự kiến ({formatEventDate(proposal.eventDate)}) đã qua nhưng tiệc cưới chưa
+            hoàn tất thủ tục đặt cọc và xác nhận. Hai bạn vui lòng liên hệ nhà hàng để được hỗ trợ
+            dời ngày hoặc xử lý đóng hồ sơ.
           </p>
         </div>
       ) : null}
@@ -196,14 +199,29 @@ function OverviewContent() {
             {shiftLabel(offer.shift.code)} ({offer.shift.startTime}–{offer.shift.endTime})
           </p>
           <div className="flex flex-wrap gap-1.5 sm:justify-end">
-            <span className={heroChip}>{bookingPhaseLabel(proposal.phase, proposal.eventDate)}</span>
+            <span className={heroChip}>
+              {bookingPhaseLabel(proposal.phase, proposal.eventDate)}
+            </span>
             <span className={heroChip}>{proposal.planningHeadcount} khách dự kiến</span>
             <span className={heroChip}>{offer.tableCount} bàn</span>
             <span className={heroChip}>{menuLines(offer).length} thực đơn</span>
           </div>
         </div>
       </header>
-
+      {proposal.capacity?.issue ? (
+        <p
+          role="alert"
+          className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+        >
+          {tableCapacityMessage(
+            proposal.planningHeadcount,
+            offer.tableCount,
+            proposal.capacity.maximumTables,
+            offer.hall.maxGuests,
+          )}{' '}
+          Thỏa thuận đã duyệt được giữ nguyên; hãy liên hệ nhà hàng để điều chỉnh.
+        </p>
+      ) : null}
       <section className={cn(panel, 'flex flex-col gap-4')} aria-labelledby="journey-title">
         <div className="flex items-baseline justify-between gap-3">
           <h2 id="journey-title" className={panelTitle}>

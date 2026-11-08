@@ -120,6 +120,9 @@ function ContractWorkspace({
       {showContract ? <ContractProgress contracts={contracts} phase={proposal.phase} /> : null}
       {showContract ? (
         <CustomerSelections
+          planningHeadcount={proposal.planningHeadcount}
+          maximumTables={proposal.capacity?.maximumTables}
+          maxGuests={proposal.proposal.hall.maxGuests}
           contracts={contracts}
           bookingId={proposal.bookingId}
           onDirtyChange={setEditing}
