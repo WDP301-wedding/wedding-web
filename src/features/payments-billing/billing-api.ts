@@ -1,8 +1,8 @@
 import { createApiClient, type ApiClient } from '../../lib/api/client';
 import type { components, operations } from '../../lib/api/generated/schema';
 import { paymentStatusFetch } from './payment-status-fetch';
-import type { ContractRevision } from '../commercial-contract/contract-api';
-import { coupleApi, type Proposal } from '../couple-workspace/use-couple-workspace';
+import type { ContractRevision, ContractList } from '../commercial-contract/contract-api';
+import { coupleApi, unwrap, type Proposal } from '../couple-workspace/use-couple-workspace';
 
 type BillingResponseData = components['schemas']['BookingBillingResponse']['data'];
 /**
@@ -126,7 +126,7 @@ export function createCoupleBillingGateway(client?: ApiClient): CoupleBillingGat
             headers: headers(token),
             cache: 'no-store',
           })
-          .then((response) => required(response.data)),
+          .then((response) => unwrap<ContractList>(response)),
       ]);
       const value = required(data);
       const revisions = contracts?.revisions ? Array.from(contracts.revisions) : [];

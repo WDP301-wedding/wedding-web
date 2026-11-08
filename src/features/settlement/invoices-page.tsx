@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ExpenseDecisionPanel } from './expense-decision-panel';
 import { useLiveRefresh, LiveUpdateNotice } from '../realtime/use-live-refresh';
 import { useState } from 'react';
 
@@ -62,7 +63,7 @@ export function InvoicesPage() {
   return (
     <CouplePage
       title="Chi phí phát sinh & hoá đơn"
-      description="Nhà hàng ghi nhận chi phí phát sinh sau khi tiệc kết thúc và chốt hoá đơn cuối. Hai bạn xem chi tiết và thanh toán phần còn lại."
+      description="Sau tiệc, hai bạn đối soát và duyệt chi phí phát sinh trước khi nhà hàng chốt hóa đơn cuối."
       requireFull
     >
       {(proposal) => <SettlementWorkspace key={proposal.bookingId} proposal={proposal} />}
@@ -222,7 +223,7 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
                     </td>
                     <td className={cx.num}>{formatVnd(line.unitPriceVnd)}</td>
                     <td className={cx.num}>{formatVnd(line.totalVnd)}</td>
-                    <td>{line.note ?? ''}</td>
+                    <td>{[line.reason, line.note].filter(Boolean).join(' · ')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -236,9 +237,7 @@ function SettlementWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
             </table>
           </div>
         )}
-        <p className={cx.note}>
-          Chi phí phát sinh do nhà hàng nhập; hai bạn chỉ xem, không cần duyệt.
-        </p>
+        <ExpenseDecisionPanel bookingId={bookingId} expenses={data.expenses} onSaved={reload} />
       </section>
 
       {current ? (

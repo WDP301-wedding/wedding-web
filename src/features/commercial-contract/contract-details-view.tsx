@@ -88,6 +88,25 @@ export function ContractDetailsView({
         <strong>{current.document.groomName ?? 'chưa có'}</strong> ·{' '}
         {current.document.incidentalClause}
       </p>
+      {current.document.incidentalPricing ? (
+        <section>
+          <h3>Bảng đơn giá áp dụng khi phát sinh</h3>
+          <p>
+            Chỉ tính khi sử dụng thực tế, không cộng vào giá trị hợp đồng hoặc tiền cọc. Sau tiệc,
+            hai bên duyệt bảng phát sinh trước tất toán; nhà hàng có thể xác nhận không phát sinh.
+          </p>
+          <ul>
+            {current.document.incidentalPricing.map((item) => (
+              <li key={item.offeringId}>
+                {item.name} · {formatVnd(item.unitPriceVnd)}/{item.unit}
+                <p>
+                  {item.description} · {item.chargingRule}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       {standard ? (
         <p className={cx.note}>
           Tối đa 02 bàn dự phòng miễn phí kèm thực đơn <strong>{standard.reserveMenu.name}</strong>.

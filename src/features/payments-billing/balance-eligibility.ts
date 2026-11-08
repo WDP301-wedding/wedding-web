@@ -24,6 +24,10 @@ export const blockedBalanceCopy: Record<
   BalanceBlockReason,
   Readonly<{ message: string; action: BalanceGateAction }>
 > = {
+  EXPENSE_APPROVAL_REQUIRED: {
+    message: 'Chi phí phát sinh hoặc điều chỉnh đang chờ hai bên duyệt và nhà hàng chốt hóa đơn.',
+    action: 'wait',
+  },
   INVOICE_FINALIZATION_REQUIRED: {
     message:
       'Nhà hàng chưa chốt hoá đơn cuối. Bạn có thể thanh toán sau khi nhà hàng hoàn tất quyết toán.',
