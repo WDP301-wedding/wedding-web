@@ -1,4 +1,5 @@
 'use client';
+import { tableCapacityMessage } from '../../lib/table-capacity';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { authorizedRead, useCommand } from '../couple-workspace/use-couple-workspace';
 import { describeApiError, type FriendlyError } from '../../lib/api/api-errors';
@@ -57,7 +58,13 @@ export function useCustomerSelection({
   onDirtyChange,
   onWritingChange,
   catalog,
+  planningHeadcount = 0,
+  maximumTables,
+  maxGuests,
 }: {
+  planningHeadcount?: number;
+  maximumTables?: number | undefined;
+  maxGuests?: number | undefined;
   selection: CustomerSelection;
   catalog: ReturnType<typeof useSelectionCatalog>;
   bookingId: string;
@@ -106,13 +113,14 @@ export function useCustomerSelection({
     const choice = choicesByKey.get(selectionKey(line));
     return choice !== undefined && line.sourceRevisionId !== choice.sourceRevisionId;
   });
-  const validationMessage = validateSelection(
-    lines,
-    choices !== null,
-    catalogError,
-    missing,
-    stale,
+  const capacityError = tableCapacityMessage(
+    planningHeadcount,
+    lines.filter((l) => l.category === 'MENU').reduce((sum, l) => sum + l.quantity, 0),
+    maximumTables,
+    maxGuests,
   );
+  const validationMessage =
+    validateSelection(lines, choices !== null, catalogError, missing, stale) ?? capacityError;
   const invalid = validationMessage !== null;
   const body = useMemo(
     () => ({ expectedRevision: bookingRevision, lines }),

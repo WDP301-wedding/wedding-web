@@ -16,6 +16,9 @@ import { selectionKey, useCustomerSelection } from './use-customer-selection';
 import { cx } from './contract-classes';
 
 type Props = {
+  planningHeadcount?: number;
+  maximumTables?: number | undefined;
+  maxGuests?: number;
   contracts: ContractList;
   bookingId: string;
   onChanged: (result?: SelectionResult) => void;

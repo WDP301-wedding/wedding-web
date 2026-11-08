@@ -40,6 +40,9 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
       <SummaryCard data={data} />
       <div className={gx.settings}>
         <PlanCard
+          key={data.plan.revision}
+          tableCount={proposal.proposal.tableCount}
+          maximumTables={proposal.capacity?.maximumTables}
           bookingId={bookingId}
           plan={data.plan}
           readOnly={readOnly}
