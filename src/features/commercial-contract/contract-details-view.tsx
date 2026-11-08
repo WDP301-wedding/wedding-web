@@ -11,6 +11,7 @@ import { ContractLinesTable } from './contract-lines';
 import { WithdrawForm } from './contract-withdraw-form';
 import { cx } from './contract-classes';
 import { ContractPdfViewer } from './contract-pdf-viewer';
+import { contractDepositRate } from '../../lib/deposit-policy';
 
 export function ContractDetailsView({
   current,
@@ -62,7 +63,7 @@ export function ContractDetailsView({
           <dd>{formatVnd(current.document.contractTotalVnd)}</dd>
         </div>
         <div>
-          <dt>Tiền cọc (30%, làm tròn lên)</dt>
+          <dt>Tiền cọc ({contractDepositRate(current.document)}%, làm tròn lên)</dt>
           <dd>{formatVnd(current.document.depositAmountVnd)}</dd>
         </div>
         {standard ? (

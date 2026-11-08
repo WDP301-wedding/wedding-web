@@ -11,11 +11,11 @@ export type Offer = Readonly<{ tag: string; title: string; detail: string; until
 export const offers: readonly Offer[] = [];
 
 /**
- * Câu hỏi thường gặp = câu đã khớp nghiệp vụ backend (cọc 30%, không cần xác nhận tham dự…) +
+ * Câu hỏi thường gặp = câu đã khớp nghiệp vụ backend (cọc theo hợp đồng, không cần xác nhận tham dự…) +
  * câu bổ sung từ nội dung nhà hàng cung cấp (assets/content.md, 22/10/2026).
  *
- * Quy tắc gộp: câu nào mâu thuẫn backend thì theo backend (vd. content.md ghi tiền cọc "theo báo
- * giá", backend cố định 30%). Số liệu do catalog quản lý (sức chứa sảnh, giá thực đơn) KHÔNG ghi
+ * Quy tắc gộp: câu nào mâu thuẫn backend thì theo backend. Tỷ lệ cọc được chốt khi tạo tiệc.
+ * Số liệu do catalog quản lý (sức chứa sảnh, giá thực đơn) KHÔNG ghi
  * cứng ở đây mà trỏ tới trang Sảnh/Thực đơn — tránh lệch khi nhà hàng đổi giá trên catalog.
  */
 export const faqs: readonly Readonly<{ question: string; answer: string }>[] = [
@@ -57,7 +57,7 @@ export const faqs: readonly Readonly<{ question: string; answer: string }>[] = [
   {
     question: 'Đặt cọc bao nhiêu và trả thế nào?',
     answer:
-      'Tiền cọc là 30% tổng hợp đồng, thanh toán qua VNPay trong Không gian cưới sau khi hai bên duyệt hợp đồng.',
+      'Tỷ lệ và số tiền cọc được ghi trong hợp đồng của tiệc. Bạn thanh toán qua VNPay trong Không gian cưới sau khi hai bên duyệt hợp đồng. Chính sách mới của nhà hàng chỉ áp dụng cho tiệc tạo sau thay đổi.',
   },
   {
     question: 'Nếu cần đổi ngày hoặc huỷ tiệc thì xử lý thế nào?',
@@ -137,7 +137,7 @@ export const weddingSteps: readonly Readonly<{
   {
     title: 'Hợp đồng & cọc',
     detail:
-      'Nhà hàng mở hồ sơ, mời bạn vào Không gian cưới để duyệt kịch bản, hợp đồng và đặt cọc 30% qua VNPay.',
+      'Nhà hàng mở hồ sơ, mời bạn vào Không gian cưới để duyệt kịch bản, hợp đồng và đặt cọc theo hợp đồng qua VNPay.',
   },
   {
     title: 'Chuẩn bị',
