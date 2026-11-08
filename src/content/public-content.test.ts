@@ -12,8 +12,11 @@ describe('public content', () => {
     expect(describeShifts(undefined)).toBe('ca trưa (10:00–14:00) và ca tối (17:00–22:00)');
   });
 
-  it('keeps the backend deposit rule and has no duplicate questions', () => {
-    expect(faqs.find((item) => item.question.startsWith('Đặt cọc'))?.answer).toContain('30%');
+  it('refers to the frozen contract deposit terms and has no duplicate questions', () => {
+    const answer = faqs.find((item) => item.question.startsWith('Đặt cọc'))?.answer;
+    expect(answer).toContain('Tỷ lệ và số tiền cọc');
+    expect(answer).toContain('hợp đồng');
+    expect(answer).not.toContain('30%');
     expect(new Set(faqs.map((item) => item.question)).size).toBe(faqs.length);
   });
 });

@@ -80,14 +80,14 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
     );
   });
 
-  it('applies initial ?tab=media directly from URL', async () => {
+  it('maps the retired media URL to the design tab', async () => {
     mockSearchParams.set('bookingId', bookingId);
     mockSearchParams.set('tab', 'media');
 
     render(<Page />);
 
-    expect(await screen.findByText('Hình ảnh cho thiệp')).toBeInTheDocument();
-    expect(screen.getByText('Chọn ảnh')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Thiết kế thiệp' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Tên thiệp')).toBeInTheDocument();
   });
 
   it('applies initial ?tab=publish directly from URL', async () => {
@@ -117,7 +117,7 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     render(<Page />);
 
-    expect(await screen.findByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Thiết kế thiệp' })).toBeInTheDocument();
     expect(mockGateway.listPrintOrders).not.toHaveBeenCalled();
     expect(listPrintRequests).not.toHaveBeenCalled();
 
@@ -126,13 +126,13 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
     ]);
     fireEvent.click(screen.getByRole('button', { name: 'Đặt in' }));
 
-    expect(await screen.findByText('Đặt in (1)')).toBeInTheDocument();
+    expect(await screen.findByText('Yêu cầu in thiệp')).toBeInTheDocument();
     expect(mockGateway.listPrintOrders).toHaveBeenCalledWith('test-token', bookingId);
     expect(listPrintRequests).toHaveBeenCalledWith('test-token', bookingId);
 
     // Quay lại tab thiết kế rồi mở lại tab in: không tải lại.
-    fireEvent.click(screen.getByRole('button', { name: 'Nội dung thiệp' }));
-    fireEvent.click(screen.getByText('Đặt in (1)'));
+    fireEvent.click(screen.getByRole('button', { name: 'Thiết kế' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Đặt in' }));
     expect(mockGateway.listPrintOrders).toHaveBeenCalledTimes(1);
   });
 
@@ -159,7 +159,7 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
 
-    expect(await screen.findByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Thiết kế thiệp' })).toBeInTheDocument();
     expect(mockGateway.listDesigns).toHaveBeenCalledTimes(2);
   });
 
@@ -169,7 +169,7 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     render(<Page />);
 
-    expect(await screen.findByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Thiết kế thiệp' })).toBeInTheDocument();
     expect(screen.getByText('Tên thiệp')).toBeInTheDocument();
   });
 
@@ -179,15 +179,15 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
 
     render(<Page />);
 
-    expect(await screen.findByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Thiết kế thiệp' })).toBeInTheDocument();
 
-    // Simulate browser navigation to ?tab=media
-    window.history.pushState({}, '', `?bookingId=${bookingId}&tab=media`);
+    // Simulate browser navigation to the sharing tab
+    window.history.pushState({}, '', `?bookingId=${bookingId}&tab=publish`);
     act(() => {
       window.dispatchEvent(new PopStateEvent('popstate'));
     });
 
-    expect(await screen.findByText('Hình ảnh cho thiệp')).toBeInTheDocument();
+    expect(await screen.findByText('Chia sẻ thiệp')).toBeInTheDocument();
   });
 
   it('preserves draft input when switching tabs on the same booking', async () => {
@@ -201,13 +201,13 @@ describe('CoupleInvitationsPage URL tab synchronization', () => {
     fireEvent.change(titleInput, { target: { value: 'Thiệp Cưới Bản Nháp Đặc Biệt' } });
     expect(titleInput).toHaveValue('Thiệp Cưới Bản Nháp Đặc Biệt');
 
-    // Switch to Media tab via Studio Tab navigation
-    fireEvent.click(screen.getByRole('button', { name: 'Hình ảnh' }));
-    expect(await screen.findByText('Hình ảnh cho thiệp')).toBeInTheDocument();
+    // Switch to the sharing tab, then return to the editor
+    fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
+    expect(await screen.findByText('Chia sẻ thiệp')).toBeInTheDocument();
 
     // Switch back to Design tab via Studio Tab navigation
-    fireEvent.click(screen.getByRole('button', { name: 'Nội dung thiệp' }));
-    expect(await screen.findByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Thiết kế' }));
+    expect(await screen.findByRole('heading', { name: 'Thiết kế thiệp' })).toBeInTheDocument();
 
     // Value should NOT be wiped or reset
     expect(screen.getByLabelText('Tên thiệp')).toHaveValue('Thiệp Cưới Bản Nháp Đặc Biệt');
