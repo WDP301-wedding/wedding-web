@@ -7,7 +7,10 @@ percentage retain 30%; invalid values are rejected rather than inferred from mon
 
 Payment amounts remain server-owned. Manager configuration applies only to bookings
 created after the change, not later event dates or new drafts of existing bookings.
-Released generated API pins remain unchanged pending an actual coordinated backend
-release; added percentage values are runtime-validated locally.
+The generated API client is pinned to the live backend release
+`56372ce9f683735d9dfea87016cd2b898f0225fd`, SHA-256
+`42f27e6c510b26b384d4b9e86b171be14a85da08110e7ef97be445d36f7fea27`.
+Its deployed schema digest was verified before regeneration; percentage values
+remain runtime-validated locally.
 
 See `../wedding-be/docs/tasks-8-10-api-handoff.md` for migrations and release caveats.
