@@ -469,7 +469,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       expect(result.current.restoredAiImage?.derivedAssetId).toBe('derived-earlier'),
     );
     expect(result.current.derivedAssetIds).toEqual([]);
-    await act(async () => result.current.applyRestoredAiImage());
+    act(() => result.current.applyRestoredAiImage());
     await act(async () => result.current.handleSaveDesign(save));
     expect(reviseDesign.mock.calls[0]?.[3]?.content?.derivedAssetIds).toEqual(['derived-earlier']);
   });
