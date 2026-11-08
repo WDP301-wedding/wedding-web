@@ -97,8 +97,8 @@ export function CouplePage({ title, description, requireFull, children }: Couple
           state.proposal.phase === 'CANCELLED' && requireFull ? (
             <EmptyPanel title="Tiệc cưới đã huỷ" illustration="empty-tiec">
               <p>
-                Hồ sơ tiệc cưới này đã được xác nhận huỷ. Các hoạt động chuẩn bị tiệc (lập danh sách
-                khách mời, sơ đồ sắp xếp bàn và phụ lục) đã ngừng hoạt động.
+                Hồ sơ tiệc cưới này đã được xác nhận huỷ. Các hoạt động chuẩn bị tiệc (chuẩn bị quy
+                mô và nhóm khách, sơ đồ sắp xếp bàn và phụ lục) đã ngừng hoạt động.
               </p>
               <div className="flex flex-wrap gap-2 pt-1">
                 <Link

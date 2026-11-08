@@ -41,7 +41,7 @@ export const mainNav: readonly NavItem[] = [
     icon: 'checklist',
     match: '/khong-gian/chuan-bi',
     children: [
-      { label: 'Khách & sơ đồ', href: routes.guests },
+      { label: 'Nhóm & sơ đồ', href: routes.guests },
       { label: 'Thiệp & in', href: routes.card },
       { label: 'Phụ lục', href: routes.addendum },
     ],

@@ -55,7 +55,7 @@ export function PlanCard({
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Sảnh tối đa {maxGuests} khách. Thêm hoặc xóa tên không thay đổi số khách dự kiến.
+            Sảnh tối đa {maxGuests} khách. Số khách dự kiến được nhập và cập nhật riêng.
           </p>
         </form>
       )}

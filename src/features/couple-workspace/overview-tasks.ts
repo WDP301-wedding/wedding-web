@@ -203,7 +203,7 @@ export function nextTasks(
           title: 'Số khách & nhóm khách',
           detail: 'Chốt số khách dự kiến và chia nhóm để xếp bàn.',
           href: withBooking(routes.guests, id),
-          action: 'Mở danh sách khách',
+          action: 'Mở quy mô & nhóm',
           status: 'info',
         },
         {
