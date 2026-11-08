@@ -24,14 +24,14 @@ export default function GuestsAndSeatingPage() {
   const { bookingId } = useCoupleWorkspace();
   const seating = searchParams.get('xem') === 'so-do';
   const tabs = [
-    { label: 'Danh sách khách', href: withBooking(routes.guests, bookingId), current: !seating },
+    { label: 'Quy mô & nhóm', href: withBooking(routes.guests, bookingId), current: !seating },
     { label: 'Sơ đồ bàn', href: withBooking(routes.seating, bookingId), current: seating },
   ];
   return (
     <>
       <nav
         className="mb-5 flex max-w-full gap-1 overflow-x-auto shadow-[inset_0_-1px_0_var(--hy-outline)]"
-        aria-label="Khách & sơ đồ"
+        aria-label="Nhóm & sơ đồ"
       >
         {tabs.map((tab) => (
           <Link

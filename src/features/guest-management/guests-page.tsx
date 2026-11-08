@@ -7,9 +7,6 @@ import { useGuestsWorkspace } from './use-guests-workspace';
 import { SummaryCard } from './summary-card';
 import { PlanCard } from './plan-card';
 import { GroupsCard } from './groups-card';
-import { GuestListCard } from './guest-list-card';
-import { ImportCard } from './import-card';
-import { CheckInCard } from './check-in-card';
 import {
   PreparationReadOnlyNotice,
   usePreparationLock,
@@ -19,8 +16,8 @@ import { gx } from './guest-classes';
 export function GuestsPage() {
   return (
     <CouplePage
-      title="Khách mời"
-      description="Nhóm khách dùng được ngay cả khi chưa có danh sách tên. Số khách dự kiến nhập riêng, không tự tính từ danh sách."
+      title="Quy mô & nhóm khách"
+      description="Nhập số khách dự kiến và tạo nhóm để bố trí sơ đồ bàn. Chia sẻ thiệp chung cho khách mời."
       requireFull
     >
       {(proposal) => <GuestsWorkspace proposal={proposal} />}
@@ -31,28 +28,16 @@ export function GuestsPage() {
 function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
   const locked = usePreparationLock(proposal);
   const readOnly = locked !== null;
-  const {
-    bookingId,
-    data,
-    status,
-    setStatus,
-    loadError,
-    extrasError,
-    reload,
-    reloadExtras,
-    onPlanSaved,
-    onCheckInChanged,
-    onGroupSaved,
-    onGuestSaved,
-  } = useGuestsWorkspace(proposal);
+  const { bookingId, data, loadError, reload, onPlanSaved, onGroupSaved } =
+    useGuestsWorkspace(proposal);
 
   if (loadError) return <ErrorPanel error={loadError} onRetry={reload} />;
-  if (!data) return <Skeleton label="Đang tải khách mời…" />;
+  if (!data) return <Skeleton label="Đang tải quy mô và nhóm khách…" />;
 
   return (
     <div className={gx.workspace}>
       {locked && <PreparationReadOnlyNotice reason={locked} />}
-      <SummaryCard data={data} status={status} />
+      <SummaryCard data={data} />
       <div className={gx.settings}>
         <PlanCard
           bookingId={bookingId}
@@ -61,49 +46,13 @@ function GuestsWorkspace({ proposal }: Readonly<{ proposal: Proposal }>) {
           maxGuests={proposal.proposal.hall.maxGuests}
           onSaved={onPlanSaved}
         />
-        {data.settings && data.attendance ? (
-          <CheckInCard
-            bookingId={bookingId}
-            settings={data.settings}
-            readOnly={readOnly}
-            attendance={data.attendance}
-            onChanged={onCheckInChanged}
-          />
-        ) : extrasError ? (
-          // Chỉ thẻ check-in lỗi; phần còn lại của trang vẫn dùng bình thường, không cần F5.
-          <section className={gx.card} aria-label="Check-in theo tên tại tiệc">
-            <h2>Check-in theo tên tại tiệc</h2>
-            <ErrorPanel error={extrasError} onRetry={reloadExtras} />
-          </section>
-        ) : (
-          <Skeleton label="Đang tải cài đặt check-in…" variant="card" />
-        )}
       </div>
       <GroupsCard
         bookingId={bookingId}
         groups={data.groups}
         readOnly={readOnly}
-        // Chỉ đếm được khi đang xem khách "Đang mời"; xem "Đã lưu trữ" thì để backend tự kiểm tra.
-        activeGuestCounts={status === 'ACTIVE' ? countByGroup(data.guests) : undefined}
         onChanged={onGroupSaved}
-      />
-      <GuestListCard
-        bookingId={bookingId}
-        groups={data.groups}
-        guests={data.guests}
-        status={status}
-        readOnly={readOnly}
-        onStatusChange={setStatus}
-        onChanged={onGuestSaved}
-        importPanel={<ImportCard bookingId={bookingId} groups={data.groups} onImported={reload} />}
       />
     </div>
   );
-}
-
-function countByGroup(guests: readonly { guestGroupId: string }[]): ReadonlyMap<string, number> {
-  const counts = new Map<string, number>();
-  for (const guest of guests)
-    counts.set(guest.guestGroupId, (counts.get(guest.guestGroupId) ?? 0) + 1);
-  return counts;
 }

@@ -80,15 +80,18 @@ export function CancellationModal({
           </div>
         </div>
 
-        <div id="cancellation-modal-description" className="flex flex-col gap-3 text-sm text-muted-foreground">
+        <div
+          id="cancellation-modal-description"
+          className="flex flex-col gap-3 text-sm text-muted-foreground"
+        >
           <p>
             Hồ sơ tiệc cưới của hai bạn đã được nhà hàng xác nhận huỷ. Các chức năng chuẩn bị tiệc
-            bao gồm: lập danh sách khách mời, sắp xếp sơ đồ bàn, thiết kế thiệp và đặt in thiệp cưới
-            đã được tạm dừng.
+            bao gồm: chuẩn bị quy mô và nhóm khách, sắp xếp sơ đồ bàn, thiết kế thiệp và đặt in
+            thiệp cưới đã được tạm dừng.
           </p>
           <p>
-            Toàn bộ bản hợp đồng đã duyệt và lịch sử giao dịch thanh toán vẫn được lưu trữ nguyên vẹn
-            để hai bạn tiện tra cứu, đối chiếu khi cần.
+            Toàn bộ bản hợp đồng đã duyệt và lịch sử giao dịch thanh toán vẫn được lưu trữ nguyên
+            vẹn để hai bạn tiện tra cứu, đối chiếu khi cần.
           </p>
           {publicPhone ? (
             <p className="rounded-lg bg-muted/60 p-3 text-xs text-foreground">
