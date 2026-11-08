@@ -54,6 +54,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Verify customer regressions and frozen deposit terms
+        run: npm test -- --maxWorkers=2
+
       - name: Verify canonical invitation print artifact
         run: npm run print:check
 
