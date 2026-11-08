@@ -187,7 +187,7 @@ export function nextTasks(
         },
         {
           title: `Đặt cọc ${formatVnd(proposal.proposal.depositAmountVnd)}`,
-          detail: '30% tổng theo đề xuất, thanh toán qua VNPay.',
+          detail: 'Tiền cọc theo tỷ lệ đã chốt trong hợp đồng, thanh toán qua VNPay.',
           href: withBooking(routes.payment, id),
           action: 'Đi tới Thanh toán',
           status: 'wait',

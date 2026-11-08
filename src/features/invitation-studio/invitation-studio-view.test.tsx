@@ -1,7 +1,29 @@
-import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  render,
+  renderHook,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { InvitationStudioView } from './invitation-studio-view';
+import { InvitationStudioView, type InvitationStudioViewProps } from './invitation-studio-view';
+import { useInvitationDesign } from './use-invitation-design';
+import { useInvitationStudio } from './use-invitation-studio';
+import { StudioMediaTab } from './studio-media-tab';
+
+// Retained media component is tested at its own boundary, not as a removed tab.
+function RetainedMediaView(props: InvitationStudioViewProps) {
+  const studio = useInvitationStudio(props);
+  return (
+    <>
+      <StudioMediaTab studio={studio} />
+      {studio.dialog}
+    </>
+  );
+}
 import type { InvitationGateway, DesignView, ImageJobView, PrintOrderView } from './invitation-api';
 import { ApiClientError } from '../../lib/api/client';
 import { sharedCoupleRealtime, type RealtimeEvent } from '../realtime/realtime-client';
@@ -37,6 +59,13 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
   const accessToken = 'mock-token';
   const publicSlug = 'a'.repeat(64);
   async function receivePublication(publicationRevision: number, published: boolean) {
+    vi.mocked(mockGateway.getDesignPublication).mockResolvedValue({
+      publicationRevision,
+      published,
+      publicSlug: published ? publicSlug : null,
+      publishedRevisionId: published ? 'pr-1' : null,
+      designRevisionId: published ? initialDesign.revisionId : null,
+    });
     act(() => {
       for (const listener of publicationListeners)
         listener({
@@ -57,6 +86,11 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
           },
         });
     });
+    if (published) {
+      await screen.findByRole('link', { name: 'Xem thiệp đang chia sẻ' });
+      const details = screen.getByText('Mã QR và tùy chọn chia sẻ').closest('details')!;
+      details.open = true;
+    }
     await waitFor(() =>
       expect(
         screen.getByRole('button', {
@@ -104,15 +138,13 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
   };
 
   const mockGateway: InvitationGateway = {
-    getDesignPublication: vi
-      .fn()
-      .mockResolvedValue({
-        publicationRevision: 0,
-        published: false,
-        publicSlug: null,
-        publishedRevisionId: null,
-        designRevisionId: null,
-      }),
+    getDesignPublication: vi.fn().mockResolvedValue({
+      publicationRevision: 0,
+      published: false,
+      publicSlug: null,
+      publishedRevisionId: null,
+      designRevisionId: null,
+    }),
     previewPrintRequest: vi.fn(),
     confirmPrintRequest: vi.fn(),
     listPrintRequests: vi.fn().mockResolvedValue([]),
@@ -190,6 +222,16 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     }),
   };
 
+  beforeEach(() => {
+    vi.mocked(mockGateway.getDesignPublication).mockResolvedValue({
+      publicationRevision: 0,
+      published: false,
+      publicSlug: null,
+      publishedRevisionId: null,
+      designRevisionId: null,
+    });
+  });
+
   it('shows saved invitations and print history without write actions when locked', async () => {
     render(
       <InvitationStudioView
@@ -222,10 +264,11 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     );
 
     expect(screen.getByText('Thiệp & in')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Nội dung thiệp' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Thiết kế thiệp' })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Đặt in (1)'));
+    fireEvent.click(screen.getByRole('button', { name: 'Đặt in' }));
     expect(screen.getByText('Yêu cầu in thiệp')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Theo dõi in' }));
     expect(screen.getByText('Đơn hàng #o-1')).toBeInTheDocument();
   });
 
@@ -260,6 +303,8 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     expect(await screen.findByText('Đã lưu bản thiết kế thiệp thành công!')).toBeInTheDocument();
   });
 
+  // Image-job controls were retired from the editor. Verify the retained owner
+  // hook directly instead of clicking controls that production no longer renders.
   const jobBase = {
     jobId: 'job-1',
     intentDigest: 'a'.repeat(64),
@@ -285,33 +330,13 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       previewPath: `/api/v1/bookings/${bookingId}/media/private-original`,
     },
   });
-  const recoveryJob: ImageJobView = {
-    ...jobBase,
-    status: 'RECOVERY_REQUIRED',
-    retryAfterSeconds: null,
-    result: null,
-    errorCode: 'AI_JOB_INTERRUPTED',
-  };
-  const renderStudio = (gateway: Partial<InvitationGateway>) =>
-    render(
-      <InvitationStudioView
-        bookingId={bookingId}
-        accessToken={accessToken}
-        gateway={{ ...mockGateway, ...gateway }}
-        initialDesigns={[initialDesign]}
-      />,
+  const renderDesign = (overrides: Partial<InvitationGateway>) => {
+    const gateway = { ...mockGateway, ...overrides };
+    return renderHook(() =>
+      useInvitationDesign({ bookingId, accessToken, gateway, initialDesigns: [initialDesign] }),
     );
-  const requestImage = (prompt = 'Hoa trắng') => {
-    if (!screen.queryByLabelText('Mô tả ảnh AI')) {
-      fireEvent.click(
-        screen.getByRole('button', { name: 'Tùy chọn nâng cao: Vẽ thêm hình minh họa bằng AI' }),
-      );
-    }
-    const expandBtn = screen.queryByRole('button', { name: /Vẽ thêm hình minh họa bằng AI/ });
-    if (expandBtn) fireEvent.click(expandBtn);
-    fireEvent.change(screen.getByLabelText('Mô tả ảnh AI'), { target: { value: prompt } });
-    fireEvent.click(screen.getByText('Tạo Ảnh AI'));
   };
+  const save = { preventDefault() {} } as React.FormEvent;
 
   it('queues an AI image, polls until it succeeds and saves the derived asset', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -323,10 +348,9 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     const reviseDesign = vi
       .fn<InvitationGateway['reviseDesign']>()
       .mockResolvedValue(initialDesign);
-    renderStudio({ enqueueImageJob, getImageJob, reviseDesign });
-
-    requestImage();
-    expect(await screen.findByText(/Đang xếp hàng chờ tạo ảnh…/)).toBeInTheDocument();
+    const { result } = renderDesign({ enqueueImageJob, getImageJob, reviseDesign });
+    await act(async () => result.current.aiJob.start('Hoa trắng'));
+    expect(result.current.aiJob.job?.status).toBe('QUEUED');
     expect(enqueueImageJob).toHaveBeenCalledWith(
       accessToken,
       bookingId,
@@ -335,23 +359,19 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       expect.stringMatching(/^image-job:/),
     );
     await act(() => vi.advanceTimersByTimeAsync(3000));
-    expect(await screen.findByText(/Đang tạo ảnh…/)).toBeInTheDocument();
+    expect(result.current.aiJob.job?.status).toBe('RUNNING');
     await act(() => vi.advanceTimersByTimeAsync(3000));
-    await screen.findByText('Ảnh đã sẵn sàng. Lưu thiết kế để sử dụng ảnh trên thiệp.');
+    expect(result.current.aiJob.job?.status).toBe('SUCCEEDED');
     expect(mockGateway.getMediaPreview).toHaveBeenCalledWith(
       accessToken,
       bookingId,
       'private-original',
     );
     vi.useRealTimers();
-
-    fireEvent.click(screen.getByText('Lưu thay đổi'));
-    await waitFor(() => {
-      const content = reviseDesign.mock.calls[0]?.[3]?.content;
-      expect(content?.derivedAssetIds).toEqual(['derived-png']);
-      expect(content?.sections).toEqual([
-        { kind: 'HERO', textKey: null, derivedAssetId: 'derived-png' },
-      ]);
+    await act(async () => result.current.handleSaveDesign(save));
+    expect(reviseDesign.mock.calls[0]?.[3]?.content).toMatchObject({
+      derivedAssetIds: ['derived-png'],
+      sections: [{ kind: 'HERO', textKey: null, derivedAssetId: 'derived-png' }],
     });
   });
 
@@ -367,16 +387,14 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
         }),
       )
       .mockResolvedValue(succeededJob());
-    renderStudio({ enqueueImageJob });
-
-    requestImage();
-    expect(await screen.findByText(/sẽ không bị tạo trùng/)).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Tạo Ảnh AI'));
-    await screen.findByText('Ảnh đã sẵn sàng. Lưu thiết kế để sử dụng ảnh trên thiệp.');
-    requestImage('Hoa hồng');
-    await waitFor(() => expect(enqueueImageJob).toHaveBeenCalledTimes(3));
-
+    const { result } = renderDesign({ enqueueImageJob });
+    await act(async () => result.current.aiJob.start('Hoa trắng'));
+    expect(result.current.aiJob.error).toMatch(/sẽ không bị tạo trùng/);
+    await act(async () => result.current.aiJob.start('Hoa trắng'));
+    expect(result.current.derivedAssetIds).toEqual(['derived-png']);
+    await act(async () => result.current.aiJob.start('Hoa hồng'));
     const keys = enqueueImageJob.mock.calls.map((call) => call[4] as string);
+    expect(keys).toHaveLength(3);
     expect(keys[1]).toBe(keys[0]);
     expect(keys[2]).not.toBe(keys[0]);
   });
@@ -402,24 +420,27 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
           status: 503,
         }),
       );
-    renderStudio({ enqueueImageJob });
-
-    requestImage();
-    expect(await screen.findByText(/giới hạn tạo ảnh AI/)).toBeInTheDocument();
-    requestImage('Hoa hồng');
-    expect(await screen.findByText(/đang tạm tắt/)).toBeInTheDocument();
+    const { result } = renderDesign({ enqueueImageJob });
+    await act(async () => result.current.aiJob.start('Hoa trắng'));
+    expect(result.current.aiJob.error).toMatch(/giới hạn tạo ảnh AI/);
+    await act(async () => result.current.aiJob.start('Hoa hồng'));
+    expect(result.current.aiJob.error).toMatch(/đang tạm tắt/);
   });
 
-  it('offers a deliberate recovery for an unknown outcome without creating a new job', async () => {
-    const enqueueImageJob = vi.fn().mockResolvedValue(recoveryJob);
+  it('offers deliberate recovery for an unknown outcome without creating a new job', async () => {
+    const enqueueImageJob = vi.fn().mockResolvedValue({
+      ...jobBase,
+      status: 'RECOVERY_REQUIRED',
+      retryAfterSeconds: null,
+      result: null,
+      errorCode: 'AI_JOB_INTERRUPTED',
+    });
     const recoverImageJob = vi.fn().mockResolvedValue(succeededJob());
-    renderStudio({ enqueueImageJob, recoverImageJob });
-
-    requestImage();
-    expect(await screen.findByText(/Chưa xác định được kết quả tạo ảnh/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Thử khôi phục' }));
-
-    await screen.findByText('Ảnh đã sẵn sàng. Lưu thiết kế để sử dụng ảnh trên thiệp.');
+    const { result } = renderDesign({ enqueueImageJob, recoverImageJob });
+    await act(async () => result.current.aiJob.start('Hoa trắng'));
+    expect(result.current.aiJob.job?.status).toBe('RECOVERY_REQUIRED');
+    await act(async () => result.current.aiJob.recover());
+    expect(result.current.derivedAssetIds).toEqual(['derived-png']);
     expect(recoverImageJob).toHaveBeenCalledWith(
       accessToken,
       bookingId,
@@ -432,30 +453,25 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
   it('resumes a running job after reload instead of creating a new one', async () => {
     const listImageJobs = vi.fn().mockResolvedValue([{ ...queuedJob, status: 'RUNNING' }]);
     const enqueueImageJob = vi.fn();
-    renderStudio({ listImageJobs, enqueueImageJob });
-    fireEvent.click(screen.getByRole('button', { name: /Vẽ thêm hình minh họa bằng AI/ }));
-
-    expect(await screen.findByText('Tiến trình: Đang tạo ảnh…')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Đang vẽ...' })).toBeDisabled();
+    const { result } = renderDesign({ listImageJobs, enqueueImageJob });
+    await waitFor(() => expect(result.current.aiJob.job?.status).toBe('RUNNING'));
+    expect(result.current.aiJob.busy).toBe(true);
     expect(enqueueImageJob).not.toHaveBeenCalled();
   });
 
-  it('suggests an earlier finished image that is not in the design yet', async () => {
+  it('suggests an earlier finished image without attaching it until deliberate selection', async () => {
     const listImageJobs = vi.fn().mockResolvedValue([succeededJob('derived-earlier')]);
     const reviseDesign = vi
       .fn<InvitationGateway['reviseDesign']>()
       .mockResolvedValue(initialDesign);
-    renderStudio({ listImageJobs, reviseDesign });
-    fireEvent.click(screen.getByRole('button', { name: /Vẽ thêm hình minh họa bằng AI/ }));
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Dùng ảnh này trên thiệp' }));
-    fireEvent.click(screen.getByText('Lưu thay đổi'));
-
+    const { result } = renderDesign({ listImageJobs, reviseDesign });
     await waitFor(() =>
-      expect(reviseDesign.mock.calls[0]?.[3]?.content?.derivedAssetIds).toEqual([
-        'derived-earlier',
-      ]),
+      expect(result.current.restoredAiImage?.derivedAssetId).toBe('derived-earlier'),
     );
+    expect(result.current.derivedAssetIds).toEqual([]);
+    act(() => result.current.applyRestoredAiImage());
+    await act(async () => result.current.handleSaveDesign(save));
+    expect(reviseDesign.mock.calls[0]?.[3]?.content?.derivedAssetIds).toEqual(['derived-earlier']);
   });
 
   it('approves print order quotation', async () => {
@@ -469,7 +485,8 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Đặt in (1)'));
+    fireEvent.click(screen.getByRole('button', { name: 'Đặt in' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Theo dõi in' }));
     const approveBtn = screen.getByText('Duyệt báo giá');
     fireEvent.click(approveBtn);
     await confirmInDialog('Duyệt báo giá');
@@ -503,13 +520,13 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Hình ảnh' }));
-    expect(onTabChange).toHaveBeenCalledWith('media');
+    fireEvent.click(screen.getByRole('button', { name: 'Thiết kế' }));
+    expect(onTabChange).toHaveBeenCalledWith('design');
 
     fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
     expect(onTabChange).toHaveBeenCalledWith('publish');
 
-    fireEvent.click(screen.getByText('Đặt in (1)'));
+    fireEvent.click(screen.getByRole('button', { name: 'Đặt in' }));
     expect(onTabChange).toHaveBeenCalledWith('print');
   });
 
@@ -542,9 +559,13 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     });
 
     expect(await screen.findByText('Thiệp cưới đã được xuất bản trực tuyến!')).toBeInTheDocument();
-    expect(screen.getByText('/t/' + publicSlug)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Xem thiệp đang chia sẻ' })).toHaveAttribute(
+      'href',
+      '/t/' + publicSlug,
+    );
 
     // Unpublish
+    screen.getByText('Mã QR và tùy chọn chia sẻ').closest('details')!.open = true;
     fireEvent.click(screen.getByText('Ngừng chia sẻ'));
     await confirmInDialog('Huỷ xuất bản');
     await waitFor(() => {
@@ -579,7 +600,10 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     expect(screen.queryByText('Ngừng chia sẻ')).not.toBeInTheDocument();
     await receivePublication(1, true);
     expect(await screen.findByText('Ngừng chia sẻ')).toBeInTheDocument();
-    expect(screen.getByText('/t/' + publicSlug)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Xem thiệp đang chia sẻ' })).toHaveAttribute(
+      'href',
+      '/t/' + publicSlug,
+    );
 
     unmount();
     localStorage.removeItem(storageKey);
@@ -587,7 +611,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
 
   it('uploads media file and allows detaching in media tab', async () => {
     render(
-      <InvitationStudioView
+      <RetainedMediaView
         bookingId={bookingId}
         accessToken={accessToken}
         gateway={mockGateway}
@@ -595,11 +619,10 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Hình ảnh' }));
     expect(screen.getByText('Hình ảnh cho thiệp')).toBeInTheDocument();
 
     const fileInput = screen.getByLabelText('Chọn ảnh');
-    const altInput = screen.getByLabelText(/Mô Tả Hình Ảnh/);
+    const altInput = screen.getByLabelText(/Mô tả hình ảnh/i);
 
     const dummyFile = new File(['dummy-content'], 'wedding-photo.jpg', { type: 'image/jpeg' });
     fireEvent.change(fileInput, { target: { files: [dummyFile] } });
@@ -667,7 +690,10 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
         expect.any(String),
       );
     });
-    expect(await screen.findByText('Thiệp đang được chia sẻ')).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Xem thiệp đang chia sẻ' })).toHaveAttribute(
+      'href',
+      '/t/' + publicSlug,
+    );
     unmount1();
 
     // 2. Reload: the server sends its current publication snapshot.
@@ -685,6 +711,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     expect(await screen.findByText('Ngừng chia sẻ')).toBeInTheDocument();
 
     // 3. Unpublish: calls unpublish with revision 1, gets next publicationRevision: 2
+    screen.getByText('Mã QR và tùy chọn chia sẻ').closest('details')!.open = true;
     fireEvent.click(screen.getByText('Ngừng chia sẻ'));
     await confirmInDialog('Huỷ xuất bản');
     await waitFor(() => {
@@ -697,7 +724,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       );
     });
     expect(await screen.findByText('Đã hủy xuất bản thiệp cưới.')).toBeInTheDocument();
-    expect(screen.getByText('Thiệp chưa được chia sẻ')).toBeInTheDocument();
+    expect(screen.getByText('Chưa chia sẻ')).toBeInTheDocument();
     unmount2();
 
     // 4. Reload after unpublish: the server retains the next revision, 2.
@@ -712,7 +739,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Chia sẻ' }));
     await receivePublication(2, false);
-    expect(await screen.findByText('Thiệp chưa được chia sẻ')).toBeInTheDocument();
+    expect(await screen.findByText('Chưa chia sẻ')).toBeInTheDocument();
 
     // 5. Republish: must send publicationRevision: 2, not 0!
     fireEvent.click(screen.getByText('Xuất bản thiệp'));
@@ -746,7 +773,7 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
     };
 
     render(
-      <InvitationStudioView
+      <RetainedMediaView
         bookingId={bookingId}
         accessToken={accessToken}
         gateway={failingGateway}
@@ -754,9 +781,8 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Hình ảnh' }));
     const fileInput = screen.getByLabelText('Chọn ảnh');
-    const altInput = screen.getByLabelText(/Mô Tả Hình Ảnh/);
+    const altInput = screen.getByLabelText(/Mô tả hình ảnh/i);
     const dummyFile = new File(['content'], 'retry-photo.jpg', { type: 'image/jpeg' });
     fireEvent.change(fileInput, { target: { files: [dummyFile] } });
     fireEvent.change(altInput, { target: { value: 'Ảnh cần thử lại' } });
@@ -826,7 +852,8 @@ describe('InvitationStudioView (IS-W7 Couple Web Component)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByText('Đặt in (1)'));
+    fireEvent.click(screen.getByRole('button', { name: 'Đặt in' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Theo dõi in' }));
     const cancelBtn = screen.getByText('Hủy đơn');
     fireEvent.click(cancelBtn);
     await confirmInDialog('Huỷ đơn in');

@@ -38,7 +38,7 @@ export type BillingContext = Readonly<{
   }>;
   timelineRevisionId: string | null;
   /**
-   * Hợp đồng FULL_CONTRACT_V1 đã duyệt kép (nếu có). Khi có, khoản cọc là 30% tổng hợp đồng và
+   * Hợp đồng FULL_CONTRACT_V1 đã duyệt kép (nếu có). Khoản cọc theo tỷ lệ đã chốt của tiệc và
    * body đặt cọc PHẢI kèm đúng `contractRevisionId` + `documentDigest` + `timelineRevisionId` của
    * hợp đồng đó, để backend chắc chắn hai bên đang trả tiền cho đúng phiên bản đã duyệt.
    */

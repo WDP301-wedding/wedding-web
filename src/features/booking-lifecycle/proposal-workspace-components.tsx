@@ -13,6 +13,7 @@ import { formatDate, isEventPast } from '../couple-workspace/workspace-helpers';
 import type { CollaborationGateway, ProposalView } from './collaboration-api';
 import { card, hint, summary } from './collab-classes';
 import { phaseLabels } from './collaboration-utils';
+import { proposalDepositPercentage } from '../../lib/deposit-policy';
 
 export function field(data: FormData, name: string): string {
   const value = data.get(name);
@@ -85,7 +86,11 @@ export function ProposalSummarySection({
     ['Số bàn', proposal.proposal.tableCount],
     ['Khách dự kiến', proposal.planningHeadcount],
     ['Tổng dự kiến', money(proposal.proposal.baseChargeVnd), true],
-    ['Tiền cọc (30%)', money(proposal.proposal.depositAmountVnd), true],
+    [
+      `Tiền cọc (${proposalDepositPercentage(proposal.proposal)}%)`,
+      money(proposal.proposal.depositAmountVnd),
+      true,
+    ],
   ];
   return (
     <section
