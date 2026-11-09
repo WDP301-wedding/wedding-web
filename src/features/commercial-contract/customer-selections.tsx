@@ -359,7 +359,13 @@ function SelectionEditor(
               className={cx.button}
               type="button"
               disabled={submitDisabledReason !== null}
-              aria-describedby={submitDisabledReason ? 'selection-submit-status' : undefined}
+              aria-describedby={
+                submitDisabledReason
+                  ? submitDisabledReason === saveDisabledReason
+                    ? 'selection-save-status'
+                    : 'selection-submit-status'
+                  : undefined
+              }
               onClick={() =>
                 void (async () => {
                   if (
@@ -382,7 +388,7 @@ function SelectionEditor(
               {saveDisabledReason}
             </p>
           ) : null}
-          {submitDisabledReason ? (
+          {submitDisabledReason && submitDisabledReason !== saveDisabledReason ? (
             <p id="selection-submit-status" className={cx.note} role="status">
               {submitDisabledReason}
             </p>
