@@ -9,3 +9,5 @@ next-env.d.ts
 artifacts/invitation-print/
 # Prototype tham khảo từ Claude Design (không format lại)
 docs/design/hy-yen/
+# Preserve the installed third-party agent skill bundle.
+.agents/skills/
