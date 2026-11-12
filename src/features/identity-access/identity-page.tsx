@@ -1,5 +1,10 @@
 'use client';
+import { LockKeyhole, LogIn, Mail } from 'lucide-react';
+import Link from 'next/link';
 import { useLayoutEffect } from 'react';
+import { cn } from 'cn';
+
+import { routes } from '../../routes';
 
 import { PasswordResetOtpForm } from './password-reset-otp-form';
 import { browserSession } from './browser-session';
@@ -120,9 +125,10 @@ export function IdentityExperience({
 
         {view === 'login' ? (
           <AuthForm
-            title="Tiếp tục hành trình của bạn"
-            description="Đăng nhập để mở không gian tư vấn hoặc kế hoạch cưới đầy đủ."
+            title="Đăng nhập tài khoản"
+            description="Truy cập hệ thống quản lý tiệc cưới Hỷ Yến một cách nhanh chóng và dễ dàng."
             submitLabel="Đăng nhập"
+            submitIcon={LogIn}
             pending={pending}
             onSubmit={handleLogin}
           >
@@ -131,6 +137,7 @@ export function IdentityExperience({
               name="email"
               type="email"
               autoComplete="email"
+              icon={Mail}
               error={fieldErrors.email}
             />
             <Field
@@ -138,8 +145,16 @@ export function IdentityExperience({
               name="password"
               type="password"
               autoComplete="current-password"
+              icon={LockKeyhole}
               error={fieldErrors.password}
             />
+            <button
+              className={cn(textAction, '-my-2 self-end')}
+              type="button"
+              onClick={() => setView('reset-request')}
+            >
+              Quên mật khẩu?
+            </button>
           </AuthForm>
         ) : null}
 
@@ -195,10 +210,17 @@ export function IdentityExperience({
           </p>
         )}
 
+        {/* Không có trang tự đăng ký: tài khoản do nhà hàng mời sau buổi tư vấn. */}
         {view === 'login' ? (
-          <button className={textAction} type="button" onClick={() => setView('reset-request')}>
-            Quên mật khẩu?
-          </button>
+          <p className="text-center text-sm text-muted-foreground">
+            Chưa có tài khoản?{' '}
+            <Link
+              className="font-bold text-primary hover:text-hy-wine-pressed"
+              href={routes.consultation}
+            >
+              Nhận tư vấn
+            </Link>
+          </p>
         ) : null}
         {view === 'reset-request' ? (
           <button className={textAction} type="button" onClick={() => setView('login')}>
