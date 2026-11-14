@@ -103,7 +103,9 @@ export function AuthForm({
   return (
     <form className="flex flex-col gap-5" onSubmit={onSubmit}>
       <div className="flex flex-col gap-2 text-center">
-        <h1 className="text-xl leading-snug font-bold text-primary sm:text-[1.75rem]">{title}</h1>
+        <h1 className="text-xl leading-snug font-bold text-primary sm:text-2xl xl:text-[1.75rem]">
+          {title}
+        </h1>
         <p className="text-sm leading-6 text-pretty text-muted-foreground">{description}</p>
       </div>
       <div className="flex flex-col gap-4">{children}</div>
@@ -156,7 +158,15 @@ export function PublicShell({
       >
         Đi đến nội dung chính
       </a>
-      <PublicHeader session={session} restoreSession={false} />
+      {/*
+        Màn rộng: header trong suốt nằm đè lên trang (logo trên ảnh, menu trên khu vực form) như
+        thiết kế. Menu có nền kem bo tròn để vẫn đọc được khi màn hẹp làm nó lấn sang ảnh.
+      */}
+      <PublicHeader
+        className="lg:absolute lg:inset-x-0 lg:border-transparent lg:bg-transparent lg:[&_nav]:rounded-full lg:[&_nav]:bg-background/85 lg:[&_nav]:px-1.5 lg:[&>div]:max-w-none lg:[&>div]:px-10 xl:[&>div]:px-14"
+        session={session}
+        restoreSession={false}
+      />
       <main id="identity-content" className="grid flex-1 lg:grid-cols-[3fr_2fr]">
         <div className="relative flex min-h-56 items-center overflow-hidden text-white sm:min-h-72">
           {/* Đổi ảnh sảnh tiệc: thay file này trong public/images (giữ tỉ lệ ngang, rộng ≥ 2000px). */}
@@ -173,11 +183,18 @@ export function PublicShell({
             className="absolute inset-0 bg-linear-to-r from-hy-ink/75 via-hy-ink/40 to-hy-ink/10"
             aria-hidden="true"
           />
-          <div className="relative flex flex-col gap-3 px-6 py-8 sm:px-12 lg:gap-5 lg:pr-24 lg:pl-[14%]">
+          {/* Vầng sáng kem ở góc trên trái để logo (màu rượu vang) nổi trên ảnh. */}
+          <div
+            className="absolute top-0 left-0 h-44 w-[30rem] bg-radial-[at_0%_0%] from-background/95 from-15% via-background/45 via-45% to-transparent to-70% max-lg:hidden"
+            aria-hidden="true"
+          />
+          <div className="relative flex flex-col gap-3 px-6 py-8 sm:px-12 lg:gap-5 lg:pr-28 lg:pl-[15%]">
             <p className="text-xs font-semibold text-white/90 sm:text-sm">
               Nâng tầm khoảnh khắc đáng nhớ
             </p>
-            <p className="text-5xl leading-tight font-bold sm:text-6xl lg:text-7xl">Hỷ Yến</p>
+            <p className="text-5xl leading-tight font-semibold sm:text-6xl lg:text-7xl xl:text-8xl">
+              Hỷ Yến
+            </p>
             <p className="max-w-md text-base leading-relaxed lg:max-w-xl text-pretty text-white/95 italic sm:text-xl lg:text-2xl">
               Đồng hành cùng bạn tạo nên những buổi tiệc trọn vẹn và ý nghĩa
             </p>
@@ -188,15 +205,15 @@ export function PublicShell({
             </div>
           </div>
         </div>
-        <section className="relative flex flex-col justify-center bg-linear-to-r from-background to-hy-wine-soft/60 px-4 py-10 sm:px-8">
+        <section className="relative flex flex-col justify-center bg-linear-to-r from-background to-hy-wine-soft/60 px-4 py-10 sm:px-8 lg:pt-28">
           {/* Mép cong mềm lấn sang ảnh, cùng màu nền với đầu trái của khu vực form. */}
           <svg
-            className="absolute inset-y-0 right-[calc(100%-1px)] h-full w-20 fill-background max-lg:hidden"
-            viewBox="0 0 80 800"
+            className="absolute inset-y-0 right-[calc(100%-1px)] h-full w-24 fill-background max-lg:hidden"
+            viewBox="0 0 96 800"
             preserveAspectRatio="none"
             aria-hidden="true"
           >
-            <path d="M80 0C60 90 8 250 4 470c-2 130 8 240 16 330h60Z" />
+            <path d="M96 0C74 130 20 270 10 460c-6 130 2 250 14 340h72Z" />
           </svg>
           <div className="relative mx-auto flex w-full max-w-[30rem] animate-in flex-col gap-5 rounded-[30px] bg-card px-6 py-9 shadow-[0_18px_50px_rgb(43_29_34/0.08)] duration-300 ease-hy-decelerate fade-in fill-mode-backwards slide-in-from-bottom-2 motion-reduce:animate-none sm:px-10">
             <WeddingRings />
