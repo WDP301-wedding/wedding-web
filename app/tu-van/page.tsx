@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 import { loadConsultationCatalog } from '../../src/features/public-website/catalog-server';
-import { ConsultationPage } from '../../src/features/public-website/public-pages';
+import { ConsultationPage } from '../../src/features/public-website/consultation-page';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {

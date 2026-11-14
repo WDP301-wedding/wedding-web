@@ -368,7 +368,7 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
             </p>
             <Contact restaurant={restaurant} />
           </div>
-          <div {...reveal('up', 1)}>
+          <div className="rounded-2xl border border-border bg-card p-5 sm:p-7" {...reveal('up', 1)}>
             <Suspense fallback={null}>
               <ConsultationEntry halls={halls} menus={menus} />
             </Suspense>

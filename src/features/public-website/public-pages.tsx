@@ -6,13 +6,12 @@ import { cn } from 'cn';
 import { buttonVariants } from '../../components/ui/button';
 import { CatalogImage } from './catalog-image';
 import type { Catalog } from './catalog-server';
-import { ConsultationEntry } from './consultation-entry';
 import { consultationHref, dishCategory, formatVnd } from './estimate';
 import { HallsFilter } from './halls-filter';
 import type { Hall, Restaurant } from './public-api';
 import { arrowLink, card, h1, lead, section } from './public-classes';
 import { PublicShell } from './public-shell';
-import { Contact, HallCard, Unavailable } from './public-cards';
+import { HallCard, Unavailable } from './public-cards';
 
 export { HomePage } from './public-home-page';
 
@@ -201,29 +200,6 @@ export function MenusPage({ catalog }: Readonly<{ catalog: Catalog }>) {
             ))}
           </div>
         )}
-      </section>
-    </PublicShell>
-  );
-}
-
-/** A2 · Gửi yêu cầu tư vấn (nhận lựa chọn qua query). */
-export function ConsultationPage({ catalog }: Readonly<{ catalog: Catalog }>) {
-  return (
-    <PublicShell restaurant={catalog.restaurant}>
-      <section
-        className={cn(section, 'grid gap-8 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-14')}
-      >
-        <div className="flex flex-col gap-4">
-          <h1 className={h1}>Kể chúng tôi nghe ngày bạn mong muốn</h1>
-          <p className={lead}>
-            Gửi yêu cầu không phải đặt tiệc hay giữ chỗ. Quản lý tiệc sẽ gọi lại để kiểm tra lịch
-            trống và hẹn xem sảnh.
-          </p>
-          <Contact restaurant={catalog.restaurant} />
-        </div>
-        <Suspense fallback={null}>
-          <ConsultationEntry halls={catalog.halls} menus={catalog.menus} />
-        </Suspense>
       </section>
     </PublicShell>
   );

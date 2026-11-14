@@ -444,3 +444,10 @@
     block-size: auto;
   }
 }
+
+/* Trang tư vấn: ảnh hero mở dần từ trái sang phải một lần khi tải trang. */
+@media (prefers-reduced-motion: no-preference) {
+  .hy-wipe-in {
+    animation: hy-wipe 1100ms 150ms var(--hy-ease-decelerate) backwards;
+  }
+}

@@ -1,23 +1,52 @@
 'use client';
 import { HySelect } from '../../components/ui/select-field';
 
-import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import { createPublicGateway, type ConsultationRequest, type Hall, type Menu } from './public-api';
 import { minimumPreferredDate } from './consultation-date';
 import { ApiClientError } from '../../lib/api/client';
 import { browserSession } from '../identity-access/browser-session';
 import { createExperienceGateway } from '../identity-access/experience-api';
 import { DatePicker } from '../../design-system/date-picker';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Info, Moon, Sun } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from 'cn';
 
 import { Badge } from '../../components/ui/badge';
 import { Button, buttonVariants } from '../../components/ui/button';
-import { alert, choice, control, field, fieldHint } from './public-classes';
+import { alert, choice, control, field, fieldHint, reveal } from './public-classes';
 import { notify } from '../../design-system/toast';
 
 const textField = cn(field, 'min-w-0');
+const messageLimit = 2000;
+
+/** Một nhóm câu hỏi của form: số thứ tự + tên nhóm + đường kẻ mảnh, hiện dần khi cuộn tới. */
+function FormSection({
+  index,
+  title,
+  children,
+}: Readonly<{ index: number; title: string; children: ReactNode }>) {
+  return (
+    // suppressHydrationWarning: ScrollMotion có thể gắn data-pending lên thẻ này trước khi React
+    // hydrate xong vùng Suspense chứa form; khác biệt đó là cố ý, không phải lỗi.
+    <section className="flex flex-col gap-4" suppressHydrationWarning {...reveal('up', index - 1)}>
+      <h3 className="flex items-center gap-3 text-xs font-semibold text-muted-foreground after:h-px after:flex-1 after:bg-border after:content-['']">
+        <span className="text-xl font-semibold text-primary tabular-nums" aria-hidden="true">
+          0{index}
+        </span>
+        {title}
+      </h3>
+      {children}
+    </section>
+  );
+}
 
 export type ContactPrefill = Readonly<{ displayName: string | null; email: string }>;
 
@@ -115,6 +144,7 @@ export function ConsultationForm({
   const [shift, setShift] = useState<'LUNCH' | 'DINNER' | ''>(prefill.shift ?? '');
   const [state, setState] = useState<'idle' | 'pending' | 'success'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [messageLength, setMessageLength] = useState(0);
   const minimumDate = useSyncExternalStore(
     subscribeToDateChange,
     minimumPreferredDate,
@@ -190,10 +220,8 @@ export function ConsultationForm({
       </section>
     );
   return (
-    <form
-      className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 sm:p-7"
-      onSubmit={(event) => void send(event)}
-    >
+    // Không tự vẽ khung: trang /tu-van đặt form thẳng trên nền, trang chủ bọc form trong thẻ.
+    <form className="flex flex-col gap-8" onSubmit={(event) => void send(event)}>
       {selectedHall || selectedMenu ? (
         <p className="flex flex-wrap items-center gap-2 rounded-lg bg-accent px-3.5 py-3 text-xs">
           <span className="font-semibold">Lựa chọn của bạn:</span>
@@ -202,141 +230,179 @@ export function ConsultationForm({
           <span className="text-muted-foreground">Có thể đổi hoặc bỏ lựa chọn bên dưới.</span>
         </p>
       ) : null}
-      <div className="grid gap-4 sm:grid-cols-2">
+
+      <FormSection index={1} title="YOUR CELEBRATION">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className={textField}>
+            Sảnh quan tâm (không bắt buộc)
+            <HySelect
+              className={control}
+              value={hallId}
+              onChange={(event) => setHallId(event.target.value)}
+            >
+              <option value="">Chưa chọn sảnh · nhờ tư vấn</option>
+              {halls.map((hall) => (
+                <option key={hall.id} value={hall.id}>
+                  {hall.name}
+                </option>
+              ))}
+            </HySelect>
+          </label>
+          <label className={textField}>
+            Thực đơn quan tâm (không bắt buộc)
+            <HySelect
+              className={control}
+              value={menuVersionId}
+              onChange={(event) => setMenuVersionId(event.target.value)}
+            >
+              <option value="">Chưa chọn thực đơn · nhờ tư vấn</option>
+              {menus.map((menu) => (
+                <option key={menu.versionId} value={menu.versionId}>
+                  {menu.name}
+                </option>
+              ))}
+            </HySelect>
+          </label>
+        </div>
+      </FormSection>
+
+      <FormSection index={2} title="YOUR INFORMATION">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className={textField}>
+            Họ và tên
+            <input
+              className={control}
+              ref={nameInput}
+              name="displayName"
+              required
+              maxLength={120}
+              autoComplete="name"
+              placeholder="Họ và tên"
+            />
+          </label>
+          <label className={textField}>
+            Email
+            <input
+              className={control}
+              ref={emailInput}
+              name="email"
+              required
+              type="email"
+              maxLength={320}
+              autoComplete="email"
+              placeholder="example@email.com"
+            />
+          </label>
+          <label className={textField}>
+            Số điện thoại
+            <input
+              className={control}
+              name="phone"
+              type="tel"
+              maxLength={30}
+              autoComplete="tel"
+              pattern="[+0-9 .\(\)\-]*"
+              placeholder="Không bắt buộc"
+            />
+          </label>
+        </div>
+      </FormSection>
+
+      <FormSection index={3} title="YOUR WEDDING DAY">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <label className={textField}>
+            Ngày tổ chức dự kiến
+            <DatePicker
+              name="preferredDate"
+              min={minimumDate}
+              defaultValue={prefill.date}
+              placeholder="dd/mm/yyyy"
+              ariaDescribedby="preferred-date-help"
+            />
+            <span id="preferred-date-help" className={fieldHint}>
+              Chọn từ ngày mốt trở đi (theo giờ Việt Nam).
+            </span>
+          </label>
+          <label className={textField}>
+            Số khách dự kiến
+            <input
+              className={control}
+              name="expectedGuests"
+              type="number"
+              min={1}
+              max={10000}
+              defaultValue={prefill.guests}
+              placeholder="Không bắt buộc"
+            />
+          </label>
+          <fieldset className="flex min-w-0 flex-col sm:max-xl:col-span-2">
+            <legend className="mb-1.5 text-xs font-semibold">Ca mong muốn</legend>
+            <div className="grid grid-cols-2 gap-3">
+              {(['LUNCH', 'DINNER'] as const).map((code) => {
+                const Icon = code === 'LUNCH' ? Sun : Moon;
+                return (
+                  <label
+                    key={code}
+                    className={cn(choice, 'h-12 flex-row items-center justify-center gap-2')}
+                  >
+                    <input
+                      className="sr-only"
+                      type="radio"
+                      name="shift"
+                      value={code}
+                      checked={shift === code}
+                      onChange={() => setShift(code)}
+                    />
+                    <Icon
+                      className="size-4 shrink-0 text-muted-foreground transition-colors group-has-checked:text-primary"
+                      aria-hidden="true"
+                    />
+                    <strong className="text-sm group-has-checked:text-primary">
+                      {code === 'LUNCH' ? 'Ca trưa' : 'Ca tối'}
+                    </strong>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+        </div>
+      </FormSection>
+
+      <FormSection index={4} title="YOUR STORY">
         <label className={textField}>
-          Sảnh quan tâm (không bắt buộc)
-          <HySelect
-            className={control}
-            value={hallId}
-            onChange={(event) => setHallId(event.target.value)}
-          >
-            <option value="">Chưa chọn sảnh · nhờ tư vấn</option>
-            {halls.map((hall) => (
-              <option key={hall.id} value={hall.id}>
-                {hall.name}
-              </option>
-            ))}
-          </HySelect>
-        </label>
-        <label className={textField}>
-          Thực đơn quan tâm (không bắt buộc)
-          <HySelect
-            className={control}
-            value={menuVersionId}
-            onChange={(event) => setMenuVersionId(event.target.value)}
-          >
-            <option value="">Chưa chọn thực đơn · nhờ tư vấn</option>
-            {menus.map((menu) => (
-              <option key={menu.versionId} value={menu.versionId}>
-                {menu.name}
-              </option>
-            ))}
-          </HySelect>
-        </label>
-        <label className={textField}>
-          Họ và tên
-          <input
-            className={control}
-            ref={nameInput}
-            name="displayName"
-            required
-            maxLength={120}
-            autoComplete="name"
-            placeholder="Họ và tên"
-          />
-        </label>
-        <label className={textField}>
-          Email
-          <input
-            className={control}
-            ref={emailInput}
-            name="email"
-            required
-            type="email"
-            maxLength={320}
-            autoComplete="email"
-            placeholder="example@email.com"
-          />
-        </label>
-        <label className={textField}>
-          Số điện thoại
-          <input
-            className={control}
-            name="phone"
-            type="tel"
-            maxLength={30}
-            autoComplete="tel"
-            pattern="[+0-9 .\(\)\-]*"
-            placeholder="Số điện thoại (không bắt buộc)"
-          />
-        </label>
-        <label className={textField}>
-          Ngày tổ chức dự kiến
-          <DatePicker
-            name="preferredDate"
-            min={minimumDate}
-            defaultValue={prefill.date}
-            placeholder="dd/mm/yyyy (không bắt buộc)"
-            ariaDescribedby="preferred-date-help"
-          />
-          <span id="preferred-date-help" className={fieldHint}>
-            Chọn từ ngày mốt trở đi (theo giờ Việt Nam).
-          </span>
-        </label>
-        <label className={textField}>
-          Số khách dự kiến
-          <input
-            className={control}
-            name="expectedGuests"
-            type="number"
-            min={1}
-            max={10000}
-            defaultValue={prefill.guests}
-            placeholder="Số lượng khách (không bắt buộc)"
-          />
-        </label>
-        <fieldset className="flex min-w-0 flex-col">
-          <legend className="mb-1.5 text-xs font-semibold">Ca mong muốn</legend>
-          <div className="grid grid-cols-2 gap-3">
-            {(['LUNCH', 'DINNER'] as const).map((code) => (
-              <label key={code} className={cn(choice, 'h-12 justify-center')}>
-                <input
-                  className="sr-only"
-                  type="radio"
-                  name="shift"
-                  value={code}
-                  checked={shift === code}
-                  onChange={() => setShift(code)}
-                />
-                <strong className="text-sm group-has-checked:text-primary">
-                  {code === 'LUNCH' ? 'Ca trưa' : 'Ca tối'}
-                </strong>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <label className={cn(textField, 'sm:col-span-2')}>
           Điều bạn mong muốn
           <textarea
-            className={cn(control, 'h-auto min-h-24 py-2.5')}
+            className={cn(control, 'h-auto min-h-28 resize-y py-2.5')}
             name="message"
-            maxLength={2000}
+            maxLength={messageLimit}
             rows={3}
             placeholder="Không gian, thực đơn hoặc điều bạn muốn trao đổi cùng nhà hàng… (không bắt buộc)"
+            onChange={(event) => setMessageLength(event.target.value.length)}
           />
+          <span className={cn(fieldHint, 'self-end tabular-nums')} aria-hidden="true">
+            {messageLength}/{messageLimit}
+          </span>
         </label>
-      </div>
-      <p className={fieldHint}>
+      </FormSection>
+
+      <p className={cn(fieldHint, 'flex items-start gap-2')}>
+        <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         Thông tin được dùng để tiếp nhận và liên hệ tư vấn. Gửi yêu cầu chưa giữ chỗ hay xác nhận
         đặt tiệc.
       </p>
       {error ? (
-        <p className={alert} role="alert">
+        <p
+          className={cn(
+            alert,
+            'animate-in duration-300 fade-in slide-in-from-top-1 motion-reduce:animate-none',
+          )}
+          role="alert"
+        >
           {error}
         </p>
       ) : null}
       <Button
-        className="self-end max-sm:w-full"
+        className="self-end shadow-[0_8px_20px_rgb(122_31_61/0.22)] max-sm:w-full [&_svg]:transition-transform [&_svg]:duration-300 hover:[&_svg]:translate-x-1 motion-reduce:[&_svg]:transition-none"
         size="lg"
         type="submit"
         disabled={state === 'pending'}
