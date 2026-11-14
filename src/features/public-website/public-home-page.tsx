@@ -5,11 +5,10 @@ import {
   FileSignature,
   Heart,
   MessagesSquare,
-  Plus,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Suspense, type ReactNode } from 'react';
+import { Suspense, type CSSProperties, type ReactNode } from 'react';
 import { cn } from 'cn';
 
 import {
@@ -27,16 +26,29 @@ import type { Catalog } from './catalog-server';
 import { ConsultationEntry } from './consultation-entry';
 import { CredentialForward } from './credential-forward';
 import { EstimatorHero } from './estimator';
-import { HeroVideoButton } from './hero-video';
 import { MomentsGallery } from './moments-gallery';
 import { Contact, HallCard, MenuCard, Unavailable } from './public-cards';
-import { arrowLink, band, card, display, eyebrow, lead, section } from './public-classes';
+import {
+  arrowLink,
+  band,
+  card,
+  container,
+  display,
+  eyebrow,
+  lead,
+  reveal,
+  rise,
+  section,
+} from './public-classes';
 import { PublicShell } from './public-shell';
+import { ScrollMotion } from './scroll-motion';
 
 /** Cột tiêu đề hẹp bên trái + nội dung bên phải trên màn rộng. */
 const split = 'grid gap-8 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-14';
 /** Icon cho 4 bước hành trình, theo đúng thứ tự `weddingSteps`. */
 const stepIcons = [MessagesSquare, FileSignature, ClipboardList, Heart];
+/** Trễ cho từng phần chữ của hero để chúng hiện lần lượt: nhãn → từng dòng tiêu đề → mô tả → nút. */
+const after = (ms: number): CSSProperties => ({ animationDelay: `${ms}ms` });
 
 /** Đầu mục: nhãn nhỏ + tiêu đề, kèm liên kết "xem tất cả" ở bên phải nếu có. */
 function SectionHead({
@@ -46,14 +58,16 @@ function SectionHead({
   action,
 }: Readonly<{ id: string; label: string; title: string; action?: ReactNode }>) {
   return (
-    <header className="hy-reveal mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+    <header className="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
       <div className="flex flex-col gap-2">
-        <p className={eyebrow}>{label}</p>
-        <h2 id={id} className={display}>
+        <p className={eyebrow} {...reveal('up')}>
+          {label}
+        </p>
+        <h2 id={id} className={display} {...reveal('up', 1)}>
           {title}
         </h2>
       </div>
-      {action}
+      {action ? <div {...reveal('fade', 3)}>{action}</div> : null}
     </header>
   );
 }
@@ -65,6 +79,7 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
   return (
     <PublicShell restaurant={restaurant} showOffers={offers.length > 0} overlayHeader>
       <CredentialForward />
+      <ScrollMotion />
       <div id="uoc-tinh">
         <EstimatorHero
           halls={halls}
@@ -72,29 +87,44 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
           restaurant={restaurant}
           intro={
             <>
-              <p className="flex items-center gap-3 text-sm font-medium text-white/90 after:h-px after:w-12 after:bg-hy-champagne after:content-['']">
+              <p
+                className={cn(
+                  rise,
+                  "flex items-center gap-3 text-sm font-medium text-white/90 after:h-px after:w-12 after:bg-hy-champagne after:content-['']",
+                )}
+              >
                 Hỷ Yến Wedding Venue
               </p>
-              <h1 className="text-2xl font-semibold text-balance sm:text-3xl lg:text-[36px] lg:leading-[1.3] xl:text-[50px]">
-                Trọn vẹn khoảnh khắc, <br className="max-sm:hidden lg:max-xl:hidden" />
-                Vẹn nguyên ngày hạnh phúc
+              <h1 className="text-2xl font-semibold text-balance max-sm:text-[26px] max-sm:leading-9 sm:text-3xl lg:text-[32px] lg:leading-[1.3] xl:text-[50px]">
+                <span className={cn(rise, 'block')} style={after(120)}>
+                  Trọn vẹn khoảnh khắc,
+                </span>{' '}
+                <span className={cn(rise, 'block')} style={after(260)}>
+                  Vẹn nguyên ngày hạnh phúc
+                </span>
               </h1>
-              <p className="max-w-lg text-sm text-white/90 sm:text-base sm:leading-7">
+              <p
+                className={cn(rise, 'max-w-lg text-sm text-white/90 sm:text-base sm:leading-7')}
+                style={after(420)}
+              >
                 Không gian tiệc cưới tinh tế, thực đơn chỉn chu và hành trình chuẩn bị được đồng
                 hành tận tâm.
               </p>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <Link className={buttonVariants({ size: 'lg' })} href={routes.halls}>
+              <div className={cn(rise, 'flex flex-wrap gap-3 pt-2')} style={after(560)}>
+                <Link className={buttonVariants({ size: 'lg' })} href="#sanh-tiec">
                   Khám phá sảnh tiệc
                   <ArrowRight aria-hidden="true" />
                 </Link>
-                <HeroVideoButton
+                <Link
                   className={buttonVariants({
                     size: 'lg',
                     variant: 'outline',
                     className: 'border-white/70 bg-transparent text-white hover:bg-white/15',
                   })}
-                />
+                  href="#tim-sanh"
+                >
+                  Tìm sảnh phù hợp
+                </Link>
               </div>
             </>
           }
@@ -102,7 +132,12 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
       </div>
       <Unavailable show={catalog.unavailable} />
 
-      <section className={section} aria-labelledby="home-halls">
+      <section
+        className={cn(section, 'scroll-mt-16')}
+        id="sanh-tiec"
+        data-nav="halls"
+        aria-labelledby="home-halls"
+      >
         <SectionHead
           id="home-halls"
           label="Sảnh tiệc"
@@ -118,9 +153,14 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
           <p className={lead}>Nhà hàng đang cập nhật các sảnh tiệc. Hãy liên hệ để được tư vấn.</p>
         ) : (
           // Màn vừa (2 cột): thẻ thứ ba trải hết hàng thay vì đứng lẻ một nửa.
-          <div className="hy-reveal grid gap-5 sm:grid-cols-2 sm:max-lg:[&>*:nth-child(3)]:col-span-2 sm:max-lg:[&>*:nth-child(3)]:aspect-[8/3] lg:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 sm:max-lg:[&>*:nth-child(3)]:col-span-2 sm:max-lg:[&>*:nth-child(3)]:aspect-[8/3] lg:grid-cols-3">
             {sorted.slice(0, 3).map((hall, index) => (
-              <HallCard key={hall.id} hall={hall} priority={index === 0} />
+              <HallCard
+                key={hall.id}
+                hall={hall}
+                priority={index === 0}
+                {...reveal('image', index)}
+              />
             ))}
           </div>
         )}
@@ -128,30 +168,39 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
 
       <div className={band.white}>
         <section className="grid lg:grid-cols-2" aria-labelledby="home-story">
-          <div className="relative min-h-64 sm:min-h-80 lg:min-h-[460px]">
+          <div
+            className="relative min-h-64 overflow-hidden sm:min-h-80 lg:min-h-[460px]"
+            {...reveal('wipe')}
+          >
             <Image
-              className="object-cover"
+              className="hy-parallax object-cover"
               src="/images/khoanh-khac/co-dau-chu-re.webp"
               alt="Cô dâu chú rể tươi cười giữa sảnh tiệc"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
             />
           </div>
-          <div className="hy-reveal flex max-w-2xl flex-col justify-center gap-4 px-4 py-12 sm:px-8 lg:px-16 lg:py-20">
-            <p className={eyebrow}>Hỷ Yến</p>
-            <h2 id="home-story" className={cn(display, 'text-primary')}>
+          <div className="flex max-w-2xl flex-col justify-center gap-4 px-4 py-12 sm:px-8 lg:px-16 lg:py-20">
+            <p className={eyebrow} {...reveal('up')}>
+              Hỷ Yến
+            </p>
+            <h2 id="home-story" className={cn(display, 'text-primary')} {...reveal('up', 1)}>
               Không chỉ là một buổi tiệc, mà là một kỷ niệm
             </h2>
-            <p className={lead}>{brandIntro}</p>
-            <Link className={buttonVariants({ className: 'mt-2 self-start' })} href="#hanh-trinh">
-              Tìm hiểu thêm
-              <ArrowRight aria-hidden="true" />
-            </Link>
+            <p className={lead} {...reveal('up', 2)}>
+              {brandIntro}
+            </p>
+            <div className="mt-2" {...reveal('up', 3)}>
+              <Link className={buttonVariants()} href="#hanh-trinh">
+                Tìm hiểu thêm
+                <ArrowRight aria-hidden="true" />
+              </Link>
+            </div>
           </div>
         </section>
       </div>
 
-      <section className={section} aria-labelledby="home-menus">
+      <section className={section} data-nav="menus" aria-labelledby="home-menus">
         <SectionHead
           id="home-menus"
           label="Thực đơn"
@@ -163,13 +212,18 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
             </Link>
           }
         />
-        <div className="hy-reveal grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
           {menus.length === 0 ? (
             <p className={cn(lead, 'sm:col-span-2 lg:col-span-3')}>Thực đơn đang được cập nhật.</p>
           ) : (
-            menus.slice(0, 3).map((menu) => <MenuCard key={menu.id} menu={menu} />)
+            menus
+              .slice(0, 3)
+              .map((menu, index) => <MenuCard key={menu.id} menu={menu} {...reveal('up', index)} />)
           )}
-          <aside className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-muted p-8 text-center">
+          <aside
+            className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-muted p-8 text-center"
+            {...reveal('up', 3)}
+          >
             <ConciergeBell className="size-9 text-primary" strokeWidth={1.5} aria-hidden="true" />
             <h3 className="text-base font-semibold">Tư vấn thực đơn phù hợp</h3>
             <p className="text-sm text-muted-foreground">
@@ -184,9 +238,18 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
       </section>
 
       <div className={band.white}>
-        <section className={section} aria-labelledby="home-moments">
-          <SectionHead id="home-moments" label="Thư viện ảnh" title="Những khoảnh khắc đáng nhớ" />
-          <MomentsGallery moments={moments} />
+        {/* Màn rộng: .hy-gallery ghim khung này giữa màn hình, cuộn dọc đẩy dải ảnh chạy ngang. */}
+        <section className="hy-gallery" aria-labelledby="home-moments">
+          <div className="hy-gallery-pin py-12 lg:py-20">
+            <div className={container}>
+              <SectionHead
+                id="home-moments"
+                label="Thư viện ảnh"
+                title="Những khoảnh khắc đáng nhớ"
+              />
+            </div>
+            <MomentsGallery moments={moments} />
+          </div>
         </section>
       </div>
 
@@ -196,22 +259,24 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
           label="Quy trình"
           title={`${weddingSteps.length} bước chuẩn bị ngày cưới`}
         />
-        <ol className="hy-reveal grid gap-8 lg:grid-cols-4 lg:gap-6">
+        <ol className="grid gap-8 lg:grid-cols-4 lg:gap-6">
           {weddingSteps.map((step, index) => {
             const Icon = stepIcons[index] ?? Heart;
             return (
               <li
                 key={step.title}
-                className="relative flex gap-4 lg:flex-col lg:items-center lg:text-center"
+                className="group/step relative flex gap-4 lg:flex-col lg:items-center lg:text-center"
+                {...reveal('up', index)}
               >
                 {/* Đường nối tới bước kế tiếp: dọc trên điện thoại, ngang trên màn rộng. */}
                 {index < weddingSteps.length - 1 ? (
                   <span
                     className="absolute top-12 -bottom-8 left-6 w-px bg-hy-champagne/70 lg:top-6 lg:bottom-auto lg:left-1/2 lg:h-px lg:w-[calc(100%+1.5rem)]"
                     aria-hidden="true"
+                    {...reveal('line', index + 3)}
                   />
                 ) : null}
-                <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full border border-hy-champagne bg-background text-primary">
+                <span className="relative flex size-12 shrink-0 items-center justify-center rounded-full border border-hy-champagne bg-background text-primary transition-colors duration-300 group-hover/step:border-primary group-hover/step:bg-primary group-hover/step:text-primary-foreground motion-reduce:transition-none">
                   <Icon className="size-5" strokeWidth={1.75} aria-hidden="true" />
                 </span>
                 <div className="flex flex-col gap-1">
@@ -248,9 +313,10 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
         <section
           className={cn(section, split, 'scroll-mt-20')}
           id="hoi-dap"
+          data-nav="faq"
           aria-labelledby="home-faq"
         >
-          <div className="flex flex-col gap-3 lg:sticky lg:top-28 lg:self-start">
+          <div className="flex flex-col gap-3 lg:sticky lg:top-28 lg:self-start" {...reveal('up')}>
             <p className={eyebrow}>Câu hỏi thường gặp</p>
             <h2 id="home-faq" className={display}>
               Giải đáp thắc mắc và nhận tư vấn
@@ -262,15 +328,19 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
             </Link>
           </div>
           {/* <details> có sẵn hành vi mở/đóng và hỗ trợ bàn phím, không cần JavaScript. */}
-          <div className="divide-y divide-border rounded-2xl border border-border bg-background px-5 sm:px-7">
+          <div
+            className="divide-y divide-border rounded-2xl border border-border bg-background px-5 sm:px-7"
+            {...reveal('up', 1)}
+          >
             {faqs.map((item, index) => (
               <details key={item.question} open={index === 0} className="hy-faq group">
-                <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-3 text-sm font-semibold transition-colors hover:text-primary sm:text-base [&::-webkit-details-marker]:hidden">
+                <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 rounded-lg py-3 text-sm font-semibold transition-colors hover:text-primary sm:text-base [&::-webkit-details-marker]:hidden">
                   {item.question}
-                  <Plus
-                    className="size-5 shrink-0 text-primary transition-transform duration-250 group-open:rotate-45 motion-reduce:transition-none"
-                    aria-hidden="true"
-                  />
+                  {/* Dấu cộng: nét dọc xoay nằm ngang khi mở → thành dấu trừ. */}
+                  <span className="relative size-5 shrink-0 text-primary" aria-hidden="true">
+                    <span className="absolute inset-x-1 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-current" />
+                    <span className="absolute inset-x-1 top-1/2 h-0.5 -translate-y-1/2 rotate-90 rounded-full bg-current transition-transform duration-300 ease-hy-emphasized group-open:rotate-0 motion-reduce:transition-none" />
+                  </span>
                 </summary>
                 <p className="max-w-3xl pb-5 text-sm text-muted-foreground">
                   {item.answer.replace('{ca-tiec}', describeShifts(restaurant?.shifts))}
@@ -287,7 +357,7 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
           id="tu-van"
           aria-labelledby="home-consult"
         >
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3" {...reveal('up')}>
             <p className={eyebrow}>Nhận tư vấn</p>
             <h2 id="home-consult" className={display}>
               Để lại thông tin, chúng tôi sẽ liên hệ bạn sớm nhất
@@ -298,9 +368,11 @@ export function HomePage({ catalog }: Readonly<{ catalog: Catalog }>) {
             </p>
             <Contact restaurant={restaurant} />
           </div>
-          <Suspense fallback={null}>
-            <ConsultationEntry halls={halls} menus={menus} />
-          </Suspense>
+          <div {...reveal('up', 1)}>
+            <Suspense fallback={null}>
+              <ConsultationEntry halls={halls} menus={menus} />
+            </Suspense>
+          </div>
         </section>
       </div>
     </PublicShell>

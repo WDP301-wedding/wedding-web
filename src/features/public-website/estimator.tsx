@@ -15,9 +15,6 @@ import type { Hall, Menu, Restaurant } from './public-api';
 import { choice, container, control, field } from './public-classes';
 
 const noSubscribe = () => () => undefined;
-/** Chữ và form hero hiện dần một lần khi mở trang. */
-const rise =
-  'animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards duration-700 ease-hy-decelerate motion-reduce:animate-none';
 
 /**
  * A2 · Hero + "Ước tính tiệc của bạn" (P2 – plan first).
@@ -74,7 +71,7 @@ export function EstimatorHero({
         aria-labelledby={`${formId}-title`}
       >
         <Image
-          className="-z-20 object-cover"
+          className="hy-hero-image -z-20 object-cover"
           src="/images/khoanh-khac/khach-du-tiec.webp"
           alt=""
           fill
@@ -96,13 +93,12 @@ export function EstimatorHero({
             'grid items-center gap-10 pt-28 pb-14 lg:min-h-[720px] lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-16 lg:pt-36 lg:pb-24',
           )}
         >
-          <div className={cn(rise, 'flex max-w-3xl flex-col gap-5 lg:gap-6')}>{intro}</div>
+          <div className="flex max-w-3xl flex-col gap-5 lg:gap-6">{intro}</div>
+          {/* id: đích của nút "Tìm sảnh phù hợp". Bảng hiện sau phần chữ: mờ dần + nở nhẹ. */}
           <form
-            className={cn(
-              rise,
-              'flex flex-col gap-4 rounded-2xl bg-background p-5 text-foreground shadow-[0_24px_48px_rgb(43_29_34/0.28)] sm:p-7',
-            )}
-            style={{ animationDelay: '120ms' }}
+            id="tim-sanh"
+            className="flex animate-in scroll-mt-24 flex-col gap-4 rounded-2xl bg-background p-5 text-foreground shadow-[0_24px_48px_rgb(43_29_34/0.28)] duration-700 ease-hy-decelerate fill-mode-backwards fade-in zoom-in-95 sm:p-7 motion-reduce:animate-none"
+            style={{ animationDelay: '450ms' }}
             onSubmit={submit}
             aria-labelledby={`${formId}-title`}
           >
@@ -169,6 +165,15 @@ export function EstimatorHero({
             </Button>
           </form>
         </div>
+        {/* Mép dưới hero cong nhẹ, chuyển sang nền kem của mục kế tiếp thay vì cắt ngang. */}
+        <svg
+          className="absolute inset-x-0 -bottom-px h-5 w-full text-background lg:h-9"
+          viewBox="0 0 1440 36"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path fill="currentColor" d="M0 36V30Q720-18 1440 30V36Z" />
+        </svg>
       </section>
 
       {estimate ? (

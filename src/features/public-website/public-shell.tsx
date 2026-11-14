@@ -4,12 +4,15 @@ import type { ReactNode } from 'react';
 import { cn } from 'cn';
 
 import type { Restaurant } from './public-api';
-import { container } from './public-classes';
+import { container, reveal, underline } from './public-classes';
 import { PublicHeader } from './public-header';
 
 export { PublicHeader } from './public-header';
 
-const footerLink = 'inline-block py-1 text-white/80 transition-colors hover:text-white';
+const footerLink = cn(
+  underline,
+  'inline-block py-1 text-white/80 transition-colors after:bottom-0.5 hover:text-white',
+);
 const footerHeading = 'mb-1 text-sm font-semibold text-white';
 
 /**
@@ -45,7 +48,10 @@ export function PublicShell({
       </main>
       {/* Chừa chỗ cho thanh "Mở lại bảng ước tính" cố định ở đáy khi nó đang hiện. */}
       <footer className="bg-hy-wine-pressed text-sm text-white/80 [body:has([data-estimate-banner])_&]:pb-16">
-        <div className={cn(container, 'grid gap-10 py-14 md:grid-cols-[2fr_1fr_1fr]')}>
+        <div
+          className={cn(container, 'grid gap-10 py-14 md:grid-cols-[2fr_1fr_1fr]')}
+          {...reveal('up')}
+        >
           <div className="flex flex-col gap-3">
             <Link
               className="flex items-center gap-2.5 text-white"

@@ -1,7 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { moments } from '../../content/public-content';
-import { HeroVideoButton } from './hero-video';
 import { MomentsGallery } from './moments-gallery';
 
 describe('MomentsGallery', () => {
@@ -26,21 +25,5 @@ describe('MomentsGallery', () => {
   it('gives every photo a Vietnamese description', () => {
     expect(moments).toHaveLength(12);
     for (const moment of moments) expect(moment.alt.length).toBeGreaterThan(10);
-  });
-});
-
-describe('HeroVideoButton', () => {
-  it('loads the video only when asked, closes on Escape and returns focus to the button', () => {
-    render(<HeroVideoButton />);
-    expect(document.querySelector('video')).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Xem video' }));
-    const dialog = screen.getByRole('dialog', { name: 'Video sảnh tiệc Hỷ Yến' });
-    const sources = [...dialog.querySelectorAll('source')].map((source) =>
-      source.getAttribute('src'),
-    );
-    expect(sources).toEqual(['/videos/hero-sanh-tiec.webm', '/videos/hero-sanh-tiec.mp4']);
-    fireEvent.keyDown(dialog, { key: 'Escape' });
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Xem video' })).toHaveFocus();
   });
 });

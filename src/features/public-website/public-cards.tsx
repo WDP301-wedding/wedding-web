@@ -1,5 +1,6 @@
 import { ArrowRight, Users } from 'lucide-react';
 import Link from 'next/link';
+import type { ComponentProps } from 'react';
 import { cn } from 'cn';
 
 import { CatalogImage } from './catalog-image';
@@ -20,12 +21,17 @@ export function Unavailable({ show }: Readonly<{ show: boolean }>) {
 }
 
 /** Thẻ sảnh: ảnh lớn phủ kín, tên và sức chứa nằm trên dải tối phía dưới. Cả thẻ bấm được. */
-export function HallCard({ hall, priority = false }: Readonly<{ hall: Hall; priority?: boolean }>) {
+export function HallCard({
+  hall,
+  priority = false,
+  ...rest
+}: Readonly<{ hall: Hall; priority?: boolean }> & ComponentProps<'article'>) {
   return (
     <article
+      {...rest}
       className={cn(
         lift,
-        'group relative isolate flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-2xl bg-hy-ink text-white',
+        'group relative isolate flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-2xl bg-hy-ink text-white ring-1 ring-transparent hover:ring-hy-champagne/70',
       )}
     >
       <CatalogImage
@@ -40,7 +46,7 @@ export function HallCard({ hall, priority = false }: Readonly<{ hall: Hall; prio
         aria-hidden="true"
       />
       <div className="flex items-end justify-between gap-4 p-5">
-        <div className="flex min-w-0 flex-col gap-1">
+        <div className="flex min-w-0 flex-col gap-1 transition-transform duration-300 ease-hy-emphasized group-hover:-translate-y-1 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0">
           <h3 className="text-lg font-semibold">
             {/* Cả thẻ bấm được nhờ lớp phủ ::after của liên kết tên sảnh. */}
             <Link className="after:absolute after:inset-0" href={`/sanh/${hall.id}`}>
@@ -67,14 +73,17 @@ export function HallCard({ hall, priority = false }: Readonly<{ hall: Hall; prio
 }
 
 /** Thẻ thực đơn: ảnh món ăn là chính; bấm vào để xem danh sách món ở trang Thực đơn. */
-export function MenuCard({ menu }: Readonly<{ menu: Menu }>) {
+export function MenuCard({ menu, ...rest }: Readonly<{ menu: Menu }> & ComponentProps<'article'>) {
   return (
-    <article className="group relative flex flex-col gap-3">
+    <article {...rest} className="group relative flex flex-col gap-3">
       <CatalogImage
         media={menu.media[0]}
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 300px"
         placeholder="Ảnh thực đơn đang được cập nhật"
-        className={cn('aspect-[4/3] rounded-xl', zoom)}
+        className={cn(
+          'aspect-[4/3] rounded-xl transition-shadow duration-300 group-hover:shadow-[0_12px_32px_rgb(43_29_34/0.14)] motion-reduce:transition-none',
+          zoom,
+        )}
       />
       <div className="flex flex-col gap-1">
         <h3 className="text-base font-semibold">

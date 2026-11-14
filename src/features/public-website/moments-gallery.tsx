@@ -2,14 +2,35 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from 'cn';
 
 import { Button } from '../../components/ui/button';
-import { zoom } from './public-classes';
+import { container, reveal, zoom } from './public-classes';
 
 type Moment = Readonly<{ src: string; alt: string }>;
+
+/**
+ * Dải ảnh chạy ngang (màn rộng, xem .hy-gallery trong ui-v3.css) dịch chuyển theo vị trí cuộn dọc,
+ * nên ảnh được Tab tới có thể đang nằm ngoài màn hình. Cuộn trang tới đúng điểm mà ảnh đó ra giữa.
+ */
+function bringIntoView(event: FocusEvent<HTMLUListElement>) {
+  const track = event.currentTarget;
+  const travel = track.offsetWidth - window.innerWidth;
+  const pinned = track.closest<HTMLElement>('.hy-gallery');
+  const item = event.target.closest('li');
+  // Lưới thường (màn hẹp, trình duyệt cũ): dải ảnh không rộng hơn màn hình → không cần làm gì.
+  if (travel <= 0 || !pinned || !item || !event.target.matches(':focus-visible')) return;
+  const centre = item.offsetLeft + item.offsetWidth / 2 - window.innerWidth / 2;
+  const progress = Math.min(Math.max(centre / travel, 0), 1);
+  window.scrollTo({
+    top:
+      pinned.getBoundingClientRect().top +
+      window.scrollY +
+      progress * (pinned.offsetHeight - window.innerHeight),
+  });
+}
 
 // Kích thước gốc của ảnh trong public/images/khoanh-khac (đều 1600×893) — next/image cần để giữ
 // đúng tỉ lệ và không làm trang nhảy bố cục khi ảnh tải xong.
@@ -31,9 +52,15 @@ export function MomentsGallery({ moments }: Readonly<{ moments: readonly Moment[
   return (
     <>
       {/* Ảnh 1 chiếm ô lớn, ảnh 10 trải hai cột để lưới 12 ảnh kín ô ở cả 2 và 4 cột. */}
-      <ul className="grid auto-rows-[140px] grid-cols-2 gap-2 sm:auto-rows-[180px] sm:gap-3 lg:grid-cols-4 [&>li:first-child]:col-span-2 lg:[&>li:first-child]:row-span-2 [&>li:nth-child(10)]:col-span-2">
+      <ul
+        className={cn(
+          container,
+          'hy-gallery-track grid auto-rows-[140px] grid-cols-2 gap-2 sm:auto-rows-[180px] sm:gap-3 lg:grid-cols-4 [&>li:first-child]:col-span-2 lg:[&>li:first-child]:row-span-2 [&>li:nth-child(10)]:col-span-2',
+        )}
+        onFocus={bringIntoView}
+      >
         {moments.map((moment, index) => (
-          <li key={moment.src} className="min-h-0">
+          <li key={moment.src} className="min-h-0" {...reveal('image', index % 4)}>
             <button
               type="button"
               className={cn(

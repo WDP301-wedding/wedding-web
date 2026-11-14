@@ -1,4 +1,5 @@
 /** Lớp Tailwind dùng chung cho các trang công khai (Hỷ Yến v3). */
+import type { CSSProperties } from 'react';
 
 export const container = 'mx-auto w-full max-w-7xl px-4 sm:px-8';
 export const section = `${container} py-12 lg:py-20`;
@@ -27,10 +28,29 @@ export const lift =
   'transition-[translate,box-shadow] duration-250 ease-hy-emphasized hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgb(43_29_34/0.1)] motion-reduce:transition-none motion-reduce:hover:translate-y-0';
 /** Ảnh bên trong khung `group` phóng nhẹ khi rê chuột. */
 export const zoom =
-  '[&_img]:transition-transform [&_img]:duration-400 [&_img]:ease-hy-emphasized group-hover:[&_img]:scale-[1.03] motion-reduce:[&_img]:transition-none motion-reduce:group-hover:[&_img]:scale-100';
+  '[&_img]:transition-transform [&_img]:duration-700 [&_img]:ease-hy-emphasized group-hover:[&_img]:scale-105 motion-reduce:[&_img]:transition-none motion-reduce:group-hover:[&_img]:scale-100';
 
+/** Liên kết kèm mũi tên; mũi tên nhích sang phải khi rê vào liên kết hoặc vào thẻ `group` bọc nó. */
 export const arrowLink =
-  'inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-hy-wine-pressed [&_svg]:size-4 [&_svg]:transition-transform hover:[&_svg]:translate-x-0.5';
+  'inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-hy-wine-pressed [&_svg]:size-4 [&_svg]:transition-transform [&_svg]:duration-300 hover:[&_svg]:translate-x-1 group-hover:[&_svg]:translate-x-1 motion-reduce:[&_svg]:transition-none';
+/** Nét gạch chân chạy từ trái sang khi rê chuột (đặt trên liên kết `relative`/`inline-block`). */
+export const underline =
+  "relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-hy-emphasized after:content-[''] hover:after:scale-x-100 motion-reduce:after:transition-none";
+
+/** Hiện dần một lần khi mở trang (hero); trễ từng phần đặt bằng `style={{ animationDelay }}`. */
+export const rise =
+  'animate-in fade-in slide-in-from-bottom-3 fill-mode-backwards duration-700 ease-hy-decelerate motion-reduce:animate-none';
+
+/**
+ * Thuộc tính cho phần tử hiện dần khi cuộn tới (xem "Hệ thống chuyển động" trong app/ui-v3.css).
+ * `order` tạo trễ so le giữa các phần tử cùng nhóm: `<li {...reveal('up', index)}>`.
+ */
+export function reveal(
+  kind: 'fade' | 'up' | 'left' | 'right' | 'image' | 'wipe' | 'line' = 'up',
+  order = 0,
+) {
+  return { 'data-reveal': kind, style: { '--i': order } as CSSProperties };
+}
 
 export const field = 'flex flex-col gap-1.5 text-xs font-semibold';
 export const control =

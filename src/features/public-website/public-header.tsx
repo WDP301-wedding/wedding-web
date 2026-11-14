@@ -3,7 +3,7 @@
 import { ChevronDown, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useId, useState, useSyncExternalStore, type MouseEvent } from 'react';
+import { useEffect, useId, useState, useSyncExternalStore, type MouseEvent } from 'react';
 import { cn } from 'cn';
 
 import { buttonVariants } from '../../components/ui/button';
@@ -13,8 +13,9 @@ import type { WebIdentitySession } from '../identity-access/session';
 import { container } from './public-classes';
 import { usePublicHeader } from './use-public-header';
 
+// Gạch chân chạy từ trái sang khi rê chuột; đứng yên ở mục ứng với phần trang đang xem (data-active).
 const navLink =
-  'inline-flex h-10 items-center rounded-lg px-3.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary hover:text-primary';
+  "relative inline-flex h-10 items-center rounded-lg px-3.5 text-sm font-medium text-foreground transition-colors after:absolute after:inset-x-3.5 after:bottom-1.5 after:h-px after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-hy-emphasized after:content-[''] hover:text-primary hover:after:scale-x-100 data-active:text-primary data-active:after:scale-x-100 motion-reduce:after:transition-none";
 const menuItem =
   'flex h-10 w-full items-center rounded-lg px-3 text-left text-sm text-foreground transition-colors hover:bg-secondary disabled:opacity-50';
 
@@ -25,7 +26,31 @@ function subscribeScroll(onChange: () => void) {
 }
 const isScrolled = () => window.scrollY > 16;
 /** Chữ trắng khi header nằm trên ảnh hero (chỉ màn rộng; màn hẹp menu xổ xuống có nền kem). */
-const onImage = 'lg:text-white lg:hover:bg-white/15 lg:hover:text-white';
+const onImage = 'lg:text-white lg:hover:text-white';
+
+/**
+ * Phần trang đang nằm giữa màn hình (các mục gắn `data-nav` trên trang chủ) → tô mục menu tương ứng.
+ * IntersectionObserver với vùng quan sát là dải hẹp giữa màn hình, không cần đo vị trí khi cuộn.
+ */
+function useActiveSection() {
+  const [active, setActive] = useState<string | null>(null);
+  useEffect(() => {
+    const sections = document.querySelectorAll<HTMLElement>('[data-nav]');
+    if (sections.length === 0 || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const name = (entry.target as HTMLElement).dataset.nav ?? null;
+          setActive((current) => (entry.isIntersecting ? name : current === name ? null : current));
+        }
+      },
+      { rootMargin: '-45% 0px -50% 0px' },
+    );
+    for (const section of sections) observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+  return active;
+}
 
 export function PublicHeader({
   className,
@@ -58,12 +83,15 @@ export function PublicHeader({
   const scrolled = useSyncExternalStore(subscribeScroll, isScrolled, () => false);
   const clear = overlay && !scrolled && !navOpen;
   const link = cn(navLink, clear && onImage);
+  const active = useActiveSection();
 
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 border-b transition-colors duration-300 motion-reduce:transition-none',
-        clear ? 'border-transparent bg-transparent text-white' : 'border-border bg-background',
+        'sticky top-0 z-40 border-b transition-[background-color,border-color,box-shadow] duration-300 motion-reduce:transition-none',
+        clear
+          ? 'border-transparent bg-transparent text-white'
+          : 'border-border bg-background/90 shadow-[0_4px_20px_rgb(43_29_34/0.06)] backdrop-blur-md',
         className,
       )}
     >
@@ -97,10 +125,10 @@ export function PublicHeader({
               : 'hidden',
           )}
         >
-          <Link className={link} href={routes.halls}>
+          <Link className={link} href={routes.halls} data-active={active === 'halls' || undefined}>
             Sảnh tiệc
           </Link>
-          <Link className={link} href={routes.menus}>
+          <Link className={link} href={routes.menus} data-active={active === 'menus' || undefined}>
             Thực đơn
           </Link>
           {showOffers ? (
@@ -108,7 +136,7 @@ export function PublicHeader({
               Ưu đãi
             </Link>
           ) : null}
-          <Link className={link} href="/#hoi-dap">
+          <Link className={link} href="/#hoi-dap" data-active={active === 'faq' || undefined}>
             Câu hỏi thường gặp
           </Link>
 

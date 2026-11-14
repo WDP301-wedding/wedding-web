@@ -218,21 +218,213 @@
   }
 }
 
-/* Trang chủ: khối nội dung hiện dần khi cuộn tới (CSS scroll-driven, không cần JavaScript).
-   Trình duyệt chưa hỗ trợ animation-timeline thì nội dung đứng yên, vẫn hiển thị đầy đủ. */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .hy-reveal {
-      animation: hy-reveal linear backwards;
+/*
+ * ── Hệ thống chuyển động trang công khai ──────────────────────────────────────────────────────
+ * Entrance (một lần khi cuộn tới): data-reveal = fade | up | left | right | image | wipe | line.
+ *   <ScrollMotion> (scroll-motion.tsx) gắn data-pending cho phần tử còn dưới màn hình rồi đổi sang
+ *   data-shown khi nó vào khung nhìn. Không có JavaScript → không có data-pending → nội dung vẫn hiện.
+ *   Trễ so le: biến --i (thứ tự) × 110ms.
+ * Scroll (bám theo vị trí cuộn, chạy trên compositor, không cần scroll listener): .hy-progress,
+ *   .hy-hero-image, .hy-parallax, .hy-gallery. Trình duyệt chưa hỗ trợ animation-timeline thì đứng yên.
+ * Mọi thứ chỉ động tới transform/opacity/clip-path và tắt khi prefers-reduced-motion.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal][data-pending] {
+    opacity: 0;
+  }
+  [data-reveal][data-shown] {
+    animation: hy-fade 800ms var(--hy-ease-decelerate) backwards;
+    animation-delay: calc(var(--i, 0) * 110ms);
+  }
+  [data-reveal='up'][data-shown] {
+    animation-name: hy-up;
+  }
+  [data-reveal='left'][data-shown] {
+    animation-name: hy-left;
+  }
+  [data-reveal='right'][data-shown] {
+    animation-name: hy-right;
+  }
+  /* Ảnh/thẻ mở từ dưới lên; wipe mở từ trái sang phải; line là nét kẻ tự vẽ ra từ gốc. */
+  [data-reveal='image'][data-shown] {
+    animation-name: hy-image;
+    animation-duration: 1000ms;
+  }
+  [data-reveal='wipe'][data-shown] {
+    animation-name: hy-wipe;
+    animation-duration: 1000ms;
+  }
+  [data-reveal='line'][data-shown] {
+    transform-origin: top left;
+    animation-name: hy-line;
+  }
+
+  /* Hero: ảnh nền thu nhẹ về đúng cỡ khi mới tải (không đụng opacity nên không ảnh hưởng LCP). */
+  .hy-hero-image {
+    animation: hy-settle 6s var(--hy-ease-decelerate) backwards;
+  }
+  /* Bấm "Tìm sảnh phù hợp": viền bảng ước tính sáng lên một nhịp để chỉ chỗ cần nhập. */
+  #tim-sanh:target {
+    animation: hy-nudge 1200ms 400ms var(--hy-ease-emphasized);
+  }
+  .hy-faq[open] > :not(summary) {
+    animation: hy-fade 400ms 80ms var(--hy-ease-decelerate) backwards;
+  }
+
+  @supports (animation-timeline: view()) {
+    /* Ảnh hero trôi chậm hơn nội dung khi cuộn (parallax). */
+    .hy-hero-image {
+      animation:
+        hy-settle 6s var(--hy-ease-decelerate) backwards,
+        hy-drift linear both;
+      animation-timeline: auto, scroll(root);
+      animation-range:
+        normal,
+        0 100vh;
+    }
+    /* Ảnh trong khung overflow-hidden: phóng dư 14% rồi trượt ±6% theo vị trí khung trên màn hình. */
+    .hy-parallax {
+      scale: 1.14;
+      animation: hy-parallax linear both;
       animation-timeline: view();
-      animation-range: entry 0% entry 40%;
+    }
+
+    /* Thư viện ảnh trên màn rộng: khung ảnh ghim giữa màn hình, cuộn dọc đẩy dải ảnh chạy ngang.
+       Màn hẹp, giảm chuyển động hoặc trình duyệt cũ: giữ lưới ảnh thường. */
+    @media (min-width: 1024px) {
+      .hy-gallery {
+        height: 320vh;
+        view-timeline: --hy-gallery block;
+      }
+      .hy-gallery-pin {
+        position: sticky;
+        top: 0;
+        display: flex;
+        height: 100vh;
+        flex-direction: column;
+        justify-content: center;
+        overflow: clip;
+        padding-block: 5.5rem 1.5rem;
+      }
+      .hy-gallery-pin header {
+        margin-bottom: 1.5rem;
+      }
+      .hy-gallery-track {
+        display: flex;
+        width: max-content;
+        max-width: none;
+        margin-inline: 0;
+        align-items: center;
+        gap: 1.25rem;
+        padding-inline: max(2rem, (100vw - 80rem) / 2 + 2rem);
+        animation: hy-gallery linear both;
+        animation-timeline: --hy-gallery;
+        animation-range: contain 0% contain 100%;
+      }
+      .hy-gallery-track > li {
+        flex: none;
+        height: min(50vh, 30rem);
+        aspect-ratio: 4 / 3;
+      }
+      /* Ảnh xen kẽ cỡ và độ cao để dải ảnh có nhịp như một trang tạp chí. */
+      .hy-gallery-track > li:nth-child(3n + 2) {
+        height: min(38vh, 23rem);
+        aspect-ratio: 1;
+        align-self: flex-end;
+      }
+      .hy-gallery-track > li:nth-child(3n) {
+        height: min(42vh, 25rem);
+        aspect-ratio: 3 / 2;
+        align-self: flex-start;
+      }
     }
   }
 }
-@keyframes hy-reveal {
+
+/* Thanh tiến trình cuộn trang: nét mảnh màu rượu vang trên cùng, dài dần theo vị trí cuộn. */
+.hy-progress {
+  display: none;
+}
+@supports (animation-timeline: scroll()) {
+  .hy-progress {
+    display: block;
+    transform-origin: left;
+    animation: hy-grow-x linear both;
+    animation-timeline: scroll(root);
+  }
+}
+
+@keyframes hy-fade {
   from {
     opacity: 0;
+  }
+}
+@keyframes hy-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+@keyframes hy-left {
+  from {
+    opacity: 0;
+    transform: translateX(-36px);
+  }
+}
+@keyframes hy-right {
+  from {
+    opacity: 0;
+    transform: translateX(36px);
+  }
+}
+@keyframes hy-image {
+  from {
+    clip-path: inset(100% 0 0 0);
     transform: translateY(24px);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+@keyframes hy-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+@keyframes hy-line {
+  from {
+    scale: 0;
+  }
+}
+@keyframes hy-settle {
+  from {
+    scale: 1.08;
+  }
+}
+@keyframes hy-drift {
+  to {
+    translate: 0 14vh;
+  }
+}
+@keyframes hy-parallax {
+  from {
+    translate: 0 -6%;
+  }
+  to {
+    translate: 0 6%;
+  }
+}
+@keyframes hy-gallery {
+  to {
+    translate: calc(100vw - 100%) 0;
+  }
+}
+@keyframes hy-nudge {
+  50% {
+    box-shadow: 0 0 0 4px var(--hy-champagne);
   }
 }
 
