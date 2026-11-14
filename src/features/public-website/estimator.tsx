@@ -67,26 +67,24 @@ export function EstimatorHero({
     <>
       {/* -mt: ảnh hero tràn lên dưới header trong suốt (PublicHeader overlay). */}
       <section
-        className="relative isolate -mt-16 overflow-hidden bg-hy-ink text-white lg:-mt-18"
+        className="relative isolate z-10 -mt-16 bg-hy-ink text-white lg:-mt-18"
         aria-labelledby={`${formId}-title`}
       >
-        <Image
-          className="hy-hero-image -z-20 object-cover"
-          src="/images/khoanh-khac/khach-du-tiec.webp"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-        />
-        {/* Lớp phủ: tối bên trái cho chữ, sáng dần sang phải để vẫn thấy không gian sảnh. */}
-        <div
-          className="absolute inset-0 -z-10 bg-hy-ink/65 lg:bg-[linear-gradient(90deg,rgb(43_29_34/0.74),rgb(43_29_34/0.38)_50%,rgb(43_29_34/0.12))]"
-          aria-hidden="true"
-        />
-        <div
-          className="absolute inset-x-0 top-0 -z-10 h-32 bg-linear-to-b from-hy-ink/60 to-transparent"
-          aria-hidden="true"
-        />
+        {/* overflow-hidden chỉ đặt trên lớp nền (ảnh phóng/trượt), không đặt trên cả section:
+            nếu không, lịch chọn ngày xổ xuống sẽ bị cắt mất phần dưới ở mép hero. */}
+        <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+          <Image
+            className="hy-hero-image object-cover"
+            src="/images/khoanh-khac/khach-du-tiec.webp"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+          />
+          {/* Lớp phủ: tối bên trái cho chữ, sáng dần sang phải để vẫn thấy không gian sảnh. */}
+          <div className="absolute inset-0 bg-hy-ink/65 lg:bg-[linear-gradient(90deg,rgb(43_29_34/0.74),rgb(43_29_34/0.38)_50%,rgb(43_29_34/0.12))]" />
+          <div className="absolute inset-x-0 top-0 h-32 bg-linear-to-b from-hy-ink/60 to-transparent" />
+        </div>
         <div
           className={cn(
             container,
@@ -121,6 +119,7 @@ export function EstimatorHero({
                   max={10000}
                   required
                   defaultValue={280}
+                  onFocus={(event) => event.currentTarget.select()}
                 />
               </label>
             </div>

@@ -21,7 +21,7 @@ const browserCredential =
   typeof window === 'undefined'
     ? null
     : consumeCredentialFragment(window.location.href, (safePath) =>
-        window.history.replaceState(null, '', safePath),
+        window.history.replaceState(window.history.state, '', safePath),
       );
 export { browserSession } from './browser-session';
 
@@ -66,7 +66,11 @@ export function PublicIdentityPage({
 function removeCredentialFragmentAfterHydration() {
   const fragment = new URLSearchParams(window.location.hash.slice(1));
   if (!fragment.has('invitationToken') && !fragment.has('resetToken')) return;
-  window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+  window.history.replaceState(
+    window.history.state,
+    '',
+    `${window.location.pathname}${window.location.search}`,
+  );
 }
 
 function StatusPanel({ title, children }: Readonly<{ title: string; children?: string }>) {

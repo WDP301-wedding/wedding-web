@@ -57,7 +57,11 @@ export function consumeCredentialFragment(
   const invitationToken =
     fragment.get('invitationToken') ?? (invitationPattern.test(raw) ? raw : null);
   const resetToken = fragment.get('resetToken') ?? (resetPattern.test(raw) ? raw : null);
-  replaceHistory(`${url.pathname}${url.search}`);
+  // Chỉ dọn URL khi fragment thật sự mang mã. Module trang đăng nhập được tải lần đầu ngay giữa
+  // lúc Next.js đang chuyển trang; ghi đè history lúc đó làm lần điều hướng ấy bị huỷ.
+  if (invitationToken !== null || resetToken !== null) {
+    replaceHistory(`${url.pathname}${url.search}`);
+  }
 
   if (invitationToken !== null && invitationPattern.test(invitationToken)) {
     return { kind: 'invitation', token: invitationToken };
@@ -67,4 +71,3 @@ export function consumeCredentialFragment(
   }
   return null;
 }
-
