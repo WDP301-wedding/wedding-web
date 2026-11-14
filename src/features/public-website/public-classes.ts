@@ -10,6 +10,12 @@ export const band = {
 };
 export const sectionHead = 'mb-7 flex flex-wrap items-end justify-between gap-x-6 gap-y-3';
 
+/** Nhãn nhỏ phía trên tiêu đề mục, kèm một nét champagne. */
+export const eyebrow =
+  "flex items-center gap-3 text-xs font-semibold text-primary after:h-px after:w-10 after:bg-hy-champagne after:content-['']";
+/** Tiêu đề mục của trang chủ (lớn hơn `h2` của các trang trong). */
+export const display = 'text-xl font-semibold text-balance sm:text-2xl';
+
 export const h1 = 'text-2xl font-bold text-balance sm:text-3xl';
 export const h2 = 'text-xl font-bold text-balance sm:text-2xl';
 export const lead = 'text-sm text-muted-foreground sm:text-base sm:leading-7';

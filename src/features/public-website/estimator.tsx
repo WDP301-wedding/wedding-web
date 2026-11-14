@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowRight, Moon, Sun } from 'lucide-react';
 import Image from 'next/image';
 import { useId, useState, useSyncExternalStore, type FormEvent, type ReactNode } from 'react';
 import { cn } from 'cn';
@@ -10,7 +11,6 @@ import { DatePicker } from '../../design-system/date-picker';
 import { minimumPreferredDate } from './consultation-date';
 import { EstimateModal } from './estimate-modal';
 import { formatDate, shiftName, tableCount, type Estimate, type Shift } from './estimate';
-import { HeroVideo } from './hero-video';
 import type { Hall, Menu, Restaurant } from './public-api';
 import { choice, container, control, field } from './public-classes';
 
@@ -68,45 +68,50 @@ export function EstimatorHero({
 
   return (
     <>
+      {/* -mt: ảnh hero tràn lên dưới header trong suốt (PublicHeader overlay). */}
       <section
-        className="relative isolate overflow-hidden bg-hy-ink text-white"
+        className="relative isolate -mt-16 overflow-hidden bg-hy-ink text-white lg:-mt-18"
         aria-labelledby={`${formId}-title`}
       >
         <Image
           className="-z-20 object-cover"
-          src="/images/hero-sanh-tiec.webp"
+          src="/images/khoanh-khac/khach-du-tiec.webp"
           alt=""
           fill
           priority
           sizes="100vw"
         />
-        <HeroVideo />
+        {/* Lớp phủ: tối bên trái cho chữ, sáng dần sang phải để vẫn thấy không gian sảnh. */}
         <div
-          className="absolute inset-0 -z-10 bg-hy-ink/75 lg:bg-[linear-gradient(90deg,rgb(43_29_34/0.85),rgb(43_29_34/0.62)_55%,rgb(43_29_34/0.4))]"
+          className="absolute inset-0 -z-10 bg-hy-ink/65 lg:bg-[linear-gradient(90deg,rgb(43_29_34/0.74),rgb(43_29_34/0.38)_50%,rgb(43_29_34/0.12))]"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute inset-x-0 top-0 -z-10 h-32 bg-linear-to-b from-hy-ink/60 to-transparent"
           aria-hidden="true"
         />
         <div
           className={cn(
             container,
-            'grid items-center gap-8 pt-10 pb-12 lg:min-h-[600px] lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-16 lg:py-20',
+            'grid items-center gap-10 pt-28 pb-14 lg:min-h-[720px] lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-16 lg:pt-36 lg:pb-24',
           )}
         >
-          <div className={cn(rise, 'flex max-w-2xl flex-col gap-4 lg:gap-5')}>{intro}</div>
+          <div className={cn(rise, 'flex max-w-3xl flex-col gap-5 lg:gap-6')}>{intro}</div>
           <form
             className={cn(
               rise,
-              'flex flex-col gap-4 rounded-2xl bg-card p-5 text-foreground shadow-[0_24px_48px_rgb(43_29_34/0.24)] sm:p-7',
+              'flex flex-col gap-4 rounded-2xl bg-background p-5 text-foreground shadow-[0_24px_48px_rgb(43_29_34/0.28)] sm:p-7',
             )}
             style={{ animationDelay: '120ms' }}
             onSubmit={submit}
             aria-labelledby={`${formId}-title`}
           >
-            <h2 id={`${formId}-title`} className="text-lg font-bold">
+            <h2 id={`${formId}-title`} className="text-lg font-semibold">
               Ước tính tiệc của bạn
             </h2>
             <div className="grid grid-cols-2 gap-3">
               <label className={field}>
-                Ngày
+                Ngày tổ chức
                 <DatePicker name="date" min={minimumDate} />
               </label>
               <label className={field}>
@@ -125,24 +130,33 @@ export function EstimatorHero({
             </div>
             <fieldset className="grid grid-cols-2 gap-3">
               <legend className="mb-1.5 text-xs font-semibold">Ca tiệc</legend>
-              {shifts.map((item) => (
-                <label key={item.code} className={choice}>
-                  <input
-                    className="sr-only"
-                    type="radio"
-                    name="shift"
-                    value={item.code}
-                    checked={shift === item.code}
-                    onChange={() => setShift(item.code)}
-                  />
-                  <strong className="text-sm group-has-checked:text-primary">
-                    {shiftName(item.code)}
-                  </strong>
-                  <small className="text-xs text-muted-foreground tabular-nums">
-                    {item.startTime} – {item.endTime}
-                  </small>
-                </label>
-              ))}
+              {shifts.map((item) => {
+                const Icon = item.code === 'LUNCH' ? Sun : Moon;
+                return (
+                  <label key={item.code} className={cn(choice, 'flex-row items-center gap-2.5')}>
+                    <input
+                      className="sr-only"
+                      type="radio"
+                      name="shift"
+                      value={item.code}
+                      checked={shift === item.code}
+                      onChange={() => setShift(item.code)}
+                    />
+                    <Icon
+                      className="size-4 shrink-0 text-muted-foreground group-has-checked:text-primary"
+                      aria-hidden="true"
+                    />
+                    <span className="flex flex-col">
+                      <strong className="text-sm group-has-checked:text-primary">
+                        {shiftName(item.code)}
+                      </strong>
+                      <small className="text-xs text-muted-foreground tabular-nums">
+                        {item.startTime} – {item.endTime}
+                      </small>
+                    </span>
+                  </label>
+                );
+              })}
             </fieldset>
             {error ? (
               <p className="text-xs text-destructive" role="alert">
@@ -151,6 +165,7 @@ export function EstimatorHero({
             ) : null}
             <Button type="submit" size="lg">
               Xem ước tính
+              <ArrowRight aria-hidden="true" />
             </Button>
           </form>
         </div>

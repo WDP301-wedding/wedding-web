@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { moments } from '../../content/public-content';
-import { HeroVideo } from './hero-video';
+import { HeroVideoButton } from './hero-video';
 import { MomentsGallery } from './moments-gallery';
 
 describe('MomentsGallery', () => {
@@ -29,29 +29,18 @@ describe('MomentsGallery', () => {
   });
 });
 
-describe('HeroVideo', () => {
-  afterEach(() => vi.unstubAllGlobals());
-  const stubMedia = (matches: boolean) =>
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn(() => ({ matches, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
-    );
-
-  it('plays the muted looping video on wide screens without reduced motion', () => {
-    stubMedia(true);
-    const { container } = render(<HeroVideo />);
-    const video = container.querySelector('video');
-    const sources = [...(video?.querySelectorAll('source') ?? [])].map((source) =>
+describe('HeroVideoButton', () => {
+  it('loads the video only when asked, closes on Escape and returns focus to the button', () => {
+    render(<HeroVideoButton />);
+    expect(document.querySelector('video')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Xem video' }));
+    const dialog = screen.getByRole('dialog', { name: 'Video sảnh tiệc Hỷ Yến' });
+    const sources = [...dialog.querySelectorAll('source')].map((source) =>
       source.getAttribute('src'),
     );
     expect(sources).toEqual(['/videos/hero-sanh-tiec.webm', '/videos/hero-sanh-tiec.mp4']);
-    expect(video?.muted).toBe(true);
-    expect(video).toHaveAttribute('aria-hidden', 'true');
-  });
-
-  it('keeps the still image on small screens or reduced motion', () => {
-    stubMedia(false);
-    const { container } = render(<HeroVideo />);
-    expect(container.querySelector('video')).toBeNull();
+    fireEvent.keyDown(dialog, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Xem video' })).toHaveFocus();
   });
 });

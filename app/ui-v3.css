@@ -217,3 +217,38 @@
     transform: translateY(70vh) rotate(220deg);
   }
 }
+
+/* Trang chủ: khối nội dung hiện dần khi cuộn tới (CSS scroll-driven, không cần JavaScript).
+   Trình duyệt chưa hỗ trợ animation-timeline thì nội dung đứng yên, vẫn hiển thị đầy đủ. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hy-reveal {
+      animation: hy-reveal linear backwards;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+}
+@keyframes hy-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+/* Câu hỏi thường gặp: <details> mở/đóng mượt theo chiều cao thật của câu trả lời. */
+@media (prefers-reduced-motion: no-preference) {
+  .hy-faq {
+    interpolate-size: allow-keywords;
+  }
+  .hy-faq::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size var(--hy-dur-medium2) var(--hy-ease-emphasized),
+      content-visibility var(--hy-dur-medium2) allow-discrete;
+  }
+  .hy-faq[open]::details-content {
+    block-size: auto;
+  }
+}

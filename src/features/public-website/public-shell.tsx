@@ -20,7 +20,14 @@ export function PublicShell({
   children,
   restaurant = null,
   showOffers = false,
-}: Readonly<{ children: ReactNode; restaurant?: Restaurant | null; showOffers?: boolean }>) {
+  overlayHeader = false,
+}: Readonly<{
+  children: ReactNode;
+  restaurant?: Restaurant | null;
+  showOffers?: boolean;
+  /** Trang mở đầu bằng ảnh hero tràn lên dưới header (trang chủ). */
+  overlayHeader?: boolean;
+}>) {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <a
@@ -29,7 +36,7 @@ export function PublicShell({
       >
         Đi đến nội dung chính
       </a>
-      <PublicHeader showOffers={showOffers} />
+      <PublicHeader showOffers={showOffers} overlay={overlayHeader} />
       <main
         id="public-content"
         className="flex-1 animate-in duration-300 ease-hy-decelerate fade-in fill-mode-backwards slide-in-from-bottom-2 motion-reduce:animate-none"
@@ -37,7 +44,7 @@ export function PublicShell({
         {children}
       </main>
       {/* Chừa chỗ cho thanh "Mở lại bảng ước tính" cố định ở đáy khi nó đang hiện. */}
-      <footer className="bg-hy-ink text-sm text-white/80 [body:has([data-estimate-banner])_&]:pb-16">
+      <footer className="bg-hy-wine-pressed text-sm text-white/80 [body:has([data-estimate-banner])_&]:pb-16">
         <div className={cn(container, 'grid gap-10 py-14 md:grid-cols-[2fr_1fr_1fr]')}>
           <div className="flex flex-col gap-3">
             <Link
@@ -56,6 +63,7 @@ export function PublicShell({
                 Hỷ Yến
               </span>
             </Link>
+            <p className="text-hy-champagne">Trân trọng từng khoảnh khắc</p>
             <p className="max-w-sm">
               Nhà hàng tiệc cưới Hỷ Yến – đồng hành cùng hai bạn từ buổi tư vấn đến ngày cưới.
             </p>
@@ -67,6 +75,9 @@ export function PublicShell({
             </Link>
             <Link className={footerLink} href="/thuc-don">
               Thực đơn
+            </Link>
+            <Link className={footerLink} href="/#hoi-dap">
+              Câu hỏi thường gặp
             </Link>
             <Link className={footerLink} href="/tu-van">
               Nhận tư vấn
@@ -106,7 +117,7 @@ export function PublicShell({
           </div>
         </div>
         <p className={cn(container, 'border-t border-white/15 py-6 text-xs text-white/65')}>
-          © {new Date().getFullYear()} Hỷ Yến. Trân trọng từng khoảnh khắc.
+          © {new Date().getFullYear()} Hỷ Yến. All rights reserved.
         </p>
       </footer>
     </div>

@@ -135,7 +135,7 @@ export const weddingSteps: readonly Readonly<{
     detail: 'Gửi yêu cầu, quản lý tiệc gọi lại và hẹn bạn xem sảnh.',
   },
   {
-    title: 'Hợp đồng & cọc',
+    title: 'Hợp đồng & đặt cọc',
     detail:
       'Nhà hàng mở hồ sơ, mời bạn vào Không gian cưới để duyệt kịch bản, hợp đồng và đặt cọc theo hợp đồng qua VNPay.',
   },

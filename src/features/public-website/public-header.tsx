@@ -3,7 +3,7 @@
 import { ChevronDown, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useId, useState, type MouseEvent } from 'react';
+import { useId, useState, useSyncExternalStore, type MouseEvent } from 'react';
 import { cn } from 'cn';
 
 import { buttonVariants } from '../../components/ui/button';
@@ -18,8 +18,18 @@ const navLink =
 const menuItem =
   'flex h-10 w-full items-center rounded-lg px-3 text-left text-sm text-foreground transition-colors hover:bg-secondary disabled:opacity-50';
 
+/** Trang đã cuộn khỏi mép trên → header trong suốt chuyển sang nền kem. */
+function subscribeScroll(onChange: () => void) {
+  window.addEventListener('scroll', onChange, { passive: true });
+  return () => window.removeEventListener('scroll', onChange);
+}
+const isScrolled = () => window.scrollY > 16;
+/** Chữ trắng khi header nằm trên ảnh hero (chỉ màn rộng; màn hẹp menu xổ xuống có nền kem). */
+const onImage = 'lg:text-white lg:hover:bg-white/15 lg:hover:text-white';
+
 export function PublicHeader({
   className,
+  overlay = false,
   session = browserSession,
   onLogout,
   pending = false,
@@ -27,6 +37,8 @@ export function PublicHeader({
   showOffers = false,
 }: {
   className?: string;
+  /** Nằm đè lên ảnh hero: trong suốt, chữ trắng cho tới khi người dùng cuộn trang. */
+  overlay?: boolean;
   session?: WebIdentitySession;
   onLogout?: () => void;
   pending?: boolean;
@@ -43,9 +55,18 @@ export function PublicHeader({
   const closeOnLink = (event: MouseEvent) => {
     if ((event.target as HTMLElement).closest('a')) setNavOpen(false);
   };
+  const scrolled = useSyncExternalStore(subscribeScroll, isScrolled, () => false);
+  const clear = overlay && !scrolled && !navOpen;
+  const link = cn(navLink, clear && onImage);
 
   return (
-    <header className={cn('sticky top-0 z-40 border-b border-border bg-background', className)}>
+    <header
+      className={cn(
+        'sticky top-0 z-40 border-b transition-colors duration-300 motion-reduce:transition-none',
+        clear ? 'border-transparent bg-transparent text-white' : 'border-border bg-background',
+        className,
+      )}
+    >
       <div className={cn(container, 'relative flex h-16 items-center gap-2 lg:h-18')}>
         <Link
           className="flex shrink-0 items-center gap-2.5"
@@ -53,7 +74,7 @@ export function PublicHeader({
           aria-label="Hỷ Yến — Trang chủ"
         >
           <Image
-            className="h-10 w-auto"
+            className={cn('h-10 w-auto', clear && 'brightness-0 invert')}
             src="/images/hy-yen-logo.png"
             alt="Hỷ Yến Wedding"
             width={394}
@@ -76,30 +97,30 @@ export function PublicHeader({
               : 'hidden',
           )}
         >
-          <Link className={navLink} href={routes.halls}>
+          <Link className={link} href={routes.halls}>
             Sảnh tiệc
           </Link>
-          <Link className={navLink} href={routes.menus}>
+          <Link className={link} href={routes.menus}>
             Thực đơn
           </Link>
           {showOffers ? (
-            <Link className={navLink} href="/#uu-dai">
+            <Link className={link} href="/#uu-dai">
               Ưu đãi
             </Link>
           ) : null}
-          <Link className={navLink} href="/#hoi-dap">
+          <Link className={link} href="/#hoi-dap">
             Câu hỏi thường gặp
           </Link>
 
           {snapshot.status === 'authenticated' ? (
             <>
-              <Link className={cn(navLink, 'text-primary')} href={routes.space}>
+              <Link className={cn(navLink, 'text-primary', clear && onImage)} href={routes.space}>
                 Không gian cưới
               </Link>
               <div className="relative" ref={menuRef}>
                 <button
                   type="button"
-                  className={cn(navLink, 'gap-2 pr-2.5 pl-1.5')}
+                  className={cn(link, 'gap-2 pr-2.5 pl-1.5')}
                   aria-haspopup="menu"
                   aria-expanded={userMenuOpen}
                   aria-label={`Tài khoản ${snapshot.actor.displayEmail}`}
@@ -114,7 +135,7 @@ export function PublicHeader({
                   <span className="max-w-44 truncate">{snapshot.actor.displayEmail}</span>
                   <ChevronDown
                     className={cn(
-                      'size-4 text-muted-foreground transition-transform duration-200',
+                      'size-4 opacity-60 transition-transform duration-200',
                       userMenuOpen && 'rotate-180',
                     )}
                     aria-hidden="true"
@@ -173,7 +194,7 @@ export function PublicHeader({
               </div>
             </>
           ) : (
-            <Link className={navLink} href={routes.login}>
+            <Link className={link} href={routes.login}>
               Đăng nhập
             </Link>
           )}
@@ -185,7 +206,10 @@ export function PublicHeader({
           </Link>
           <button
             type="button"
-            className="inline-flex size-11 items-center justify-center rounded-lg text-foreground hover:bg-secondary lg:hidden"
+            className={cn(
+              'inline-flex size-11 items-center justify-center rounded-lg lg:hidden',
+              clear ? 'hover:bg-white/15' : 'text-foreground hover:bg-secondary',
+            )}
             aria-expanded={navOpen}
             aria-controls={navId}
             aria-label={navOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}

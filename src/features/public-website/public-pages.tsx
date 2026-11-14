@@ -163,7 +163,8 @@ export function MenusPage({ catalog }: Readonly<{ catalog: Catalog }>) {
             {catalog.menus.map((menu) => (
               <article
                 key={menu.id}
-                className={cn(card, 'flex flex-col gap-4 rounded-2xl p-6 sm:p-7')}
+                id={menu.id}
+                className={cn(card, 'flex scroll-mt-24 flex-col gap-4 rounded-2xl p-6 sm:p-7')}
               >
                 <header className="flex flex-col gap-1 border-b border-border pb-4">
                   <h2 className="text-xl font-bold">{menu.name}</h2>
