@@ -2,7 +2,14 @@
 
 import { ArrowRight, Moon, Sun } from 'lucide-react';
 import Image from 'next/image';
-import { useId, useState, useSyncExternalStore, type FormEvent, type ReactNode } from 'react';
+import {
+  useId,
+  useState,
+  useSyncExternalStore,
+  type FocusEvent,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import { cn } from 'cn';
 
 import { Button } from '../../components/ui/button';
@@ -15,6 +22,16 @@ import type { Hall, Menu, Restaurant } from './public-api';
 import { choice, container, control, field } from './public-classes';
 
 const noSubscribe = () => () => undefined;
+/**
+ * Ô số khách có sẵn 280: bấm vào thì bôi chọn hết để gõ là thay, không bị nối thành "28012".
+ * Chọn thêm một lần sau khi sự kiện chuột xử lý xong, vì trình duyệt đặt con trỏ tại chỗ bấm
+ * ngay sau sự kiện focus và làm mất vùng vừa chọn.
+ */
+function selectAll(event: FocusEvent<HTMLInputElement>) {
+  const input = event.currentTarget;
+  input.select();
+  setTimeout(() => input.select());
+}
 
 /**
  * A2 · Hero + "Ước tính tiệc của bạn" (P2 – plan first).
@@ -119,7 +136,7 @@ export function EstimatorHero({
                   max={10000}
                   required
                   defaultValue={280}
-                  onFocus={(event) => event.currentTarget.select()}
+                  onFocus={selectAll}
                 />
               </label>
             </div>

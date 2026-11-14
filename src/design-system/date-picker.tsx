@@ -5,6 +5,7 @@ import { cn } from 'cn';
 import { dp } from './date-picker-classes';
 import {
   computeCalendarGrid,
+  maskDateInput,
   parseDateParts,
   toIsoString,
   toVnString,
@@ -164,17 +165,7 @@ export function DatePicker({
 
   // User typing support
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let inputVal = e.target.value;
-    inputVal = inputVal.replace(/[^\d/-]/g, '');
-
-    // Auto add slashes for pure digits input: 25102026 -> 25/10/2026
-    if (!inputVal.includes('/') && !inputVal.includes('-') && inputVal.length > 2) {
-      if (inputVal.length <= 4) {
-        inputVal = `${inputVal.slice(0, 2)}/${inputVal.slice(2)}`;
-      } else {
-        inputVal = `${inputVal.slice(0, 2)}/${inputVal.slice(2, 4)}/${inputVal.slice(4, 8)}`;
-      }
-    }
+    const inputVal = maskDateInput(e.target.value);
 
     if (!isControlled) {
       setUncontrolledDisplay(inputVal);

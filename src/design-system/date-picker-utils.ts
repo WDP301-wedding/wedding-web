@@ -38,6 +38,28 @@ export function parseDateParts(val?: string | null): DateParts | null {
   return null;
 }
 
+/**
+ * Định dạng chuỗi người dùng đang gõ thành dd/mm/yyyy, tự chèn dấu "/" sau ngày và sau tháng.
+ *
+ * Luôn dựng lại từ các chữ số (tối đa 8) thay vì chỉ xử lý lần chèn "/" đầu tiên: trước đây gõ
+ * "1212" ra "12/12" rồi các số sau nối mãi vào tháng ("12/122026…"). Gõ "5/" hay "5-" thì ngày
+ * một chữ số được thêm số 0 ("05"). Dấu "/" chỉ hiện khi đã có chữ số đứng sau, để phím xoá lùi
+ * không bị kẹt ở dấu gạch.
+ */
+export function maskDateInput(raw: string): string {
+  const cleaned = raw.replace(/[^\d/-]/g, '');
+  // Dán nguyên ngày dạng ISO (2026-12-20) thì giữ nguyên, parseDateParts hiểu được.
+  if (/^\d{4}-/.test(cleaned)) return cleaned.slice(0, 10);
+  const segments = cleaned.split(/[/-]/);
+  const digits = segments
+    .map((segment, index) =>
+      index < 2 && index < segments.length - 1 ? segment.padStart(2, '0').slice(0, 2) : segment,
+    )
+    .join('')
+    .slice(0, 8);
+  return [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4)].filter(Boolean).join('/');
+}
+
 export function toIsoString(parts: DateParts): string {
   const y = String(parts.year).padStart(4, '0');
   const m = String(parts.month).padStart(2, '0');
