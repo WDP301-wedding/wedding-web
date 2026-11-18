@@ -162,10 +162,8 @@ export function createInvitationGateway(client?: ApiClient): InvitationGateway {
 
     ...jobMethods,
 
-    async listTemplates(accessToken): Promise<readonly TemplateItemView[]> {
-      const { data, error } = await api().GET('/invitation-templates', {
-        headers: headers(accessToken),
-      });
+    async listTemplates(_accessToken): Promise<readonly TemplateItemView[]> {
+      const { data, error } = await api().GET('/invitation-templates', {});
       if (error !== undefined)
         throw new Error('Không thể tải danh sách mẫu thiệp.', { cause: error });
       return required(data).data.items as unknown as readonly TemplateItemView[];
