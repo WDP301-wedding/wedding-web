@@ -61,7 +61,7 @@ function areCatalogMediaUrlsValid(catalog: Catalog): boolean {
     }
   }
   for (const menu of catalog.menus) {
-    for (const media of menu.media) {
+    for (const media of [...menu.media, ...menu.items.flatMap((dish) => dish.media ?? [])]) {
       if (!isSignedUrlValid(media.signedUrl)) return false;
     }
   }

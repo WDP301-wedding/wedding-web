@@ -28,13 +28,6 @@ const optimizable = (url: string) => {
     ) {
       return true;
     }
-    // Railway storage
-    if (
-      parsed.hostname.endsWith('.up.railway.app') &&
-      parsed.pathname.startsWith('/api/v1/storage/objects/')
-    ) {
-      return true;
-    }
     return false;
   } catch {
     return false;

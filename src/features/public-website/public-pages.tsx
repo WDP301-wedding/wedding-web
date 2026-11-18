@@ -177,11 +177,17 @@ export function MenusPage({ catalog }: Readonly<{ catalog: Catalog }>) {
                 </header>
                 <ol className="flex flex-col gap-3">
                   {menu.items.map((dish) => (
-                    <li key={dish.dishVersionId} className="grid gap-x-4 sm:grid-cols-[120px_1fr]">
-                      <span className="text-xs text-muted-foreground sm:pt-0.5">
-                        {dishCategory(dish.categoryLabel)}
-                      </span>
-                      <span className="flex flex-col">
+                    <li key={dish.dishVersionId} className="flex items-center gap-4">
+                      <CatalogImage
+                        media={dish.media?.[0]}
+                        sizes="80px"
+                        placeholder=""
+                        className="size-16 shrink-0 rounded-lg sm:size-20"
+                      />
+                      <span className="flex min-w-0 flex-col">
+                        <span className="text-xs text-muted-foreground">
+                          {dishCategory(dish.categoryLabel)}
+                        </span>
                         <strong className="text-sm font-semibold">{dish.name}</strong>
                         {dish.description ? (
                           <span className="text-xs text-muted-foreground">{dish.description}</span>
