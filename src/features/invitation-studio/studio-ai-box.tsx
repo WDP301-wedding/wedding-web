@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Check } from 'lucide-react';
 import type { InvitationStudioState } from './use-invitation-studio';
 import {
@@ -36,9 +36,7 @@ export function StudioAiBox({
       try {
         const templates = await studio.gateway.listTemplates(studio.accessToken);
         if (!active) return;
-        const activeTemplates = templates.filter(
-          (t) => t.active !== false && Boolean(t.presentation?.theme),
-        );
+        const activeTemplates = templates.filter((t) => t.active !== false);
         if (activeTemplates.length > 0) {
           setRemotePresets(activeTemplates.map(convertTemplateToPreset));
         }
@@ -52,8 +50,14 @@ export function StudioAiBox({
     };
   }, [studio.gateway, studio.accessToken]);
 
-  const displayPresets =
-    remotePresets && remotePresets.length > 0 ? remotePresets : AI_DESIGN_PRESETS;
+  const displayPresets = useMemo(() => {
+    if (!remotePresets || remotePresets.length === 0) {
+      return AI_DESIGN_PRESETS;
+    }
+    const remoteThemes = new Set(remotePresets.map((r) => r.id));
+    const extraPresets = AI_DESIGN_PRESETS.filter((p) => !remoteThemes.has(p.id));
+    return [...remotePresets, ...extraPresets];
+  }, [remotePresets]);
 
   const handleGenerateCustomCard = (e?: React.FormEvent) => {
     e?.preventDefault();

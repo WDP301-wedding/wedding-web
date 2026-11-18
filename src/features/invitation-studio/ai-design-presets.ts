@@ -35,6 +35,7 @@ export interface AiDesignPreset {
   description: string;
   design: GeneratedInvitationDesign;
   templateId?: string;
+  decoration?: InvitationDecoration;
 }
 
 export const THEME_PALETTES: Record<CardThemeId, readonly [string, string, string, string]> = {
@@ -46,10 +47,21 @@ export const THEME_PALETTES: Record<CardThemeId, readonly [string, string, strin
   'champagne-luxury': ['#5C4033', '#C9A46A', '#FFFCF5', '#3E2F1D'],
 };
 
+const defaultDecoration: InvitationDecoration = {
+  coverMotif: 'phoenix',
+  insideMotif: 'song-hy',
+  frame: 'inset',
+  finish: 'gold-foil',
+  coverComposition: 'medallion',
+  insideComposition: 'border',
+  coverDensity: 'subtle',
+  insideDensity: 'subtle',
+};
+
 export function convertTemplateToPreset(tpl: TemplateItemView): AiDesignPreset {
   const theme = (tpl.presentation?.theme as CardThemeId) || 'royal-burgundy';
   const palette = THEME_PALETTES[theme] ?? THEME_PALETTES['royal-burgundy'];
-  const dec = tpl.presentation?.decoration as InvitationDecoration | undefined;
+  const dec = (tpl.presentation?.decoration as InvitationDecoration | undefined) ?? defaultDecoration;
 
   return {
     id: theme,
@@ -58,7 +70,7 @@ export function convertTemplateToPreset(tpl: TemplateItemView): AiDesignPreset {
     tagline: dec?.finish ? `Kỹ thuật ${dec.finish}` : 'Mẫu từ trung tâm tiệc cưới',
     badge: 'Mẫu quản lý',
     palette,
-    ...(dec ? { decoration: dec } : {}),
+    decoration: dec,
     description:
       tpl.textFields.message ||
       tpl.textFields.greeting ||
@@ -78,7 +90,7 @@ export function convertTemplateToPreset(tpl: TemplateItemView): AiDesignPreset {
       badge: 'Mẫu quản lý',
       accentColor: palette[1],
       summary: tpl.textFields.greeting || tpl.title,
-      ...(dec ? { decoration: dec } : {}),
+      decoration: dec,
     },
   };
 }
