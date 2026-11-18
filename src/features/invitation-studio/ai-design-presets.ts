@@ -1,4 +1,5 @@
 import type { InvitationDecoration } from './invitation-presentation';
+import type { TemplateItemView } from './invitation-api-types';
 
 /** Kiểu dữ liệu thiết kế thiệp và 3 phong cách gợi ý sẵn cho trợ lý AI. */
 
@@ -33,6 +34,53 @@ export interface AiDesignPreset {
   palette: readonly string[];
   description: string;
   design: GeneratedInvitationDesign;
+  templateId?: string;
+}
+
+export const THEME_PALETTES: Record<CardThemeId, readonly [string, string, string, string]> = {
+  'royal-burgundy': ['#7A1F3D', '#C9A46A', '#FFFDF9', '#4A1224'],
+  'sage-minimalist': ['#556B5D', '#A38368', '#F7F7F4', '#2C3E35'],
+  'blush-floral': ['#C26D7C', '#D89AA5', '#FFF8F8', '#633B42'],
+  'traditional-red': ['#9C1C18', '#D4AF37', '#FFFBF9', '#8B2025'],
+  'celestial-navy': ['#102A43', '#829AB3', '#F8FAFF', '#141C2B'],
+  'champagne-luxury': ['#5C4033', '#C9A46A', '#FFFCF5', '#3E2F1D'],
+};
+
+export function convertTemplateToPreset(tpl: TemplateItemView): AiDesignPreset {
+  const theme = (tpl.presentation?.theme as CardThemeId) || 'royal-burgundy';
+  const palette = THEME_PALETTES[theme] ?? THEME_PALETTES['royal-burgundy'];
+  const dec = tpl.presentation?.decoration as InvitationDecoration | undefined;
+
+  return {
+    id: theme,
+    templateId: tpl.templateId,
+    name: tpl.title,
+    tagline: dec?.finish ? `Kỹ thuật ${dec.finish}` : 'Mẫu từ trung tâm tiệc cưới',
+    badge: 'Mẫu quản lý',
+    palette,
+    ...(dec ? { decoration: dec } : {}),
+    description:
+      tpl.textFields.message ||
+      tpl.textFields.greeting ||
+      'Mẫu thiệp cưới được phê duyệt chính thức từ ban quản lý.',
+    design: {
+      title: tpl.title,
+      brideName: '',
+      groomName: '',
+      greeting:
+        tpl.textFields.greeting || 'Trân trọng kính mời quý khách đến chung vui cùng gia đình chúng tôi',
+      message:
+        tpl.textFields.message ||
+        'Sự hiện diện của quý khách là niềm vinh hạnh to lớn đối với hai bên gia đình.',
+      footer: tpl.textFields.footer || 'Rất hân hạnh được đón tiếp quý khách.',
+      theme,
+      themeName: tpl.title,
+      badge: 'Mẫu quản lý',
+      accentColor: palette[1],
+      summary: tpl.textFields.greeting || tpl.title,
+      ...(dec ? { decoration: dec } : {}),
+    },
+  };
 }
 
 /** Curated designs available without requesting AI generation. */

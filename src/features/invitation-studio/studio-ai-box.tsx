@@ -1,9 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
 import type { InvitationStudioState } from './use-invitation-studio';
-import { AI_DESIGN_PRESETS, type AiDesignPreset } from './ai-design-presets';
+import {
+  AI_DESIGN_PRESETS,
+  convertTemplateToPreset,
+  type AiDesignPreset,
+} from './ai-design-presets';
 import { InvitationOrnament } from './invitation-ornament';
 import { InteractiveInvitation } from './interactive-invitation';
 import { getApiBaseUrl } from './invitation-studio-utils';
@@ -21,7 +25,35 @@ export function StudioAiBox({
   const { applyAiDesign, cardTheme, brideName, groomName } = studio;
 
   const [customPrompt, setCustomPrompt] = useState('');
+  const [remotePresets, setRemotePresets] = useState<readonly AiDesignPreset[] | null>(null);
   const isGeneratingCard = studio.suggestionBusy;
+
+  useEffect(() => {
+    let active = true;
+    if (!studio.gateway || !studio.accessToken) return;
+
+    void (async () => {
+      try {
+        const templates = await studio.gateway.listTemplates(studio.accessToken);
+        if (!active) return;
+        const activeTemplates = templates.filter(
+          (t) => t.active !== false && Boolean(t.presentation?.theme),
+        );
+        if (activeTemplates.length > 0) {
+          setRemotePresets(activeTemplates.map(convertTemplateToPreset));
+        }
+      } catch {
+        // Fallback silently to static presets if API is unreachable
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [studio.gateway, studio.accessToken]);
+
+  const displayPresets =
+    remotePresets && remotePresets.length > 0 ? remotePresets : AI_DESIGN_PRESETS;
 
   const handleGenerateCustomCard = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -43,13 +75,13 @@ export function StudioAiBox({
         </div>
 
         <div className={px.presetsGrid}>
-          {AI_DESIGN_PRESETS.map((preset) => {
+          {displayPresets.map((preset) => {
             const isActive =
               cardTheme === preset.id &&
               JSON.stringify(studio.presentation.decoration) ===
                 JSON.stringify(preset.design.decoration);
             return (
-              <div key={preset.id} className={px.presetCard} data-active={isActive}>
+              <div key={preset.templateId ?? preset.id} className={px.presetCard} data-active={isActive}>
                 <div
                   aria-hidden="true"
                   className="relative isolate grid h-24 place-items-center overflow-hidden rounded-lg border border-current text-xs"
