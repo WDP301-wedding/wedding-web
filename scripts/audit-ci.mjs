@@ -3,9 +3,6 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const reviewedAdvisory = '1240992|braces|https://github.com/advisories/GHSA-vfj7-8cjw-p6xm';
-// Owner-approved renewal: docs/security/braces-review-2026-10-22.md.
-const reviewExpiresAt = new Date('2026-10-29T00:00:00.000Z');
 const knownSeverities = new Set(['info', 'low', 'moderate', 'high', 'critical']);
 const dependencySections = [
   'dependencies',
@@ -103,13 +100,14 @@ function dependencyReferences(lockfile, dependencyName) {
   return references;
 }
 
-function validateReviewedLockScope(lockfile) {
-  if (
-    !lockfile ||
-    lockfile.lockfileVersion !== 3 ||
-    !lockfile.packages ||
-    typeof lockfile.packages !== 'object'
-  ) {
+function isV3Lockfile(lockfile) {
+  return (
+    lockfile?.lockfileVersion === 3 && !!lockfile.packages && typeof lockfile.packages === 'object'
+  );
+}
+
+function validateBracesLockScope(lockfile) {
+  if (!isV3Lockfile(lockfile)) {
     return ['Cannot verify the braces exception against an npm v3 lockfile.'];
   }
 
@@ -142,6 +140,72 @@ function validateReviewedLockScope(lockfile) {
   return blocking;
 }
 
+// Every picomatch copy and every package that may load one, as reviewed on 18 November 2026.
+const reviewedPicomatchCopies = new Map([
+  ['node_modules/picomatch', '2.3.2'],
+  ['node_modules/@dotenvx/dotenvx/node_modules/picomatch', '4.0.7'],
+  ['node_modules/tinyglobby/node_modules/picomatch', '4.0.7'],
+  ['node_modules/vite/node_modules/picomatch', '4.0.7'],
+  ['node_modules/vitest/node_modules/picomatch', '4.0.7'],
+]);
+const reviewedPicomatchReferences = [
+  'node_modules/@dotenvx/dotenvx|dependencies|^4.0.4',
+  'node_modules/@dotenvx/dotenvx/node_modules/fdir|peerDependencies|^3 || ^4',
+  'node_modules/micromatch|dependencies|^2.3.1',
+  'node_modules/tinyglobby|dependencies|^4.0.4',
+  'node_modules/tinyglobby/node_modules/fdir|peerDependencies|^3 || ^4',
+  'node_modules/vite|dependencies|^4.0.7',
+  'node_modules/vitest|dependencies|^4.0.7',
+];
+
+function validatePicomatchLockScope(lockfile) {
+  if (!isV3Lockfile(lockfile)) {
+    return ['Cannot verify the picomatch exception against an npm v3 lockfile.'];
+  }
+  const blocking = [];
+  const copies = Object.entries(lockfile.packages).filter(
+    ([lockPath]) => packageNameFromLockPath(lockPath) === 'picomatch',
+  );
+  const copyKeys = copies.map(([lockPath, entry]) => `${lockPath}@${entry?.version}`).sort();
+  const expectedCopies = [...reviewedPicomatchCopies]
+    .map(([lockPath, version]) => `${lockPath}@${version}`)
+    .sort();
+  if (JSON.stringify(copyKeys) !== JSON.stringify(expectedCopies)) {
+    blocking.push(`Unexpected picomatch lockfile copies: ${copyKeys.join(', ') || 'none'}.`);
+  }
+  const references = [];
+  for (const [lockPath, entry] of Object.entries(lockfile.packages)) {
+    for (const section of dependencySections) {
+      if (entry?.[section] && Object.hasOwn(entry[section], 'picomatch')) {
+        references.push(`${lockPath}|${section}|${String(entry[section].picomatch)}`);
+      }
+    }
+  }
+  references.sort();
+  if (JSON.stringify(references) !== JSON.stringify([...reviewedPicomatchReferences].sort())) {
+    blocking.push(`Unexpected picomatch dependency scope: ${references.join(', ') || 'none'}.`);
+  }
+  return blocking;
+}
+
+/** Each exception is narrow: one advisory, a hard deadline and a pinned lockfile scope. */
+export const reviewedAdvisories = [
+  {
+    // Owner-approved renewal: docs/security/braces-review-2026-10-22.md.
+    advisory: '1240992|braces|https://github.com/advisories/GHSA-vfj7-8cjw-p6xm',
+    label: 'GHSA-vfj7-8cjw-p6xm (braces)',
+    expiresAt: new Date('2026-10-29T00:00:00.000Z'),
+    validateScope: validateBracesLockScope,
+  },
+  {
+    // Owner-approved: docs/security/picomatch-review-2026-11-18.md.
+    advisory: '1247710|picomatch|https://github.com/advisories/GHSA-fc5q-39xc-vjpf',
+    label: 'GHSA-fc5q-39xc-vjpf (picomatch)',
+    expiresAt: new Date('2026-12-02T00:00:00.000Z'),
+    validateScope: validatePicomatchLockScope,
+  },
+];
+
 export function evaluateAuditReport(report, lockfile, now = new Date()) {
   if (
     !report ||
@@ -156,6 +220,8 @@ export function evaluateAuditReport(report, lockfile, now = new Date()) {
 
   const allowed = [];
   const blocking = [];
+  const usedAdvisories = new Set();
+  const byIdentity = new Map(reviewedAdvisories.map((item) => [item.advisory, item]));
   for (const [packageName, vulnerability] of Object.entries(report.vulnerabilities)) {
     if (
       !vulnerability ||
@@ -172,19 +238,28 @@ export function evaluateAuditReport(report, lockfile, now = new Date()) {
     if (vulnerability.severity !== 'high') continue;
 
     const roots = [...findRootAdvisories(packageName, report.vulnerabilities)];
-    if (roots.length === 0 || roots.some((root) => root !== reviewedAdvisory)) {
+    if (roots.length === 0 || roots.some((root) => !byIdentity.has(root))) {
       blocking.push(`Unreviewed high vulnerability: ${packageName} (${roots.join(', ')}).`);
       continue;
     }
+    for (const root of roots) usedAdvisories.add(root);
     allowed.push(packageName);
   }
 
   allowed.sort();
-  if (allowed.length > 0 && now >= reviewExpiresAt) {
-    blocking.push(`The braces allowlist expired at ${reviewExpiresAt.toISOString()}.`);
+  const applied = reviewedAdvisories.filter((item) => usedAdvisories.has(item.advisory));
+  for (const item of applied) {
+    if (now >= item.expiresAt) {
+      blocking.push(`The ${item.label} allowlist expired at ${item.expiresAt.toISOString()}.`);
+    }
+    blocking.push(...item.validateScope(lockfile));
   }
-  if (allowed.length > 0) blocking.push(...validateReviewedLockScope(lockfile));
-  return { allowed, blocking, ok: blocking.length === 0 };
+  return {
+    allowed,
+    applied: applied.map((item) => item.label),
+    blocking,
+    ok: blocking.length === 0,
+  };
 }
 
 function runNpmAudit() {
@@ -222,10 +297,13 @@ function main() {
     );
   }
   if (result.allowed.length > 0 && result.ok) {
-    console.warn(
-      `Temporarily allowed GHSA-vfj7-8cjw-p6xm until ${reviewExpiresAt.toISOString()} across ` +
-        `${result.allowed.length} dev-only audit package(s); lockfile scope verified.`,
-    );
+    for (const item of reviewedAdvisories.filter((x) => result.applied.includes(x.label))) {
+      console.warn(
+        `Temporarily allowed ${item.label} until ${item.expiresAt.toISOString()}; ` +
+          'lockfile scope verified.',
+      );
+    }
+    console.warn(`Reviewed audit packages: ${result.allowed.join(', ')}.`);
   }
   if (!result.ok) {
     for (const reason of result.blocking) console.error(reason);

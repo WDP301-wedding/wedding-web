@@ -99,6 +99,75 @@ test('blocks the exception at the review date', () => {
   assert.match(result.blocking.join('\n'), /expired/i);
 });
 
+const picomatchAdvisory = {
+  source: 1247710,
+  name: 'picomatch',
+  severity: 'high',
+  url: 'https://github.com/advisories/GHSA-fc5q-39xc-vjpf',
+};
+const beforePicomatchReview = new Date('2026-12-01T23:59:59.000Z');
+
+function picomatchLockfile() {
+  const packages = { '': { name: 'wedding-web' } };
+  for (const [path, version] of [
+    ['node_modules/picomatch', '2.3.2'],
+    ['node_modules/@dotenvx/dotenvx/node_modules/picomatch', '4.0.7'],
+    ['node_modules/tinyglobby/node_modules/picomatch', '4.0.7'],
+    ['node_modules/vite/node_modules/picomatch', '4.0.7'],
+    ['node_modules/vitest/node_modules/picomatch', '4.0.7'],
+  ]) {
+    packages[path] = { version };
+  }
+  for (const [path, section, range] of [
+    ['node_modules/@dotenvx/dotenvx', 'dependencies', '^4.0.4'],
+    ['node_modules/@dotenvx/dotenvx/node_modules/fdir', 'peerDependencies', '^3 || ^4'],
+    ['node_modules/micromatch', 'dependencies', '^2.3.1'],
+    ['node_modules/tinyglobby', 'dependencies', '^4.0.4'],
+    ['node_modules/tinyglobby/node_modules/fdir', 'peerDependencies', '^3 || ^4'],
+    ['node_modules/vite', 'dependencies', '^4.0.7'],
+    ['node_modules/vitest', 'dependencies', '^4.0.7'],
+  ]) {
+    packages[path] = { ...packages[path], [section]: { picomatch: range } };
+  }
+  return { lockfileVersion: 3, packages };
+}
+
+function picomatchReport() {
+  return {
+    vulnerabilities: {
+      picomatch: { severity: 'high', via: [picomatchAdvisory] },
+      micromatch: { severity: 'high', via: ['picomatch'] },
+      vitest: { severity: 'high', via: ['picomatch'] },
+    },
+  };
+}
+
+test('allows the reviewed picomatch advisory before 2 December 2026', () => {
+  const result = evaluateAuditReport(picomatchReport(), picomatchLockfile(), beforePicomatchReview);
+  assert.deepEqual(result.blocking, []);
+  assert.deepEqual(result.allowed, ['micromatch', 'picomatch', 'vitest']);
+});
+
+test('blocks the picomatch exception at its review date', () => {
+  const result = evaluateAuditReport(
+    picomatchReport(),
+    picomatchLockfile(),
+    new Date('2026-12-02T00:00:00.000Z'),
+  );
+  assert.equal(result.ok, false);
+  assert.match(result.blocking.join('\n'), /picomatch.*expired/i);
+});
+
+test('blocks a new picomatch copy or consumer', () => {
+  const lockfile = picomatchLockfile();
+  lockfile.packages['node_modules/example'] = { dependencies: { picomatch: '^2.3.1' } };
+  lockfile.packages['node_modules/example/node_modules/picomatch'] = { version: '4.0.7' };
+  const result = evaluateAuditReport(picomatchReport(), lockfile, beforePicomatchReview);
+  assert.equal(result.ok, false);
+  assert.match(result.blocking.join('\n'), /picomatch lockfile copies/);
+  assert.match(result.blocking.join('\n'), /picomatch dependency scope/);
+});
+
 test('blocks a changed package version or dependency graph', () => {
   const lockfile = reviewedLockfile();
   lockfile.packages['node_modules/braces'].version = '3.0.2';
